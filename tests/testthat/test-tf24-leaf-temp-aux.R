@@ -14,7 +14,7 @@
 # the prescribed driver, and `Tleaf` is that driver exactly -- reported anyway,
 # rather than NA, so the column can be plotted against anything.
 
-tf24_temp_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
+tf24_temp_aux <- function(strategy = TF24_Model(), height = 5, ppfd = 1800,
                           theta = rep(0.25, 5), leaf_temp = NULL,
                           light = NULL) {
   ind <- TF24_Individual(strategy)
@@ -47,7 +47,7 @@ tf24_temp_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
 }
 
 pm_strategy <- function() {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$use_energy_balance <- 1
   s
 }

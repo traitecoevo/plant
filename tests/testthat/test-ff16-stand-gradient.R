@@ -49,7 +49,7 @@ test_that("FF16 declares the three census metrics and names its columns", {
   g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
   # Every parameter of FF16_Pars bar the one the model says it cannot
   # differentiate, each prefixed by its species.
-  pars <- names(FF16_Strategy()$pars)
+  pars <- names(FF16_Model()$pars)
   cannot <- names(census_undifferentiable_ff16())
   expect_setequal(cannot, "eta")
   # ... plus the birth rate, a column of its own for a constant rate.

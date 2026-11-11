@@ -337,7 +337,7 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
             ctrl = Control(node_density_coordinate = "birth_date"))
   }
 
-  offset <- TF24_Strategy()$pars$storage_relaxation_offset
+  offset <- TF24_Model()$pars$storage_relaxation_offset
   scm <- run(offset)
   for (m in c(0.7, 2)) {
     scm$run_mutant(stand(m, offset))

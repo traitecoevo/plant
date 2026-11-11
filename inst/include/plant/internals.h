@@ -36,7 +36,7 @@ inline constexpr int FECUNDITY_INDEX = 2;
 // +Inf gave them.
 //
 // ⚠️ EVERY `mortality_dt` MUST TEST THIS BESIDE `is_finite`, through
-// mortality_hazard_live() in strategy.h. That test is what stops a failed
+// mortality_hazard_live() in model.h. That test is what stops a failed
 // cohort's state moving again; keyed on finiteness alone a finite hazard passes
 // it, the rate returns, and the run is no longer the one +Inf produced.
 inline constexpr double establishment_failure_hazard = 750.0;

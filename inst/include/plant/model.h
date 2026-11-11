@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_STRATEGY_H_
-#define PLANT_PLANT_STRATEGY_H_
+#ifndef PLANT_PLANT_MODEL_H_
+#define PLANT_PLANT_MODEL_H_
 
 #include <map>
 #include <memory>
@@ -76,10 +76,10 @@ inline bool mortality_hazard_live(const S& cumulative_mortality) {
 }
 
 template <typename E> 
-class Strategy {
+class Model {
 public:
   typedef E             environment_type;
-  typedef std::shared_ptr<Strategy> ptr;
+  typedef std::shared_ptr<Model> ptr;
 
   // update this when the length of state_names changes
   static size_t state_size ();
@@ -166,7 +166,7 @@ public:
 
   double size_0;
 
-  // Every Strategy needs a set of Control objects -- these govern
+  // Every Model needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,
   // rather than the biological control that this class has.
   Control control;

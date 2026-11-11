@@ -292,7 +292,7 @@ traj_wide <- cached_rds("running-mean", {
   period <- 0.12               # yr (about 44 d), comparable to the memory
   t_end  <- 0.6                # yr
 
-  s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k_mem
+  s <- TF24t_Model(); s$k_mean_leaf_temp <- k_mem
   p <- Individual("TF24t", e)(s)
   env <- Environment("TF24t")
   # The adaptive stepper can probe the driver just past t_end, so the driver is

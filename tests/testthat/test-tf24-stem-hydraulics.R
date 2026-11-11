@@ -22,7 +22,7 @@
 ETA_C_AT_12 <- 0.8861538461538462
 
 test_that("stem path parameters carry their shipped defaults", {
-  p <- TF24_Strategy()$pars
+  p <- TF24_Model()$pars
   # Widening is on; theta_c stays at zero so `theta` keeps its whole-plant
   # meaning and no parameter-file migration is needed yet.
   expect_identical(p$D_c, 0.2)
@@ -47,7 +47,7 @@ test_that("zeroing the profile parameters recovers the height-linear model", {
   # drifted to 1e-16 would still pass expect_equal while silently taking the
   # beta == 0 branch out of play, and the SCM pins elsewhere sit at tolerance
   # 2e-2, which would absorb the consequence without anyone noticing.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$D_c <- 0
   s$pars$theta_c <- 0
   s$pars$L_tip <- 0
@@ -77,7 +77,7 @@ test_that("resistance is unchanged at the anchor height and rotates about it", {
   # and agreement holds at exactly ONE height -- never two. Below the anchor
   # every plant is more resistant than under the old model, above it every plant
   # is less: the reparameterisation is a rotation, not a rescaling.
-  p <- TF24_Strategy()$pars
+  p <- TF24_Model()$pars
   eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
   beta <- 2 * p$D_c + p$theta_c
 
@@ -107,7 +107,7 @@ test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
   # stem_P50 from 2.889 to 3.593 MPa -- buying a height exponent and silently
   # selling the safety margin of a model whose whole subject is hydraulic
   # limitation. B_Hv1 was shifted to hold it.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   m <- trait_matrix(s$pars$lma, "lma")
   derived <- default_hyperpar("TF24")(m, s, filter = FALSE)
   expect_equal(derived[, "stem_P50"][[1]], 2.888725665336019, tolerance = 1e-10)
@@ -119,7 +119,7 @@ test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
 })
 
 test_that("stem path parameters are settable", {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$D_c <- 0.3
   s$pars$L_tip <- 0.05
   expect_equal(s$pars$D_c, 0.3)
@@ -137,13 +137,13 @@ test_that("a non-zero theta_c is refused rather than half-applied", {
   # The field is declared so the closed form can be exercised and swept in
   # isolation, but a strategy carrying it must not build. Invariance criterion
   # I13. Delete this test in the same change that profiles theta everywhere.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$theta_c <- 0.4
   expect_error(TF24_Individual(s), "theta_c is not implemented")
 
   # ...including when it would exactly cancel the widening term, which is the
   # case a beta-only guard would miss.
-  s2 <- TF24_Strategy()
+  s2 <- TF24_Model()
   s2$pars$D_c <- 0.2
   s2$pars$theta_c <- -0.4
   expect_identical(2 * s2$pars$D_c + s2$pars$theta_c, 0)
@@ -151,7 +151,7 @@ test_that("a non-zero theta_c is refused rather than half-applied", {
 
   # Zero is fine, and widening on its own is unaffected -- it enters through
   # k_s(L), which has no structural counterpart to keep in step.
-  expect_silent(TF24_Individual(TF24_Strategy()))
+  expect_silent(TF24_Individual(TF24_Model()))
 })
 
 test_that("the closed form matches numerical quadrature of the integrand", {
@@ -286,7 +286,7 @@ test_that("theta_c enters with the sign that compensates", {
 
 test_that("a non-zero profile requires a terminal segment", {
   # The default now HAS widening on, so drop L_tip rather than raise D_c.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$L_tip <- 0
   expect_error(TF24_Individual(s), "L_tip")
 
@@ -300,7 +300,7 @@ test_that("a non-zero profile requires a terminal segment", {
   expect_error(TF24_Individual(s), "terminal segment")
 
   # The guard is scoped to an active profile: L_tip is ignored at beta == 0.
-  inert <- TF24_Strategy()
+  inert <- TF24_Model()
   inert$pars$D_c <- 0
   inert$pars$L_tip <- 100
   expect_silent(TF24_Individual(inert))
@@ -318,8 +318,8 @@ test_that("widening reaches the plant, and helps more at greater height", {
   # comparison -- that one is the rotation asserted above.)
   wet <- rep(0.25, 5)
 
-  wide <- TF24_Strategy()
-  flat <- TF24_Strategy()
+  wide <- TF24_Model()
+  flat <- TF24_Model()
   flat$pars$D_c <- 0
   flat$pars$L_tip <- 0
 

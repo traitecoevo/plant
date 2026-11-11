@@ -3,7 +3,7 @@ test_that("Construction", {
 
   ## This is a *minimal* set of tests that checks that it is possible
   ## to create the full set of different object types (Individual, Species,
-  ## Patch etc) with different underlying Strategy types.  It doesn't
+  ## Patch etc) with different underlying Model types.  It doesn't
   ## actually try to run them though, so do that elsewhere.
 
   strategy_types <- get_list_of_strategy_types()
@@ -12,7 +12,7 @@ test_that("Construction", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
-    expect_inherits(s, paste0(x, "_Strategy"))
+    expect_inherits(s, paste0(x, "_Model"))
 
     p <- Individual(x, e)(s)
 

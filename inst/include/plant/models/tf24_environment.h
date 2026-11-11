@@ -81,7 +81,7 @@ public:
     // NOT a top-of-atmosphere value. 900 is a clear-sky midday figure. The
     // strategy splits it into its PAR and near-infrared bands with the f_PAR
     // parameter and carries each down to the leaf; see
-    // TF24_Strategy::compute_leaf_physiology.
+    // TF24_Model::compute_leaf_physiology.
     extrinsic_drivers_set_constant("SWdown",900);
     extrinsic_drivers_set_constant("rainfall",1);
     extrinsic_drivers_set_constant("atm_vpd",1);

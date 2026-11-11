@@ -69,7 +69,7 @@ The "Sort by top of stack, same collapsed" section lists self-time symbols with 
 
 ## Where the time goes
 
-**FF16:** `SCM::run` → the stepper → `Patch::compute_rates` → `Species`/`Node::compute_rates` → `FF16_Strategy::compute_rates` → `net_mass_production_dt` → `assimilation`, the crown quadrature. The recurring hotspots are the quadrature integrand, the light spline lookup, competition, and libm `pow`/`exp`. What has paid off there, and is easy to undo by "tidying" (agents.md §12):
+**FF16:** `SCM::run` → the stepper → `Patch::compute_rates` → `Species`/`Node::compute_rates` → `FF16_Model::compute_rates` → `net_mass_production_dt` → `assimilation`, the crown quadrature. The recurring hotspots are the quadrature integrand, the light spline lookup, competition, and libm `pow`/`exp`. What has paid off there, and is easy to undo by "tidying" (agents.md §12):
 
 1. The quadrature integrand passed as its own closure type, not a `std::function`, so it inlines at every point.
 2. Integer `eta` in the crown shape as multiplication chains rather than `pow`, and `1/height` cached in an aux slot.

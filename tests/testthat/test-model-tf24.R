@@ -96,8 +96,8 @@ test_that("Defaults", {
   expected_top <- c("pars", "control", "collect_all_auxiliary",
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
-  s <- TF24_Strategy()
-  expect_inherits(s, "TF24_Strategy")
+  s <- TF24_Model()
+  expect_inherits(s, "TF24_Model")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())
@@ -113,7 +113,7 @@ test_that("Defaults", {
 
 test_that("TF24 collect_all_auxiliary option", {
 
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   p <- TF24_Individual(s)
   expect_equal(p$aux_size, 15)
   expect_equal(length(p$internals$auxs), 15)
@@ -133,7 +133,7 @@ expect_equal(p$aux_names, c(
     "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
-  s <- TF24_Strategy(collect_all_auxiliary=TRUE)
+  s <- TF24_Model(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24_Individual(s)
   expect_equal(p$aux_size, 16)
@@ -156,8 +156,8 @@ expect_equal(p$aux_names, c(
   ))
 })
 
-test_that("TF24_Strategy hyper-parameterisation", {
-  s <- TF24_Strategy()
+test_that("TF24_Model hyper-parameterisation", {
+  s <- TF24_Model()
 
   # lma
   lma <- c(0.1,1)
@@ -226,7 +226,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
 test_that("the TF24 trade-off function at the default traits keeps the default stem curve", {
   ## A strategy built from traits and the bare default must share one
   ## vulnerability curve (#611). r_l and nmass_l still differ (#579).
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   ret <- default_hyperpar("TF24")(trait_matrix(s$pars$K_s, "K_s"), s, filter = FALSE)
   for (v in c("stem_P50", "stem_c", "stem_b", "psi_crit")) {
     expect_equal(unname(ret[1, v]), s$pars[[v]], tolerance = 1e-14, info = v)
@@ -235,7 +235,7 @@ test_that("the TF24 trade-off function at the default traits keeps the default s
 
 test_that("the TF24 trade-off function no longer produces a_p1/a_p2 and k_I does not affect output", {
   m <- trait_matrix(c(0.1, 0.2), "lma")
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   ret <- default_hyperpar("TF24")(m, s)
 
   ## Legacy assimilation parameters a_p1/a_p2 are no longer derived by the
@@ -245,7 +245,7 @@ test_that("the TF24 trade-off function no longer produces a_p1/a_p2 and k_I does
 
   ## k_I is no longer used inside the hyperpar function, so varying it in the
   ## strategy does not change the hyperpar output.
-  s2 <- TF24_Strategy()
+  s2 <- TF24_Model()
   s2$pars$k_I <- 0.8
   ret2 <- default_hyperpar("TF24")(m, s2)
   expect_equal(ret, ret2)
@@ -513,13 +513,13 @@ test_that("SCM completes under extreme seasonal drought (#517, #550)", {
 # distinguishes the two.
 
 # Capacity from the model's own allometry rather than a second copy of it.
-tf24_storage_capacity_r <- function(height, s = TF24_Strategy()) {
+tf24_storage_capacity_r <- function(height, s = TF24_Model()) {
   z <- rep(0, length(height))
   s$pars$a_st1 * TF24_strategy_expand_allometry(s, height, z, z)$mass_sapwood
 }
 
 tf24_storage_at <- function(storage, height = 5, light = 1, theta = 0.4,
-                            s = TF24_Strategy()) {
+                            s = TF24_Model()) {
   env <- Environment("TF24")
   env$set_fixed_environment(light, height_max = 150)
   env$set_soil_water_state(rep(theta, env$get_soil_number_of_depths()))
@@ -536,7 +536,7 @@ test_that("the capacity a test computes is the capacity the model uses", {
   # A newborn is seeded at a_st3 of its own capacity, so the model states the
   # quantity once and this recovers it -- without which the bounds below would
   # be asserted against a second implementation of the allometry.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   env <- Environment("TF24")
   env$set_fixed_environment(1, height_max = 150)
   env$set_soil_water_state(rep(0.4, env$get_soil_number_of_depths()))
@@ -580,7 +580,7 @@ test_that("the storage rate has no kink where the net flux changes sign", {
   r_target <- 1e-3
   S0 <- r_target * tf24_storage_capacity_r(height)
 
-  G <- 1 / (1 + exp(-(r_target - TF24_Strategy()$pars$a_st2) / 0.1))
+  G <- 1 / (1 + exp(-(r_target - TF24_Model()$pars$a_st2) / 0.1))
   eps <- 1e-4
   net_flux_of <- function(P) P - 0.5 * (P + sqrt(P * P + eps * eps)) * G
   Lstar <- uniroot(function(L) net_flux_of(tf24_storage_at(S0, height, L)$P),
@@ -626,7 +626,7 @@ test_that("the storage rate relaxes on the pool's own timescale near empty", {
   r0 <- 1e-3                           # where a narrow limiter's knee would sit
   S0 <- r0 * cap
 
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$storage_relaxation_offset <- 0
   P <- tf24_storage_at(S0, height, light, s = s)$P
   expect_lt(P, 0)                      # non-vacuity: the pool is draining here
@@ -644,7 +644,7 @@ test_that("the storage rate relaxes on the pool's own timescale near empty", {
 test_that("the relaxation offset divides the pool's rate by 1 + its own rate times the offset", {
   # For a seedling in deep shade the divisor is about 7; at an offset of zero the
   # rate is the charge and the drain alone.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   env <- Environment("TF24")
   env$set_fixed_environment(1, height_max = 150)
   env$set_soil_water_state(rep(0.4, env$get_soil_number_of_depths()))
@@ -656,7 +656,7 @@ test_that("the relaxation offset divides the pool's rate by 1 + its own rate tim
   r0 <- 1e-3
   S0 <- r0 * cap
   offset <- s$pars$storage_relaxation_offset
-  no_offset <- TF24_Strategy()
+  no_offset <- TF24_Model()
   no_offset$pars$storage_relaxation_offset <- 0
 
   P <- tf24_storage_at(S0, height, light, s = s)$P
@@ -683,7 +683,7 @@ test_that("the relaxation offset divides the pool's rate by 1 + its own rate tim
   expect_gt(relaxation(no_offset) * offset, 5)
   expect_lt(relaxation(s) * offset, 1.1)
 
-  negative <- TF24_Strategy()
+  negative <- TF24_Model()
   negative$pars$storage_relaxation_offset <- -1 / 365
   expect_error(TF24_Individual(negative),
                "storage_relaxation_offset must be >= 0")
@@ -719,7 +719,7 @@ test_that("a run keeps every storage state inside [0, capacity]", {
 test_that("a stage below empty has finite rates that refill the pool", {
   # A stage below empty is a step overshooting, so its rates must stay finite
   # for the error estimate. Posed directly, since no run commits such a state.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   env <- Environment("TF24")
   env$set_fixed_environment(1, height_max = 150)
   env$set_soil_water_state(rep(0.4, env$get_soil_number_of_depths()))
@@ -770,7 +770,7 @@ test_that("the leaf-area departure rests at zero and is exactly inert", {
 
 test_that("leaf area is the allometric value times exp(departure)", {
   env <- tf24_departure_env()
-  s <- TF24_Strategy()
+  s <- TF24_Model()
 
   for (h in c(0.4, 1.0, 5.0, 15.0)) {
     ind <- TF24_Individual(s)
@@ -811,7 +811,7 @@ test_that("a thinned canopy is an ordinary state, not a domain violation", {
 
 test_that("the sapwood departure sets the Huber value and rests inert", {
   env <- tf24_departure_env()
-  ind <- TF24_Individual(TF24_Strategy(collect_all_auxiliary = TRUE))
+  ind <- TF24_Individual(TF24_Model(collect_all_auxiliary = TRUE))
   expect_true("log_area_sapwood_departure" %in% ind$ode_names)
   expect_identical(ind$state("log_area_sapwood_departure"), 0.0)
   ind$compute_rates(env)
@@ -820,7 +820,7 @@ test_that("the sapwood departure sets the Huber value and rests inert", {
 
 test_that("sapwood area is theta * leaf area * exp(sapwood departure)", {
   env <- tf24_departure_env()
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   theta <- s$pars$theta
 
   for (h in c(1.0, 5.0, 15.0)) {
@@ -846,7 +846,7 @@ test_that("sapwood area is theta * leaf area * exp(sapwood departure)", {
 
 test_that("a departed Huber value carries through to storage capacity", {
   env <- tf24_departure_env()
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   ## Read back from the model's own reserve fraction rather than from a seeded
   ## pool, since tf24_seat() seeds from an R copy of the allometry and a ratio
   ## of seeded pools would test that copy. Mortality is
@@ -870,7 +870,7 @@ test_that("a departed Huber value carries through to storage capacity", {
 })
 
 test_that("the gate reads the marginal leaf, not the reserve pool", {
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_pl0 <- 1.0
 
   probe <- function(theta_soil) {
@@ -906,11 +906,11 @@ test_that("the gate reads the marginal leaf, not the reserve pool", {
 
   ## a_pl1 is a marginal return now, not a reserve level, and its default of
   ## zero IS the break-even criterion.
-  expect_identical(TF24_Strategy()$pars$a_pl1, 0.0)
+  expect_identical(TF24_Model()$pars$a_pl1, 0.0)
 })
 
 test_that("the gate reads a running mean, not the instantaneous balance", {
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_pl0 <- 1.0
 
   wet <- Environment("TF24"); wet$set_soil_number_of_depths(5)
@@ -944,7 +944,7 @@ test_that("the gate reads a running mean, not the instantaneous balance", {
 })
 
 test_that("the canopy floor bounds thinning, by the shape of the flow", {
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_pl0 <- 1.0
   floor_phi <- log(s$pars$a_pl3)
 
@@ -984,7 +984,7 @@ test_that("the canopy floor bounds thinning, by the shape of the flow", {
 })
 
 test_that("a plant whose leaves pay for themselves replaces all of them", {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$a_pl0 <- 1.0
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5)
@@ -1001,7 +1001,7 @@ test_that("a plant whose leaves pay for themselves replaces all of them", {
 
 test_that("a_pl0 = 0 leaves both departures exactly inert", {
   env <- tf24_departure_env()
-  expect_identical(TF24_Strategy()$pars$a_pl0, 0.0)
+  expect_identical(TF24_Model()$pars$a_pl0, 0.0)
 
   ## The off switch is exact, not approximate: it zeroes the withheld fraction,
   ## which leaves the resting model bit-identical. Asserted at reserve levels
@@ -1018,7 +1018,7 @@ test_that("a_pl0 = 0 leaves both departures exactly inert", {
 
 test_that("the Huber value has a restoring force and cannot fall below preferred", {
   env <- tf24_departure_env()
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$a_pl0 <- 1.0
   k_l <- s$pars$k_l
   k_s <- s$pars$k_s
@@ -1077,7 +1077,7 @@ test_that("the Huber value has a restoring force and cannot fall below preferred
 
 test_that("rebuilding a canopy does not dilute the Huber value", {
   env <- tf24_departure_env()
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$a_pl0 <- 1.0
 
   ## A plant with a canopy gap and ample reserves rebuilds. Buying leaf area
@@ -1094,7 +1094,7 @@ test_that("rebuilding a canopy does not dilute the Huber value", {
 
 test_that("new growth is priced at the Huber value the plant actually carries", {
   env <- tf24_departure_env()
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
 
   ## dmass_sapwood_darea_leaf used pars.theta, so a plant holding extra
   ## conducting area got its hydraulic benefit for free and paid the pipe-model
@@ -1136,7 +1136,7 @@ test_that("new growth is priced at the Huber value the plant actually carries", 
 ## wrong one is wrong in a way that still looks monotone and still converges.
 
 tf24_sapwood_probe <- function(psi, theta_soil, a_sw = 1.0, height = 10) {
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_sw <- a_sw
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5L)
@@ -1222,7 +1222,7 @@ test_that("sapwood acclimation is refused under deep crown", {
   ## integrated profit is not a function of. Skipping it would leave the
   ## controller with only its negative cost term and shrink the stem forever,
   ## so this must fail loudly instead.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$a_sw <- 1.0
   s$control$shading_model <- "deep-crown"
   expect_error(TF24_Individual(s), "deep-crown")

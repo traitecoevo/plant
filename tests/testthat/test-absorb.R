@@ -18,7 +18,7 @@ ctrl <- function(absorb = 0) {
 new_scm <- function(p, c) SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), c)
 trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
 h_abs <- function(epsilon) {
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   s$pars$hmat * (1 + log((1 - epsilon) / epsilon) / s$pars$a_f2)
 }
 

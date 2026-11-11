@@ -121,15 +121,15 @@ poisson_pulses <- function(from, to, rate, mean_amount) {
 # psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
 # it does not satisfy the generic invariants these lists drive (5-state layout;
 # growth of a standalone Individual stepped a few times, which bypasses that
-# initialisation). TF24f is covered via the SCM in test-strategy-tf24f.R. TF24t
+# initialisation). TF24f is covered via the SCM in test-model-tf24f.R. TF24t
 # is excluded for the same reasons (four appended states, seeded in
-# set_initial_states) and is covered in test-strategy-tf24t.R.
+# set_initial_states) and is covered in test-model-tf24t.R.
 
 get_list_of_strategy_types <- function() {
   list(
-    FF16=FF16_Strategy,
-    TF24=TF24_Strategy,
-    K93=K93_Strategy
+    FF16=FF16_Model,
+    TF24=TF24_Model,
+    K93=K93_Model
     )
 }
 

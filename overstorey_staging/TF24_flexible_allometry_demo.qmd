@@ -135,7 +135,7 @@ back bit for bit.
 plant may decline to replace. `a_pl0 = 0`, the default, is the old model.
 
 ```{r versions}
-s <- TF24_Strategy()
+s <- TF24_Model()
 data.frame(
   quantity = c("model", "number of states", "a_pl0 (default, = off)",
                "a_pl1 (marginal leaf return where withholding is half its max)",
@@ -447,7 +447,7 @@ for (i in seq_along(levels(ctl$soil))) {
 
 Filled circles mark where growth peaks. **The signal crosses zero where growth
 peaks** — that is the property the whole derivation exists to produce, and it is
-asserted in `test-strategy-tf24.R` on the grid rather than by interpolation, so
+asserted in `test-model-tf24.R` on the grid rather than by interpolation, so
 that a controller built on production instead fails rather than passing on a
 tolerance.
 
@@ -584,7 +584,7 @@ The same trajectories seen in the plane the allometry lives in. The fixed plant 
 confined to the curve; the flexible one leaves it and comes back.
 
 ```{r allometry-plane, fig.height=4.5, fig.cap="Leaf and sapwood area against height. Dashed lines are the fixed allometry. Note the two y-axes differ by four orders of magnitude."}
-s_demo <- TF24_Strategy()
+s_demo <- TF24_Model()
 ref <- allometry_reference_curve(
   s_demo, seq(min(traj$height) * 0.95, max(traj$height) * 1.05,
               length.out = 200))

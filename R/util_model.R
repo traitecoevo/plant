@@ -1,4 +1,4 @@
-##' Convert a matrix of trait values into a list of \code{Strategy} objects,
+##' Convert a matrix of trait values into a list of \code{Model} objects,
 ##' one per row, by applying the hyperparameter function and inserting the
 ##' resulting parameters into a copy of the default strategy.
 ##'
@@ -155,7 +155,7 @@ refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar
                                              paste(near, collapse = " / "))
     }, character(1L), USE.NAMES = FALSE)
     ## The strategy carries no `name` field at R level, so the class is what names
-    ## the model -- e.g. "TF24_Strategy". `strategy$name` silently yields NULL.
+    ## the model -- e.g. "TF24_Model". `strategy$name` silently yields NULL.
     model <- class(strategy)[[1L]]
     stop(sprintf(paste0(
       "Unknown trait name%s for %s: %s\n",
@@ -167,7 +167,7 @@ refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar
       if (length(unknown) > 1L) "s" else "",
       model,
       paste(suggest, collapse = ", "),
-      sub("_Strategy$", "", model), length(c(known, fields, consumed))),
+      sub("_Model$", "", model), length(c(known, fields, consumed))),
       call. = FALSE)
   }
   invisible(NULL)

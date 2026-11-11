@@ -11,9 +11,9 @@
 pm_lambda <- 2.45e6   # latent heat of vaporisation, J kg^-1
 pm_rho_cp <- 1200.0   # volumetric heat capacity of air, J m^-3 K^-1
 
-## Build a Leaf with TF24 defaults, matching TF24_Strategy::prepare_strategy.
+## Build a Leaf with TF24 defaults, matching TF24_Model::prepare_strategy.
 pm_make_leaf <- function() {
-  s <- TF24_Strategy(); p <- s$pars; ctrl <- Control()
+  s <- TF24_Model(); p <- s$pars; ctrl <- Control()
   root_c <- 2.680147; root_b <- 3.898245
   # phylloptim 0.6.0 parameterises both curves on P50 and derives stem_b and psi_crit
   # itself; the root pair is a literal Weibull scale (root_b) here, so convert
@@ -47,7 +47,7 @@ pm_set_physiology <- function(l, PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   # The intercepted near-infrared in daylight: as much energy as the PAR band.
   l$NIR_int_ <- PAR / 4.57
   # phylloptim #33: the leaf takes the resistances, so the architecture model runs
-  # here. Same constants TF24_Strategy uses.
+  # here. Same constants TF24_Model uses.
   l$set_physiology(
     root_network = phylloptim::root_network_from_carbon(
       cfg$root_carbon_per_leaf_area, soil_depth = 1,

@@ -16,7 +16,7 @@ odelia's `step_size_last` survives `set_state_from_system()` and every `advance_
 
 ### 3. A phylloptim exception must become a rejected step
 
-`phylloptim::util::infeasible_error` and `odelia::util::DomainError` are siblings, both deriving from `std::runtime_error`, so odelia's step handler cannot see phylloptim's throw: it escapes the step and kills the run. `TF24_Strategy::solve_leaf()` translates it. Any new call into phylloptim from a rate evaluation has to go through the same translation.
+`phylloptim::util::infeasible_error` and `odelia::util::DomainError` are siblings, both deriving from `std::runtime_error`, so odelia's step handler cannot see phylloptim's throw: it escapes the step and kills the run. `TF24_Model::solve_leaf()` translates it. Any new call into phylloptim from a rate evaluation has to go through the same translation.
 
 ### 4. The event queue is built by a linear scan
 
@@ -59,7 +59,7 @@ Each looks like a win and is not; try one again only with a new reason:
 
 ### 10. Two routes to the soil geometry must stay as they are
 
-- `TF24_Strategy` passes `phylloptim::layer_thicknesses(z)` to the root network, at both call sites (the rate evaluation reads the copy `TF24_Environment` computes once when its geometry is set, `z_thickness`; the gradient path takes it from the leaf's own profile), and must not switch to `environment.dz`: on the default 1.5 m over 5 layers, layers 3 to 5 differ from `depth / n` in the last bit, so the switch moves every TF24 number. Make it at the next rebaseline.
+- `TF24_Model` passes `phylloptim::layer_thicknesses(z)` to the root network, at both call sites (the rate evaluation reads the copy `TF24_Environment` computes once when its geometry is set, `z_thickness`; the gradient path takes it from the leaf's own profile), and must not switch to `environment.dz`: on the default 1.5 m over 5 layers, layers 3 to 5 differ from `depth / n` in the last bit, so the switch moves every TF24 number. Make it at the next rebaseline.
 - `set_soil_number_of_depths` builds `z[i] = (i+1) * delta_z` and must not be unified with `set_soil_layer_widths`' running sum. `z` feeds `Q()` and the gravitational head, so unifying them re-baselines every TF24 number for no gain. The geometry test in `test-environment-TF24.R` compares the two.
 
 ### 11. A thin wet layer has a stiffness floor
@@ -99,7 +99,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 
 ### 16. TF24t
 
-- `TF24t_Strategy::rebind` is deleted and must stay deleted until TF24t has a derivative of its own. The inherited one returns a `TF24_Strategy<U>`, so it would rebind a TF24t patch as a TF24 patch: no thermal states, no damage, every number finite.
+- `TF24t_Model::rebind` is deleted and must stay deleted until TF24t has a derivative of its own. The inherited one returns a `TF24_Model<U>`, so it would rebind a TF24t patch as a TF24 patch: no thermal states, no damage, every number finite.
 - The thermal parameters are top-level strategy fields, not `TF24_Pars`, as TF24f's are. A trait matrix reaches them as numeric top-level fields (`generate_strategy` assigns them beside `pars`), and because they are outside `pars` the drift guard snapshots them only through the explicit `top_level_science` list in `test-model-version.R`: a new thermal parameter must be added there.
 - TF24t refuses the DeepCrown shading model: the leaf's damage rates are read at its leaf temperature after the crown loop, which under DeepCrown would be the last node's.
 - At non-damaging settings a rate evaluation is bit-identical to TF24 with `pars$use_energy_balance = 1` (alpha = 0, k_i = 0, topt_offset = 0, all costs 0).
@@ -109,7 +109,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 ### 17. Flexible allometry (TF24's leaf and sapwood states)
 
 - Height's monotonicity holds by construction: `dh/dt` is a product of non-negative factors. It has to stay structural, because the solver cannot check it.
-- Every expression in the carbon-to-growth and carbon-to-mortality maps must be smooth: no `min`, `max` or `?:`. Shape the flow so bounds follow from its form, as the storage rate in `TF24_Strategy::compute_rates` does.
+- Every expression in the carbon-to-growth and carbon-to-mortality maps must be smooth: no `min`, `max` or `?:`. Shape the flow so bounds follow from its form, as the storage rate in `TF24_Model::compute_rates` does.
 - `competition_effect` is load-bearing. `compute_rates` never calls `area_leaf`; it reads the aux written only by `update_dependent_aux`, so an allometry change not routed through that function passes every test that calls `area_leaf` directly.
 - `Individual::set_ode_state` refreshes aux per slot, in slot order, so an aux that depends on several states sees the old value of any later slot when an earlier one fires. TF24's `update_dependent_aux` therefore recomputes the carried leaf area, in full, on both the height slot and the leaf-departure slot; whichever fires last leaves it consistent. Keep any such aux a full recomputation on every slot it depends on.
 - The allocation derivatives are differentiated by hand and move together: `dmass_sapwood_darea_leaf` carries an `(a_l2 + 1)` factor that is the product rule against `H(A)`, `dmass_bark_darea_leaf` inherits it, and `darea_leaf_dmass_live` is their reciprocal sum.

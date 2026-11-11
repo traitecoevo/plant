@@ -1,11 +1,11 @@
 ##' @title Create a TF24w Plant or Node
-##' @param s A \code{\link{TF24w_Strategy}} object
+##' @param s A \code{\link{TF24w_Model}} object
 ##' @export
 ##' @rdname TF24w_Individual
 ##' @examples
 ##' pl <- TF24w_Individual()
 ##' pl$height
-TF24w_Individual <- function(s=TF24w_Strategy()) {
+TF24w_Individual <- function(s=TF24w_Model()) {
   Individual("TF24w", "TF24_Env")(s)
 }
 

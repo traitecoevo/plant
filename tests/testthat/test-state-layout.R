@@ -34,7 +34,7 @@ layout_probe <- function() {
       #include <Rcpp.h>
       #include <map>
       #include <string>
-      #include <plant/strategy.h>
+      #include <plant/model.h>
 
       // [[Rcpp::export]]
       std::string layout_says(int height_at, bool name_it) {

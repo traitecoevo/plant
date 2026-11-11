@@ -13,9 +13,9 @@
 ## Rate constants are per day throughout. The `leaf_temp` driver is the AIR
 ## temperature on the energy-balance path, which TF24t always takes.
 
-## A Leaf with TF24's defaults, as TF24_Strategy::prepare_strategy builds it.
+## A Leaf with TF24's defaults, as TF24_Model::prepare_strategy builds it.
 atls_make_leaf <- function() {
-  s <- TF24_Strategy(); p <- s$pars; ctrl <- Control()
+  s <- TF24_Model(); p <- s$pars; ctrl <- Control()
   Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, stem_c = p$stem_c,
        stem_P50 = p$stem_P50, root_c = p$root_c, root_P50 = p$root_P50,
        TF24_beta2 = p$TF24_beta2, phi_J = p$phi_J,
@@ -104,7 +104,7 @@ atls_set_physiology <- function(l, PAR, Tenv, VPD, tr = atls_traits(),
   # The intercepted near-infrared in daylight: as much energy as the PAR band.
   l$NIR_int_ <- PAR / 4.57
   # The leaf takes resistances, so the root architecture model runs here, with
-  # the constants TF24_Strategy uses.
+  # the constants TF24_Model uses.
   l$set_physiology(
     root_network = phylloptim::root_network_from_carbon(
       cfg$root_carbon_per_leaf_area, soil_depth = 1,

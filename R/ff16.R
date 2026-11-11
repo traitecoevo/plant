@@ -1,12 +1,12 @@
 ##' Create a FF16 Individual
 ##' @title Create a FF16 Individual
-##' @param s A \code{\link{FF16_Strategy}} object
+##' @param s A \code{\link{FF16_Model}} object
 ##' @export
 ##' @rdname FF16_individual
 ##' @examples
 ##' pl <- FF16_Individual()
 ##' pl$height
-FF16_Individual <- function(s=FF16_Strategy()) {
+FF16_Individual <- function(s=FF16_Model()) {
   Individual("FF16", "FF16_Env")(s)
 }
 
@@ -27,7 +27,7 @@ FF16_Individual <- function(s=FF16_Strategy()) {
 ##' @rdname FF16_Parameters
 ##' @examples
 ##' p1 <- FF16_Parameters()
-##' p2 <- FF16_Parameters(max_patch_lifetime = 10.0, patch_area = 1.0, strategies = list(FF16_Strategy()), strategy_default = FF16_Strategy(), node_schedule_times_default = node_schedule_times_default(10.0), node_schedule_times = list(node_schedule_times_default(10.0)), ode_times = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+##' p2 <- FF16_Parameters(max_patch_lifetime = 10.0, patch_area = 1.0, strategies = list(FF16_Model()), strategy_default = FF16_Model(), node_schedule_times_default = node_schedule_times_default(10.0), node_schedule_times = list(node_schedule_times_default(10.0)), ode_times = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
 FF16_Parameters <- function(...) {
   Parameters("FF16","FF16_Env")(...)
 }

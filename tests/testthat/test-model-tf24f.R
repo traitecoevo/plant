@@ -1,7 +1,7 @@
 test_that("Defaults", {
   # TF24f carries TF24's parameter struct, so its defaults are TF24's, which
-  # test-strategy-tf24.R pins value by value.
-  expected_pars <- unclass(TF24_Strategy()$pars)
+  # test-model-tf24.R pins value by value.
+  expected_pars <- unclass(TF24_Model()$pars)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and
   # TF24f's acclimation gain.
@@ -9,8 +9,8 @@ test_that("Defaults", {
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate",
                     "k_acclim")
 
-  s <- TF24f_Strategy()
-  expect_inherits(s, "TF24f_Strategy")
+  s <- TF24f_Model()
+  expect_inherits(s, "TF24f_Model")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())
@@ -34,7 +34,7 @@ test_that("TF24f validates acclimation knobs", {
 
 test_that("TF24f collect_all_auxiliary option", {
 
-  s <- TF24f_Strategy()
+  s <- TF24f_Model()
   p <- TF24f_Individual(s)
   expect_equal(p$aux_size, 15)
   expect_equal(length(p$internals$auxs), 15)
@@ -54,7 +54,7 @@ expect_equal(p$aux_names, c(
     "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
-  s <- TF24f_Strategy(collect_all_auxiliary=TRUE)
+  s <- TF24f_Model(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
   expect_equal(p$aux_size, 16)
@@ -77,8 +77,8 @@ expect_equal(p$aux_names, c(
   ))
 })
 
-test_that("TF24f_Strategy hyper-parameterisation", {
-  s <- TF24f_Strategy()
+test_that("TF24f_Model hyper-parameterisation", {
+  s <- TF24f_Model()
 
   # lma
   lma <- c(0.1,1)
@@ -135,11 +135,11 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 test_that("the TF24 trade-off function sources k_I from the strategy", {
   m <- trait_matrix(c(96, 120), "vcmax_25")
 
-  s <- TF24f_Strategy()
+  s <- TF24f_Model()
   expect_equal(s$pars$k_I, 0.5)
   ret <- default_hyperpar("TF24")(m, s)
 
-  s2 <- TF24f_Strategy()
+  s2 <- TF24f_Model()
   s2$pars$k_I <- 0.8
   ret2 <- default_hyperpar("TF24")(m, s2)
 
@@ -169,7 +169,7 @@ test_that("narea calculation", {
 # acclimation/gradient feedback is actually live (the gain materially changes
 # fitness), and (3) in the strong-acclimation limit it reproduces TF24's
 # directly-optimised result. The short patch + low hmat configuration matches
-# test-strategy-tf24.R so the cross-strategy comparison in (3) is like-for-like.
+# test-model-tf24.R so the cross-strategy comparison in (3) is like-for-like.
 
 test_that("acclimation runs, is active, and converges to TF24", {
 

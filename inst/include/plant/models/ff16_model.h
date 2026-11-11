@@ -1,9 +1,9 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_FF16_STRATEGY_H_
-#define PLANT_PLANT_FF16_STRATEGY_H_
+#ifndef PLANT_PLANT_FF16_MODEL_H_
+#define PLANT_PLANT_FF16_MODEL_H_
 
 #include <plant/census.h>
-#include <plant/strategy.h>
+#include <plant/model.h>
 #include <plant/models/ff16_environment.h>
 #include <plant/qag.h>
 #include <plant/canopy_shape.h>
@@ -20,7 +20,7 @@
 namespace plant {
 
 // Biological (user-settable) parameters for the FF16 strategy. Held as a value
-// member `pars` on FF16_Strategy and exposed to R as a nested RcppR6 list class
+// member `pars` on FF16_Model and exposed to R as a nested RcppR6 list class
 // (so R access is `s$pars$lma`). Derived/precomputed quantities (eta_c,
 // height_0, canopy_shape, ...) are NOT here -- they are outputs of
 // prepare_strategy() and stay as plain members on the strategy.
@@ -229,12 +229,12 @@ static_assert(sizeof(FF16_Pars<double>) ==
 // it stood in src/ff16_strategy.cpp: every expression is transcribed in its
 // operand order.
 template <typename S = double>
-class FF16_Strategy: public Strategy<FF16_Environment<S>> {
+class FF16_Model: public Model<FF16_Environment<S>> {
 public:
   using value_type = S;
 
-  typedef std::shared_ptr<FF16_Strategy> ptr;
-  FF16_Strategy();
+  typedef std::shared_ptr<FF16_Model> ptr;
+  FF16_Model();
 
   // Scientific version. Bump only when equations or default parameters change
   // the simulation output for identical inputs, never for a refactor or a
@@ -297,7 +297,7 @@ public:
   // The metrics a census of this model sums, in the order it reports them: the
   // same three TF24 declares, read off this model's own slots.
   static const auto& census_metrics() {
-    using strategy = FF16_Strategy<S>;
+    using strategy = FF16_Model<S>;
     static constexpr std::array<census_metric<strategy>, 3> metrics{{
       {"leaf_area",
        [](const strategy& p, const Internals<S>& vars) -> S {
@@ -480,10 +480,10 @@ public:
                            const S& height, const S& area_leaf,
                            const S& height_inverse);
 
-  typedef S (FF16_Strategy::*assimilation_fn_t)(const FF16_Environment<S>&,
+  typedef S (FF16_Model::*assimilation_fn_t)(const FF16_Environment<S>&,
                                                 const S&, const S&, const S&);
   // Bound once in prepare_strategy(); defaults to the deep-crown integral.
-  assimilation_fn_t assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
+  assimilation_fn_t assimilation_fn = &FF16_Model::assimilation_deep_crown;
 
   // [Appendix S6] Per-leaf photosynthetic rate.
   S assimilation_leaf(const S& x) const;
@@ -513,7 +513,7 @@ public:
                            const S& height, const S& area_leaf_,
                            const S& height_inverse,
                            S& area_sapwood_, S& mass_sapwood_);
-  // Strategy-agnostic entry point used by Individual<FF16> (#266): reads the
+  // Model-agnostic entry point used by Individual<FF16> (#266): reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know FF16's state/aux layout.
   S net_mass_production_dt(const FF16_Environment<S>& environment,
@@ -623,7 +623,7 @@ public:
                                  const S& area_leaf_) const {
     return pars.k_I * area_leaf_ * canopy_shape.leaf_area_above(z_over_height);
   }
-  // Strategy-agnostic entry point used by Individual<FF16> (#266): reads the
+  // Model-agnostic entry point used by Individual<FF16> (#266): reads the
   // cached competition_effect (= area_leaf) and height_inverse aux slots
   // itself. Inline (header) to keep the per-node hot competition path free of
   // a cross-TU call (no LTO build).
@@ -682,7 +682,7 @@ public:
     }
   }
 
-  // Set constants within FF16_Strategy
+  // Set constants within FF16_Model
   void prepare_strategy();
 
   // Another strategy's values, written into this one. prepare_strategy() is
@@ -690,7 +690,7 @@ public:
   // rebuilt. A rebind hands back a fresh strategy, so anything it leaves default
   // has to be set here rather than left alone.
   template <class S1>
-  void assign_from(const FF16_Strategy<S1>& src) {
+  void assign_from(const FF16_Model<S1>& src) {
     // Qualified: these are the base's, and an unqualified name is not looked up
     // in a dependent base.
     this->birth_rate_x = src.birth_rate_x;
@@ -732,13 +732,13 @@ public:
   // This strategy at another scalar, carrying no derivative -- assign_from takes
   // every parameter through to_passive.
   template <class U>
-  FF16_Strategy<U> rebind() const {
-    FF16_Strategy<U> out;
+  FF16_Model<U> rebind() const {
+    FF16_Model<U> out;
     out.assign_from(*this);
     return out;
   }
 
-  // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
+  // Birth height of a (germinated) seed. Model-agnostic accessor used by
   // the templated Individual; here height_0 is derived in prepare_strategy().
   double initial_height() const { return height_0; }
 
@@ -788,10 +788,10 @@ private:
     canopy_shape.initialise(pars.eta, shading_model);
     switch (shading_model) {
     case ShadingModel::DeepCrown:
-      assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
+      assimilation_fn = &FF16_Model::assimilation_deep_crown;
       break;
     case ShadingModel::MeanLight:
-      assimilation_fn = &FF16_Strategy::assimilation_average_light;
+      assimilation_fn = &FF16_Model::assimilation_average_light;
       break;
     case ShadingModel::CrownCentre:
     case ShadingModel::FlatTopBox:
@@ -801,19 +801,19 @@ private:
       // profile they read: crown-centre from the smooth profile, flat-top-box / -soft-
       // box from a profile built with (hard / smoothed) box competition, PPA from
       // a stepped profile.
-      assimilation_fn = &FF16_Strategy::assimilation_crown_top;
+      assimilation_fn = &FF16_Model::assimilation_crown_top;
       break;
     }
   }
 };
 
 template <typename S>
-typename FF16_Strategy<S>::ptr make_strategy_ptr(FF16_Strategy<S> s);
+typename FF16_Model<S>::ptr make_strategy_ptr(FF16_Model<S> s);
 
 // ---- Definitions ---------------------------------------------------------
 
 template <typename S>
-FF16_Strategy<S>::FF16_Strategy() {
+FF16_Model<S>::FF16_Model() {
   this->collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
@@ -821,7 +821,7 @@ FF16_Strategy<S>::FF16_Strategy() {
 }
 
 template <typename S>
-void FF16_Strategy<S>::refresh_indices () {
+void FF16_Model<S>::refresh_indices () {
     // Create and fill the name to state index maps
   this->state_index = std::map<std::string,int>();
   this->aux_index   = std::map<std::string,int>();
@@ -840,53 +840,53 @@ void FF16_Strategy<S>::refresh_indices () {
 
 // Leaf mass from leaf area
 template <typename S>
-S FF16_Strategy<S>::mass_leaf(const S& area_leaf) const {
+S FF16_Model<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
 }
 
 // Area and mass of sapwood
 template <typename S>
-S FF16_Strategy<S>::area_sapwood(const S& area_leaf) const {
+S FF16_Model<S>::area_sapwood(const S& area_leaf) const {
   return area_leaf * pars.theta;
 }
 
 template <typename S>
-S FF16_Strategy<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
+S FF16_Model<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
   return area_sapwood * height * eta_c * pars.rho;
 }
 
 // Area and mass of bark
 template <typename S>
-S FF16_Strategy<S>::area_bark(const S& area_leaf) const {
+S FF16_Model<S>::area_bark(const S& area_leaf) const {
   return pars.a_b1 * area_leaf * pars.theta;
 }
 
 template <typename S>
-S FF16_Strategy<S>::mass_bark(const S& area_bark, const S& height) const {
+S FF16_Model<S>::mass_bark(const S& area_bark, const S& height) const {
   return area_bark * height * eta_c * pars.rho;
 }
 
 template <typename S>
-S FF16_Strategy<S>::area_stem(const S& area_bark, const S& area_sapwood,
+S FF16_Model<S>::area_stem(const S& area_bark, const S& area_sapwood,
                               const S& area_heartwood) const {
   return area_bark + area_sapwood + area_heartwood;
 }
 
 template <typename S>
-S FF16_Strategy<S>::diameter_stem(const S& area_stem) const {
+S FF16_Model<S>::diameter_stem(const S& area_stem) const {
   using std::sqrt;
   return sqrt(4 * area_stem / M_PI);
 }
 
 // Mass of (fine) roots
 template <typename S>
-S FF16_Strategy<S>::mass_root(const S& area_leaf) const {
+S FF16_Model<S>::mass_root(const S& area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
 // Mass of coarse (structural) roots
 template <typename S>
-S FF16_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
+S FF16_Model<S>::mass_coarse_root(const S& mass_sapwood) const {
   return pars.a_cr1 * mass_sapwood;
 }
 
@@ -895,14 +895,14 @@ S FF16_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
 // a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
 // exactly, and the association order of the other terms is untouched).
 template <typename S>
-S FF16_Strategy<S>::mass_live(const S& mass_leaf, const S& mass_bark,
+S FF16_Model<S>::mass_live(const S& mass_leaf, const S& mass_bark,
                               const S& mass_sapwood, const S& mass_root,
                               const S& mass_coarse_root) const {
   return mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root;
 }
 
 template <typename S>
-S FF16_Strategy<S>::mass_total(const S& mass_leaf, const S& mass_bark,
+S FF16_Model<S>::mass_total(const S& mass_leaf, const S& mass_bark,
                                const S& mass_sapwood, const S& mass_heartwood,
                                const S& mass_root,
                                const S& mass_coarse_root) const {
@@ -911,7 +911,7 @@ S FF16_Strategy<S>::mass_total(const S& mass_leaf, const S& mass_bark,
 }
 
 template <typename S>
-S FF16_Strategy<S>::mass_above_ground(const S& mass_leaf, const S& mass_bark,
+S FF16_Model<S>::mass_above_ground(const S& mass_leaf, const S& mass_bark,
                                       const S& mass_sapwood, const S& mass_heartwood) const {
   return mass_leaf + mass_bark + mass_sapwood + mass_heartwood;
 }
@@ -921,7 +921,7 @@ S FF16_Strategy<S>::mass_above_ground(const S& mass_leaf, const S& mass_bark,
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 template <typename S>
-void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
+void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
                                      Internals<S>& vars) {
   using std::pow;
 
@@ -978,7 +978,7 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
 // Integrate photosynthesis over crown depth: for a given height in the crown,
 // take photosynthesis at that depth multiplied by the amount of leaf there.
 template <typename S>
-S FF16_Strategy<S>::assimilation_deep_crown(const FF16_Environment<S>& environment,
+S FF16_Model<S>::assimilation_deep_crown(const FF16_Environment<S>& environment,
                                             const S& height,
                                             const S& area_leaf,
                                             const S& /* height_inverse */) {
@@ -999,7 +999,7 @@ S FF16_Strategy<S>::assimilation_deep_crown(const FF16_Environment<S>& environme
 // captures the mean light exactly but ignores the curvature of photosynthesis
 // across the within-crown light distribution.
 template <typename S>
-S FF16_Strategy<S>::assimilation_average_light(const FF16_Environment<S>& environment,
+S FF16_Model<S>::assimilation_average_light(const FF16_Environment<S>& environment,
                                                const S& height,
                                                const S& area_leaf,
                                                const S& /* height_inverse */) {
@@ -1016,7 +1016,7 @@ S FF16_Strategy<S>::assimilation_average_light(const FF16_Environment<S>& enviro
 // profile, so the only difference between them lives in the environment build.
 // (height_inverse is unused but kept for a common dispatch signature.)
 template <typename S>
-S FF16_Strategy<S>::assimilation_crown_top(const FF16_Environment<S>& environment,
+S FF16_Model<S>::assimilation_crown_top(const FF16_Environment<S>& environment,
                                            const S& height,
                                            const S& area_leaf,
                                            const S& /* height_inverse */) {
@@ -1027,14 +1027,14 @@ S FF16_Strategy<S>::assimilation_crown_top(const FF16_Environment<S>& environmen
 // Photosynthetic rate per leaf area
 // `x` is openness, ranging from 0 to 1.
 template <typename S>
-S FF16_Strategy<S>::assimilation_leaf(const S& x) const {
+S FF16_Model<S>::assimilation_leaf(const S& x) const {
   return ff16_assimilation_leaf(pars.a_p1, pars.a_p2, x);
 }
 
 // Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
-S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
+S FF16_Model<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
                                 const S& mass_bark, const S& mass_root,
                                 const S& mass_coarse_root) const {
   return ff16_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
@@ -1044,7 +1044,7 @@ S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
 
 // Total turnover
 template <typename S>
-S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
+S FF16_Model<S>::turnover(const S& mass_leaf, const S& mass_bark,
                              const S& mass_sapwood, const S& mass_root,
                              const S& mass_coarse_root) const {
    return ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
@@ -1053,7 +1053,7 @@ S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
 }
 
 template <typename S>
-S FF16_Strategy<S>::turnover_sapwood(const S& mass) const {
+S FF16_Model<S>::turnover_sapwood(const S& mass) const {
   return pars.k_s * mass;
 }
 
@@ -1062,13 +1062,13 @@ S FF16_Strategy<S>::turnover_sapwood(const S& mass) const {
 // NOTE: Translation of variable names from the Falster 2011.  Everything
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
 template <typename S>
-S FF16_Strategy<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
+S FF16_Model<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
                                              const S& turnover) const {
   return ff16_net_production_A(pars.a_bio, pars.a_y, assimilation, respiration, turnover);
 }
 
 template <typename S>
-S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environment,
+S FF16_Model<S>::net_mass_production_dt(const FF16_Environment<S>& environment,
                                            const S& height, const S& area_leaf_,
                                            const S& height_inverse) {
   S area_sapwood_, mass_sapwood_;
@@ -1077,7 +1077,7 @@ S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environmen
 }
 
 template <typename S>
-S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environment,
+S FF16_Model<S>::net_mass_production_dt(const FF16_Environment<S>& environment,
                                            const S& height, const S& area_leaf_,
                                            const S& height_inverse,
                                            S& area_sapwood_, S& mass_sapwood_) {
@@ -1101,27 +1101,27 @@ S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environmen
 
 // Fraction of production allocated to reproduction
 template <typename S>
-S FF16_Strategy<S>::fraction_allocation_reproduction(const S& height) const {
+S FF16_Model<S>::fraction_allocation_reproduction(const S& height) const {
   using std::exp;
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
 }
 
 // Rate of offspring production
 template <typename S>
-S FF16_Strategy<S>::fecundity_dt(const S& net_mass_production_dt,
+S FF16_Model<S>::fecundity_dt(const S& net_mass_production_dt,
                                  const S& fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction /
     (pars.omega + pars.a_f3);
 }
 
 template <typename S>
-S FF16_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf) const {
+S FF16_Model<S>::darea_leaf_dmass_live(const S& area_leaf) const {
   using std::pow;
   return darea_leaf_dmass_live(area_leaf, pow(area_leaf, pars.a_l2));
 }
 
 template <typename S>
-S FF16_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf,
+S FF16_Model<S>::darea_leaf_dmass_live(const S& area_leaf,
                                           const S& area_leaf_pow_a_l2) const {
   // dmass_bark_darea_leaf(area_leaf) == pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf),
   // so compute the shared pow(area_leaf, pars.a_l2) term once rather than twice.
@@ -1138,13 +1138,13 @@ S FF16_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf,
 }
 
 template <typename S>
-S FF16_Strategy<S>::dheight_darea_leaf(const S& area_leaf) const {
+S FF16_Model<S>::dheight_darea_leaf(const S& area_leaf) const {
   using std::pow;
   return pars.a_l1 * pars.a_l2 * pow(area_leaf, pars.a_l2 - 1);
 }
 
 template <typename S>
-S FF16_Strategy<S>::dheight_darea_leaf(const S& area_leaf,
+S FF16_Model<S>::dheight_darea_leaf(const S& area_leaf,
                                        const S& area_leaf_pow_a_l2) const {
   // pow(area_leaf, pars.a_l2 - 1) == pow(area_leaf, pars.a_l2) / area_leaf, so reuse the
   // shared power instead of a second libm pow (a reciprocal-multiply reorder,
@@ -1154,49 +1154,49 @@ S FF16_Strategy<S>::dheight_darea_leaf(const S& area_leaf,
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
 template <typename S>
-const S& FF16_Strategy<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
+const S& FF16_Model<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
   return pars.lma;
 }
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 template <typename S>
-S FF16_Strategy<S>::dmass_sapwood_darea_leaf(const S& area_leaf) const {
+S FF16_Model<S>::dmass_sapwood_darea_leaf(const S& area_leaf) const {
   using std::pow;
   return dmass_sapwood_darea_leaf(area_leaf, pow(area_leaf, pars.a_l2));
 }
 
 template <typename S>
-S FF16_Strategy<S>::dmass_sapwood_darea_leaf(const S& /* area_leaf */,
+S FF16_Model<S>::dmass_sapwood_darea_leaf(const S& /* area_leaf */,
                                              const S& area_leaf_pow_a_l2) const {
   return pars.rho * eta_c * pars.a_l1 * pars.theta * (pars.a_l2 + 1.0) * area_leaf_pow_a_l2;
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
 template <typename S>
-S FF16_Strategy<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
+S FF16_Model<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
   return pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l
 template <typename S>
-const S& FF16_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
+const S& FF16_Model<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
   return pars.a_r1;
 }
 
 // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l
 template <typename S>
-S FF16_Strategy<S>::dmass_coarse_root_darea_leaf(const S& area_leaf) const {
+S FF16_Model<S>::dmass_coarse_root_darea_leaf(const S& area_leaf) const {
   return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 template <typename S>
-S FF16_Strategy<S>::mass_heartwood_dt(const S& mass_sapwood) const {
+S FF16_Model<S>::mass_heartwood_dt(const S& mass_sapwood) const {
   return turnover_sapwood(mass_sapwood);
 }
 
 
 template <typename S>
-S FF16_Strategy<S>::mass_live_given_height(const S& height) const {
+S FF16_Model<S>::mass_live_given_height(const S& height) const {
   S area_leaf_ = area_leaf(height);
   const S mass_sapwood_ = mass_sapwood(area_sapwood(area_leaf_), height);
   return mass_leaf(area_leaf_) +
@@ -1207,13 +1207,13 @@ S FF16_Strategy<S>::mass_live_given_height(const S& height) const {
 }
 
 template <typename S>
-S FF16_Strategy<S>::height_given_mass_leaf(const S& mass_leaf) const {
+S FF16_Model<S>::height_given_mass_leaf(const S& mass_leaf) const {
   using std::pow;
   return pars.a_l1 * pow(mass_leaf / pars.lma, pars.a_l2);
 }
 
 template <typename S>
-S FF16_Strategy<S>::mortality_dt(const S& productivity_area,
+S FF16_Model<S>::mortality_dt(const S& productivity_area,
                                  const S& cumulative_mortality) const {
 
   // A hazard that is non-finite or held at establishment_failure_hazard no
@@ -1230,12 +1230,12 @@ S FF16_Strategy<S>::mortality_dt(const S& productivity_area,
 }
 
 template <typename S>
-const S& FF16_Strategy<S>::mortality_growth_independent_dt() const {
+const S& FF16_Model<S>::mortality_growth_independent_dt() const {
   return pars.d_I;
 }
 
 template <typename S>
-S FF16_Strategy<S>::mortality_growth_dependent_dt(const S& productivity_area) const {
+S FF16_Model<S>::mortality_growth_dependent_dt(const S& productivity_area) const {
   using std::exp;
   return pars.a_dG1 * exp(-pars.a_dG2 * productivity_area);
 }
@@ -1248,7 +1248,7 @@ S FF16_Strategy<S>::mortality_growth_dependent_dt(const S& productivity_area) co
 // point puts it where the parameters are already differentiable inputs, and the
 // value written is the same one either way.
 template <typename S>
-void FF16_Strategy<S>::set_initial_states(const FF16_Environment<S>& environment,
+void FF16_Model<S>::set_initial_states(const FF16_Environment<S>& environment,
                                           Internals<S>& vars) {
   (void)environment;
   const SeedGeometry seed = seed_geometry();
@@ -1262,7 +1262,7 @@ void FF16_Strategy<S>::set_initial_states(const FF16_Environment<S>& environment
 
 // Survival of seedlings during establishment
 template <typename S>
-S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environment) {
+S FF16_Model<S>::establishment_probability(const FF16_Environment<S>& environment) {
   const SeedGeometry seed = seed_geometry();
   return establishment_probability(
     environment,
@@ -1272,7 +1272,7 @@ S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environ
 }
 
 template <typename S>
-S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environment,
+S FF16_Model<S>::establishment_probability(const FF16_Environment<S>& environment,
                                               const S& net_mass_production_dt_) {
   return establishment_probability(environment, net_mass_production_dt_,
                                    seed_geometry().area_leaf);
@@ -1281,7 +1281,7 @@ S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environ
 // Every form above ends here. The carbon is birth-size carbon either way,
 // whatever height the caller's plant happens to be at.
 template <typename S>
-S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environment,
+S FF16_Model<S>::establishment_probability(const FF16_Environment<S>& environment,
                                               const S& net_mass_production_dt_,
                                               const S& seed_area_leaf) {
   using std::exp;
@@ -1301,7 +1301,7 @@ S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environ
 
 // The aim is to find a plant height that gives the correct seed mass.
 template <typename S>
-double FF16_Strategy<S>::height_seed(void) const {
+double FF16_Model<S>::height_seed(void) const {
 
   // Note, these are not entirely correct bounds. Ideally we would use height
   // given *total* mass, not leaf mass, but that is difficult to calculate.
@@ -1333,7 +1333,7 @@ double FF16_Strategy<S>::height_seed(void) const {
 }
 
 template <typename S>
-void FF16_Strategy<S>::prepare_strategy() {
+void FF16_Model<S>::prepare_strategy() {
 
   // Set up the function_integrator
   function_integrator = quadrature::QK(
@@ -1357,7 +1357,7 @@ void FF16_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const FF16_Strategy<tangent> at_tangent = rebind<tangent>();
+    const FF16_Model<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
     odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
@@ -1371,9 +1371,9 @@ void FF16_Strategy<S>::prepare_strategy() {
 }
 
 template <typename S>
-typename FF16_Strategy<S>::ptr make_strategy_ptr(FF16_Strategy<S> s) {
+typename FF16_Model<S>::ptr make_strategy_ptr(FF16_Model<S> s) {
   s.prepare_strategy();
-  return std::make_shared<FF16_Strategy<S> >(s);
+  return std::make_shared<FF16_Model<S> >(s);
 }
 
 }

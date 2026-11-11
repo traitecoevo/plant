@@ -1,6 +1,6 @@
 # Root hydraulic parameters exposed through TF24_Pars.
 #
-# root_c, root_b and root_psi_crit were fixed members of TF24_Strategy, and the
+# root_c, root_b and root_psi_crit were fixed members of TF24_Model, and the
 # rooting depth cap was a file-static constant in src/tf24_strategy.cpp. None
 # were reachable from R, so root shutoff was pinned at ~5.87 MPa and rooting
 # depth at 1.5 m -- neither calibratable, and the shutoff is too conservative
@@ -9,7 +9,7 @@
 test_that("root hydraulic parameters are exposed with unchanged defaults", {
   # Values are the ones previously hard-coded; changing them is a scientific
   # change and should require editing this test deliberately.
-  pars <- TF24_Strategy()$pars
+  pars <- TF24_Model()$pars
   expect_equal(pars$root_c, 2.680147)
   expect_equal(pars$root_P50, 3.4)
   # ⚠️ AGAINST THE DERIVATION, NOT AGAINST THE OLD LITERAL. root_b was a
@@ -29,7 +29,7 @@ test_that("root hydraulic parameters are exposed with unchanged defaults", {
 })
 
 test_that("root hydraulic parameters are settable", {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$root_b <- 1.5
   s$pars$root_c <- 3.0
   s$pars$root_psi_crit <- 1.5 * log(1 / 0.05)^(1 / 3.0)
@@ -45,8 +45,8 @@ test_that("root_b reaches the root vulnerability curve", {
   # through to Leaf, assimilation would be identical.
   wet <- rep(0.25, 5)
 
-  base <- TF24_Strategy()
-  fragile <- TF24_Strategy()
+  base <- TF24_Model()
+  fragile <- TF24_Model()
   # ⚠️ THROUGH root_P50, WHICH IS THE TRAIT. The strategy hands
   # (root_P50, root_c) to the leaf and the leaf derives root_b and
   # root_psi_crit, so writing either of those changes nothing -- and changes it
@@ -66,8 +66,8 @@ test_that("rooting_depth_max reaches the root network", {
   # plant settles at. A shallow cap leaves it drier.
   stratified <- c(rep(0.04, 8), rep(0.35, 7))   # dry to 0.8 m, wet below
 
-  shallow <- TF24_Strategy(); shallow$pars$rooting_depth_max <- 0.2
-  deep    <- TF24_Strategy(); deep$pars$rooting_depth_max    <- 1.5
+  shallow <- TF24_Model(); shallow$pars$rooting_depth_max <- 0.2
+  deep    <- TF24_Model(); deep$pars$rooting_depth_max    <- 1.5
 
   psi_shallow <- tf24_probe(shallow, stratified)[["opt_root_psi"]]
   psi_deep    <- tf24_probe(deep, stratified)[["opt_root_psi"]]
@@ -98,7 +98,7 @@ test_that("exposing the root parameters left default behaviour unchanged", {
 # ---------------------------------------------------------------------------
 
 probe_root_operating_point <- function(widths, theta = 0.25) {
-  ind <- TF24_Individual(TF24_Strategy())
+  ind <- TF24_Individual(TF24_Model())
   ind$set_state("height", 5)
   env <- TF24_Environment()
   env$set_soil_layer_widths(widths)

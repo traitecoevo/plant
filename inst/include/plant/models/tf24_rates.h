@@ -1,5 +1,5 @@
 // -*-c++-*-
-// TF24_Strategy's rates: the ODE right-hand side, respiration and turnover,
+// TF24_Model's rates: the ODE right-hand side, respiration and turnover,
 // allocation, fecundity, mortality, storage, establishment and competition.
 // The class is declared in tf24_model.h, which includes this file.
 #ifndef PLANT_PLANT_TF24_RATES_H_
@@ -20,7 +20,7 @@ namespace plant {
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 template <typename S>
-void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  Internals<S>& vars) {
+void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Internals<S>& vars) {
   const S& height = vars.state(HEIGHT_INDEX);
   const S& area_leaf_ = vars.aux(aux_idx_competition_effect);
   // The Huber value's departure from theta. Read once here and threaded through
@@ -252,7 +252,7 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
 // statement and registers nothing -- it is a newly constructed active scalar
 // that costs a slot, not a write to a live one.
 template <typename S>
-void TF24_Strategy<S>::write_leaf_readings(Internals<S>& vars,
+void TF24_Model<S>::write_leaf_readings(Internals<S>& vars,
                                            const S& area_leaf_) {
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
   vars.set_aux(aux_idx_opt_psi_leaf, leaf.opt_psi_leaf_);
@@ -284,7 +284,7 @@ void TF24_Strategy<S>::write_leaf_readings(Internals<S>& vars,
 // area. Dropping it optimises production instead, which peaks near 3.3x the
 // pipe-model ratio against growth's 1.4-1.8x.
 template <typename S>
-S TF24_Strategy<S>::sapwood_marginal_return(
+S TF24_Model<S>::sapwood_marginal_return(
     const S& area_leaf_, const S& area_leaf_star, const S& sapwood_departure,
     const S& mass_sapwood_, const S& withheld_sapwood, const S& growth_flux,
     const S& net_mass_production_dt_, const S& darea_leaf_dmass_live_) {
@@ -345,7 +345,7 @@ S TF24_Strategy<S>::sapwood_marginal_return(
 // Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
-S TF24_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
+S TF24_Model<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
                              const S& mass_bark, const S& mass_root,
                              const S& mass_coarse_root) const {
   return respiration_leaf(mass_leaf) +
@@ -356,33 +356,33 @@ S TF24_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
 }
 
 template <typename S>
-S TF24_Strategy<S>::respiration_leaf(const S& mass) const {
+S TF24_Model<S>::respiration_leaf(const S& mass) const {
   return pars.r_l * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::respiration_bark(const S& mass) const {
+S TF24_Model<S>::respiration_bark(const S& mass) const {
   return pars.r_b * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::respiration_sapwood(const S& mass) const {
+S TF24_Model<S>::respiration_sapwood(const S& mass) const {
   return pars.r_s * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::respiration_root(const S& mass) const {
+S TF24_Model<S>::respiration_root(const S& mass) const {
   return pars.r_r * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::respiration_coarse_root(const S& mass) const {
+S TF24_Model<S>::respiration_coarse_root(const S& mass) const {
   return pars.r_cr * mass;
 }
 
 // Total turnover
 template <typename S>
-S TF24_Strategy<S>::turnover(const S& replacement_leaf,
+S TF24_Model<S>::turnover(const S& replacement_leaf,
                           const S& replacement_sapwood,
                           const S& mass_leaf, const S& mass_bark,
                           const S& mass_sapwood, const S& mass_root,
@@ -397,27 +397,27 @@ S TF24_Strategy<S>::turnover(const S& replacement_leaf,
 }
 
 template <typename S>
-S TF24_Strategy<S>::turnover_leaf(const S& mass) const {
+S TF24_Model<S>::turnover_leaf(const S& mass) const {
   return pars.k_l * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::turnover_bark(const S& mass) const {
+S TF24_Model<S>::turnover_bark(const S& mass) const {
   return pars.k_b * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::turnover_sapwood(const S& mass) const {
+S TF24_Model<S>::turnover_sapwood(const S& mass) const {
   return pars.k_s * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::turnover_root(const S& mass) const {
+S TF24_Model<S>::turnover_root(const S& mass) const {
   return pars.k_r * mass;
 }
 
 template <typename S>
-S TF24_Strategy<S>::turnover_coarse_root(const S& mass) const {
+S TF24_Model<S>::turnover_coarse_root(const S& mass) const {
   return pars.k_cr * mass;
 }
 
@@ -426,33 +426,33 @@ S TF24_Strategy<S>::turnover_coarse_root(const S& mass) const {
 // NOTE: Translation of variable names from the Falster 2011.  Everything
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
 template <typename S>
-S TF24_Strategy<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
+S TF24_Model<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
                                 const S& turnover) const {
   return pars.a_bio * pars.a_y * (assimilation - respiration) - turnover;
 }
 
 // Fraction of production allocated to reproduction
 template <typename S>
-S TF24_Strategy<S>::fraction_allocation_reproduction(const S& height) const {
+S TF24_Model<S>::fraction_allocation_reproduction(const S& height) const {
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
 }
 
 // Fraction of production allocated to growth
 template <typename S>
-S TF24_Strategy<S>::fraction_allocation_growth(const S& height) const {
+S TF24_Model<S>::fraction_allocation_growth(const S& height) const {
   return 1.0 - fraction_allocation_reproduction(height);
 }
 
 // Rate of offspring production
 template <typename S>
-S TF24_Strategy<S>::fecundity_dt(const S& net_mass_production_dt,
+S TF24_Model<S>::fecundity_dt(const S& net_mass_production_dt,
                                const S& fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction /
     (pars.omega + pars.a_f3);
 }
 
 template <typename S>
-S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
+S TF24_Model<S>::mortality_dt(const S& relative_reserves,
                               const S& cumulative_mortality) const {
 
   // Growth-dependent mortality is driven by relative NSC reserves
@@ -471,7 +471,7 @@ S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
 }
 
 template <typename S>
-S TF24_Strategy<S>::mortality_growth_independent_dt() const {
+S TF24_Model<S>::mortality_growth_independent_dt() const {
   return pars.d_I;
 }
 
@@ -480,14 +480,14 @@ S TF24_Strategy<S>::mortality_growth_independent_dt() const {
 // (r=1) give near-zero excess mortality; empty reserves (r=0) give the finite
 // maximum a_dG1. This boundedness is what removes the #550 ODE overflow.
 template <typename S>
-S TF24_Strategy<S>::mortality_storage_dependent_dt(const S& relative_reserves) const {
+S TF24_Model<S>::mortality_storage_dependent_dt(const S& relative_reserves) const {
   return pars.a_dG1 * exp(-pars.a_dG2 * relative_reserves);
 }
 
 // NSC storage capacity: scales with sapwood mass (per Daniel, #517). mass_sapwood
 // = area_sapwood(area_leaf, departure) * height * eta_c * rho.
 template <typename S>
-S TF24_Strategy<S>::storage_capacity(const S& area_leaf_, const S& height,
+S TF24_Model<S>::storage_capacity(const S& area_leaf_, const S& height,
                                      const S& sapwood_departure) const {
   return pars.a_st1 *
     mass_sapwood(area_sapwood(area_leaf_, sapwood_departure), height);
@@ -497,7 +497,7 @@ S TF24_Strategy<S>::storage_capacity(const S& area_leaf_, const S& height,
 // its capacity (Stefaniak et al. 2026, Eq 8), so seedlings are born with
 // reserves rather than starting empty (which would kill them immediately).
 template <typename S>
-void TF24_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment,
+void TF24_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                        Internals<S>& vars) {
   // The seed's height is written here, not inherited from the height an
   // Individual was constructed with. Construction runs in plain arithmetic and an
@@ -538,7 +538,7 @@ void TF24_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment
 
 // Survival of seedlings during establishment
 template <typename S>
-S TF24_Strategy<S>::establishment_probability(const TF24_Environment<S>& environment) {
+S TF24_Model<S>::establishment_probability(const TF24_Environment<S>& environment) {
   const SeedGeometry seed = seed_geometry();
   return establishment_probability(
     environment,
@@ -555,7 +555,7 @@ S TF24_Strategy<S>::establishment_probability(const TF24_Environment<S>& environ
 // Both forms above end here. The carbon is birth-size carbon either way, whatever
 // height the caller's plant happens to be at.
 template <typename S>
-S TF24_Strategy<S>::establishment_probability(const TF24_Environment<S>& environment,
+S TF24_Model<S>::establishment_probability(const TF24_Environment<S>& environment,
                                                const S& net_mass_production_dt_) {
 
   S decay_over_time = exp(-pars.recruitment_decay * environment.time);
@@ -573,7 +573,7 @@ S TF24_Strategy<S>::establishment_probability(const TF24_Environment<S>& environ
 // per-call area_leaf() evaluation and z/height division are hoisted out of the
 // inner competition loop.
 template <typename S>
-S TF24_Strategy<S>::compute_competition(const S& z, const S& area_leaf_,
+S TF24_Model<S>::compute_competition(const S& z, const S& area_leaf_,
                                           const S& height_inverse) const {
   return pars.k_I * area_leaf_ * canopy_shape.leaf_area_above(z * height_inverse);
 }

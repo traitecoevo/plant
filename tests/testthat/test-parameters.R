@@ -34,7 +34,7 @@ test_that("Nontrivial creation", {
 
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    rep(strategy_types[[x]](),2))),
-                 sprintf("Expected an object of type %s_Strategy", x))
+                 sprintf("Expected an object of type %s_Model", x))
 
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
 
@@ -52,7 +52,7 @@ test_that("Nontrivial creation", {
 })
 
 # Now overwritten in call to SCM or Patch - will need appropriate test
-# test_that("Parameters overwrites Strategy control", {
+# test_that("Parameters overwrites Model control", {
 #   for (x in names(strategy_types)) {
 #     ctrl <- ctrl_s <- ctrl_p <- Control()
 #     ## set these just as markers:

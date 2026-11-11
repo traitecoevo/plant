@@ -21,11 +21,11 @@ infeasible_rates <- function(strategy, individual) {
 }
 
 test_that("TF24 translates an infeasible leaf solve into a domain error", {
-  expect_error(infeasible_rates(TF24_Strategy(), TF24_Individual),
+  expect_error(infeasible_rates(TF24_Model(), TF24_Individual),
                "^leaf solve infeasible: \\[phylloptim:infeasible:")
 })
 
 test_that("TF24f translates an infeasible leaf solve into a domain error", {
-  expect_error(infeasible_rates(TF24f_Strategy(), TF24f_Individual),
+  expect_error(infeasible_rates(TF24f_Model(), TF24f_Individual),
                "^leaf solve infeasible: \\[phylloptim:infeasible:")
 })

@@ -1712,7 +1712,7 @@ ladder_birth_size_parameters <- function() {
 ladder_trait_fanout <- function(traits, name, rel = 1e-6) {
   derived <- function(tr) {
     unlist(as.data.frame(default_hyperpar("TF24")(
-      trait_matrix(unname(tr), names(tr)), TF24_Strategy(), filter = FALSE))[1, ])
+      trait_matrix(unname(tr), names(tr)), TF24_Model(), filter = FALSE))[1, ])
   }
   h <- abs(traits[[name]]) * rel
   up <- traits; up[[name]] <- traits[[name]] + h

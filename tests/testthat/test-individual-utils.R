@@ -59,6 +59,6 @@ test_that("strategy_list", {
     s <- plant:::generate_strategy(p, trait_matrix(1, "lma"), hyperpar = default_hyperpar(x), birth_rate = 1.0)
     expect_equal(length(s), 1)
     expect_inherits(s, "list")
-    expect_inherits(s[[1]], sprintf("%s_Strategy", x))
+    expect_inherits(s[[1]], sprintf("%s_Model", x))
   }
 })

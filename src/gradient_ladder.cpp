@@ -67,7 +67,7 @@
 
 namespace {
 
-using strategy_type = plant::TF24_Strategy<double>;
+using strategy_type = plant::TF24_Model<double>;
 using environment_type = plant::TF24_Environment<double>;
 using patch_type = plant::Patch<strategy_type, environment_type>;
 using patch_handle = plant::RcppR6::RcppR6<patch_type>;
@@ -277,7 +277,7 @@ void name_block(Rcpp::NumericMatrix& m, const patch_type& patch,
 
 // The whole block Jacobian, one exact column per input, by forward tangent.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ladder_block_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::NumericMatrix ladder_block_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                        int node) {
   const patch_type& patch = *obj_;
   const node_address at = locate(patch, static_cast<size_t>(node - 1));
@@ -298,7 +298,7 @@ Rcpp::NumericMatrix ladder_block_jacobian_forward_tf24(plant::RcppR6::RcppR6<pla
 // The block's value, for the non-vacuity checks: a Jacobian of a block that
 // returned nothing is not evidence of anything.
 // [[Rcpp::export]]
-std::vector<double> ladder_block_value_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_, int node) {
+std::vector<double> ladder_block_value_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_, int node) {
   const patch_type& patch = *obj_;
   tangent_block block(patch, locate(patch, static_cast<size_t>(node - 1)));
   return block.value();
@@ -309,7 +309,7 @@ std::vector<double> ladder_block_value_tf24(plant::RcppR6::RcppR6<plant::Patch<p
 // disagreement with the tangent above is a disagreement about the block itself
 // rather than about any transpose.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ladder_block_jacobian_reverse_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::NumericMatrix ladder_block_jacobian_reverse_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                        int node) {
   patch_type& patch = *obj_;
   const node_address at = locate(patch, static_cast<size_t>(node - 1));
@@ -370,7 +370,7 @@ Rcpp::NumericMatrix ladder_block_jacobian_reverse_tf24(plant::RcppR6::RcppR6<pla
 // function, and every Jacobian taken from it is that function's, so this is the
 // first thing to compare and it needs no derivative at all.
 // [[Rcpp::export]]
-std::vector<double> ladder_rhs_value_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+std::vector<double> ladder_rhs_value_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const patch_type& patch = *obj_;
   const size_t n = patch.ode_size();
   const double time = patch.ode_time();
@@ -396,7 +396,7 @@ std::vector<double> ladder_rhs_value_forward_tf24(plant::RcppR6::RcppR6<plant::P
 // One right-hand-side evaluation's Jacobian with respect to the ODE state, by
 // forward tangent. The reference for the reduction transposes.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ladder_rhs_state_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::NumericMatrix ladder_rhs_state_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const patch_type& patch = *obj_;
   const size_t n = patch.ode_size();
   const double time = patch.ode_time();
@@ -436,7 +436,7 @@ Rcpp::NumericMatrix ladder_rhs_state_jacobian_forward_tf24(plant::RcppR6::RcppR6
 // because the quantities a state determines read the parameters and would
 // otherwise be derived at the previous values.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ladder_rhs_trait_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::NumericMatrix ladder_rhs_trait_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const patch_type& patch = *obj_;
   const size_t n = patch.ode_size();
   const double time = patch.ode_time();
@@ -488,7 +488,7 @@ Rcpp::NumericMatrix ladder_rhs_trait_jacobian_forward_tf24(plant::RcppR6::RcppR6
 // The transpose of one right-hand-side evaluation, as the sweep takes it: the
 // adjoints of the rates in, the adjoints of the state and of the traits out.
 // [[Rcpp::export]]
-Rcpp::List ladder_rhs_adjoint_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_rhs_adjoint_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                    std::vector<double> lambda_dydt) {
   patch_type& patch = *obj_;
   plant::clear_recorded_refusal(patch);
@@ -522,7 +522,7 @@ Rcpp::List ladder_rhs_adjoint_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF2
 // carries one weight per trait column, so a unit vector gives one Jacobian column
 // and a mixed direction gives the contraction the trajectory rungs compare.
 // [[Rcpp::export]]
-Rcpp::List ladder_trajectory_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_trajectory_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                           std::vector<double> direction) {
   std::vector<double> value;
   const std::vector<double> tangent =
@@ -539,7 +539,7 @@ Rcpp::List ladder_trajectory_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant
 // differentiated path made of this row; a caller comparing it against a rebuilt
 // difference of the same quantity is comparing the row against the condition.
 // [[Rcpp::export]]
-Rcpp::List ladder_boundary_density_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_boundary_density_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                 int index) {
     const patch_type& source = *obj_;
   auto active = source.template rebind<tangent>();
@@ -596,7 +596,7 @@ Rcpp::List ladder_boundary_density_tangent_tf24(plant::RcppR6::RcppR6<plant::Pat
 // declares this row, so a caller comparing the two is comparing a declaration
 // against the condition it claims to solve.
 // [[Rcpp::export]]
-Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                              int index) {
     const patch_type& patch = *obj_;
   const strategy_type& source = *patch.at_species(0).strategy_ptr();
@@ -619,7 +619,7 @@ Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<
 // coordinate direction gives the census's sensitivity to the value one cohort
 // starts at, with no trait and no derived quantity on the path.
 // [[Rcpp::export]]
-Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                     std::vector<double> direction,
                                                     int segment) {
   std::vector<double> value;
@@ -634,7 +634,7 @@ Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant:
 // Differencing this is what referees the tangent above: the same steps, the same
 // introductions, one perturbed state.
 // [[Rcpp::export]]
-std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                             std::vector<double> state0,
                                                             int segment) {
   return obj_->census_initial_state_pinned(
@@ -654,7 +654,7 @@ std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR
 // count of stage transposes: every one records it and every sweep of one carries
 // its row.
 // [[Rcpp::export]]
-Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   obj_->clear_boundary_condition_evaluations();
   const plant::census_gradient result =
     obj_->census_trait_gradient();
@@ -692,7 +692,7 @@ Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<pla
 // cannot take both a Patch and an SCM. That one is the shipped path's; this one
 // is what a patch fixture has.
 // [[Rcpp::export]]
-std::vector<std::string> ladder_trait_names_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+std::vector<std::string> ladder_trait_names_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->trait_adjoint_names();
 }
 
@@ -703,7 +703,7 @@ std::vector<std::string> ladder_trait_names_tf24(plant::RcppR6::RcppR6<plant::Pa
 // this differences the double path instead, which runs the leaf's own solve.
 // Columns are the block's inputs in block_inputs order, rows its outputs.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ladder_block_difference_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::NumericMatrix ladder_block_difference_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                  int node, double rel) {
   patch_type& patch = *obj_;
   const node_address at = locate(patch, static_cast<size_t>(node - 1));
@@ -758,7 +758,7 @@ Rcpp::NumericMatrix ladder_block_difference_tf24(plant::RcppR6::RcppR6<plant::Pa
 // `direction` is one weight per block input, in block_inputs order; the step is
 // `rel` times the size of the inputs the direction actually reaches.
 // [[Rcpp::export]]
-std::vector<double> ladder_block_direction_difference_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+std::vector<double> ladder_block_direction_difference_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                            int node,
                                                            std::vector<double> direction,
                                                            double rel) {
@@ -828,7 +828,7 @@ std::vector<double> ladder_block_direction_difference_tf24(plant::RcppR6::RcppR6
 // returns one number, hides an error behind a small adjoint component, and when it
 // fails localises to nothing.
 // [[Rcpp::export]]
-Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                              std::vector<int> species_index,
                                              std::vector<double> state_before,
                                              double time_before) {
@@ -897,7 +897,7 @@ Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<
 // carries the birth-size channel the differentiated path imposes to zero; this
 // one does not, so it referees the trait rows the sweep actually computes.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ladder_rhs_trait_difference_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::NumericMatrix ladder_rhs_trait_difference_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                      double rel) {
   patch_type& patch = *obj_;
   const size_t n = patch.ode_size();
@@ -949,14 +949,14 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g);
 // sensitivities has `stand_gradient`. What is left here is a reference half.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-ladder_census_trait_direct_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+ladder_census_trait_direct_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->census_state_and_trait_rows().trait.to_vectors();
 }
 
 // The same quantity differenced in plain double, which is what referees it.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                              double rel) {
   return obj_->census_trait_difference(rel);
 }
@@ -966,7 +966,7 @@ ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24
 // agree with census_trait_gradient_tf24 bit for bit.
 // [[Rcpp::export]]
 Rcpp::List
-census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                  std::vector<int> splits) {
   std::vector<size_t> at;
   at.reserve(splits.size());
@@ -987,7 +987,7 @@ census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_St
 // what says whether a regime the gradient refuses is rare or is most of the run.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const std::vector<std::vector<size_t>> counts = obj_->operating_point_counts();
   std::vector<std::vector<double>> ret;
   ret.reserve(counts.size());
@@ -998,7 +998,7 @@ census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_
 }
 
 // [[Rcpp::export]]
-void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   obj_->clear_diagnostics();
 }
 
@@ -1019,7 +1019,7 @@ std::vector<std::string> census_operating_point_names_tf24() {
 // a true zero are the same number -- so the honest treatment is to count it.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const std::vector<std::vector<size_t>> counts = obj_->clamp_counts();
   std::vector<std::vector<double>> ret;
   ret.reserve(counts.size());
@@ -1034,7 +1034,7 @@ census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<d
 // a severance -- the forward one says only that the guard is reachable.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_clamp_counts_differentiated_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+census_clamp_counts_differentiated_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const std::vector<std::vector<size_t>> counts = obj_->clamp_counts_differentiated();
   std::vector<std::vector<double>> ret;
   ret.reserve(counts.size());
@@ -1062,6 +1062,6 @@ std::vector<std::string> census_clamp_names_tf24() {
 // reached -- so the distance to the floor is reported rather than assumed.
 // [[Rcpp::export]]
 std::vector<double>
-census_curvature_margin_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+census_curvature_margin_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->curvature_margins();
 }

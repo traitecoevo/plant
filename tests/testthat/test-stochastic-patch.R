@@ -163,7 +163,7 @@ test_that("the environment's ODE state and rates are part of the system", {
 ## held at rate zero, so reading the last one would read a constant zero.
 test_that("resource uptake is summed per individual and normalised by area", {
   patch_with <- function(patch_area, n_individuals) {
-    p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Strategy()),
+    p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Model()),
                                        patch_area = patch_area)
     patch <- StochasticPatch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
     for (i in seq_len(n_individuals)) {
@@ -252,7 +252,7 @@ test_that("a stochastic recruit is born with its initial states seeded", {
 })
 
 test_that("a TF24 recruit is born with reserves in its storage pool", {
-  p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Strategy()))
+  p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Model()))
   patch <- StochasticPatch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
   patch$introduce_new_node_and_update(1)
 

@@ -52,7 +52,7 @@ test_that("build_scenario applies traits and environment fields", {
   expect_equal(pars$K_s, unname(cfg$traits[["K_s"]]))
   ## stem_P50 is derived from K_s by the hyperpar, so it must differ from the
   ## default once K_s is changed.
-  expect_false(isTRUE(all.equal(pars$stem_P50, TF24_Strategy()$pars$stem_P50)))
+  expect_false(isTRUE(all.equal(pars$stem_P50, TF24_Model()$pars$stem_P50)))
   expect_equal(built$env$K_sat, cfg$env$K_sat)
 })
 

@@ -18,7 +18,7 @@
 #      consequence at the default (shadow_cost is 0), so the only way to test it
 #      is to raise the price -- which is what the second block does.
 
-tf24_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
+tf24_aux <- function(strategy = TF24_Model(), height = 5, ppfd = 1800,
                      theta = rep(0.25, 5), individual = TF24_Individual) {
   ind <- individual(strategy)
   ind$set_state("height", height)
@@ -31,7 +31,7 @@ tf24_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
 }
 
 priced <- function(lambda_o, ...) {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   p <- s$pars
   p$TF24_floor_lambda_o <- lambda_o
   s$pars <- p
@@ -44,7 +44,7 @@ test_that("the water price defaults to zero, and zero is TF24", {
   # An explicit 0.0 rather than phylloptim's NA sentinel: phylloptim REFUSES
   # TF24_floor with an unset price, deliberately, so a default of NA here would
   # make every TF24 run an error rather than a silent surprise.
-  expect_identical(TF24_Strategy()$pars$TF24_floor_lambda_o, 0)
+  expect_identical(TF24_Model()$pars$TF24_floor_lambda_o, 0)
 })
 
 test_that("shadow_cost is reported, and is exactly zero at the default price", {
@@ -166,7 +166,7 @@ test_that("TF24f tracks the seated curve rather than TF24", {
   expect_gt(tracked, 0)
 
   f_aux <- function(lambda_o) {
-    s <- TF24f_Strategy()
+    s <- TF24f_Model()
     p <- s$pars
     p$TF24_floor_lambda_o <- lambda_o
     s$pars <- p

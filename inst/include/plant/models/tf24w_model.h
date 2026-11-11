@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_TF24W_STRATEGY_H_
-#define PLANT_PLANT_TF24W_STRATEGY_H_
+#ifndef PLANT_PLANT_TF24W_MODEL_H_
+#define PLANT_PLANT_TF24W_MODEL_H_
 
 #include <plant/models/tf24_model.h>
 
@@ -22,7 +22,7 @@ namespace plant {
 // Adds one ODE state per soil layer, `water_1` .. `water_N`, volumetric water
 // content of the column's layers in the environment's units, appended after
 // TF24's states so their indices are unchanged. N is fixed at compile time
-// because state_size() is static on the Strategy contract; a patch with more
+// because state_size() is static on the Model contract; a patch with more
 // layers is refused, one with fewer leaves the spare slots at rate zero.
 //
 // The physics of a column is the environment's own, called through the const
@@ -37,13 +37,13 @@ namespace plant {
 // or below one -- are `if`s on passive values, which the no-gradient rule
 // allows because nothing differentiates through them.
 template <typename S = double>
-class TF24w_Strategy : public TF24_Strategy<S> {
+class TF24w_Model : public TF24_Model<S> {
 public:
   using value_type = S;
-  using base_type = TF24_Strategy<S>;
+  using base_type = TF24_Model<S>;
 
-  typedef std::shared_ptr<TF24w_Strategy> ptr;
-  TF24w_Strategy();
+  typedef std::shared_ptr<TF24w_Model> ptr;
+  TF24w_Model();
 
   // Compound scientific version, as TF24f's: "<TF24 version>.<revision>", so a
   // TF24 science change invalidates TF24w too, and this revision moves for
@@ -116,16 +116,16 @@ protected:
 };
 
 template <typename S>
-typename TF24w_Strategy<S>::ptr make_strategy_ptr(TF24w_Strategy<S> s);
+typename TF24w_Model<S>::ptr make_strategy_ptr(TF24w_Model<S> s);
 
 template <typename S>
-TF24w_Strategy<S>::TF24w_Strategy() {
+TF24w_Model<S>::TF24w_Model() {
   this->name = "TF24w";
   this->refresh_indices();
 }
 
 template <typename S>
-void TF24w_Strategy<S>::refresh_indices() {
+void TF24w_Model<S>::refresh_indices() {
   // Rebuilds both maps from the virtual aux_names(), so the three readings
   // above are registered too, and caches TF24's own slots.
   base_type::refresh_indices();
@@ -141,7 +141,7 @@ void TF24w_Strategy<S>::refresh_indices() {
 }
 
 template <typename S>
-void TF24w_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
+void TF24w_Model<S>::compute_rates(const TF24_Environment<S>& environment,
                                       Internals<S>& vars) {
   using odelia::util::to_passive;
   const int n = environment.get_soil_number_of_depths();
@@ -203,7 +203,7 @@ void TF24w_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
 }
 
 template <typename S>
-void TF24w_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment,
+void TF24w_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                            Internals<S>& vars) {
   base_type::set_initial_states(environment, vars);
   const int n = environment.get_soil_number_of_depths();
@@ -214,7 +214,7 @@ void TF24w_Strategy<S>::set_initial_states(const TF24_Environment<S>& environmen
 }
 
 template <typename S>
-S TF24w_Strategy<S>::establishment_probability(const TF24_Environment<S>& environment) {
+S TF24w_Model<S>::establishment_probability(const TF24_Environment<S>& environment) {
   const int n = environment.get_soil_number_of_depths();
   psi_soil_own_.resize(n);
   for (int i = 0; i < n; ++i) {
@@ -225,9 +225,9 @@ S TF24w_Strategy<S>::establishment_probability(const TF24_Environment<S>& enviro
 }
 
 template <typename S>
-typename TF24w_Strategy<S>::ptr make_strategy_ptr(TF24w_Strategy<S> s) {
+typename TF24w_Model<S>::ptr make_strategy_ptr(TF24w_Model<S> s) {
   s.prepare_strategy();
-  return std::make_shared<TF24w_Strategy<S> >(s);
+  return std::make_shared<TF24w_Model<S> >(s);
 }
 
 }

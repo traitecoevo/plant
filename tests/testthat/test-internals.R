@@ -36,7 +36,7 @@ test_that("consumption rates are readable", {
 
 test_that("consumption rates carry one water uptake per soil layer", {
   theta <- rep(0.25, 5)
-  ind <- TF24_Individual(TF24_Strategy())
+  ind <- TF24_Individual(TF24_Model())
   ind$set_state("height", 5)
   env <- TF24_Environment()
   env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))  # PPFD above the canopy, as SWdown

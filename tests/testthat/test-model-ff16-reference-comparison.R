@@ -1,11 +1,11 @@
 # Check C++ implemnetation againsyt indenpendent implementation in R
 
 
-test_that("FF16_Strategy parameters agree with reference model", {
+test_that("FF16_Model parameters agree with reference model", {
   cmp <- make_reference_plant("FF16")
   cmp_pars <- cmp$get_parameters()
 
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   ## Biological parameters now live in the nested `pars` sub-object.
   sp <- s$pars
 
@@ -36,7 +36,7 @@ test_that("FF16_Strategy parameters agree with reference model", {
 
 test_that("Reference comparison", {
   cmp <- make_reference_plant("FF16")
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   # skip('reference plant is plant plus')
   # p <- FF16_IndividualPlus(s)
   p <- FF16_Individual(s)

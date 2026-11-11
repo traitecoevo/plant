@@ -42,8 +42,8 @@ test_that("Defaults", {
   expected_top <- c("pars", "control", "collect_all_auxiliary",
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
-  s <- FF16_Strategy()
-  expect_inherits(s, "FF16_Strategy")
+  s <- FF16_Model()
+  expect_inherits(s, "FF16_Model")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())
@@ -59,7 +59,7 @@ test_that("Defaults", {
 
 test_that("FF16 collect_all_auxiliary option", {
 
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   p <- FF16_Individual(s)
   expect_equal(p$aux_size, 3)
   expect_equal(length(p$internals$auxs), 3)
@@ -69,7 +69,7 @@ test_that("FF16 collect_all_auxiliary option", {
     "net_mass_production_dt"
   ))
 
-  s <- FF16_Strategy(collect_all_auxiliary=TRUE)
+  s <- FF16_Model(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- FF16_Individual(s)
   expect_equal(p$aux_size, 4)
@@ -82,8 +82,8 @@ test_that("FF16 collect_all_auxiliary option", {
   ))
 })
 
-test_that("FF16_Strategy hyper-parameterisation", {
-  s <- FF16_Strategy()
+test_that("FF16_Model hyper-parameterisation", {
+  s <- FF16_Model()
 
   # lma
   lma <- c(0.1,1)
@@ -153,7 +153,7 @@ test_that("the FF16 trade-off function sources k_I from the strategy", {
   m <- trait_matrix(narea, "narea")
 
   ## Default strategy: assimilation matches the existing reference values.
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   expect_equal(s$pars$k_I, 0.5)
   ret <- default_hyperpar("FF16")(m, s)
   expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
@@ -161,7 +161,7 @@ test_that("the FF16 trade-off function sources k_I from the strategy", {
   ## Varying the strategy's k_I must change the derived assimilation
   ## parameters -- previously the hard-coded 0.5 default in the maker
   ## silently ignored the strategy value.
-  s2 <- FF16_Strategy()
+  s2 <- FF16_Model()
   s2$pars$k_I <- 0.8
   ret2 <- default_hyperpar("FF16")(m, s2)
   expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))

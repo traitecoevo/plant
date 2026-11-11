@@ -45,11 +45,11 @@ check_allometry <- function(strategy_fn, cpp_fn, a_cr1 = 0) {
 }
 
 test_that("FF16 C++ allometry matches the historical R formulas", {
-  check_allometry(FF16_Strategy, FF16_strategy_expand_allometry)
+  check_allometry(FF16_Model, FF16_strategy_expand_allometry)
 })
 
 test_that("TF24 C++ allometry matches the historical R formulas", {
-  check_allometry(TF24_Strategy, TF24_strategy_expand_allometry)
+  check_allometry(TF24_Model, TF24_strategy_expand_allometry)
 })
 
 ## The oracle above carries the coarse-root pool (#349), but at the shipped
@@ -57,11 +57,11 @@ test_that("TF24 C++ allometry matches the historical R formulas", {
 ## pass even if C++ ignored a_cr1 entirely. Re-run them with the pool switched
 ## on so the new terms are actually compared.
 test_that("FF16 C++ allometry matches the R formulas with coarse roots on", {
-  check_allometry(FF16_Strategy, FF16_strategy_expand_allometry, a_cr1 = 0.25)
+  check_allometry(FF16_Model, FF16_strategy_expand_allometry, a_cr1 = 0.25)
 })
 
 test_that("TF24 C++ allometry matches the R formulas with coarse roots on", {
-  check_allometry(TF24_Strategy, TF24_strategy_expand_allometry, a_cr1 = 0.25)
+  check_allometry(TF24_Model, TF24_strategy_expand_allometry, a_cr1 = 0.25)
 })
 
 test_that("FF16_expand_state adds the expected derived columns", {

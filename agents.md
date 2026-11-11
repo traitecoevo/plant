@@ -31,7 +31,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
                             │   RcppR6 + Rcpp generated bindings
 ┌───────────────────────────▼─────────────────────────────────┐
 │  C++ core  (inst/include/plant/*.h  +  src/*.cpp)            │
-│  - templated class hierarchy: Strategy, Environment,         │
+│  - templated class hierarchy: Model, Environment,         │
 │    Individual, Node, Species, Patch, SCM, Stochastic*        │
 │  - numerics: ODE solver, adaptive quadrature, interpolators  │
 └─────────────────────────────────────────────────────────────┘
@@ -64,19 +64,19 @@ in [src/](src/). Headers are included via `-isystem../inst/include/` (see
 
 The core classes are **templated on two type parameters**:
 
-- `T` = a **Strategy** type (the biological/physiological model)
+- `T` = a **Model** type (the biological/physiological model)
 - `E` = an **Environment** type (the resource environment the strategy reads)
 
 ```
-Strategy<E>                         the biological model for one species
-  └─ concrete: FF16_Strategy, TF24_Strategy, K93_Strategy
+Model<E>                         the biological model for one species
+  └─ concrete: FF16_Model, TF24_Model, K93_Model
 
 Environment                         resource environment (e.g. light profile)
   └─ concrete: FF16_Environment, TF24_Environment, K93_Environment
 
-Individual<T,E>                     one plant: state + rates from a Strategy
+Individual<T,E>                     one plant: state + rates from a Model
 Node<T,E>                           a cohort in the method-of-characteristics
-Species<T,E>                        all nodes/cohorts of one Strategy
+Species<T,E>                        all nodes/cohorts of one Model
 Patch<T,E>                          all Species sharing one Environment
 SCM<T,E>                            the deterministic solver (see §3)
 Parameters<T,E>                     model configuration (strategies, schedule, …)
@@ -87,8 +87,8 @@ Key headers to know:
 
 | Concern | Header |
 |---|---|
-| Biological model interface | [strategy.h](inst/include/plant/strategy.h) |
-| Concrete models | [models/ff16_strategy.h](inst/include/plant/models/ff16_strategy.h), [models/tf24_model.h](inst/include/plant/models/tf24_model.h) (with its parameters in `tf24_pars.h` and its definitions in `tf24_allometry.h`, `tf24_leaf.h` and `tf24_rates.h`), [models/k93_strategy.h](inst/include/plant/models/k93_strategy.h) |
+| Biological model interface | [model.h](inst/include/plant/model.h) |
+| Concrete models | [models/ff16_model.h](inst/include/plant/models/ff16_model.h), [models/tf24_model.h](inst/include/plant/models/tf24_model.h) (with its parameters in `tf24_pars.h` and its definitions in `tf24_allometry.h`, `tf24_leaf.h` and `tf24_rates.h`), [models/k93_model.h](inst/include/plant/models/k93_model.h) |
 | Environments | [models/ff16_environment.h](inst/include/plant/models/ff16_environment.h) (and tf24/k93 variants) |
 | Single plant | [individual.h](inst/include/plant/individual.h), per-plant state in [internals.h](inst/include/plant/internals.h) |
 | Cohort / species / patch | [node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h), [patch.h](inst/include/plant/patch.h) |
@@ -99,10 +99,10 @@ Key headers to know:
 | Leaf-level physiology | [leaf_model.h](inst/include/plant/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
 | Numerics | [qag.h](inst/include/plant/qag.h)/[qk.h](inst/include/plant/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/uniroot.h), [gradient.h](inst/include/plant/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
 
-### The `Strategy` contract
+### The `Model` contract
 
-A Strategy defines how a plant grows, dies, and reproduces. When subclassing
-`Strategy<E>` (see [strategy.h](inst/include/plant/strategy.h) and FF16 as the
+A Model defines how a plant grows, dies, and reproduces. When subclassing
+`Model<E>` (see [model.h](inst/include/plant/model.h) and FF16 as the
 reference), the key overridable surface is:
 
 - `static size_t state_size()` and `static std::vector<std::string> state_names()`
@@ -114,7 +114,7 @@ reference), the key overridable surface is:
 - `compute_competition(z, vars)` — the leaf area the plant holds above height `z`, which is how it shades the others.
 - `establishment_probability`, `fecundity_dt`, `mortality_dt`.
 
-Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
+Every Model carries a `Control` and an `ExtrinsicDrivers` object.
 
 ---
 
@@ -129,7 +129,7 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
    `StochasticPatchRunner<T,E>` in C++; [R/stochastic.R](R/stochastic.R):
    `stochastic_schedule()`, `run_stochastic_collect()`.
 
-Both share the same `Strategy`, `Environment`, `Individual`, and `Parameters`.
+Both share the same `Model`, `Environment`, `Individual`, and `Parameters`.
 
 ### Where the schedule and the control defaults live
 
@@ -153,10 +153,10 @@ knowing before you go looking for a leaf bug here:
   `Remotes:` (and an exact version in `LinkingTo`), so bumping that pin is what
   changes results here. Any coupled change
   lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
-- **The leaf is purely intensive.** Every input is per unit leaf area or an intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is reduced *here* and passed in already divided. That includes the ROOT RESISTANCES: `set_physiology` takes a `RootNetwork`, and `TF24_Strategy` runs `phylloptim::root_network_from_carbon` on `root_carbon_per_leaf_area_` to build it. Passing a network built from absolute carbon compiles fine, quietly weakens the root system by the leaf area, and **the leaf cannot detect it**: the division happens here, not in the leaf.
+- **The leaf is purely intensive.** Every input is per unit leaf area or an intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is reduced *here* and passed in already divided. That includes the ROOT RESISTANCES: `set_physiology` takes a `RootNetwork`, and `TF24_Model` runs `phylloptim::root_network_from_carbon` on `root_carbon_per_leaf_area_` to build it. Passing a network built from absolute carbon compiles fine, quietly weakens the root system by the leaf area, and **the leaf cannot detect it**: the division happens here, not in the leaf.
 - **Do not open-code the layer thickness, and do not switch it to the
   environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
-  by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Strategy` hands it
+  by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Model` hands it
   `phylloptim::layer_thicknesses(z)`, the shared definition, at both of its call
   sites (the rate evaluation reads it as `environment.z_thickness`, computed once
   when the geometry is set). The widths are `TF24_Environment`'s input and `z` is built from them, so
@@ -246,7 +246,7 @@ explicit instantiation per registered pair** (`FF16`/`FF16_Env`,
 `TF24`/`TF24_Env`, `K93`/`K93_Env`). R-side constructors therefore look like:
 
 ```r
-FF16_Individual <- function(s = FF16_Strategy()) Individual("FF16", "FF16_Env")(s)
+FF16_Individual <- function(s = FF16_Model()) Individual("FF16", "FF16_Env")(s)
 FF16_Parameters <- function(...)                 Parameters("FF16", "FF16_Env")(...)
 ```
 
@@ -257,7 +257,7 @@ constructor. Generic code recovers the type with
 
 ### Hyperparameters vs. raw strategy parameters
 
-A `Strategy` exposes many low-level C++ parameters, held in a nested **`pars`**
+A `Model` exposes many low-level C++ parameters, held in a nested **`pars`**
 sub-object (`FF16_Pars`/`K93_Pars`/`TF24_Pars`) and accessed from R as
 `s$pars$lma`, `s$pars$rho`, … (the strategy's top level only carries `control`,
 `birth_rate_*`, `is_variable_birth_rate`, `collect_all_auxiliary`). In C++ these
@@ -373,7 +373,7 @@ doing unconditionally after any change to a `LinkingTo` dependency.
 
 ## 7. Adding a new model (strategy + environment)
 
-This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Strategy, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-strategy` skill** (`.claude/skills/plant-new-strategy/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a worked example of the wiring, from before trade-offs moved onto `Parameters` (#731), so ignore its hyperpar lines. Most new models are a subclass of an existing strategy, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
+This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Model, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-model` skill** (`.claude/skills/plant-new-model/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a worked example of the wiring, from before trade-offs moved onto `Parameters` (#731), so ignore its hyperpar lines. Most new models are a subclass of an existing strategy, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
 
 The shipped models:
 
@@ -381,8 +381,8 @@ The shipped models:
 - **K93**: Kohyama 1993, a simpler size-structured model, and the smallest complete model to read.
 - **TF24**: plant's hydraulic model, whose leaf gas exchange and hydraulics are phylloptim's (§3.1).
 - **TF24f**: TF24 with fast acclimation, as a subclass.
-- **TF24t**: TF24 with leaf thermal damage and acclimation, as a subclass with four appended states ([tf24t_strategy.h](inst/include/plant/models/tf24t_strategy.h)). Its thermal parameters sit at the top level of the strategy, beside `pars`.
-- **TF24w**: TF24 with a private root-zone soil column per cohort ([tf24w_strategy.h](inst/include/plant/models/tf24w_strategy.h)). A subclass with five water states appended, because `state_size()` is static and a parameter-dependent count is not feasible. Its coupling between cohorts (mixing toward the patch mean, land transfer as crowns grow, die and overlap) is two extra passes in `Patch::compute_rates` guarded by the `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each refused where first seen: birth-date coordinate only, no gradient path, no stochastic patch, at most five soil layers. The pooled limit (large `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
+- **TF24t**: TF24 with leaf thermal damage and acclimation, as a subclass with four appended states ([tf24t_model.h](inst/include/plant/models/tf24t_model.h)). Its thermal parameters sit at the top level of the strategy, beside `pars`.
+- **TF24w**: TF24 with a private root-zone soil column per cohort ([tf24w_model.h](inst/include/plant/models/tf24w_model.h)). A subclass with five water states appended, because `state_size()` is static and a parameter-dependent count is not feasible. Its coupling between cohorts (mixing toward the patch mean, land transfer as crowns grow, die and overlap) is two extra passes in `Patch::compute_rates` guarded by the `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each refused where first seen: birth-date coordinate only, no gradient path, no stochastic patch, at most five soil layers. The pooled limit (large `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
 
 ### Scientific versioning — bump when the science changes
 
@@ -407,12 +407,12 @@ Rules:
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
   `"<TF24 version>.<approximation revision>"`. The major
-  component auto-tracks `TF24_Strategy::scientific_version` (a TF24 change
+  component auto-tracks `TF24_Model::scientific_version` (a TF24 change
   invalidates TF24f too — the safe direction); bump `approximation_revision`
-  (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
+  (in `tf24f_model.h`) only for changes specific to the fast approximation.
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
-- **TF24t and TF24w are compound versions the same way**: `"<TF24 version>.<thermal revision>"`, bumped through `thermal_revision` in `tf24t_strategy.h` for a change to the thermal-damage layer, and `"<TF24 version>.<private water revision>"`, bumped through `private_water_revision` in `tf24w_strategy.h` for a change to the private-water model.
+- **TF24t and TF24w are compound versions the same way**: `"<TF24 version>.<thermal revision>"`, bumped through `thermal_revision` in `tf24t_model.h` for a change to the thermal-damage layer, and `"<TF24 version>.<private water revision>"`, bumped through `private_water_revision` in `tf24w_model.h` for a change to the private-water model.
 - A bump is deliberate: it invalidates that model's `logpile` cache and forces
   reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
   fails when a default changes without a bump (snapshot of each model's default
@@ -429,10 +429,10 @@ Rules:
 Every baseline the suite compares against, and what may re-bless it, is listed in [.claude/measurements.md](.claude/measurements.md).
 
 `testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file
-per component (`test-scm.R`, `test-patch.R`, `test-strategy-ff16.R`,
+per component (`test-scm.R`, `test-patch.R`, `test-model-ff16.R`,
 `test-leaf.r`, …). Shared setup is in `helper-plant.R`. Regression baselines for
 FF16 are in `tests/testthat/FF16_reference/` and checked by
-`test-strategy-ff16-reference-comparison.R` — if you intentionally change FF16
+`test-model-ff16-reference-comparison.R` — if you intentionally change FF16
 numerics you may need to regenerate these.
 
 Run the suite with `make test` or `devtools::test()`; a single file with
@@ -521,7 +521,7 @@ Documentation is split across several homes — put new content in the right one
 |---|---|---|
 | **Narrative docs** — task-oriented guides, theory/maths, worked examples (`plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
 | **Blog / dated experiments** — posts pinned to the `plant` version they were built against | Overstorey's **"Adaptively"** notebook | same repo |
-| **Extending the model** — adding a new strategy/environment | **`plant-new-strategy` skill** (see §7) | this repo (`.claude/skills/plant-new-strategy/`) |
+| **Extending the model** — adding a new strategy/environment | **`plant-new-model` skill** (see §7) | this repo (`.claude/skills/plant-new-model/`) |
 | **Migrating downstream code** to a newer plant interface | **`plant-update-interface` skill** (see §3.2) | this repo (`.claude/skills/plant-update-interface/`) |
 | **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
 | **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
@@ -560,11 +560,11 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 - ✅ Edit headers in [inst/include/plant/](inst/include/plant/) and the yml; then regenerate.
 - ✅ Adding/removing strategy state → update `state_size()` **and** `state_names()`.
 - ✅ Exposing a new C++ method/field to R → add it to `RcppR6_classes.yml`, then `make RcppR6`.
-- ✅ Adding a model → follow the `plant-new-strategy` skill's checklist: nothing generates the wiring, and each R `switch()` table, binding and version arm names every model by hand (§7).
+- ✅ Adding a model → follow the `plant-new-model` skill's checklist: nothing generates the wiring, and each R `switch()` table, binding and version arm names every model by hand (§7).
 - ✅ Changing a model's equations/default parameters (output changes for the
   same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
-- ⚠️ **TF24 and its subclasses run one cost curve, `TF24_floor`, seated once in `TF24_Strategy::prepare_strategy()`.** phylloptim's collar-solve entry points are templated on the curve, and plant's call sites name `Leaf::CostCurve::TF24_floor` explicitly. Each must name the curve that is seated: one that names another solves that curve while `shadow_cost()` reports the seated curve's price, and nothing errors. To change the curve, change the seat and every `CostCurve::TF24_floor` together (`git grep -n 'CostCurve::'`).
+- ⚠️ **TF24 and its subclasses run one cost curve, `TF24_floor`, seated once in `TF24_Model::prepare_strategy()`.** phylloptim's collar-solve entry points are templated on the curve, and plant's call sites name `Leaf::CostCurve::TF24_floor` explicitly. Each must name the curve that is seated: one that names another solves that curve while `shadow_cost()` reports the seated curve's price, and nothing errors. To change the curve, change the seat and every `CostCurve::TF24_floor` together (`git grep -n 'CostCurve::'`).
 - ⚠️ **TF24's leaf parameters must keep phylloptim's names.** They are handed to
   the `Leaf` constructor **positionally**, so a name that disagrees with the slot
   it lands in is silent, not a compile error. `stem_P50`, `stem_c`, `stem_b`,
@@ -575,7 +575,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 - ⚠️ **Never put a non-finite number in an ODE state, and do not read
   `check_finite_ode_state` as protection against one.** It tests the cohort
   density (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
-  environment's own states; the slots `Strategy::state_names()` declares and
+  environment's own states; the slots `Model::state_names()` declares and
   the node's two extras are not looked at. A `+Inf` hazard from `-log(0)` at an
   establishment probability of exactly zero therefore ran for years: every reader
   is guarded (`is_finite` tests, or `exp(-mortality)`, which is zero either way),
@@ -594,7 +594,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 - ℹ️ Active bindings ending in `_` generally expose internal C++ fields for
   inspection/testing, not part of the stable user API.
 - ℹ️ Two solvers (deterministic SCM, stochastic) share the same model classes —
-  changes to a Strategy affect both.
+  changes to a Model affect both.
 - ⚠️ Several hot-path constructs look "wrong" but are deliberate performance
   choices — see §12 before "tidying" them (inline helpers in headers, integer
   index constants, ratio-first signatures, scratch buffers).
@@ -610,7 +610,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 
 The deterministic SCM solver spends almost all of its time in one nested loop
 (`SCM::run` → `ode::derivs` → `Patch::compute_rates` → `Species::compute_rates`
-→ `Node::compute_rates`/`growth_rate_gradient` → `Strategy::compute_rates` →
+→ `Node::compute_rates`/`growth_rate_gradient` → `Model::compute_rates` →
 `assimilation`/competition). Because that loop runs for every node, every
 quadrature point, every timestep, small per-call costs dominate. The codebase
 uses a consistent set of techniques to keep it fast. **Many of these make the
@@ -655,7 +655,7 @@ will see in the code:
 - Small, hot strategy helpers are **defined inline in the header**, not in the
   `.cpp`: `area_leaf`, `update_dependent_aux`, the `compute_competition`
   overloads, and `compute_competition_by_ratio` live in
-  [ff16_strategy.h](inst/include/plant/models/ff16_strategy.h) and, for TF24,
+  [ff16_model.h](inst/include/plant/models/ff16_model.h) and, for TF24,
   in [tf24_model.h](inst/include/plant/models/tf24_model.h) and the headers it
   includes (`tf24_allometry.h`, `tf24_rates.h`); `util::is_finite`
   and the `Interpolator` accessors are inline in their headers. Moving them back
@@ -699,7 +699,7 @@ will see in the code:
   `spline.eval()`.
 - **De-duplicated math kernels.** Where two allocation-derivative terms share a
   `pow(area_leaf, a_l2)`, it is computed once (see
-  `FF16_Strategy::darea_leaf_dmass_live`).
+  `FF16_Model::darea_leaf_dmass_live`).
 
 **Measuring.** Benchmark an installed build (`R CMD INSTALL`), not `devtools::load_all()`, which compiles with different flags. What counts as evidence of a speed change, and why wall-clock alone does not, is in [.claude/measurements.md](.claude/measurements.md); the profiling workflow is the `profile-plant` skill. `run_plant_benchmarks()` times FF16 only. A speed change must leave the baselines bit-identical unless a moved number was agreed in advance.
 
@@ -785,7 +785,7 @@ reduction, the reverse pass or `odelia`. Four steps:
 
 1. **Write the metric** as a struct in `namespace census_metric`
    ([inst/include/plant/species.h](inst/include/plant/species.h)), with a
-   templated `operator()(const Strategy&, const Individual&)` returning
+   templated `operator()(const Model&, const Individual&)` returning
    `typename Individual::value_type`, and a `name()`. It reads the strategy and
    one cohort and nothing else; a metric with a height cut of its own applies
    the cut inside `operator()`. Declare the return type — the AD operators

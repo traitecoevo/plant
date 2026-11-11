@@ -2,7 +2,7 @@
 #include <string>
 
 // Scientific version of a model, read from the `scientific_version` constant
-// declared on each strategy class (see inst/include/plant/models/*_strategy.h).
+// declared on each strategy class (see inst/include/plant/models/*_model.h).
 // Returned as a string so it can carry a compound version: TF24f is a fast
 // approximation of TF24, so its version is "<TF24 version>.<revision>" (e.g.
 // "2.1") -- the major component auto-tracks TF24 (a TF24 science change
@@ -14,19 +14,19 @@
 // [[Rcpp::export]]
 std::string strategy_scientific_version(std::string type) {
   if (type == "FF16")
-    return std::to_string(plant::FF16_Strategy<double>::scientific_version);
+    return std::to_string(plant::FF16_Model<double>::scientific_version);
   if (type == "K93")
-    return std::to_string(plant::K93_Strategy::scientific_version);
+    return std::to_string(plant::K93_Model::scientific_version);
   if (type == "TF24")
-    return std::to_string(plant::TF24_Strategy<double>::scientific_version);
+    return std::to_string(plant::TF24_Model<double>::scientific_version);
   if (type == "TF24f")
-    return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
-           std::to_string(plant::TF24f_Strategy<double>::approximation_revision);
+    return std::to_string(plant::TF24_Model<double>::scientific_version) + "." +
+           std::to_string(plant::TF24f_Model<double>::approximation_revision);
   if (type == "TF24t")
-    return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
-           std::to_string(plant::TF24t_Strategy<double>::thermal_revision);
+    return std::to_string(plant::TF24_Model<double>::scientific_version) + "." +
+           std::to_string(plant::TF24t_Model<double>::thermal_revision);
   if (type == "TF24w")
-    return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
-           std::to_string(plant::TF24w_Strategy<double>::private_water_revision);
+    return std::to_string(plant::TF24_Model<double>::scientific_version) + "." +
+           std::to_string(plant::TF24w_Model<double>::private_water_revision);
   Rcpp::stop("Unknown type " + type);
 }

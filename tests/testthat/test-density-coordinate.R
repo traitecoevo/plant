@@ -184,7 +184,7 @@ test_that("a repeated birth date drops a node out of the competition integral", 
   build <- function(birth_date, times) {
     ctrl <- Control()
     ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
-    st <- FF16_Strategy()
+    st <- FF16_Model()
     st$control <- ctrl
     s <- Species("FF16", "FF16_Env")(st)
     env <- Environment("FF16")
@@ -230,7 +230,7 @@ test_that("a repeated birth date drops a node out of the competition integral", 
 test_that("only the height coordinate's density rate carries a compression term", {
   for (x in c("FF16", "K93")) {
     nm <- Node(x, environment_type(x))(
-      switch(x, FF16 = FF16_Strategy(), K93 = K93_Strategy()))$ode_names
+      switch(x, FF16 = FF16_Model(), K93 = K93_Model()))$ode_names
     i_mort <- which(nm == "mortality")
     i_dens <- which(nm == "log_density")
 
@@ -653,7 +653,7 @@ test_that("the birth-date coordinate converges on a coarser schedule", {
 ## sums their per-species integrals into a single optical depth, each taken over
 ## that species' own node list. So the coordinate change has to hold for each
 ## species *through* a profile the others also shape. These use the established
-## multi-species setups from test-strategy-ff16.R and test-strategy-k93.R.
+## multi-species setups from test-model-ff16.R and test-model-k93.R.
 ##
 ## One halving only. An integral over a wrong or duplicated axis gives a gap
 ## that barely moves under refinement, so one halving separates it from the ~4

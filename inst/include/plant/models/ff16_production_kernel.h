@@ -5,8 +5,8 @@
 #include <cmath>   // std::pow; XAD provides pow for active types via ADL
 
 // The elementary pieces of FF16's single-plant net mass production,
-// templated on the scalar S so that FF16_Strategy<S> differentiates
-// through them by reverse-mode AD with no special handling. FF16_Strategy's
+// templated on the scalar S so that FF16_Model<S> differentiates
+// through them by reverse-mode AD with no special handling. FF16_Model's
 // methods delegate to them, at every scalar.
 
 namespace plant {

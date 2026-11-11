@@ -13,7 +13,7 @@ test_that("scm_base_parameters attaches no trade-offs: traits go straight to par
   # it is a plain parameter and the curve stays at the default.
   s <- suppressMessages(generate_strategy(p, trait_matrix(0.5, "K_s")))[[1]]
   expect_equal(s$pars$K_s, 0.5)
-  expect_identical(s$pars$stem_P50, TF24_Strategy()$pars$stem_P50)
+  expect_identical(s$pars$stem_P50, TF24_Model()$pars$stem_P50)
 })
 
 test_that("generate_strategy says, once, that no trade-offs are attached", {
@@ -50,7 +50,7 @@ test_that("the attached trade-offs reproduce the explicit ones bit for bit", {
                       hyperpar = default_hyperpar("TF24"))
   expect_identical(a$strategies, b$strategies)
   expect_true(all(tf24_derived %in% names(a$strategies[[1]]$pars)))
-  expect_false(identical(a$strategies[[1]]$pars$stem_P50, TF24_Strategy()$pars$stem_P50))
+  expect_false(identical(a$strategies[[1]]$pars$stem_P50, TF24_Model()$pars$stem_P50))
 
   m <- cbind(lma = c(0.1, 0.3), narea = c(1.5e-3, 2.5e-3))
   a <- add_strategies(default_parameters("FF16", quiet = TRUE), m, birth_rate = c(1, 1))
@@ -59,7 +59,7 @@ test_that("the attached trade-offs reproduce the explicit ones bit for bit", {
   expect_identical(a$strategies, b$strategies)
   # The TF24 variants share TF24's trade-offs.
   for (model in c("TF24f", "TF24t", "TF24w")) {
-    s <- TF24_Strategy()
+    s <- TF24_Model()
     expect_identical(default_hyperpar(model)(m[, "lma", drop = FALSE], s, filter = FALSE),
                      default_hyperpar("TF24")(m[, "lma", drop = FALSE], s, filter = FALSE))
   }
@@ -68,9 +68,9 @@ test_that("the attached trade-offs reproduce the explicit ones bit for bit", {
 test_that("an explicit hyperpar still overrides the one Parameters carry", {
   p <- default_parameters("TF24", quiet = TRUE)
   s <- generate_strategy(p, trait_matrix(0.5, "K_s"), hyperpar = NULL)[[1]]
-  expect_identical(s$pars$stem_P50, TF24_Strategy()$pars$stem_P50)
+  expect_identical(s$pars$stem_P50, TF24_Model()$pars$stem_P50)
   s <- generate_strategy(p, trait_matrix(0.5, "K_s"))[[1]]
-  expect_false(identical(s$pars$stem_P50, TF24_Strategy()$pars$stem_P50))
+  expect_false(identical(s$pars$stem_P50, TF24_Model()$pars$stem_P50))
 })
 
 test_that("the trade-offs survive validate(), run_scm() and a saved object", {
@@ -116,7 +116,7 @@ test_that("the old hyperpar names are gone, and default_hyperpar carries their j
   }
   # Coefficient overrides reach the frozen maker, and are recorded on the closure.
   m <- cbind(lma = 0.1, rho = 700, K_s = 0.3)
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   f0 <- default_hyperpar("TF24")
   f1 <- default_hyperpar("TF24", B_hks2 = 1)
   expect_false(identical(f0(m, s, filter = FALSE), f1(m, s, filter = FALSE)))
@@ -134,7 +134,7 @@ test_that("parameter_table groups every parameter of a model", {
   expect_setequal(tab$name[tab$group == "trait"],
                   c("lma", "rho", "omega", "K_s", "vcmax_25", "jmax_25"))
   expect_setequal(tab$name[tab$group %in% c("trait", "derived", "parameter")],
-                  names(TF24_Strategy()$pars))
+                  names(TF24_Model()$pars))
   expect_setequal(tab$name[tab$group == "control"], names(Control()))
   expect_true("g_min" %in% tab$name[tab$group == "parameter"])
   expect_identical(tab$default[tab$name == "g_min"], "0")
@@ -180,7 +180,7 @@ test_that("generate_strategy assigns TF24t's thermal fields from a trait matrix"
   expect_equal(s$pars$lma, 0.1)
   expect_false("k_i" %in% names(s$pars))
   # The trade-offs still ran on the pars columns.
-  expect_false(identical(s$pars$k_l, TF24t_Strategy()$pars$k_l))
+  expect_false(identical(s$pars$k_l, TF24t_Model()$pars$k_l))
   # Two rows, two strategies.
   m <- cbind(k_mat = c(0.02, 0.05))
   ss <- generate_strategy(p, m)
@@ -201,9 +201,9 @@ test_that("generate_strategy assigns TF24t's thermal fields from a trait matrix"
 })
 
 test_that("g_min is a TF24 parameter that reaches the leaf", {
-  s0 <- TF24_Strategy()
+  s0 <- TF24_Model()
   expect_identical(s0$pars$g_min, 0)
-  s1 <- TF24_Strategy()
+  s1 <- TF24_Model()
   s1$pars$g_min <- 5e-3
   theta <- rep(0.15, 3)
   a0 <- tf24_probe(s0, theta)
