@@ -1,0 +1,26 @@
+schema: 1
+name: callitris_central_west_nsw
+description: "DRAFT for plant#275. White cypress pine (Callitris glaucophylla) in the central-western NSW wheat-sheep belt, the study region of Ross-2008. Species values are AusTraits means; hydraulics are plant defaults (no Callitris value in Zotero, mulga-library or austraits-means)."
+model: TF24
+plant_scientific_version: "TF24@v15"
+site: {name: "Central-western NSW cypress pine region (Ross-2008 study area centre)", latitude: -33.0, longitude: 148.0}
+traits:
+  lma: {value: 0.2575555, source: "Falster-2021 (AusTraits): austraits-means 7.0.0.9000 geometric observed mean for Callitris glaucophylla leaf_mass_per_area, 257.5555 g m-2, 29 records from 14 locations, 10 datasets"}
+  rho: {value: 631.2493, source: "Falster-2021 (AusTraits): austraits-means 7.0.0.9000 geometric observed mean for Callitris glaucophylla wood_density, 0.6312493 mg mm-3, 7 records from 5 locations, 4 datasets"}
+  omega: {value: 9.809957e-06, source: "Falster-2021 (AusTraits): austraits-means 7.0.0.9000 geometric observed mean for Callitris glaucophylla seed_dry_mass, 9.809957 mg, 102 records from 4 locations, 2 datasets"}
+pars:
+  theta: {value: 4.666024e-04, source: "Falster-2021 (AusTraits): austraits-means 7.0.0.9000 geometric observed mean for Callitris glaucophylla huber_value, 4.666024e-4 mm2 sapwood per mm2 leaf, 6 records from 3 locations, 3 datasets"}
+  hmat: {value: 25, source: "PROXY. Ross-2008 (doi:10.1016/j.ecolmodel.2007.08.012) s3.6-3.7: maximum expected height of 25 m used for the historical and thinning simulations (site-specific values 16-23 m, Table 1). TF24 stands plateau just above hmat, so hmat plays the role of Ross's maximum height; it is not a measured height at maturation"}
+drivers:
+  source: worldclim
+  res: 10
+  rainfall: spline
+  leaf_temp: true
+provenance:
+  author: "Daniel Falster, with Claude"
+  date: "2026-11-11"
+  notes: >-
+    Exploratory draft for plant#275, not a curated set. Site is the centre of the
+    study area given by Ross-2008 (148 E, 33 S). Stem and root P50, K_s, Vcmax and
+    Jmax are plant defaults. Soil is plant's default profile (Ross-2008 gives soil
+    types, red earths of varying sand content, but no hydraulic values).
