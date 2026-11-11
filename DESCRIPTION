@@ -58,4 +58,7 @@ BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Config/testthat/parallel: true
+Config/testthat/start-first: scm, model-tf24, gradient-incidence,
+    gradient-ladder-factorisation, tf24-water-budget, stand-gradient-hyperpar,
+    model-tf24t, sample-size-distribution, tf24-fitness-gradient, model-tf24f
 RoxygenNote: 7.3.3

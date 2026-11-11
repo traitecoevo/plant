@@ -486,7 +486,13 @@ test_that("SCM completes under extreme seasonal drought (#517, #550)", {
   # was chaotic across exactly this sweep); one representative point is checked
   # here to keep the test cheap. NSC makes completion platform-independent, so
   # this is no longer skipped on Windows (contrast the pre-#517 blow-up test).
-  mpl <- 30
+  #
+  # Completion alone no longer tells the fixed model from the broken one: with
+  # productivity per leaf area put back in the mortality exponent, the run now
+  # completes too, but the drought kills the stand (offspring ~1e-9, against
+  # ~5 here). The floor on offspring is what catches that. Fifteen years is
+  # fifteen rainfall cycles; the cost of the run is linear in the lifetime.
+  mpl <- 15
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- mpl
   p1 <- add_strategies(p0, trait_matrix(0.07, "lma"))
@@ -500,7 +506,7 @@ test_that("SCM completes under extreme seasonal drought (#517, #550)", {
 
   out <- run_scm(p1, env)
   expect_true(is.finite(out$offspring_production))
-  expect_gte(out$offspring_production, 0)
+  expect_gt(out$offspring_production, 1e-3)
 })
 
 

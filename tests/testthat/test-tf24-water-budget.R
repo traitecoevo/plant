@@ -88,6 +88,11 @@ test_that("TF24 water budget closes on a graded layer profile", {
   # using the wrong distance. That term's distance is the INTERNODE separation
   # z_mid[i+1] - z_mid[i], not dz[i]; the two coincide only for equal layers, so a
   # uniform-profile budget test would pass on the mistake and this one will not.
+  #
+  # Half a year is enough: dividing every layer's rate by the top layer's width
+  # leaves 10% of the water unaccounted for by then, against 1e-16 when correct.
+  # The column does not dry below its start in that time; the tests either side
+  # of this one close the budget on a drying column.
   profiles <- list(
     "2 cm surface layer" = c(0.02, 0.28, 0.30, 0.40, 0.50),
     "graded ladder" = graded_widths(1.5, 5, top = 0.02),
@@ -95,7 +100,7 @@ test_that("TF24 water budget closes on a graded layer profile", {
     "single thin layer" = 0.02
   )
   for (label in names(profiles)) {
-    b <- tf24_water_budget(widths = profiles[[label]])
+    b <- tf24_water_budget(widths = profiles[[label]], lifetime = 0.5)
     expect_equal(b$supplied, b$accounted, info = label)
     expect_lt(abs(b$rel_residual), 1e-12)
   }
