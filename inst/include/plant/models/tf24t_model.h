@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_TF24T_STRATEGY_H_
-#define PLANT_PLANT_TF24T_STRATEGY_H_
+#ifndef PLANT_PLANT_TF24T_MODEL_H_
+#define PLANT_PLANT_TF24T_MODEL_H_
 
 #include <plant/models/tf24_model.h>
 #include <algorithm>
@@ -14,7 +14,7 @@ namespace plant {
 
 // TF24t ("t" for thermal): TF24 with phylloptim's lasting leaf thermal-damage
 // and acclimation layer (the ATLS model, #566) switched on, plus the four slow
-// ODE states that layer reads. It inherits TF24_Strategy and reuses
+// ODE states that layer reads. It inherits TF24_Model and reuses
 // TF24_Environment and TF24_Pars.
 //
 // THE LAYER IS phylloptim's, behind Leaf::use_thermal_damage_, and so are its
@@ -52,7 +52,7 @@ namespace plant {
 // TF24t stand gradient would need the four states on the tape, which is not
 // built.)
 template <typename S = double>
-class TF24t_Strategy : public TF24_Strategy<S> {
+class TF24t_Model : public TF24_Model<S> {
   // Only ever instantiated at double; see rebind below.
   static_assert(std::is_same_v<S, double>,
                 "TF24t has no differentiable form: the leaf's thermal-damage "
@@ -60,16 +60,16 @@ class TF24t_Strategy : public TF24_Strategy<S> {
 
 public:
   using value_type = S;
-  using base_type = TF24_Strategy<S>;
+  using base_type = TF24_Model<S>;
 
-  typedef std::shared_ptr<TF24t_Strategy> ptr;
-  TF24t_Strategy();
+  typedef std::shared_ptr<TF24t_Model> ptr;
+  TF24t_Model();
 
   // Puts the per-day rate constants on the per-year ODE clock.
   static constexpr double DAYS_PER_YEAR = 365.25;
 
   // Compound scientific version, "<TF24 version>.<thermal_revision>": the major
-  // component tracks TF24_Strategy::scientific_version, so a TF24 change also
+  // component tracks TF24_Model::scientific_version, so a TF24 change also
   // invalidates TF24t (the safe direction). Bump thermal_revision for a change
   // to the thermal layer alone. See src/strategy_version.cpp.
   static constexpr int thermal_revision = 5;
@@ -133,8 +133,8 @@ public:
   void set_initial_states(const TF24_Environment<S>& environment,
                           Internals<S>& vars);
 
-  // ⚠️ DELETED, NOT INHERITED. TF24_Strategy::rebind returns a
-  // TF24_Strategy<U>, so an inherited one would rebind a TF24t patch as a TF24
+  // ⚠️ DELETED, NOT INHERITED. TF24_Model::rebind returns a
+  // TF24_Model<U>, so an inherited one would rebind a TF24t patch as a TF24
   // patch: no thermal states, no layer, and a derivative of a different model
   // with every number finite. Deleting it makes Patch's at_scalar and odelia's
   // Rebindable read false, so the stand gradient, the sweep and an implicit
@@ -203,16 +203,16 @@ private:
 };
 
 template <typename S>
-typename TF24t_Strategy<S>::ptr make_strategy_ptr(TF24t_Strategy<S> s);
+typename TF24t_Model<S>::ptr make_strategy_ptr(TF24t_Model<S> s);
 
 template <typename S>
-TF24t_Strategy<S>::TF24t_Strategy() {
+TF24t_Model<S>::TF24t_Model() {
   this->name = "TF24t";
   this->refresh_indices();
 }
 
 template <typename S>
-void TF24t_Strategy<S>::refresh_indices() {
+void TF24t_Model<S>::refresh_indices() {
   base_type::refresh_indices();
   const int idx = static_cast<int>(base_type::state_size());
   this->state_index["acclim_thermostab"] = idx;
@@ -229,7 +229,7 @@ void TF24t_Strategy<S>::refresh_indices() {
 }
 
 template <typename S>
-void TF24t_Strategy<S>::check_kinetics() const {
+void TF24t_Model<S>::check_kinetics() const {
   if (!util::is_finite(alpha) || alpha < 0.0 ||
       !util::is_finite(beta) || beta < 0.0 ||
       !util::is_finite(softplus_s) || softplus_s <= 0.0 ||
@@ -254,7 +254,7 @@ void TF24t_Strategy<S>::check_kinetics() const {
 }
 
 template <typename S>
-void TF24t_Strategy<S>::prepare_strategy() {
+void TF24t_Model<S>::prepare_strategy() {
   base_type::prepare_strategy();
   check_kinetics();
   damage_cached_ = false;
@@ -302,7 +302,7 @@ void TF24t_Strategy<S>::prepare_strategy() {
 }
 
 template <typename S>
-std::array<double, 3> TF24t_Strategy<S>::leaf_damage_rates_per_year() const {
+std::array<double, 3> TF24t_Model<S>::leaf_damage_rates_per_year() const {
   const Leaf& leaf = this->leaf;
   const std::array<double, 4> state{leaf.Tleaf_, leaf.A_, leaf.I_, leaf.D_};
   if (damage_cached_ &&
@@ -319,7 +319,7 @@ std::array<double, 3> TF24t_Strategy<S>::leaf_damage_rates_per_year() const {
 }
 
 template <typename S>
-S TF24t_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
+S TF24t_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
                                             const S& height, const S& area_leaf_,
                                             const S& height_inverse,
                                             const S& sapwood_departure,
@@ -353,7 +353,7 @@ S TF24t_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environme
 }
 
 template <typename S>
-void TF24t_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
+void TF24t_Model<S>::compute_rates(const TF24_Environment<S>& environment,
                                       Internals<S>& vars) {
   const double A = vars.state(state_idx_acclim_A);
   const double I =
@@ -395,7 +395,7 @@ void TF24t_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
 // A_eq = (alpha / beta) * softplus(T - t_accl): the DAYS_PER_YEAR factor cancels
 // in the ratio, and with beta = 0 there is no equilibrium, so A starts at zero.
 template <typename S>
-void TF24t_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment,
+void TF24t_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                            Internals<S>& vars) {
   // Non-virtual in the base, so the shared states (notably the storage pool)
   // are seeded only if this calls it.
@@ -411,9 +411,9 @@ void TF24t_Strategy<S>::set_initial_states(const TF24_Environment<S>& environmen
 }
 
 template <typename S>
-typename TF24t_Strategy<S>::ptr make_strategy_ptr(TF24t_Strategy<S> s) {
+typename TF24t_Model<S>::ptr make_strategy_ptr(TF24t_Model<S> s) {
   s.prepare_strategy();
-  return std::make_shared<TF24t_Strategy<S> >(s);
+  return std::make_shared<TF24t_Model<S> >(s);
 }
 
 }

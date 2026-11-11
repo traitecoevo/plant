@@ -4,17 +4,17 @@
 \alias{TF24t_Individual}
 \title{Create a TF24t Plant or Node}
 \usage{
-TF24t_Individual(s = TF24t_Strategy())
+TF24t_Individual(s = TF24t_Model())
 }
 \arguments{
-\item{s}{A \code{\link{TF24t_Strategy}} object}
+\item{s}{A \code{\link{TF24t_Model}} object}
 }
 \description{
 TF24t is TF24 with phylloptim's lasting leaf thermal-damage and
 acclimation layer switched on (#566). It adds four ODE states after TF24's:
 \code{acclim_thermostab}, \code{impaired},
 \code{damaged} and \code{mean_leaf_temp}. Its thermal parameters
-sit at the top level of \code{\link{TF24t_Strategy}}, with every rate
+sit at the top level of \code{\link{TF24t_Model}}, with every rate
 constant per day. The Penman-Monteith energy balance is always on, so the
 \code{leaf_temp} driver is read as air temperature.
 }

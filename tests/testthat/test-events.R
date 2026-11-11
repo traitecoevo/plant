@@ -130,7 +130,7 @@ test_that("the events path reproduces the default path exactly", {
     ## (#637 now refuses an unknown trait name rather than ignoring it). Perturb
     ## the strategy's own default so this keeps working if the defaults move.
     tr <- if (x == "K93") "eta" else "lma"
-    base <- do.call(sprintf("%s_Strategy", x), list())$pars[[tr]]
+    base <- do.call(sprintf("%s_Model", x), list())$pars[[tr]]
     p <- add_strategies(testing_parameters(x),
                         trait_matrix(c(base * 0.95, base * 1.05), tr),
                         birth_rate = list(1, 1))

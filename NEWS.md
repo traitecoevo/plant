@@ -13,6 +13,10 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The model classes are `*_Model`, not `*_Strategy` (#641).** `FF16_Strategy` named the whole rule set (growth, mortality, reproduction, competition), while a strategy in ecology is one species' trait values, so the classes, their C++ base class and their header files are renamed. "Strategy" keeps that one meaning: `strategies`, `add_strategies()`, `generate_strategy()`, `strategy_default` and `Individual$strategy` keep their names, as does `run_plant_benchmarks()`'s `strategy_types`. No number moves. Migration:
+  * `FF16_Strategy(...)` -> `FF16_Model(...)`, and likewise `K93_`, `TF24_`, `TF24f_`, `TF24t_`, `TF24w_`; class `"FF16_Strategy"` -> `"FF16_Model"`, including names built as `paste0(model, "_Strategy")`
+  * C++ (`LinkingTo: plant`): `plant::FF16_Strategy<T>` -> `plant::FF16_Model<T>` and so on; `plant::Strategy<E>` -> `plant::Model<E>`; `<plant/strategy.h>` -> `<plant/model.h>`; `<plant/models/ff16_strategy.h>` -> `<plant/models/ff16_model.h>` (and `k93_`, `tf24f_`, `tf24t_`, `tf24w_`; TF24's is already `tf24_model.h`)
+  * the `plant-new-strategy` skill -> `plant-new-model`
 * **`NodeSchedule` is `Schedule` (#752).** The class is plant's queue of every scheduled event (node introductions, resource pulses, harvests, climate extremes), not only of nodes, so it is renamed, with its event type and the bindings that hold it. The node-introduction times keep their names (`node_schedule_times`, `node_schedule_times_default()`, `node_schedule_times_periodic()`). No number moves. Migration:
   * `NodeSchedule(...)` -> `Schedule(...)`; class `"NodeSchedule"` -> `"Schedule"`
   * `scm$node_schedule` -> `scm$schedule` (likewise on the stochastic runner)

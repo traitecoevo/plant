@@ -4,10 +4,10 @@
 \alias{FF16_Individual}
 \title{Create a FF16 Individual}
 \usage{
-FF16_Individual(s = FF16_Strategy())
+FF16_Individual(s = FF16_Model())
 }
 \arguments{
-\item{s}{A \code{\link{FF16_Strategy}} object}
+\item{s}{A \code{\link{FF16_Model}} object}
 }
 \description{
 Create a FF16 Individual

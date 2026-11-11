@@ -73,7 +73,7 @@ inline ShadingModel shading_model_from_string(const std::string& name) {
 }
 
 // As above, but an empty string selects the supplied per-strategy default
-// (the shared Control default is "" so each strategy picks its own).
+// (the shared Control default is "" so each model picks its own).
 inline ShadingModel shading_model_from_string(const std::string& name,
                                               ShadingModel fallback) {
   if (name.empty()) {
@@ -324,7 +324,7 @@ private:
   // the crown top and turns that into ~4e-9 relative.
   //
   // The derivative that justified the second algorithm is one nothing may read:
-  // TF24_Strategy declares `eta` undifferentiable, for exactly the reason the old
+  // TF24_Model declares `eta` undifferentiable, for exactly the reason the old
   // comment here gave -- u^eta*log(u) is 0*(-inf) at u = 0 and the guard returns a
   // constant zero, "so a row here would be a silently wrong zero". A branch whose
   // only product is a forbidden row is a branch that earns nothing.

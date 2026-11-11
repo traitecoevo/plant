@@ -1,5 +1,5 @@
 // -*-c++-*-
-// TF24_Strategy's allometry: the sizes and masses a plant of a given height
+// TF24_Model's allometry: the sizes and masses a plant of a given height
 // and leaf area has, their derivatives, its seed, and how its roots are
 // spread over soil depth.
 // The class is declared in tf24_model.h, which includes this file.
@@ -12,19 +12,19 @@ namespace plant {
 
 // Leaf area from height
 template <typename S>
-S TF24_Strategy<S>::area_leaf(const S& height) const {
+S TF24_Model<S>::area_leaf(const S& height) const {
   return pow(height / pars.a_l1, 1.0 / pars.a_l2);
 }
 
 // Leaf mass from leaf area
 template <typename S>
-S TF24_Strategy<S>::mass_leaf(const S& area_leaf) const {
+S TF24_Model<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
 }
 
 // Area and mass of sapwood
 template <typename S>
-S TF24_Strategy<S>::area_sapwood(const S& area_leaf) const {
+S TF24_Model<S>::area_sapwood(const S& area_leaf) const {
   return area_leaf * pars.theta;
 }
 
@@ -32,48 +32,48 @@ S TF24_Strategy<S>::area_sapwood(const S& area_leaf) const {
 // prefers. At a resting departure sapwood_per_leaf_area() returns pars.theta
 // unchanged, so this is bit-identical to the overload above.
 template <typename S>
-S TF24_Strategy<S>::area_sapwood(const S& area_leaf,
+S TF24_Model<S>::area_sapwood(const S& area_leaf,
                                  const S& sapwood_departure) const {
   return area_leaf * sapwood_per_leaf_area(sapwood_departure);
 }
 
 template <typename S>
-S TF24_Strategy<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
+S TF24_Model<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
   return area_sapwood * height * eta_c * pars.rho;
 }
 
 // Area and mass of bark
 template <typename S>
-S TF24_Strategy<S>::area_bark(const S& area_leaf) const {
+S TF24_Model<S>::area_bark(const S& area_leaf) const {
   return pars.a_b1 * area_leaf * pars.theta;
 }
 
 template <typename S>
-S TF24_Strategy<S>::mass_bark(const S& area_bark, const S& height) const {
+S TF24_Model<S>::mass_bark(const S& area_bark, const S& height) const {
   return area_bark * height * eta_c * pars.rho;
 }
 
 template <typename S>
-S TF24_Strategy<S>::area_stem(const S& area_bark, const S& area_sapwood,
+S TF24_Model<S>::area_stem(const S& area_bark, const S& area_sapwood,
                             const S& area_heartwood) const {
   return area_bark + area_sapwood + area_heartwood;
 }
 
 template <typename S>
-S TF24_Strategy<S>::diameter_stem(const S& area_stem) const {
+S TF24_Model<S>::diameter_stem(const S& area_stem) const {
   using std::sqrt;
   return sqrt(4 * area_stem / M_PI);
 }
 
 // Mass of (fine) roots
 template <typename S>
-S TF24_Strategy<S>::mass_root(const S& area_leaf) const {
+S TF24_Model<S>::mass_root(const S& area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
 // Mass of coarse (structural) roots
 template <typename S>
-S TF24_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
+S TF24_Model<S>::mass_coarse_root(const S& mass_sapwood) const {
   return pars.a_cr1 * mass_sapwood;
 }
 
@@ -82,14 +82,14 @@ S TF24_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
 // a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
 // exactly, and the association order of the other terms is untouched).
 template <typename S>
-S TF24_Strategy<S>::mass_live(const S& mass_leaf, const S& mass_bark,
+S TF24_Model<S>::mass_live(const S& mass_leaf, const S& mass_bark,
                            const S& mass_sapwood, const S& mass_root,
                            const S& mass_coarse_root) const {
   return mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root;
 }
 
 template <typename S>
-S TF24_Strategy<S>::mass_total(const S& mass_leaf, const S& mass_bark,
+S TF24_Model<S>::mass_total(const S& mass_leaf, const S& mass_bark,
                             const S& mass_sapwood, const S& mass_heartwood,
                             const S& mass_root,
                             const S& mass_coarse_root) const {
@@ -98,14 +98,14 @@ S TF24_Strategy<S>::mass_total(const S& mass_leaf, const S& mass_bark,
 }
 
 template <typename S>
-S TF24_Strategy<S>::mass_above_ground(const S& mass_leaf, const S& mass_bark,
+S TF24_Model<S>::mass_above_ground(const S& mass_leaf, const S& mass_bark,
                             const S& mass_sapwood, const S& mass_heartwood) const {
   return mass_leaf + mass_bark + mass_sapwood + mass_heartwood;
 }
 
 // for updating auxiliary state
 template <typename S>
-void TF24_Strategy<S>::update_dependent_aux(const int index, Internals<S>& vars) {
+void TF24_Model<S>::update_dependent_aux(const int index, Internals<S>& vars) {
   // Leaf area depends on BOTH height and the departure state, so either write
   // has to refresh it. Individual::set_ode_state refreshes per slot in slot
   // order, so the height pass (slot 0) necessarily reads the departure still
@@ -124,7 +124,7 @@ void TF24_Strategy<S>::update_dependent_aux(const int index, Internals<S>& vars)
 }
 
 template <typename S>
-S TF24_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf,
+S TF24_Model<S>::darea_leaf_dmass_live(const S& area_leaf,
                                           const S& sapwood_departure) const {
   // The coarse-root term is appended last so that at the default a_cr1 = 0 the
   // denominator is bit-identical to the pre-#349 sum.
@@ -136,19 +136,19 @@ S TF24_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf,
 }
 
 template <typename S>
-S TF24_Strategy<S>::dheight_darea_leaf(const S& area_leaf) const {
+S TF24_Model<S>::dheight_darea_leaf(const S& area_leaf) const {
   return pars.a_l1 * pars.a_l2 * pow(area_leaf, pars.a_l2 - 1);
 }
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
 template <typename S>
-S TF24_Strategy<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
+S TF24_Model<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
   return pars.lma;
 }
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 template <typename S>
-S TF24_Strategy<S>::dmass_sapwood_darea_leaf(const S& area_leaf,
+S TF24_Model<S>::dmass_sapwood_darea_leaf(const S& area_leaf,
                                              const S& sapwood_departure) const {
   // Priced at the Huber value the plant ACTUALLY carries. At rest
   // sapwood_per_leaf_area() returns pars.theta unchanged, so this is bitwise
@@ -159,7 +159,7 @@ S TF24_Strategy<S>::dmass_sapwood_darea_leaf(const S& area_leaf,
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
 template <typename S>
-S TF24_Strategy<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
+S TF24_Model<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
   // At a RESTING sapwood departure deliberately: bark follows leaf area, so it
   // must not pick up the Huber value's excursion. Expressed as a_b1 times the
   // sapwood form at zero departure rather than written out, because floating
@@ -170,32 +170,32 @@ S TF24_Strategy<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l
 template <typename S>
-S TF24_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
+S TF24_Model<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
   return pars.a_r1;
 }
 
 // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l
 template <typename S>
-S TF24_Strategy<S>::dmass_coarse_root_darea_leaf(const S& area_leaf,
+S TF24_Model<S>::dmass_coarse_root_darea_leaf(const S& area_leaf,
                                                  const S& sapwood_departure) const {
   return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf, sapwood_departure);
 }
 
 // Heartwood grows from the sapwood already there, not from leaf-area growth.
 template <typename S>
-S TF24_Strategy<S>::area_heartwood_dt(const S& area_leaf,
+S TF24_Model<S>::area_heartwood_dt(const S& area_leaf,
                                       const S& sapwood_departure) const {
   return pars.k_s * area_sapwood(area_leaf, sapwood_departure);
 }
 
 template <typename S>
-S TF24_Strategy<S>::mass_heartwood_dt(const S& mass_sapwood) const {
+S TF24_Model<S>::mass_heartwood_dt(const S& mass_sapwood) const {
   return turnover_sapwood(mass_sapwood);
 }
 
 
 template <typename S>
-S TF24_Strategy<S>::mass_live_given_height(const S& height) const {
+S TF24_Model<S>::mass_live_given_height(const S& height) const {
   S area_leaf_ = area_leaf(height);
   const S mass_sapwood_ = mass_sapwood(area_sapwood(area_leaf_), height);
   return mass_leaf(area_leaf_) +
@@ -206,7 +206,7 @@ S TF24_Strategy<S>::mass_live_given_height(const S& height) const {
 }
 
 template <typename S>
-S TF24_Strategy<S>::height_given_mass_leaf(const S& mass_leaf) const {
+S TF24_Model<S>::height_given_mass_leaf(const S& mass_leaf) const {
   return pars.a_l1 * pow(mass_leaf / pars.lma, pars.a_l2);
 }
 
@@ -214,7 +214,7 @@ S TF24_Strategy<S>::height_given_mass_leaf(const S& mass_leaf) const {
 // shape exponent 'eta_x', above coordinate 'z' of a total 'height'.
 // Serves the root mass distribution over soil depth.
 template <typename S>
-S TF24_Strategy<S>::Q(const S& z, const S& rooting_depth, const S& eta_x) const {
+S TF24_Model<S>::Q(const S& z, const S& rooting_depth, const S& eta_x) const {
   if (z > rooting_depth) {
     return S(0.0);
   }
@@ -234,7 +234,7 @@ S TF24_Strategy<S>::Q(const S& z, const S& rooting_depth, const S& eta_x) const 
 
 // The aim is to find a plant height that gives the correct seed mass.
 template <typename S>
-double TF24_Strategy<S>::height_seed(void) const {
+double TF24_Model<S>::height_seed(void) const {
 
   // Note, these are not entirely correct bounds. Ideally we would use height
   // given *total* mass, not leaf mass, but that is difficult to calculate.

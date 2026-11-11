@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppR6.R
 \name{FF16_Pars}
 \alias{FF16_Pars}
-\title{FF16 strategy parameters}
+\title{FF16 model parameters}
 \usage{
 FF16_Pars(..., values = list(...))
 }
@@ -11,7 +11,7 @@ FF16_Pars(..., values = list(...))
 variadic arguments, or as a list, but not both).}
 }
 \description{
-Biological trait/parameters for the FF16 strategy. Held as the nested
-\code{pars} element of an \code{\link{FF16_Strategy}} (access as
+Biological trait/parameters for the FF16 model. Held as the nested
+\code{pars} element of an \code{\link{FF16_Model}} (access as
 \code{s$pars$lma}).
 }

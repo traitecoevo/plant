@@ -18,7 +18,7 @@ test_that("an unknown trait name is refused, not ignored", {
   p0 <- testing_parameters("FF16")
   # The regression: 'lmaa' used to be accepted and lma stayed at its default.
   expect_error(generate_strategy(p0, trait_matrix(0.5, "lmaa")),
-               "Unknown trait name for FF16_Strategy")
+               "Unknown trait name for FF16_Model")
   expect_error(generate_strategy(p0, trait_matrix(0.5, "lmaa")),
                "did you mean lma")
 })
@@ -33,7 +33,7 @@ test_that("the error names the model and every offender", {
   expect_match(err, "rhoo")
   expect_match(err, "nonsense_xyz")
   expect_false(grepl("\\blma\\b \\(did", err))
-  expect_match(err, "FF16_Strategy")
+  expect_match(err, "FF16_Model")
   # A name with no near match gets no misleading suggestion.
   expect_false(grepl("nonsense_xyz \\(did you mean", err))
 })
@@ -54,7 +54,7 @@ test_that("every model refuses an unknown name", {
   for (type in c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")) {
     p0 <- testing_parameters(type)
     expect_error(generate_strategy(p0, trait_matrix(1, "definitely_not_a_trait")),
-                 sprintf("Unknown trait name for %s_Strategy", type),
+                 sprintf("Unknown trait name for %s_Model", type),
                  info = type)
   }
 })

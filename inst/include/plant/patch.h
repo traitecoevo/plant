@@ -51,7 +51,7 @@ concept KeepsSolvedChoices =
 // -- its default template arguments and its return type -- when the enclosing
 // class is instantiated, where GCC defers until the member is used. A bare
 // alias naming `X::rebind` is then a hard error the moment
-// `Patch<K93_Strategy, ...>` exists, because K93 declares no `rebind`. The
+// `Patch<K93_Model, ...>` exists, because K93 declares no `rebind`. The
 // `void` fallback turns that into a type nothing instantiates, and
 // `Patch::rebind` is constrained on it below.
 template <typename X, typename U, typename = void>
@@ -2273,7 +2273,7 @@ std::vector<typename T::value_type*> Patch<T,E>::ad_parameters() {
   return ret;
 }
 
-// Every species in a patch carries the same strategy type, so this is a count
+// Every species in a patch runs the same model, so this is a count
 // per species rather than a walk that builds a vector of pointers to measure its
 // length. It is asked several times per gradient.
 template <typename T, typename E>
@@ -2478,7 +2478,7 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
     for (const std::string& name : T::non_negative_states()) {
       const auto found = std::find(names.begin(), names.end(), name);
       if (found == names.end()) {
-        util::stop("Strategy declares '" + name + "' as a non-negative state "
+        util::stop("Model declares '" + name + "' as a non-negative state "
                    "and does not carry it");
       }
       ret.push_back(static_cast<size_t>(found - names.begin()));

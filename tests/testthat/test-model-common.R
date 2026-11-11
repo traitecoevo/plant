@@ -12,7 +12,7 @@ test_that("the first three states are height, mortality and fecundity", {
 
 test_that("an individual holds its strategy, and reads height by name and by slot", {
   for (m in all_models) {
-    s <- get(paste0(m, "_Strategy"))()
+    s <- get(paste0(m, "_Model"))()
     ind <- get(paste0(m, "_Individual"))(s)
     expect_identical(ind$strategy, s, info = m)
     ind$set_state("height", 10)

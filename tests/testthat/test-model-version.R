@@ -1,5 +1,5 @@
 # Scientific model versioning (see R/strategy_support.R, src/strategy_version.cpp,
-# and the `scientific_version` constant in inst/include/plant/models/*_strategy.h).
+# and the `scientific_version` constant in inst/include/plant/models/*_model.h).
 
 models <- all_models
 
@@ -93,7 +93,7 @@ top_level_science <- list(
 )
 
 scientific_surface <- function(type) {
-  s <- as.list(get(paste0(type, "_Strategy"))())
+  s <- as.list(get(paste0(type, "_Model"))())
   extras <- list(
     birth_rate_x = s$birth_rate_x,
     birth_rate_y = s$birth_rate_y,

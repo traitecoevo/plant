@@ -19,7 +19,7 @@ defaults to plant's frozen testing trade-offs
 \value{
 A tibble with one row per parameter: \code{name}, \code{group},
   \code{default} (the strategy's or control's default, as text; read the
-  exact double from \code{Strategy()$pars} or \code{Control()}),
+  exact double from \code{TF24_Model()$pars} or \code{Control()}),
   \code{description}, \code{symbol} and \code{unit} where
   \code{inst/docs} documents the name, \code{NA} otherwise.
 }

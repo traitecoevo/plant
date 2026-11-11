@@ -34,7 +34,7 @@ test_that("the flexible-allometry demo's claims still hold", {
   ## The canopy floor holds: thinning stops at a_pl3 of the preferred canopy,
   ## which is what keeps leaf area in a range where the arithmetic means
   ## something.
-  expect_gte(min(flex$canopy_fraction), TF24_Strategy()$pars$a_pl3 - 1e-8)
+  expect_gte(min(flex$canopy_fraction), TF24_Model()$pars$a_pl3 - 1e-8)
 
   ## It rebuilds afterwards.
   expect_gt(tail(flex$canopy_fraction, 1), 0.8)
@@ -87,7 +87,7 @@ test_that("suppressed plants in a wet stand thin; dominants do not", {
 
   ## The floor holds here too -- this is the case where, without it, a
   ## suppressed cohort reached canopy 0.000 with stem-per-leaf 1.3e9.
-  expect_gte(min(d$canopy_fraction), TF24_Strategy()$pars$a_pl3 - 1e-8)
+  expect_gte(min(d$canopy_fraction), TF24_Model()$pars$a_pl3 - 1e-8)
   expect_true(all(is.finite(d$huber_ratio)))
   expect_lt(max(d$huber_ratio), 1e3)
 })
@@ -100,9 +100,9 @@ test_that("suppressed plants in a wet stand thin; dominants do not", {
 # they mirror named: if one changes this fails, which is the intent.
 tf24_departure_rates_r <- function(s, height, phi, psi, tracked, P, A) {
   p <- s$pars
-  storage_gate_width    <- 0.1    # TF24_Strategy::storage_gate_width
-  storage_prod_eps      <- 1e-4   # TF24_Strategy::storage_prod_eps
-  plasticity_gate_width <- 0.02   # TF24_Strategy::plasticity_gate_width
+  storage_gate_width    <- 0.1    # TF24_Model::storage_gate_width
+  storage_prod_eps      <- 1e-4   # TF24_Model::storage_prod_eps
+  plasticity_gate_width <- 0.02   # TF24_Model::plasticity_gate_width
   eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)   # CanopyShape::eta_c
 
   ## The gate reads the TRACKED marginal balance, and its effect tapers to
@@ -140,7 +140,7 @@ test_that("the demo's equations reproduce the C++ departure rates", {
   env$set_soil_number_of_depths(5)
   env$set_fixed_environment(1.0, 40)
 
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_pl0 <- 1.0
 
   grid <- expand.grid(height = c(1, 5, 15),
@@ -238,7 +238,7 @@ test_that("shedding is measured at fixed sapwood, which is what thinning does", 
   z <- allometry_carbon_terms(20, theta_soil = 0.20)
   expect_lt(z$dPdA, 0)                       # at fixed sapwood: shedding helps
 
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   along <- function(phi) {
     e <- tf24_demo_env(0.20)
     i <- TF24_Individual(s)

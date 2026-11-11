@@ -160,7 +160,7 @@ test_that("A lone TF24 individual follows a time-varying SWdown", {
   grow <- function(swdown) {
     env <- tf24_env_with_swdown(swdown)
     env$set_fixed_environment(1.0, 150)
-    ind <- Individual("TF24", "TF24_Env")(TF24_Strategy())
+    ind <- Individual("TF24", "TF24_Env")(TF24_Model())
     res <- grow_individual_to_time(ind, c(0.5, 1, 2), env)
     res$state[, "height"]
   }

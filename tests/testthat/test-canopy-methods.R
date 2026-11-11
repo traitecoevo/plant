@@ -6,7 +6,7 @@
 #                  built as a stepped (layered) function of height
 #
 # All three share the same per-plant competition contribution (smooth Yokozawa
-# Q). The model is resolved once in FF16_Strategy::prepare_strategy() into a
+# Q). The model is resolved once in FF16_Model::prepare_strategy() into a
 # function pointer (assimilation_fn) and, for the profile, configured on the
 # environment by the Patch constructor -- so it costs no per-call string
 # comparison on the hot path.
@@ -24,7 +24,7 @@
 # Patch, so its environment is never put into the stepped (PPA) mode; PPA-vs-
 # others differences in the light profile only appear through run_scm() below.
 make_ind <- function(model, height = 10) {
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   s$control$shading_model <- model
   ind <- FF16_Individual(s)
   ind$set_state("height", height)
@@ -42,7 +42,7 @@ test_that("control defaults", {
 })
 
 test_that("unknown shading model is rejected at strategy preparation", {
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   s$control$shading_model <- "not-a-model"
   expect_error(FF16_Individual(s), "Unknown shading model: not-a-model")
 })
@@ -74,7 +74,7 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
 
 test_that("flat-top-box casts a step competition profile, unlike crown-centre", {
   h <- 10
-  eta_c <- local({ eta <- FF16_Strategy()$pars$eta; 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta) })
+  eta_c <- local({ eta <- FF16_Model()$pars$eta; 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta) })
   zs <- seq(0, h, length.out = 41)
 
   smooth <- sapply(zs, function(z) make_ind("crown-centre", h)$compute_competition(z))
@@ -298,7 +298,7 @@ test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
 # ---------------------------------------------------------------------------
 
 tf24_ind <- function(model, height = 5) {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   if (nzchar(model)) s$control$shading_model <- model
   ind <- TF24_Individual(s)
   ind$set_state("height", height)
@@ -319,7 +319,7 @@ test_that("TF24 defaults to mean-light and rejects PPA", {
   expect_equal(tf24_prod(""), tf24_prod("mean-light"), tolerance = 1e-12)
 
   for (m in c("ppa", "flat-top-box", "flat-top-soft-box")) {
-    s <- TF24_Strategy()
+    s <- TF24_Model()
     s$control$shading_model <- m
     expect_error(TF24_Individual(s), "not supported for the TF24 strategy")
   }
@@ -467,7 +467,7 @@ test_that("on the birth-date coordinate the field takes crossed crowns tallest f
 # A multi-cohort FF16 patch at a given eta, with the cohort heights pushed apart
 # so the trapezium grid the competition reduction walks is non-degenerate.
 slope_patch <- function(eta, n = 6) {
-  s <- FF16_Strategy()
+  s <- FF16_Model()
   s$pars$eta <- eta
   s$birth_rate_y <- 1
   s$is_variable_birth_rate <- FALSE
@@ -518,7 +518,7 @@ test_that("the fused value tracks the association the value reduction uses", {
   # Three species, so the patch-level sum has three terms and its association is
   # observable at double precision -- which is what makes the check above a check.
   mk <- function(eta) {
-    s <- FF16_Strategy(); s$pars$eta <- eta
+    s <- FF16_Model(); s$pars$eta <- eta
     s$birth_rate_y <- 1; s$is_variable_birth_rate <- FALSE
     s
   }
@@ -554,7 +554,7 @@ test_that("the slope reduction is finite at the ground knot", {
 
 test_that("the vertical slope is refused for the hard-step shading model", {
   for (m in c("flat-top-box")) {
-    s <- FF16_Strategy()
+    s <- FF16_Model()
     s$birth_rate_y <- 1
     s$is_variable_birth_rate <- FALSE
     p <- Parameters("FF16", "FF16_Env")(strategies = list(s),
@@ -641,7 +641,7 @@ test_that("the competition reduction is invariant to the node order", {
   build <- function(heights, log_densities) {
     ctrl <- Control()
     ctrl$node_density_coordinate <- "height"
-    st <- FF16_Strategy()
+    st <- FF16_Model()
     st$control <- ctrl
     s <- Species("FF16", "FF16_Env")(st)
     env <- Environment("FF16")

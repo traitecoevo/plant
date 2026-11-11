@@ -23,7 +23,7 @@ test_that("Defaults", {
     fixed_time_step = 0.0,
 
     function_integration_rule = 21, # size_t so not int
-    shading_model = "", # empty = each strategy's own default
+    shading_model = "", # empty = each model's own default
     ppa_layer_optical_depth = 0.5,
     ppa_layer_smoothing = 0.3,
 

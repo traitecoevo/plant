@@ -7,6 +7,6 @@
 TF24_Environment()
 }
 \description{
-This environment is used for the TF24 strategy, which includes soil moisture and hydraulic
+This environment is used for the TF24 model, which includes soil moisture and hydraulic
 conductivity parameters.
 }

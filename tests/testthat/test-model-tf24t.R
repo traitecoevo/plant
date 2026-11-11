@@ -31,7 +31,7 @@ tf24t_arrhenius <- function(k, Ea, Tref, Tleaf) {
 # Every thermal input at a setting that can neither impair nor cost: no
 # acclimation gain (A stays at its zero seed), no impairment, no offset, and
 # every cost coefficient zero.
-tf24t_inert <- function(s = TF24t_Strategy()) {
+tf24t_inert <- function(s = TF24t_Model()) {
   s$alpha <- 0
   s$k_i <- 0
   s$topt_offset <- 0
@@ -45,11 +45,11 @@ tf24t_inert <- function(s = TF24t_Strategy()) {
 tf24t_rates <- function(ind) stats::setNames(ind$ode_rates, ind$ode_names)
 
 test_that("Defaults", {
-  s <- TF24t_Strategy()
-  expect_inherits(s, "TF24t_Strategy")
+  s <- TF24t_Model()
+  expect_inherits(s, "TF24t_Model")
 
   # pars is TF24's own, with no TF24t-specific shadow class.
-  expect_identical(unclass(s$pars), unclass(TF24_Strategy()$pars))
+  expect_identical(unclass(s$pars), unclass(TF24_Model()$pars))
   expect_identical(s$pars$use_energy_balance, 0.0)
 
   thermal <- list(topt_offset = 0, k_i = 276, k_i_Ea = 316000,
@@ -79,7 +79,7 @@ test_that("TF24t appends four thermal ODE states after TF24's", {
 test_that("the energy balance is forced on whatever pars says", {
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", 30)
-  s <- TF24t_Strategy()
+  s <- TF24t_Model()
   expect_identical(s$pars$use_energy_balance, 0.0)
   ind <- TF24t_Individual(s)
   ind$set_state("height", 5)
@@ -89,7 +89,7 @@ test_that("the energy balance is forced on whatever pars says", {
   expect_true(is.finite(ind$aux("Tleaf")))
   expect_false(isTRUE(all.equal(ind$aux("Tleaf"), 30)))
 
-  ref <- TF24_Individual(TF24_Strategy())
+  ref <- TF24_Individual(TF24_Model())
   ref$set_state("height", 5)
   ref$compute_rates(env)
   expect_identical(ref$aux("Tleaf"), 30)
@@ -103,7 +103,7 @@ test_that("the thermal rates follow their equations at the operating point", {
   air <- 33
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", air)
-  s <- TF24t_Strategy()
+  s <- TF24t_Model()
   s$topt_offset <- 1.5; s$dTopt_max <- 4; s$dTimpair_max <- 3; s$K_A <- 0.5
   s$k_rec <- 0.4; s$k_rec_Ea <- 30000
   s$k_i <- 300; s$k_i_Ea <- 250000; s$k_i_Tiso <- 48
@@ -179,7 +179,7 @@ test_that("each leaf cost coefficient reaches the leaf", {
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", 30)
   net <- function(mutate = identity) {
-    s <- TF24t_Strategy()
+    s <- TF24t_Model()
     s$k_i <- 0.2
     s <- mutate(s)
     ind <- TF24t_Individual(s)
@@ -224,7 +224,7 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
     a <- TF24t_Individual(tf24t_inert())
     a$set_state("height", 5)
     a$compute_rates(env)
-    s_ref <- TF24_Strategy()
+    s_ref <- TF24_Model()
     s_ref$pars$use_energy_balance <- 1
     expect_identical(s_ref$pars$use_energy_balance, 1)
     b <- TF24_Individual(s_ref)
@@ -285,12 +285,12 @@ test_that("mean_leaf_temp is a running mean of the operating leaf temperature", 
 
   # Seeded at the birth AIR temperature: the operating point is not solved until
   # the first compute_rates, which runs after set_initial_states.
-  p0 <- TF24t_Individual(TF24t_Strategy())
+  p0 <- TF24t_Individual(TF24t_Model())
   p0$set_initial_states(env)
   expect_identical(p0$state("mean_leaf_temp"), env$get_leaf_temp())
 
   rate_at <- function(mean0, k = 0.0333) {
-    s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k
+    s <- TF24t_Model(); s$k_mean_leaf_temp <- k
     p <- TF24t_Individual(s); p$set_state("height", 5)
     p$set_state("mean_leaf_temp", mean0)
     p$compute_rates(env)
@@ -334,7 +334,7 @@ test_that("TF24t refuses misconfigured kinetics", {
 test_that("TF24t refuses deep-crown shading and accepts the other two", {
   # The damage rates are read after the crown loop; deep-crown would leave them
   # at the last quadrature node's leaf temperature.
-  s <- TF24t_Strategy()
+  s <- TF24t_Model()
   s$control$shading_model <- "deep-crown"
   expect_error(TF24t_Individual(s), "deep-crown.*not supported for the TF24t")
 
@@ -345,7 +345,7 @@ test_that("TF24t refuses deep-crown shading and accepts the other two", {
   expect_error(run_scm(p, ctrl = ctrl), "not supported for the TF24t")
 
   for (model in c("mean-light", "crown-centre")) {
-    s <- TF24t_Strategy()
+    s <- TF24t_Model()
     s$control$shading_model <- model
     expect_inherits(TF24t_Individual(s), "Individual")
   }
@@ -414,7 +414,7 @@ test_that("the induction cost scales with leaf area, so a newborn can grow", {
   # 2.15 C above and dA/dt is 4.7.
   env$extrinsic_drivers_set_constant("SWdown", 1200)
   newborn <- function(c_ind) {
-    s <- TF24t_Strategy(); s$c_accl_induct <- c_ind
+    s <- TF24t_Model(); s$c_accl_induct <- c_ind
     p <- TF24t_Individual(s)
     p$set_initial_states(env)
     p$compute_rates(env)
@@ -434,7 +434,7 @@ test_that("the induction cost scales with leaf area, so a newborn can grow", {
 test_that("the construction cost debits net production only when bought", {
   env <- Environment("TF24t")
   net <- function(offset, cbuild) {
-    s <- TF24t_Strategy()
+    s <- TF24t_Model()
     s$topt_offset <- offset
     s$c_build <- cbuild
     p <- TF24t_Individual(s)
@@ -452,7 +452,7 @@ test_that("the impairment flux rises with heat and self-limits with I", {
   dI <- function(air, I) {
     env <- Environment("TF24t")
     env$extrinsic_drivers_set_constant("leaf_temp", air)
-    p <- TF24t_Individual(TF24t_Strategy())
+    p <- TF24t_Individual(TF24t_Model())
     p$set_state("height", 5)
     p$set_state("impaired", I)
     p$compute_rates(env)
@@ -470,7 +470,7 @@ test_that("faster repair lowers the share of impairment that becomes damage", {
   damaged_share <- function(k_rec) {
     env <- Environment("TF24t")
     env$extrinsic_drivers_set_constant("leaf_temp", 15)
-    s <- TF24t_Strategy(); s$k_i <- 0; s$k_rec <- k_rec
+    s <- TF24t_Model(); s$k_i <- 0; s$k_rec <- k_rec
     p <- TF24t_Individual(s)
     p$set_state("height", 5)
     p$set_state("impaired", 0.3)
@@ -498,7 +498,7 @@ test_that("a single TF24t plant grows through the ODE runner, and costs slow it"
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", 15)
   grow_to_time <- function(mutate = identity, t_end = 10) {
-    s <- mutate(TF24t_Strategy())
+    s <- mutate(TF24t_Model())
     p <- Individual("TF24t", e)(s)
     p$set_initial_states(env)
     runner <- OdeRunner("TF24t")(IndividualRunner("TF24t", e)(p, env))

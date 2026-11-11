@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppR6.R
 \name{K93_Pars}
 \alias{K93_Pars}
-\title{K93 strategy parameters}
+\title{K93 model parameters}
 \usage{
 K93_Pars(..., values = list(...))
 }
@@ -11,7 +11,7 @@ K93_Pars(..., values = list(...))
 variadic arguments, or as a list, but not both).}
 }
 \description{
-Biological trait/parameters for the K93 strategy. Held as the nested
-\code{pars} element of a \code{\link{K93_Strategy}} (access as
+Biological trait/parameters for the K93 model. Held as the nested
+\code{pars} element of a \code{\link{K93_Model}} (access as
 \code{s$pars$b_0}).
 }

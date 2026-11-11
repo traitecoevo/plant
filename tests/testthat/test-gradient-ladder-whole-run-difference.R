@@ -124,7 +124,7 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
   # The reference covers every column the sweep carries, bar the declared one.
   # Asserted before any comparison, because a missing row is not a disagreement
   # -- it is a column nothing looked at, and the rung passes either way.
-  carried <- setdiff(names(TF24_Strategy()$pars),
+  carried <- setdiff(names(TF24_Model()$pars),
                      names(census_undifferentiable_tf24()))
   expect_setequal(setdiff(carried, unique(rows$parameter)),
                   reference_uncaptured_columns())

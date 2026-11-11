@@ -31,7 +31,7 @@ tf24_seat <- function(ind, env, height, phi = 0, psi = 0) {
 
 ## A TF24 strategy with the plasticity switch at `a_pl0` (0 = fixed allometry).
 tf24_allometry_strategy <- function(a_pl0 = 1.0, ...) {
-  s <- TF24_Strategy(...)
+  s <- TF24_Model(...)
   s$pars$a_pl0 <- a_pl0
   s
 }
@@ -183,11 +183,11 @@ allometry_reference_curve <- function(s, heights) {
 ## something else entirely.
 allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0,
                                    psi = 0) {
-  p <- TF24_Strategy()$pars
+  p <- TF24_Model()$pars
   eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
   cc <- p$a_bio * p$a_y
   CONV <- 60 * 60 * 12 * 365 / 1e6          # per-second to annual, mol
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
 
   at <- function(ph, ps) {
     e <- tf24_demo_env(theta_soil)
@@ -235,7 +235,7 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0,
 ## the zero-crossing checked against the peak rather than asserted.
 allometry_sapwood_controller <- function(theta_soil, height = 10, a_sw = 1.0,
                                          psi = seq(-0.3, 0.7, length.out = 41L)) {
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_sw <- a_sw
   out <- lapply(psi, function(p) {
     env <- tf24_demo_env(theta_soil)
@@ -260,7 +260,7 @@ allometry_sapwood_controller <- function(theta_soil, height = 10, a_sw = 1.0,
 allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
                               wet = 0.30, acclimate = 2, recover = 4,
                               a_sw = 0, dt = 0.1) {
-  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s <- TF24_Model(collect_all_auxiliary = TRUE)
   s$pars$a_pl0 <- a_pl0
   s$pars$a_sw  <- a_sw
   ind <- TF24_Individual(s)
@@ -314,7 +314,7 @@ allometry_drought_grid <- function(heights = c(10, 20, 24),
 ## shares follow the canopy (leaf, fine root, bark) and which do not (sapwood) is
 ## what bounds what thinning can save.
 allometry_cost_shares <- function(height) {
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   p <- s$pars
   z <- plant:::TF24_strategy_expand_allometry(s, height, 0, 0)
   cc <- p$a_bio * p$a_y
@@ -332,7 +332,7 @@ allometry_thinning_per_area <- function(height = 10, theta_soil = 0.13,
                                         phi = c(0, -0.7, -1.6, -2.3, -3.0,
                                                 -4.0, -5.0)) {
   out <- lapply(phi, function(k) {
-    ind <- TF24_Individual(TF24_Strategy(collect_all_auxiliary = TRUE))
+    ind <- TF24_Individual(TF24_Model(collect_all_auxiliary = TRUE))
     env <- tf24_demo_env(theta_soil)
     tf24_seat(ind, env, height, phi = k, psi = -k * 0.35)
     ind$compute_rates(env)

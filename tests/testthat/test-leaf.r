@@ -39,7 +39,7 @@ net <- function(root_carbon_per_leaf_area, soil_depth) {
 test_that("Basic functions", {
   #first set physiological parameters
   
-  # TF24_strategy <- TF24_Strategy()
+  # TF24_strategy <- TF24_Model()
   vcmax_25 = 100 #maximum carboxylation rate (umol m^-2 s^-1) 
   jmax_25 = vcmax_25*167 #maximum electron transport rate (umol m^-2 s^-1) 
   stem_P50 = 2 #stem water potential at 50% loss of conductivity

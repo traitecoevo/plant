@@ -1,5 +1,5 @@
 # TF24w: TF24 with a private root-zone soil column per cohort (#681). The model
-# is in inst/include/plant/models/tf24w_strategy.h and the coupling passes in
+# is in inst/include/plant/models/tf24w_model.h and the coupling passes in
 # Patch::private_water_aggregates / private_water_exchange.
 
 # A short pulsed stand, the paper's settings: one lma, annual cohorts, rain as
@@ -30,7 +30,7 @@ tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
 }
 
 test_that("TF24w declares its states, readings and version", {
-  s <- TF24w_Strategy()
+  s <- TF24w_Model()
   nm <- TF24w_Individual(s)$ode_names
   expect_identical(nm, c(TF24_Individual()$ode_names, paste0("water_", 1:5)))
   expect_identical(model_id("TF24w"), paste0("TF24w@v", model_version("TF24"), ".1"))
@@ -38,7 +38,7 @@ test_that("TF24w declares its states, readings and version", {
                     TF24w_Individual(s)$aux_names))
   # The crown-LAI parameter is TF24's, inert there, and reaches the hyperpar.
   expect_true("L_crown" %in% names(s$pars))
-  expect_true("L_crown" %in% names(TF24_Strategy()$pars))
+  expect_true("L_crown" %in% names(TF24_Model()$pars))
   env <- Environment("TF24w")
   expect_identical(env$water_mixing_rate, 0)
 })

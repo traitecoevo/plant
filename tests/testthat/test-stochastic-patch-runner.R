@@ -109,7 +109,7 @@ test_that("the expected number of arrivals scales with patch area", {
 
   set.seed(1)
   n <- vapply(areas, function(area) {
-    p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Strategy()),
+    p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()),
                                         patch_area = area,
                                         max_patch_lifetime = lifetime)
     p$strategies[[1]]$birth_rate_y <- birth_rate
@@ -248,7 +248,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   }
 
   set.seed(1)
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   s$pars$storage_relaxation_offset <- 0
   p <- Parameters("TF24", "TF24_Env")(strategies = list(s), patch_area = 1)
   res <- run_stochastic_collect(p, Environment("TF24"),
@@ -262,7 +262,7 @@ test_that("TF24's environment states are integrated over a stochastic run", {
   ## The stochastic patch used to run the species alone, so TF24's soil water sat
   ## at its initial 0.214 for a whole run while the SCM integrated it up to the
   ## drainage equilibrium and then drew it down as leaf area grew.
-  p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Strategy()),
+  p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Model()),
                                       patch_area=50)
   p$max_patch_lifetime <- 8
   env <- Environment("TF24")

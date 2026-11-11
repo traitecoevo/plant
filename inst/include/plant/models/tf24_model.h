@@ -3,7 +3,7 @@
 #define PLANT_PLANT_TF24_MODEL_H_
 
 #include <plant/census.h>
-#include <plant/strategy.h>
+#include <plant/model.h>
 #include <odelia/ode_util.hpp>
 #include <plant/models/tf24_environment.h>
 #include <plant/census_gradient.h>
@@ -112,16 +112,16 @@ private:
   size_t placed = 0;
 };
 
-// Selects TF24_Strategy's constructor from another strategy, which rebind() uses.
+// Selects TF24_Model's constructor from another strategy, which rebind() uses.
 struct tf24_strategy_from_t {};
 
 template <typename S = double>
-class TF24_Strategy: public Strategy<TF24_Environment<S>> {
+class TF24_Model: public Model<TF24_Environment<S>> {
 public:
   using value_type = S;
 
-  typedef std::shared_ptr<TF24_Strategy> ptr;
-  TF24_Strategy();
+  typedef std::shared_ptr<TF24_Model> ptr;
+  TF24_Model();
 
   // Another strategy's values at this scalar, as assign_from() writes them.
   //
@@ -131,7 +131,7 @@ public:
   // overwrite them at once. The sweep rebinds the patch on the order of once
   // per recorded step, so each build it skips is one per step.
   template <class S1>
-  TF24_Strategy(tf24_strategy_from_t, const TF24_Strategy<S1>& src)
+  TF24_Model(tf24_strategy_from_t, const TF24_Model<S1>& src)
       : leaf(src.leaf) {
     assign_from(src);
   }
@@ -200,7 +200,7 @@ public:
   // carries (#516). At rest both departures are exactly zero and exp(0) is
   // exactly one, so these are the height-only expressions bit for bit.
   static const auto& census_metrics() {
-    using strategy = TF24_Strategy<S>;
+    using strategy = TF24_Model<S>;
     static constexpr std::array<census_metric<strategy>, 3> metrics{{
       {"leaf_area",
        [](const strategy& p, const Internals<S>& vars) -> S {
@@ -600,7 +600,7 @@ public:
                             const S& withheld_sapwood, const S& growth_flux,
                             const S& net_mass_production_dt_,
                             const S& darea_leaf_dmass_live_);
-  // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
+  // Model-agnostic entry point used by Individual<TF24> (#266): reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know TF24's state/aux layout.
   S net_mass_production_dt(const TF24_Environment<S>& environment,
@@ -707,7 +707,7 @@ public:
   // carries (area_leaf_carried), so nothing is recomputed per call.
   S compute_competition(const S& z, const S& area_leaf_,
                         const S& height_inverse) const;
-  // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
+  // Model-agnostic entry point used by Individual<TF24> (#266): reads the
   // cached competition_effect and height_inverse aux slots itself.
   S compute_competition(const S& z, const Internals<S>& vars) const {
     return compute_competition(z, vars.aux(aux_idx_competition_effect),
@@ -770,7 +770,7 @@ public:
     }
   }
 
-  // Set constants within TF24_Strategy
+  // Set constants within TF24_Model
   void prepare_strategy();
   // Two steps of prepare_strategy.
   void refuse_unsupported_traits() const;
@@ -786,7 +786,7 @@ public:
   // set here rather than left alone -- an assignment writes into one that already
   // exists, and a member it does not write keeps a previous state's working.
   template <class S1>
-  void assign_from(const TF24_Strategy<S1>& src) {
+  void assign_from(const TF24_Model<S1>& src) {
     // Qualified: these are the base's, and an unqualified name is not looked up
     // in a dependent base.
     this->birth_rate_x = src.birth_rate_x;
@@ -846,11 +846,11 @@ public:
   // every parameter through to_passive. It is what an implicit node asks a
   // parameter set for when it needs a slope with the parameters fixed.
   template <class U>
-  TF24_Strategy<U> rebind() const {
-    return TF24_Strategy<U>(tf24_strategy_from_t{}, *this);
+  TF24_Model<U> rebind() const {
+    return TF24_Model<U>(tf24_strategy_from_t{}, *this);
   }
 
-  // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
+  // Birth height of a (germinated) seed. Model-agnostic accessor used by
   // the templated Individual; here height_0 is derived in prepare_strategy().
   double initial_height() const { return height_0; }
 
@@ -1136,7 +1136,7 @@ public:
 };
 
 template <typename S>
-typename TF24_Strategy<S>::ptr make_strategy_ptr(TF24_Strategy<S> s);
+typename TF24_Model<S>::ptr make_strategy_ptr(TF24_Model<S> s);
 
 // Named here for clarity; promotion to user-tunable traits (RcppR6) is a
 // deliberate follow-up (see vignettes/models/code_review_leaf_tf24.qmd #9).
@@ -1149,7 +1149,7 @@ inline const double root_mass_carbon_scale = 83.26 * 0.5;
 // before physiology, before compound things?)
 // TODO: Consider moving to activating as an initialisation list?
 template <typename S>
-TF24_Strategy<S>::TF24_Strategy() {
+TF24_Model<S>::TF24_Model() {
   this->collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
@@ -1157,7 +1157,7 @@ TF24_Strategy<S>::TF24_Strategy() {
 }
 
 template <typename S>
-void TF24_Strategy<S>::refresh_indices () {
+void TF24_Model<S>::refresh_indices () {
     // Create and fill the name to state index maps
   this->state_index = std::map<std::string,int>();
   this->aux_index   = std::map<std::string,int>();
@@ -1203,7 +1203,7 @@ void TF24_Strategy<S>::refresh_indices () {
 }
 
 template <typename S>
-void TF24_Strategy<S>::prepare_strategy() {
+void TF24_Model<S>::prepare_strategy() {
 
   // Set up the function_integrator
   function_integrator = quadrature::QK(
@@ -1251,7 +1251,7 @@ void TF24_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const TF24_Strategy<tangent> at_tangent = rebind<tangent>();
+    const TF24_Model<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
     odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
@@ -1270,7 +1270,7 @@ void TF24_Strategy<S>::prepare_strategy() {
 // The trait values the model cannot run, refused once the seed size is known,
 // since L_tip is measured against it.
 template <typename S>
-void TF24_Strategy<S>::refuse_unsupported_traits() const {
+void TF24_Model<S>::refuse_unsupported_traits() const {
   // theta_c is declared but NOT YET USABLE. It profiles theta along the flow
   // path, and theta is not a hydraulics-only trait: it also sets area_sapwood,
   // area_bark, their growth rates, mass_sapwood (hence construction cost,
@@ -1332,7 +1332,7 @@ void TF24_Strategy<S>::refuse_unsupported_traits() const {
 // The leaf this strategy solves, built from its traits and seated on the
 // layered supply and the TF24_floor cost curve.
 template <typename S>
-void TF24_Strategy<S>::construct_leaf() {
+void TF24_Model<S>::construct_leaf() {
   if constexpr (std::is_same_v<S, double>) {
     // (P50, c) per curve, and phylloptim derives b and psi_crit itself. Handing
     // over the derived pair instead would state the curve twice and let the two
@@ -1382,9 +1382,9 @@ void TF24_Strategy<S>::construct_leaf() {
 }
 
 template <typename S>
-typename TF24_Strategy<S>::ptr make_strategy_ptr(TF24_Strategy<S> s) {
+typename TF24_Model<S>::ptr make_strategy_ptr(TF24_Model<S> s) {
   s.prepare_strategy();
-  return std::make_shared<TF24_Strategy<S> >(s);
+  return std::make_shared<TF24_Model<S> >(s);
 }
 
 }

@@ -1,5 +1,5 @@
 // -*-c++-*-
-// TF24_Strategy's leaf coupling: net production through the leaf's solve,
+// TF24_Model's leaf coupling: net production through the leaf's solve,
 // the leaf's water uptake, and the rows the gradient path records for it.
 // The class is declared in tf24_model.h, which includes this file.
 #ifndef PLANT_PLANT_TF24_LEAF_H_
@@ -12,7 +12,7 @@ namespace plant {
 // Reads the soil consumption the leaf's last solve left, so the leaf must have
 // been solved for this plant at this step.
 template <typename S>
-S TF24_Strategy<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
+S TF24_Model<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
   if constexpr (std::is_same_v<S, double>) {
     return leaf.soil_consumption_[soil_layer] * area_leaf_;
   } else {
@@ -41,7 +41,7 @@ S TF24_Strategy<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
 // them -- a wrong VALUE, not merely a missing row, in any expression that
 // reads one.
 template <typename S>
-phylloptim::leaf_pars<S> TF24_Strategy<S>::leaf_pars_on_tape(
+phylloptim::leaf_pars<S> TF24_Model<S>::leaf_pars_on_tape(
     const S& PPFD_int, const S& conductance_max,
     double NIR_per_PPFD_int) const {
   phylloptim::leaf_pars<S> in;
@@ -81,7 +81,7 @@ phylloptim::leaf_pars<S> TF24_Strategy<S>::leaf_pars_on_tape(
 // because dprofit_at_collar_psi drives the model to that collar and this sits
 // on a path that is about to throw with the leaf's own state still readable.
 template <typename S>
-double TF24_Strategy<S>::marginal_at_collar() const {
+double TF24_Model<S>::marginal_at_collar() const {
   phylloptim::Leaf probe = leaf;
   bool ok = false;
   const double m = probe.dprofit_at_collar_psi<
@@ -103,7 +103,7 @@ double TF24_Strategy<S>::marginal_at_collar() const {
 // orders of magnitude ABOVE that floor, which reads as a magnitude
 // failure and is not one.
 template <typename S>
-void TF24_Strategy<S>::refuse_unusable_curvature(double slope) {
+void TF24_Model<S>::refuse_unusable_curvature(double slope) {
   if (!(slope < 0.0)) {
     // ⚠️ A POSITIVE CURVATURE HERE IS EVIDENCE AGAINST THE CURVATURE, not
     // against the operating point. An interior collar is reached only on a
@@ -161,7 +161,7 @@ void TF24_Strategy<S>::refuse_unusable_curvature(double slope) {
 // and it crosses because reverse mode cannot nest a tangent above its own
 // scalar, where forward mode can.
 template <typename S>
-void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
+void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
                                            const std::vector<S>& psi_soil,
                                            const S& conductance_max,
                                            double NIR_per_PPFD_int) {
@@ -295,7 +295,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
 // one the leaf's supply solve is handed. Kept as
 // leaf_specific_conductance_max_ too, which the sapwood controller reads.
 template <typename S>
-S TF24_Strategy<S>::update_leaf_specific_conductance_max(
+S TF24_Model<S>::update_leaf_specific_conductance_max(
     const S& height, const S& sapwood_departure) {
   // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
@@ -333,7 +333,7 @@ S TF24_Strategy<S>::update_leaf_specific_conductance_max(
 // Fine-root carbon per unit leaf area in each soil layer, and the root
 // network it builds, both kept for the leaf's solve and the gradient.
 template <typename S>
-void TF24_Strategy<S>::build_root_network(
+void TF24_Model<S>::build_root_network(
     const TF24_Environment<S>& environment, const S& height) {
   const int soil_number_of_depths_ = environment.get_soil_number_of_depths();
   const std::vector<double>& soil_depths_ = environment.z;
@@ -405,7 +405,7 @@ void TF24_Strategy<S>::build_root_network(
 // The leaf's inputs at one light, soil and conductance: everything else it
 // reads is the environment's, the same at every call.
 template <typename S>
-void TF24_Strategy<S>::seat_leaf(const TF24_Environment<S>& environment,
+void TF24_Model<S>::seat_leaf(const TF24_Environment<S>& environment,
                                  double PPFD, const std::vector<double>& psi,
                                  double conductance) {
   leaf.set_physiology(root_network_, PPFD, psi, environment.z, conductance,
@@ -429,7 +429,7 @@ void TF24_Strategy<S>::seat_leaf(const TF24_Environment<S>& environment,
 // leaf.soil_consumption_ in evapotranspiration_dt -- so a partial attaches to
 // one expression per output.
 template <typename S>
-S TF24_Strategy<S>::solve_leaf_over_crown(
+S TF24_Model<S>::solve_leaf_over_crown(
     const TF24_Environment<S>& environment, const S& height,
     const std::vector<S>& psi_soil, const S& leaf_specific_conductance_max,
     double PPFD_above, double NIR_per_PPFD_int) {
@@ -597,7 +597,7 @@ S TF24_Strategy<S>::solve_leaf_over_crown(
 // (prepare_strategy refuses a_sw > 0 under deep-crown, whose profit is a crown
 // integral rather than one radiation's.)
 template <typename S>
-void TF24_Strategy<S>::measure_dprofit_dkmax(
+void TF24_Model<S>::measure_dprofit_dkmax(
     const TF24_Environment<S>& environment, const S& PPFD_int_used,
     const std::vector<S>& psi_soil, const S& leaf_specific_conductance_max) {
   dprofit_dkmax_ = 0.0;
@@ -645,7 +645,7 @@ void TF24_Strategy<S>::measure_dprofit_dkmax(
 // marginal leaf look unprofitable for a cost it is not responsible for, and
 // would make a tall plant shed for being tall.
 template <typename S>
-void TF24_Strategy<S>::update_marginal_leaf_return(const S& assimilation_,
+void TF24_Model<S>::update_marginal_leaf_return(const S& assimilation_,
                                                    const S& mass_leaf_,
                                                    const S& mass_bark_,
                                                    const S& mass_root_) {
@@ -668,7 +668,7 @@ void TF24_Strategy<S>::update_marginal_leaf_return(const S& assimilation_,
 // One shot calculation of net_mass_production_dt
 // Used by establishment_probability() and compute_rates().
 template <typename S>
-S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
+S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
                                 const S& height, const S& area_leaf_,
                                 const S& height_inverse,
                                 const S& sapwood_departure,
@@ -808,7 +808,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
 // phylloptim, or any other exception, still propagates, so a bug stays a bug
 // instead of becoming step-shrinking until "Cannot achieve the desired accuracy".
 template <typename S>
-void TF24_Strategy<S>::solve_leaf() {
+void TF24_Model<S>::solve_leaf() {
   const leaf_solved_point recorded = leaf_points->load();
   try {
     if (recorded.kind == Leaf::OperatingPointKind::Unsolved) {

@@ -1,6 +1,6 @@
 # The `assimilation` auxiliary variable.
 #
-# `assimilation` was listed in TF24_Strategy::aux_names() but never written: no
+# `assimilation` was listed in TF24_Model::aux_names() but never written: no
 # aux_idx_assimilation existed and no set_aux call referenced it, so the slot
 # reported whatever Internals happened to hold. That made carbon uptake
 # unavailable as a model output. These tests pin the slot's content and units.
@@ -9,7 +9,7 @@
 # Leaf::assim_colimited() subtracts R_d_. Gross = assimilation + R_d_, with
 # R_d_ = 0.015 * vcmax_ at the acclimated vcmax_.
 
-tf24_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
+tf24_aux <- function(strategy = TF24_Model(), height = 5, ppfd = 1800,
                      theta = rep(0.25, 5)) {
   ind <- TF24_Individual(strategy)
   ind$set_state("height", height)
@@ -50,7 +50,7 @@ test_that("assimilation in the dark is minus dark respiration", {
   # exactly -R_d_ = -0.015 * vcmax_. At the default air_temp of 25 C the
   # acclimated vcmax_ equals vcmax_25, so this is an exact expectation and
   # doubles as a check that the units are per unit leaf area, not canopy total.
-  s <- TF24_Strategy()
+  s <- TF24_Model()
   expected <- -0.015 * s$pars$vcmax_25
   expect_equal(tf24_aux(strategy = s, ppfd = 0)[["assimilation"]], expected,
                tolerance = 1e-8)
@@ -76,7 +76,7 @@ test_that("assimilation is reported under every shading model", {
   # crown mean; assimilation must be integrated alongside the others rather than
   # left at the last quadrature point's value.
   for (model in c("mean-light", "crown-centre", "deep-crown")) {
-    s <- TF24_Strategy()
+    s <- TF24_Model()
     s$control$shading_model <- model
     aux <- tf24_aux(strategy = s)
     expect_true(is.finite(aux[["assimilation"]]), info = model)

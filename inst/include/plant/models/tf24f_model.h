@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_TF24F_STRATEGY_H_
-#define PLANT_PLANT_TF24F_STRATEGY_H_
+#ifndef PLANT_PLANT_TF24F_MODEL_H_
+#define PLANT_PLANT_TF24F_MODEL_H_
 
 #include <plant/models/tf24_model.h>
 
@@ -10,7 +10,7 @@ namespace plant {
 // optimal leaf hydraulic state chase its optimum via an extra ODE state
 // (gradient-ascent), instead of re-solving the nested leaf optimisation /
 // root-collar root-find from scratch at every step (issue #525). It inherits
-// TF24_Strategy and reuses TF24_Environment + TF24_Pars; only the leaf-solve
+// TF24_Model and reuses TF24_Environment + TF24_Pars; only the leaf-solve
 // hook and the extra state are overridden.
 //
 // Adds one extra ODE state, opt_root_psi_state, holding the tracked optimal
@@ -22,18 +22,18 @@ namespace plant {
 // compute_rates, so TF24f does NOT reproduce TF24 bit-for-bit -- it tracks the
 // optimum with a (gain-dependent) lag and is faster.
 template <typename S = double>
-class TF24f_Strategy : public TF24_Strategy<S> {
+class TF24f_Model : public TF24_Model<S> {
 public:
   using value_type = S;
-  using base_type = TF24_Strategy<S>;
+  using base_type = TF24_Model<S>;
 
-  typedef std::shared_ptr<TF24f_Strategy> ptr;
-  TF24f_Strategy();
+  typedef std::shared_ptr<TF24f_Model> ptr;
+  TF24f_Model();
 
   // Scientific version — compound, because TF24f is a fast *approximation* of
   // TF24 and inherits its equations/parameters. The version is reported as
   // "<TF24 version>.<approximation_revision>" (e.g. "2.1"), so:
-  //   * the major component auto-tracks TF24_Strategy::scientific_version, so a
+  //   * the major component auto-tracks TF24_Model::scientific_version, so a
   //     TF24 scientific change also invalidates TF24f (the safe direction);
   //   * bump `approximation_revision` for changes specific to the fast
   //     approximation itself.
@@ -89,13 +89,13 @@ public:
 };
 
 template <typename S>
-typename TF24f_Strategy<S>::ptr make_strategy_ptr(TF24f_Strategy<S> s);
+typename TF24f_Model<S>::ptr make_strategy_ptr(TF24f_Model<S> s);
 
-// The base TF24_Strategy constructor sets collect_all_auxiliary and the name
+// The base TF24_Model constructor sets collect_all_auxiliary and the name
 // and runs the *base* refresh_indices(); we re-run our own refresh_indices()
 // here so the appended state slot is registered, and set the reported name.
 template <typename S>
-TF24f_Strategy<S>::TF24f_Strategy() {
+TF24f_Model<S>::TF24f_Model() {
   this->name = "TF24f";
   this->refresh_indices();
 }
@@ -103,7 +103,7 @@ TF24f_Strategy<S>::TF24f_Strategy() {
 // Build on the base index maps, then register the extra tracked state. The new
 // slot is appended after TF24's states, so its index is TF24's state_size().
 template <typename S>
-void TF24f_Strategy<S>::refresh_indices() {
+void TF24f_Model<S>::refresh_indices() {
   base_type::refresh_indices();
   const int idx = static_cast<int>(base_type::state_size());
   this->state_index["opt_root_psi_state"] = idx;
@@ -118,7 +118,7 @@ void TF24f_Strategy<S>::refresh_indices() {
 // tracked_root_psi_, and the resulting profit gradient comes back in
 // dprofit_dpsi_, which becomes the tracked state's rate (gradient ascent).
 template <typename S>
-void TF24f_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
+void TF24f_Model<S>::compute_rates(const TF24_Environment<S>& environment,
                                    Internals<S>& vars) {
   // k_acclim is a user-settable gain; a negative value would silently turn the
   // gradient ascent into descent (away from the optimum) and a non-finite value
@@ -145,14 +145,14 @@ void TF24f_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
 // spline derivatives for the transport.
 // A function-try-block, so every exit of the body is covered: phylloptim's
 // infeasible_error becomes odelia's DomainError, a rejected step rather than a
-// dead run, for the reason TF24_Strategy::solve_leaf gives. Only that error is
+// dead run, for the reason TF24_Model::solve_leaf gives. Only that error is
 // translated; anything else still propagates.
 template <typename S>
-void TF24f_Strategy<S>::solve_leaf() try {
+void TF24f_Model<S>::solve_leaf() try {
   if (initializing_) {
     // Birth initialisation: run the full optimiser so set_initial_states can
     // read the optimum collar psi.
-    // The curve-typed form, for the reason TF24_Strategy::solve_leaf gives.
+    // The curve-typed form, for the reason TF24_Model::solve_leaf gives.
     this->leaf.template find_root_collar_psi_for<
         phylloptim::Leaf::CostCurve::TF24_floor>();
     return;
@@ -185,7 +185,7 @@ void TF24f_Strategy<S>::solve_leaf() try {
 // store the resulting collar psi as the initial state. Both are the positive
 // magnitude of the potential, in MPa.
 template <typename S>
-void TF24f_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment,
+void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                         Internals<S>& vars) {
   // Initialise the shared TF24 states first (notably the NSC storage pool, #517) --
   // set_initial_states is non-virtual, so without this call TF24f seedlings
@@ -198,9 +198,9 @@ void TF24f_Strategy<S>::set_initial_states(const TF24_Environment<S>& environmen
 }
 
 template <typename S>
-typename TF24f_Strategy<S>::ptr make_strategy_ptr(TF24f_Strategy<S> s) {
+typename TF24f_Model<S>::ptr make_strategy_ptr(TF24f_Model<S> s) {
   s.prepare_strategy();
-  return std::make_shared<TF24f_Strategy<S> >(s);
+  return std::make_shared<TF24f_Model<S> >(s);
 }
 
 }

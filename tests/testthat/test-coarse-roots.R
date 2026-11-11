@@ -7,7 +7,7 @@
 ##
 ## The pool ships OFF (a_cr1 = 0), which splits these tests in two. Half of them
 ## check it really is inert at the defaults -- the reason FF16 keeps agreeing
-## with the published 2012 model in test-strategy-ff16-reference-comparison.R
+## with the published 2012 model in test-model-ff16-reference-comparison.R
 ## and no scientific version moved. The other half switch it on, because a
 ## default-off feature only ever run at its default is not tested at all.
 
@@ -41,7 +41,7 @@ heights <- seq(0.5, 20, length.out = 40)
 
 test_that("the coarse-root pool is absent at the shipped defaults", {
   for (type in c("FF16", "TF24")) {
-    s <- get(paste0(type, "_Strategy"))()
+    s <- get(paste0(type, "_Model"))()
     expect_identical(s$pars$a_cr1, 0, info = type)
 
     al <- allometry_of(type, s, heights)
@@ -57,7 +57,7 @@ test_that("the coarse-root pool is absent at the shipped defaults", {
 test_that("coarse-root mass is the sapwood fraction, and the mass budget closes", {
   a_cr1 <- 0.25
   for (type in c("FF16", "TF24")) {
-    s <- get(paste0(type, "_Strategy"))()
+    s <- get(paste0(type, "_Model"))()
     s$pars$a_cr1 <- a_cr1
     ## Non-zero heartwood, so mass_total and mass_above_ground are not just
     ## restatements of mass_live.
@@ -91,7 +91,7 @@ test_that("coarse roots slow height growth by exactly the allocation ratio", {
   h0 <- 8
 
   dh_dt <- function(a_cr1, r_cr, k_cr) {
-    s <- FF16_Strategy()
+    s <- FF16_Model()
     s$pars$a_cr1 <- a_cr1
     s$pars$r_cr <- r_cr
     s$pars$k_cr <- k_cr
@@ -137,7 +137,7 @@ test_that("coarse roots also cost carbon to maintain", {
   ## on must slow growth strictly more than the allocation effect alone.
   h0 <- 8
   rates <- function(a_cr1, free) {
-    s <- FF16_Strategy()
+    s <- FF16_Model()
     s$pars$a_cr1 <- a_cr1
     if (free) { s$pars$r_cr <- 0; s$pars$k_cr <- 0 }
     env <- Environment("FF16")
@@ -163,7 +163,7 @@ test_that("coarse roots stay out of TF24's water uptake", {
   ## so at a fixed size every water-side quantity must be bit-identical whether
   ## the pool is on or off.
   water_aux <- function(a_cr1) {
-    s <- TF24_Strategy()
+    s <- TF24_Model()
     s$pars$a_cr1 <- a_cr1
     env <- Environment("TF24")
     env$set_fixed_environment(1.0, height_max = 150)

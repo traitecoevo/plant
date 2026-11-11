@@ -4,10 +4,10 @@
 \alias{K93_Individual}
 \title{Create a K93 Individual or Node}
 \usage{
-K93_Individual(s = K93_Strategy())
+K93_Individual(s = K93_Model())
 }
 \arguments{
-\item{s}{A \code{\link{K93_Strategy}} object}
+\item{s}{A \code{\link{K93_Model}} object}
 }
 \description{
 Create a K93 Individual or Node

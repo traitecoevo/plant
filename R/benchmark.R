@@ -9,7 +9,7 @@
 #' @return A dataframe of results
 #' @export
 
-run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
+run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Model),
                                  iterations = 1) {
   f_scm <- function(x) {
     p0 <- default_parameters(x, quiet = TRUE)

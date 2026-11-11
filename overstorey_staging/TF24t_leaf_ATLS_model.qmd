@@ -15,11 +15,11 @@ format:
 This document is the mathematical specification of the **ATLS** thermal-response layer of the TF24 leaf (issue #566), built on the Penman–Monteith leaf energy balance (#523). It states the equations as implemented, in two places:
 
 - the leaf-level physics and the dynamics of the states, in phylloptim's `Leaf` behind the gate `use_thermal_damage_` (`inst/include/phylloptim/leaf_model.hpp`: `update_temperature_dependent_params`, `d_S_shifted`, and the `damage` namespace with `impair_switch`, `k_rec_eff` and `rates`);
-- the integration of those states on a plant, the dilution of damaged leaf by growth, and the whole-plant costs, in plant's `TF24t` strategy (`inst/include/plant/models/tf24t_strategy.h`).
+- the integration of those states on a plant, the dilution of damaged leaf by growth, and the whole-plant costs, in plant's `TF24t` model (`inst/include/plant/models/tf24t_model.h`).
 
 It began as a port of the July 2026 layer (`TF24t` thermal revision 3; §[-@sec-port]) and was then redesigned to three states with the dynamics on the leaf (thermal revision 4; §[-@sec-redesign]). The decisions behind both are in [`notes/plan-atls-port.md`](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/plan-atls-port.md), in the history.
 
-With the gate off every equation below collapses to its TF24 form (no lasting damage, no $T_\mathrm{opt}$ shift, no thermal cost), so TF24 and TF24 with the energy balance are bit-identical to a leaf without the layer. The `TF24t` strategy turns the gate on unconditionally and, because the dynamics are only physically meaningful at a real operating-point leaf temperature, also forces the energy balance on.
+With the gate off every equation below collapses to its TF24 form (no lasting damage, no $T_\mathrm{opt}$ shift, no thermal cost), so TF24 and TF24 with the energy balance are bit-identical to a leaf without the layer. The `TF24t` model turns the gate on unconditionally and, because the dynamics are only physically meaningful at a real operating-point leaf temperature, also forces the energy balance on.
 
 The companion `TF24t_leaf_ATLS_demo.qmd` exercises these equations numerically; this document states them.
 
@@ -173,7 +173,7 @@ Above $T_\mathrm{rep,cut}$ the switch is fully on *and* repair shuts off, so $I$
 
 ## Slow ODE states: acclimation $A$ and the fractions $I$, $D$ {#sec-accl}
 
-The dynamics are phylloptim's, written once on the leaf (`Leaf::damage_rates`), so a leaf experiment can be fitted with phylloptim alone (`leaf_damage_trajectory()`, and its exact sensitivities `leaf_damage_gradient()`). Four ODE states are appended to TF24's state vector (`TF24t_Strategy::compute_rates`): `acclim_thermostab` ($A$), `impaired` ($I$), `damaged` ($D$), and the diagnostic `mean_leaf_temp` ($\overline{T_\ell}$, §[-@sec-meanT]). The current $A$, $I$ and $D$ are handed to the leaf before TF24's rates solve it, so the capacity scaling and both shifts see them; the leaf's rates are then evaluated at the operating-point $T_\ell$. Each is the leaf's per-day rate times $\mathcal{D}=365.25\ \mathrm{d\,yr^{-1}}$, the SCM's per-year clock; the dilution below is already per year.
+The dynamics are phylloptim's, written once on the leaf (`Leaf::damage_rates`), so a leaf experiment can be fitted with phylloptim alone (`leaf_damage_trajectory()`, and its exact sensitivities `leaf_damage_gradient()`). Four ODE states are appended to TF24's state vector (`TF24t_Model::compute_rates`): `acclim_thermostab` ($A$), `impaired` ($I$), `damaged` ($D$), and the diagnostic `mean_leaf_temp` ($\overline{T_\ell}$, §[-@sec-meanT]). The current $A$, $I$ and $D$ are handed to the leaf before TF24's rates solve it, so the capacity scaling and both shifts see them; the leaf's rates are then evaluated at the operating-point $T_\ell$. Each is the leaf's per-day rate times $\mathcal{D}=365.25\ \mathrm{d\,yr^{-1}}$, the SCM's per-year clock; the dilution below is already per year.
 
 **Acclimation.** A single thermostability state relaxes toward a heat-driven forcing on the **leaf** temperature:
 
@@ -240,7 +240,7 @@ Standing maintenance is paid whether or not used — for repair *capacity* ($k_\
 
 ### Whole-plant net production
 
-The TF24t strategy overrides net mass production to subtract two costs that are not leaf-local respiration (`TF24t_Strategy::net_mass_production_dt`):
+The TF24t model overrides net mass production to subtract two costs that are not leaf-local respiration (`TF24t_Model::net_mass_production_dt`):
 
 $$
 \dot m_\mathrm{net}^{\,\mathrm{TF24t}} = \dot m_\mathrm{net}^{\,\mathrm{TF24}}
@@ -286,7 +286,7 @@ A more-transpiring or better-coupled (smaller-$d$) leaf runs a cooler $T_\ell$, 
 
 ## Parameters and defaults {#sec-params}
 
-Thermal, acclimation and cost parameters sit at the top level of the `TF24t` strategy (`tf24t_strategy.h`), not in `pars`; the leaf-side copies carry a trailing underscore.
+Thermal, acclimation and cost parameters sit at the top level of the `TF24t` strategy (`tf24t_model.h`), not in `pars`; the leaf-side copies carry a trailing underscore.
 
 | Symbol | Code | Default | Units | Role |
 |---|---|---|---|---|

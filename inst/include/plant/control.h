@@ -8,7 +8,7 @@
 
 // The `Control` object holds all the non-biological control
 // parameters.  These might get templated against different ways of
-// running things as in the same way as `Strategy` and `Parameters`
+// running things as in the same way as `Model` and `Parameters`
 // but for now assume that they don't.
 //
 // Control is really hierarchical, but is not actually modelled that
@@ -29,7 +29,7 @@ struct Control {
   // photosynthesis evaluation of the mean), "crown-centre" (single evaluation at
   // the crown centre), or "ppa" (FF16 only: discrete stepped light layers). The
   // empty default "" means "use the strategy's own default": FF16 -> deep-crown,
-  // TF24 -> mean-light. Resolved once in each strategy's prepare_strategy(),
+  // TF24 -> mean-light. Resolved once in each model's prepare_strategy(),
   // so it never costs a string comparison on the hot path.
   std::string shading_model;
 
@@ -73,14 +73,14 @@ struct Control {
   // d(growth)/d(height) only when growth is a function of size alone. A model
   // carrying state that feeds back into growth breaks that, so the coordinate
   // is not a free numerical choice for every model -- hence "auto", resolved
-  // per model against Strategy::density_in_birth_date_default. An explicit
+  // per model against Model::density_in_birth_date_default. An explicit
   // value is an override and always wins, so both coordinates stay available
   // for the comparison tests.
   std::string node_density_coordinate;
 
   // The absorbing top layer of a continuous patch (#519): with epsilon > 0, a
   // cohort that has grown to the height where its strategy allocates 1 - epsilon
-  // of its maximum to reproduction (Strategy::asymptotic_height) is absorbed at
+  // of its maximum to reproduction (Model::asymptotic_height) is absorbed at
   // the next node introduction into one top cohort per species, pinned at that
   // height, which carries its density, its future seed output and its share of
   // the light field and uptake. Without it a stand that runs on never
@@ -134,7 +134,7 @@ struct Control {
 };
 
 // Resolve Control::node_density_coordinate for a model whose own preference is
-// `model_prefers_birth_date` (Strategy::density_in_birth_date_default). Only
+// `model_prefers_birth_date` (Model::density_in_birth_date_default). Only
 // "auto" consults the model; an explicit setting wins. An unrecognised value is
 // refused rather than silently treated as one of the two coordinates, because
 // the coordinates do not agree for a model with carried state -- a typo would

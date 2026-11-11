@@ -15,7 +15,7 @@ Control::Control() {
   // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
   function_integration_rule = 21;
 
-  // Crown shading model (see Control header). Empty = each strategy's own
+  // Crown shading model (see Control header). Empty = each model's own
   // default (FF16 -> deep-crown, TF24 -> mean-light), so default behaviour is
   // unchanged for both.
   shading_model = "";

@@ -17,8 +17,8 @@ test_that("Defaults", {
   expected_top <- c("pars", "control",
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
-  s <- K93_Strategy()
-  expect_inherits(s, "K93_Strategy")
+  s <- K93_Model()
+  expect_inherits(s, "K93_Model")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())
@@ -33,7 +33,7 @@ test_that("Defaults", {
 
 test_that("K93 collect_all_auxiliary option", {
 
-  s <- K93_Strategy()
+  s <- K93_Model()
   p <- K93_Individual(s)
   expect_equal(p$aux_size, 2)
   expect_equal(length(p$internals$auxs), 2)
@@ -44,7 +44,7 @@ test_that("K93 collect_all_auxiliary option", {
 })
 
 test_that("K93 establishment_probability and net_mass_production_dt stubs", {
-  s <- K93_Strategy()
+  s <- K93_Model()
   p <- K93_Individual(s)
 
   env <- Environment("K93")
@@ -66,8 +66,8 @@ test_that("K93 establishment_probability and net_mass_production_dt stubs", {
   expect_true(is.na(p$net_mass_production_dt(env)))
 })
 
-test_that("K93_Strategy hyper-parameterisation", {
-  s <- K93_Strategy()
+test_that("K93_Model hyper-parameterisation", {
+  s <- K93_Model()
 
   ## Hyperpars should just pass through:
   ret <- default_hyperpar("K93")(trait_matrix(numeric(0), "b_0"), s)

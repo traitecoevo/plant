@@ -115,18 +115,18 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g) {
 // ---- TF24 ----------------------------------------------------------------
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return metric_names_of(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<double> census_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+std::vector<double> census_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->census();
 }
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return state_adjoint_of(*obj_);
 }
 
@@ -135,64 +135,64 @@ census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<
 // accumulate in. Each name carries its species index, as "1.lma".
 // [[Rcpp::export]]
 std::vector<std::string>
-census_trait_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+census_trait_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->r_patch().trait_adjoint_names();
 }
 
 // [[Rcpp::export]]
 Rcpp::CharacterVector census_undifferentiable_tf24() {
-  return undifferentiable_of<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > >();
+  return undifferentiable_of<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > >();
 }
 
 // [[Rcpp::export]]
 Rcpp::List
-census_trait_gradient_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+census_trait_gradient_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                            Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
   return trait_gradient_of(*obj_, which_metrics);
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return control_of(*obj_);
 }
 
 // ---- FF16 ----------------------------------------------------------------
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_) {
+Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return metric_names_of(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<double> census_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_) {
+std::vector<double> census_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return obj_->census();
 }
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_state_adjoint_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_) {
+census_state_adjoint_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return state_adjoint_of(*obj_);
 }
 
 // [[Rcpp::export]]
 std::vector<std::string>
-census_trait_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_) {
+census_trait_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return obj_->r_patch().trait_adjoint_names();
 }
 
 // [[Rcpp::export]]
 Rcpp::CharacterVector census_undifferentiable_ff16() {
-  return undifferentiable_of<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > >();
+  return undifferentiable_of<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > >();
 }
 
 // [[Rcpp::export]]
 Rcpp::List
-census_trait_gradient_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_,
+census_trait_gradient_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_,
                            Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
   return trait_gradient_of(*obj_, which_metrics);
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector gradient_control_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_) {
+Rcpp::NumericVector gradient_control_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return control_of(*obj_);
 }

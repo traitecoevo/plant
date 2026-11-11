@@ -1,13 +1,13 @@
 # Leaf state on the hydraulic shut-down path.
 #
-# `Leaf` is a value member of TF24_Strategy, reused across every compute_rates
+# `Leaf` is a value member of TF24_Model, reused across every compute_rates
 # call for an individual. Both shut-down exits in find_root_collar_psi set
 # profit_ directly and bypass profit_psi_stem_TF, and the first of them returns
 # before any E_from_Soil_to_Root_Collar call in that solve. So every leaf output
 # they do not assign keeps the *previous* step's value.
 #
 # That was not merely a reporting problem: soil_consumption_ feeds
-# TF24_Strategy::evapotranspiration_dt and hence the patch water balance, so a
+# TF24_Model::evapotranspiration_dt and hence the patch water balance, so a
 # plant whose stomata had closed carried on drawing its last wet-step uptake out
 # of the soil. The water budget still closes in that state (what is recorded as
 # depleted is what is removed), so the conservation tests cannot catch it --
@@ -20,7 +20,7 @@ tf24_aux_at <- function(individual, env, theta) {
 }
 
 test_that("shut-down zeroes the whole transport chain", {
-  ind <- TF24_Individual(TF24_Strategy())
+  ind <- TF24_Individual(TF24_Model())
   ind$set_state("height", 5)
   env <- TF24_Environment()
   env$set_soil_number_of_depths(5)
@@ -44,7 +44,7 @@ test_that("shut-down zeroes the whole transport chain", {
 test_that("shut-down is not a one-way door", {
   # Zeroing must not corrupt the leaf state: rewetting has to recover the same
   # operating point as an equivalent plant that never dried.
-  ind <- TF24_Individual(TF24_Strategy())
+  ind <- TF24_Individual(TF24_Model())
   ind$set_state("height", 5)
   env <- TF24_Environment()
   env$set_soil_number_of_depths(5)
@@ -63,7 +63,7 @@ test_that("shut-down via the negative-assimilation exit also zeroes gas exchange
   # The second exit (assim_max_ < 0) does call E_from_Soil_to_Root_Collar, so
   # E_up_ and soil_consumption_ are evaluated at the zero-uptake collar
   # potential. The leaf-side pair is assigned nowhere on that path, though.
-  ind <- TF24_Individual(TF24_Strategy())
+  ind <- TF24_Individual(TF24_Model())
   ind$set_state("height", 5)
   env <- TF24_Environment()
   env$set_soil_number_of_depths(5)
@@ -81,7 +81,7 @@ test_that("shut-down via the negative-assimilation exit also zeroes gas exchange
 test_that("no leaf output is NA once the plant has been evaluated", {
   # NA transpiration silently poisons any stand-level Et sum, which is the
   # headline water flux for site-level work.
-  ind <- TF24_Individual(TF24_Strategy())
+  ind <- TF24_Individual(TF24_Model())
   ind$set_state("height", 5)
   env <- TF24_Environment()
   env$set_soil_number_of_depths(5)

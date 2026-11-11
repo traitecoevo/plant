@@ -19,7 +19,7 @@
 #include <plant/resource_spline.h>
 
 #include <plant/control.h>
-#include <plant/strategy.h>
+#include <plant/model.h>
 #include <plant/parameters.h>
 #include <plant/schedule.h>
 #include <plant/events.h>
@@ -30,12 +30,12 @@
 #include <plant/disturbances/weibull_disturbance.h>
 
 // Specific models
-#include <plant/models/ff16_strategy.h>
+#include <plant/models/ff16_model.h>
 #include <plant/models/tf24_model.h>
-#include <plant/models/tf24f_strategy.h>
-#include <plant/models/tf24t_strategy.h>
-#include <plant/models/tf24w_strategy.h>
-#include <plant/models/k93_strategy.h>
+#include <plant/models/tf24f_model.h>
+#include <plant/models/tf24t_model.h>
+#include <plant/models/tf24w_model.h>
+#include <plant/models/k93_model.h>
 #include <plant/leaf_model.h>
 
 // Getting more serious down here.
