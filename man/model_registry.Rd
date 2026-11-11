@@ -18,9 +18,10 @@ A list of class \code{plant_model_registry} with \code{package},
   reasons), \code{raw} (the parsed YAML) and \code{path}.
 }
 \description{
-Reads plant's model registry: one record per equation of plant's models and
-of the size-structured layer they share, per parameter those equations read,
-and per slot (a quantity the shared layer reads and every model supplies).
+Reads plant's model registry: one record per equation of the
+size-structured layer plant's models share (and, as they are added, of each
+model), per parameter those equations read, and per slot (a quantity the
+shared layer reads and every model supplies).
 Each record names the C++ symbol that evaluates or holds it. The registry is
 a record of the model, not a second implementation of it; documents render
 their equations from it (see \code{\link{registry_equation}}).
