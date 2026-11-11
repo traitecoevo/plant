@@ -187,10 +187,14 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
 ## balance). `mutate` edits the resident strategy: the thermal axes are TF24t
 ## strategy fields (topt_offset for tolerance; k_i and k_rec for repair; alpha
 ## for the acclimation kinetics), so a strategy here is a heritable trait set.
+## `lifetime` shortens the patch (NULL keeps the model's default); the smoke
+## test uses it to stay cheap.
 atls_scm_fitness <- function(air_temp, type = "TF24t", mutate = identity,
-                             lma = 0.0825, birth_rate = 20, PPFD = NULL) {
-  p <- default_parameters(type, quiet = TRUE) |>
-    add_strategies(trait_matrix(lma, "lma"), birth_rate = birth_rate)
+                             lma = 0.0825, birth_rate = 20, PPFD = NULL,
+                             lifetime = NULL) {
+  p <- default_parameters(type, quiet = TRUE)
+  if (!is.null(lifetime)) p$max_patch_lifetime <- lifetime
+  p <- add_strategies(p, trait_matrix(lma, "lma"), birth_rate = birth_rate)
   s <- p$strategies[[1]]
   if (identical(type, "TF24")) s$pars$use_energy_balance <- 1
   s <- mutate(s)
@@ -264,7 +268,8 @@ atls_or <- function(a, b) if (is.null(a)) b else a
 ## list(type =, mutate =); the `scenario` column labels them.
 atls_scm_viability <- function(air_temp_seq, scenarios,
                                birth_rate = atls_low_density_birth_rate,
-                               workers = atls_scm_default_workers()) {
+                               workers = atls_scm_default_workers(),
+                               lifetime = NULL) {
   grid <- expand.grid(lt = air_temp_seq, nm = names(scenarios),
                       stringsAsFactors = FALSE)
   jobs <- lapply(seq_len(nrow(grid)), function(i) {
@@ -272,7 +277,7 @@ atls_scm_viability <- function(air_temp_seq, scenarios,
     function() {
       r <- atls_scm_fitness(lt, type = sc$type,
                             mutate = atls_or(sc$mutate, identity),
-                            birth_rate = birth_rate)
+                            birth_rate = birth_rate, lifetime = lifetime)
       r$scenario <- nm
       r
     }

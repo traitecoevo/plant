@@ -28,7 +28,7 @@ library(tidyr)
 
 # Shared driving code (also exercised by tests/testthat/test-atls-leaf-demo.R,
 # so this demo cannot silently rot).
-source(file.path(pkg_root, "overstorey_staging", "atls_demo_helpers.R"))
+source(system.file("guide-helpers", "atls_demo_helpers.R", package = "plant", mustWork = TRUE))
 
 theme_set(theme_bw(base_size = 12))
 # One colour per strategy archetype, reused across the document.

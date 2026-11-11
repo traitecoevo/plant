@@ -26,7 +26,7 @@ library(tidyr)
 # Shared driving and interpretation code. Nothing exercises it: the smoke test
 # that did was dropped from this branch, so a plant interface change rots these
 # helpers and this document is where it surfaces.
-source(file.path(pkg_root, "overstorey_staging", "gradient_demo_helpers.R"))
+source(system.file("guide-helpers", "gradient_demo_helpers.R", package = "plant", mustWork = TRUE))
 
 theme_set(theme_bw(base_size = 12))
 LIFETIME <- 30

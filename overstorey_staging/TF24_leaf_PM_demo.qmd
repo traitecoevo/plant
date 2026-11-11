@@ -25,7 +25,7 @@ library(tidyr)
 
 # Shared leaf-driving code (also exercised by tests/testthat/test-pm-leaf-demo.R,
 # so this demo cannot silently rot).
-source(file.path(pkg_root, "overstorey_staging", "pm_demo_helpers.R"))
+source(system.file("guide-helpers", "pm_demo_helpers.R", package = "plant", mustWork = TRUE))
 
 theme_set(theme_bw(base_size = 12))
 pal <- c("Fick (Tleaf = Tair)" = "#1b9e77", "Penman-Monteith" = "#d95f02")
