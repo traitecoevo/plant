@@ -48,7 +48,8 @@ Suggests:
     ggplot2,
     ggridges,
     patchwork,
-    kableExtra
+    kableExtra,
+    yaml
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia@v0.11.0,

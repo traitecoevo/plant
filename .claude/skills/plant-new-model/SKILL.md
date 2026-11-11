@@ -69,6 +69,7 @@ Every file below names each model by hand. Search each one for the parent's name
 | `R/stand_gradient.R` | The census arm: declare one, or refuse the model with a message saying why. |
 | `tests/testthat/test-model-version.R` | The model in `models`, a test of its compound version, and any top-level scientific fields in `top_level_science`; then accept the new snapshot in `_snaps/model-version.md`. |
 | `tests/testthat/test-model-<name>.R` | The model's own tests. |
+| `inst/model-registry.yml` | An entry per equation and parameter of the model, each naming the C++ symbol that computes or holds it, and `fills:` on each equation that supplies a shared-layer slot (growth, mortality, fecundity, establishment, ...). A subclass records only what it changes. See "The model registry" in agents.md §7. |
 | `tests/testthat/test-trait-names.R`, `test-default-parameters.R` | The model in their per-model loops. |
 | `tests/testthat/helper-plant.R` | `get_list_of_strategy_types()` and `get_list_of_environment_types()`, which the generic model tests loop over. A subclass whose appended states need seeding is left out, as TF24f and TF24t are, and tested in its own file. |
 

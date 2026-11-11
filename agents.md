@@ -384,6 +384,16 @@ The shipped models:
 - **TF24t**: TF24 with leaf thermal damage and acclimation, as a subclass with four appended states ([tf24t_model.h](inst/include/plant/models/tf24t_model.h)). Its thermal parameters sit at the top level of the strategy, beside `pars`.
 - **TF24w**: TF24 with a private root-zone soil column per cohort ([tf24w_model.h](inst/include/plant/models/tf24w_model.h)). A subclass with five water states appended, because `state_size()` is static and a parameter-dependent count is not feasible. Its coupling between cohorts (mixing toward the patch mean, land transfer as crowns grow, die and overlap) is two extra passes in `Patch::compute_rates` guarded by the `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each refused where first seen: birth-date coordinate only, no gradient path, no stochastic patch, at most five soil layers. The pooled limit (large `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
 
+### The model registry — the equations as data
+
+[inst/model-registry.yml](inst/model-registry.yml) records every equation of plant's models and of the size-structured layer they share, every parameter those equations read, and the C++ symbol that evaluates or holds each. Documents render their equations from it (`model_registry()`, `registry_equation()`, `registry_values()`), so a page's LaTeX is the registry's. Its header is the schema; it follows phylloptim's registry (traitecoevo/phylloptim#168). The rules:
+
+- **A change to a model's equations, parameters or defaults updates the registry in the same PR.** Nothing checks the LaTeX against the code, so re-read the entry whenever its function changes.
+- **It is a record, not a check.** No replicas or probes of the equations. `test-registry.R` checks only that named symbols and fields exist, that every `reads` resolves, and that every bound field is accounted for.
+- **No line numbers and no default values in it.** Values are read off the live model.
+- **Overstorey's notation.** Where an Overstorey theory page already writes an equation, the entry takes its LaTeX (`overstorey:` names the page).
+- **The shared layer is written once.** The quantities every model supplies to it (`g`, `d`, `f`, `S_G`, ...) are `slots`, and a model's equation says which slot it `fills`. An equation phylloptim computes (TF24's leaf) is phylloptim's entry, pointed at rather than copied.
+
 ### Scientific versioning — bump when the science changes
 
 Each model carries a **scientific version** separate from the package `Version`:
@@ -524,6 +534,7 @@ Documentation is split across several homes — put new content in the right one
 | **Extending the model** — adding a new model/environment | **`plant-new-model` skill** (see §7) | this repo (`.claude/skills/plant-new-model/`) |
 | **Migrating downstream code** to a newer plant interface | **`plant-update-interface` skill** (see §3.2) | this repo (`.claude/skills/plant-update-interface/`) |
 | **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
+| **Equations and parameters as data** — what Overstorey's model pages render | the model registry (see §7) | this repo ([inst/model-registry.yml](inst/model-registry.yml)) |
 | **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
 | Installation & citation | [README.md](README.md) | this repo |
 | Changelog | [NEWS.md](NEWS.md) | this repo |
