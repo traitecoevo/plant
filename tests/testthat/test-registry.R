@@ -102,6 +102,7 @@ test_that("every model fills every per-model slot, or says why not", {
     m <- reg$models$id[[i]]
     lineage <- plant:::registry_lineage(reg$models, m)
     filled <- entries$fills[!is.na(entries$model) & entries$model %in% lineage]
+    filled <- filled[!is.na(filled)]
     unfilled <- names(reg$models$unfilled[[i]])
     missing <- setdiff(per_model, c(filled, unfilled))
     expect_true(length(missing) == 0L,
