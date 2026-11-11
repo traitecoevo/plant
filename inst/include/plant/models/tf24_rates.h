@@ -11,8 +11,8 @@ namespace plant {
 
 // ⚠️ DO NOT HOIST the per-second -> annual factor 60*60*12*365 (seconds of
 // daylight per year, 12 h day x 365 d) into one constant. It recurs in
-// compute_rates below and in net_mass_production_dt (tf24_leaf.h), each time
-// after a double, so C++'s left-to-right evaluation makes it four rounded
+// compute_rates and sapwood_marginal_return below and in
+// net_mass_production_dt (tf24_leaf.h), each time after a double, so C++'s left-to-right evaluation makes it four rounded
 // double multiplications rather than one integer; a single constant rounds
 // differently, and the adaptive ODE amplifies that (offspring_production
 // shifts ~0.2%).
@@ -53,30 +53,7 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // rate's input rather than a reading of it.
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
 
-  // The rest are readings: their only consumers are r_internals and ode_aux,
-  // both R-facing. Writing them at double alone was tried and measured at no
-  // difference, because a store into a slot the vector already holds pushes a
-  // statement and registers nothing -- it is a newly constructed active scalar
-  // that costs a slot, not a write to a live one.
-  vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
-  vars.set_aux(aux_idx_opt_psi_leaf, leaf.opt_psi_leaf_);
-  vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
-  vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
-  vars.set_aux(aux_idx_E_up, leaf.E_up_);
-  vars.set_aux(aux_idx_profit, leaf.profit_);
-  // Written every step. At the default price the right value is zero, which is
-  // also what a slot nobody writes reads, so a missing write here would show
-  // only once a price is set.
-  vars.set_aux(aux_idx_shadow_cost, S(leaf.shadow_cost()));
-  vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
-  vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
-  // The leaf's own temperature at the operating point, not the `leaf_temp`
-  // driver -- see aux_names(). Equal to the driver while pars.use_energy_balance
-  // is off; solved from the leaf's transpiration when it is on.
-  vars.set_aux(aux_idx_Tleaf, leaf.Tleaf_);
-
-
-
+  write_leaf_readings(vars, area_leaf_);
 
   // consumption rates should be emerging from net_mass_produciton_dt
   // convert evapotranspiration per leaf area per soil layer (mol H20 m^-2 s^-1) to canopy-level total 
@@ -241,17 +218,76 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   vars.set_rate(state_idx_log_area_leaf_departure,
                 rebuild_rel - withheld * pars.k_l);
 
-  // --- Sapwood chases the ratio that maximises GROWTH -------------------------
-  // An integral controller on the marginal return: dpsi/dt = a_sw * R_s, which
-  // converges exactly onto R_s = 0 and needs no separate tracked state, because
-  // integrating IS averaging.
+  const S sapwood_marginal_ = sapwood_marginal_return(
+      area_leaf_, area_leaf_star, sapwood_departure, mass_sapwood_,
+      withheld_sapwood, growth_flux, net_mass_production_dt_,
+      darea_leaf_dmass_live_);
+  vars.set_aux(aux_idx_sapwood_marginal_return, sapwood_marginal_);
+
+  // The Huber value's departure is the DIFFERENCE of the two losses, so the
+  // drought acclimation falls out of the arithmetic rather than being imposed:
+  // leaf area thins at up to k_l = 0.457/yr while conducting area is only lost
+  // to heartwood at k_s = 0.2/yr, and withholding both raises sapwood per leaf
+  // area. The excess is then renewed less (withheld_sapwood > withheld), which
+  // is the restoring force.
   //
-  // R_s is the marginal return of sapwood area, in growth rather than in
-  // production. Growth is F * f_g * D with D = darea_leaf_dmass_live, so
-  //     d(growth)/dpsi  proportional to  dP/dpsi - P * (dm_sap/dA) * D
-  // the second term being the price of the extra stem, paid in forgone leaf
-  // area. Dropping it optimises production instead, which peaks near 3.3x the
-  // pipe-model ratio against growth's 1.4-1.8x.
+  // The rebuilding term is exact geometry, not a parameter: rebuilding adds leaf
+  // area and sapwood in the ratio theta, so it moves the two logs by b/A and
+  // theta*b/A_s, whose difference is (b/A) * (exp(-psi) - 1). It vanishes at
+  // psi = 0, which is what leaves the inward-pointing boundary flow intact.
+  vars.set_rate(state_idx_log_area_sapwood_departure,
+                withheld * pars.k_l - withheld_sapwood * pars.k_s +
+                  rebuild_rel * (exp(-sapwood_departure) - 1.0) +
+                  pars.a_sw * sapwood_marginal_);
+
+  // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
+  vars.set_rate(MORTALITY_INDEX,
+      mortality_dt(r, vars.state(MORTALITY_INDEX)));
+
+}
+
+// The leaf's outputs and the root mass, written as readings: their only
+// consumers are r_internals and ode_aux, both R-facing. Writing them at double alone was tried and measured at no
+// difference, because a store into a slot the vector already holds pushes a
+// statement and registers nothing -- it is a newly constructed active scalar
+// that costs a slot, not a write to a live one.
+template <typename S>
+void TF24_Strategy<S>::write_leaf_readings(Internals<S>& vars,
+                                           const S& area_leaf_) {
+  vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
+  vars.set_aux(aux_idx_opt_psi_leaf, leaf.opt_psi_leaf_);
+  vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
+  vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
+  vars.set_aux(aux_idx_E_up, leaf.E_up_);
+  vars.set_aux(aux_idx_profit, leaf.profit_);
+  // Written every step. At the default price the right value is zero, which is
+  // also what a slot nobody writes reads, so a missing write here would show
+  // only once a price is set.
+  vars.set_aux(aux_idx_shadow_cost, S(leaf.shadow_cost()));
+  vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
+  vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
+  // The leaf's own temperature at the operating point, not the `leaf_temp`
+  // driver -- see aux_names(). Equal to the driver while pars.use_energy_balance
+  // is off; solved from the leaf's transpiration when it is on.
+  vars.set_aux(aux_idx_Tleaf, leaf.Tleaf_);
+}
+
+// --- Sapwood chases the ratio that maximises GROWTH -------------------------
+// An integral controller on the marginal return: dpsi/dt = a_sw * R_s, which
+// converges exactly onto R_s = 0 and needs no separate tracked state, because
+// integrating IS averaging.
+//
+// R_s is the marginal return of sapwood area, in growth rather than in
+// production. Growth is F * f_g * D with D = darea_leaf_dmass_live, so
+//     d(growth)/dpsi  proportional to  dP/dpsi - P * (dm_sap/dA) * D
+// the second term being the price of the extra stem, paid in forgone leaf
+// area. Dropping it optimises production instead, which peaks near 3.3x the
+// pipe-model ratio against growth's 1.4-1.8x.
+template <typename S>
+S TF24_Strategy<S>::sapwood_marginal_return(
+    const S& area_leaf_, const S& area_leaf_star, const S& sapwood_departure,
+    const S& mass_sapwood_, const S& withheld_sapwood, const S& growth_flux,
+    const S& net_mass_production_dt_, const S& darea_leaf_dmass_live_) {
   S sapwood_marginal_ = 0.0;
   if (odelia::util::to_passive(pars.a_sw) > 0.0 &&
       maintenance_flux_ > 0.0) {
@@ -303,28 +339,7 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
       (dP_dpsi - net_mass_production_dt_ * dmass_sap_dA *
          darea_leaf_dmass_live_) / maintenance_flux_;
   }
-  vars.set_aux(aux_idx_sapwood_marginal_return, sapwood_marginal_);
-
-  // The Huber value's departure is the DIFFERENCE of the two losses, so the
-  // drought acclimation falls out of the arithmetic rather than being imposed:
-  // leaf area thins at up to k_l = 0.457/yr while conducting area is only lost
-  // to heartwood at k_s = 0.2/yr, and withholding both raises sapwood per leaf
-  // area. The excess is then renewed less (withheld_sapwood > withheld), which
-  // is the restoring force.
-  //
-  // The rebuilding term is exact geometry, not a parameter: rebuilding adds leaf
-  // area and sapwood in the ratio theta, so it moves the two logs by b/A and
-  // theta*b/A_s, whose difference is (b/A) * (exp(-psi) - 1). It vanishes at
-  // psi = 0, which is what leaves the inward-pointing boundary flow intact.
-  vars.set_rate(state_idx_log_area_sapwood_departure,
-                withheld * pars.k_l - withheld_sapwood * pars.k_s +
-                  rebuild_rel * (exp(-sapwood_departure) - 1.0) +
-                  pars.a_sw * sapwood_marginal_);
-
-  // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
-  vars.set_rate(MORTALITY_INDEX,
-      mortality_dt(r, vars.state(MORTALITY_INDEX)));
-
+  return sapwood_marginal_;
 }
 
 // [eqn 13] Total maintenance respiration

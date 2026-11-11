@@ -566,6 +566,40 @@ public:
   // already driven and solved; nothing here re-supplies it.
   void record_leaf_outputs(const S& PPFD_int, const std::vector<S>& psi_soil,
                            const S& conductance_max, double NIR_per_PPFD_int);
+  // Two steps of record_leaf_outputs, and the marginal its curvature guard
+  // reports (tf24_leaf.h says what each does).
+  phylloptim::leaf_pars<S> leaf_pars_on_tape(const S& PPFD_int,
+                                             const S& conductance_max,
+                                             double NIR_per_PPFD_int) const;
+  double marginal_at_collar() const;
+  void refuse_unusable_curvature(double slope);
+
+  // The steps of net_mass_production_dt, in the order it takes them, and
+  // seat_leaf, which two of them use (tf24_leaf.h says what each computes).
+  S update_leaf_specific_conductance_max(const S& height,
+                                         const S& sapwood_departure);
+  void build_root_network(const TF24_Environment<S>& environment,
+                          const S& height);
+  void seat_leaf(const TF24_Environment<S>& environment, double PPFD,
+                 const std::vector<double>& psi, double conductance);
+  S solve_leaf_over_crown(const TF24_Environment<S>& environment,
+                          const S& height, const std::vector<S>& psi_soil,
+                          const S& leaf_specific_conductance_max,
+                          double PPFD_above, double NIR_per_PPFD_int);
+  void measure_dprofit_dkmax(const TF24_Environment<S>& environment,
+                             const S& PPFD_int_used,
+                             const std::vector<S>& psi_soil,
+                             const S& leaf_specific_conductance_max);
+  void update_marginal_leaf_return(const S& assimilation_, const S& mass_leaf_,
+                                   const S& mass_bark_, const S& mass_root_);
+
+  // Two steps of compute_rates (tf24_rates.h says what each computes).
+  void write_leaf_readings(Internals<S>& vars, const S& area_leaf_);
+  S sapwood_marginal_return(const S& area_leaf_, const S& area_leaf_star,
+                            const S& sapwood_departure, const S& mass_sapwood_,
+                            const S& withheld_sapwood, const S& growth_flux,
+                            const S& net_mass_production_dt_,
+                            const S& darea_leaf_dmass_live_);
   // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know TF24's state/aux layout.
@@ -738,6 +772,9 @@ public:
 
   // Set constants within TF24_Strategy
   void prepare_strategy();
+  // Two steps of prepare_strategy.
+  void refuse_unsupported_traits() const;
+  void construct_leaf();
 
   // The same strategy at scalar U.
 
@@ -1221,6 +1258,19 @@ void TF24_Strategy<S>::prepare_strategy() {
         at_tangent.mass_live_given_height(probe));
   }
 
+  refuse_unsupported_traits();
+
+  this->set_birth_rate_driver();
+  if (!this->is_variable_birth_rate) {
+    birth_rate_ = this->birth_rate_y[0];
+  }
+  construct_leaf();
+}
+
+// The trait values the model cannot run, refused once the seed size is known,
+// since L_tip is measured against it.
+template <typename S>
+void TF24_Strategy<S>::refuse_unsupported_traits() const {
   // theta_c is declared but NOT YET USABLE. It profiles theta along the flow
   // path, and theta is not a hydraulics-only trait: it also sets area_sapwood,
   // area_bark, their growth rates, mass_sapwood (hence construction cost,
@@ -1277,11 +1327,12 @@ void TF24_Strategy<S>::prepare_strategy() {
         "a plant cannot be smaller than one terminal segment");
     }
   }
+}
 
-  this->set_birth_rate_driver();
-  if (!this->is_variable_birth_rate) {
-    birth_rate_ = this->birth_rate_y[0];
-  }
+// The leaf this strategy solves, built from its traits and seated on the
+// layered supply and the TF24_floor cost curve.
+template <typename S>
+void TF24_Strategy<S>::construct_leaf() {
   if constexpr (std::is_same_v<S, double>) {
     // (P50, c) per curve, and phylloptim derives b and psi_crit itself. Handing
     // over the derived pair instead would state the curve twice and let the two
