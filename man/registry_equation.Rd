@@ -7,7 +7,8 @@
 registry_equation(id, registry = model_registry())
 }
 \arguments{
-\item{id}{The equation's id.}
+\item{id}{The equation's id, or a link (\code{"phylloptim:carbon"}) to an
+equation in a linked package's registry, whose LaTeX is returned.}
 
 \item{registry}{A registry from \code{\link{model_registry}}.}
 }

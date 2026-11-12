@@ -1,8 +1,8 @@
 # The model registry: the equations of the size-structured layer plant's
-# models share and of each model (FF16 and K93 so far; the TF24 family's
-# entries arrive in later PRs), the parameters those equations read, and the C++ symbol that evaluates
-# each, in one file that documents are generated FROM rather than written
-# beside. It follows phylloptim's registry
+# models share and of each model (FF16, K93 and TF24 so far; TF24's subclasses
+# arrive in a later PR), the parameters those equations read, and the C++
+# symbol that evaluates each, in one file that documents are generated FROM
+# rather than written beside. It follows phylloptim's registry
 # (traitecoevo/phylloptim#168), so the two read alike.
 #
 # Four rules, so it does not rot:
@@ -10,17 +10,19 @@
 #   1. Nothing here stores a line number or a default value. A parameter's value
 #      is read off the live model (registry_values()). A `literal:` is the one
 #      exception: a number that IS part of an equation's form rather than a
-#      default.
+#      default, or a constant hard-coded on a class R cannot read it from (so
+#      re-read it whenever that constant changes).
 #   2. CI checks it. tests/testthat/test-registry.R asserts that every symbol
 #      named here is in the headers on its class, that every `reads` names a
-#      parameter or a slot, and that every bound field of the classes it covers
+#      parameter, a slot or a link, that every link (in free text too)
+#      resolves, and that every bound field of the classes it covers
 #      (Parameters, and each model's _Pars as its entries arrive) is accounted
 #      for. The LaTeX is not checked against the code: this is a record, not a
 #      second implementation.
 #   3. The notation is Overstorey's. Where an Overstorey theory page already
 #      writes an equation, the entry takes its symbols and LaTeX.
 #   4. One registry per package. An equation or parameter phylloptim computes is
-#      phylloptim's entry, and plant's points at it rather than copying it.
+#      phylloptim's entry, and plant's links to it rather than copying it.
 #
 # Schema.
 #
@@ -34,6 +36,15 @@
 # A model's own entries carry `model:` and an id `<model>.<name>` (FF16.lma),
 # since models share names; a shared-layer entry has neither. A subclass
 # records only what it changes.
+#
+# `links` is keyed by package: the packages whose registries entries may link
+# to, each with a description and the models whose entries (and those of models
+# extending them) may link to it. A link is written `package:id`
+# (phylloptim:stem_P50). It resolves
+# against the installed package's registry when this file is read, which is
+# the version plant compiles against (LinkingTo pins it exactly); the reader
+# refuses a link whose target is missing there, and warns if the installed
+# version is not the pinned one, since the other registry's ids are unversioned.
 #
 # `slots` are the quantities the shared layer reads and every model supplies
 # (growth, mortality, fecundity, establishment, leaf area, crown shape, birth
@@ -50,12 +61,17 @@
 # source is recorded) and code (the qualified C++ member that holds it). Optional:
 # model, fills (a slot this parameter supplies), cite (a Zotero key,
 # Surname-Year), literal (see rule 1), field (the R binding's name, where it is
-# not the member name) and aliases (other symbols the same quantity is read
-# through).
+# not the member name), aliases (other symbols the same quantity is read
+# through) and note. A parameter that is a linked package's carries `link:`
+# instead of symbol, units, class and meaning, which are read from its target;
+# it keeps section, code (the plant member that holds it and hands it over),
+# source and placeholder, since its value is plant's.
 #
 # `equations` is keyed by id. Each has section, title, latex, code (the symbol
 # that evaluates it, or ~ for an identity with none), reads (parameter or slot
-# ids), writes (bound fields or outputs it seats; may be empty) and kind
+# ids, or links to what the equation's code reads or calls in a linked
+# package), writes (bound fields or outputs it seats, or links to the linked
+# package's inputs it seats; may be empty) and kind
 # (closed_form | identity | derivative | integrator: what sort of statement the
 # LaTeX is). Optional: model, also (further symbols involved), fills (a slot
 # id), cite, note and overstorey (the Overstorey page the LaTeX follows).
@@ -79,6 +95,14 @@ models:
     header: inst/include/plant/models/k93_model.h
     unfilled:
       w: 'K93 declares no census_metrics(), so a census of it is refused at compile time (SCM::metrics_of) and it has no per-individual quantity for a stand total to sum.'
+  TF24:
+    title: 'TF24: Towers et al. 2024, with storage, flexible allometry and a soil column'
+    header: inst/include/plant/models/tf24_model.h
+
+links:
+  phylloptim:
+    description: 'The leaf: TF24''s gas exchange, hydraulics, root uptake and their parameters (traitecoevo/phylloptim)'
+    models: [TF24]
 
 sections:
   individual: Individual plants along their characteristic
@@ -99,6 +123,18 @@ sections:
   k93_mortality: 'K93: mortality'
   k93_competition: 'K93: size-structured competition'
   k93_establishment: 'K93: birth size, dispersal and establishment'
+  tf24_allometry: 'TF24: allometry'
+  tf24_light: 'TF24: the light and the atmosphere the leaf is handed'
+  tf24_leaf: 'TF24: the leaf traits handed to phylloptim'
+  tf24_hydraulics: 'TF24: stem and root supply'
+  tf24_production: 'TF24: assimilation, respiration and net production'
+  tf24_storage: 'TF24: the storage pool'
+  tf24_growth: 'TF24: allocation and growth'
+  tf24_plasticity: 'TF24: flexible allometry and sapwood acclimation'
+  tf24_fecundity: 'TF24: seed production'
+  tf24_mortality: 'TF24: mortality and establishment'
+  tf24_competition: 'TF24: birth size, competition and census'
+  tf24_soil: 'TF24: the soil water column'
 
 slots:
   g:
@@ -768,6 +804,944 @@ parameters:
     placeholder: false
     code: plant::K93_Pars::S_D
     fills: S_D
+
+  # --- TF24: allometry ----------------------------------------------------------
+  TF24.lma:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\phi'
+    units: 'kg m⁻²'
+    class: trait
+    meaning: 'leaf mass per leaf area'
+    source: 'TF24_Pars default, the global mean $\phi_0$ the frozen trade-off (frozen_TF24_hyperpar) is centred on'
+    cite: Towers-2024
+    placeholder: false
+    code: plant::TF24_Pars::lma
+  TF24.rho:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\rho'
+    units: 'kg m⁻³'
+    class: trait
+    meaning: 'wood density'
+    source: 'TF24_Pars default, the global mean $\rho_0$ the frozen trade-off is centred on'
+    cite: Towers-2024
+    placeholder: false
+    code: plant::TF24_Pars::rho
+  TF24.theta:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\theta'
+    units: '–'
+    class: trait
+    meaning: 'Huber value: sapwood area per leaf area of a plant on its allometry; the sapwood departure displaces it'
+    source: 'TF24_Pars default (1/4669, FF16''s value)'
+    cite: Towers-2024
+    placeholder: false
+    code: plant::TF24_Pars::theta
+  TF24.eta:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\eta'
+    units: '–'
+    class: hyperparameter
+    meaning: 'crown-shape parameter; also sets $\eta_c$, the mean height of leaf area as a fraction of $H$, which places the sapwood and bark mass and the end of the hydraulic path'
+    source: TF24_Pars default
+    cite: Yokozawa-1995
+    placeholder: false
+    code: plant::TF24_Pars::eta
+    fills: eta
+  TF24.a_l1:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\alpha_{\rm l1}'
+    units: 'm'
+    class: hyperparameter
+    meaning: 'height of a plant with 1 m² of leaf area'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_l1
+  TF24.a_l2:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\alpha_{\rm l2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'exponent of height on leaf area'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_l2
+  TF24.a_r1:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\alpha_{\rm r1}'
+    units: 'kg m⁻²'
+    class: hyperparameter
+    meaning: 'fine-root mass per leaf area; the only root mass that takes up water'
+    source: 'TF24_Pars default (the header comment gives its units as kg m⁻¹; it is a mass per leaf area)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_r1
+  TF24.a_cr1:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\alpha_{\rm cr1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'coarse-root mass per sapwood mass; coarse roots take up no water'
+    source: 'TF24_Pars default, zero: the pool is absent unless switched on'
+    placeholder: false
+    code: plant::TF24_Pars::a_cr1
+  TF24.a_b1:
+    model: TF24
+    section: tf24_allometry
+    symbol: '\alpha_{\rm b1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'bark area per sapwood area'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_b1
+  TF24.L_crown:
+    model: TF24
+    section: tf24_allometry
+    symbol: 'L_{\rm crown}'
+    units: 'm² m⁻²'
+    class: hyperparameter
+    meaning: 'leaf area a crown carries per unit of ground it covers; TF24 reads nothing from it, TF24w sizes each plant''s soil column with it'
+    source: 'TF24_Pars default; the header calls 2 a placeholder until it is set from crown allometry'
+    placeholder: true
+    code: plant::TF24_Pars::L_crown
+
+  # --- TF24: production ---------------------------------------------------------
+  TF24.a_y:
+    model: TF24
+    section: tf24_production
+    symbol: '\alpha_{\rm y}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'yield: the fraction of assimilated carbon retained after growth respiration'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_y
+  TF24.a_bio:
+    model: TF24
+    section: tf24_production
+    symbol: '\alpha_{\rm bio}'
+    units: 'kg mol⁻¹'
+    class: constant
+    meaning: 'dry mass per mol of assimilated CO₂'
+    source: 'TF24_Pars default (FF16''s value)'
+    placeholder: false
+    code: plant::TF24_Pars::a_bio
+  TF24.r_l:
+    model: TF24
+    section: tf24_production
+    symbol: 'r_{\rm l}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: trait
+    meaning: 'leaf maintenance respiration per leaf mass, charged day and night; not the leaf''s day respiration $R_{\rm d}$, which phylloptim subtracts while the leaf photosynthesises'
+    source: 'TF24_Pars default, 39.27 / 0.1978791: FF16''s value. The frozen trade-off derives it from lma, vcmax_25 and jmax_25 as structural plus photosynthetic nitrogen respiration, $\beta_{\rm lf4} (a_{\rm lf1} + \beta_{\rm lf1} \phi) / \phi + \beta_{\rm lf5} (\beta_{\rm lf2} V_{\rm cmax,25} + \beta_{\rm lf3} J_{\rm max,25}) / \phi$ (with the unit factors of 1000), which gives 348.9 at the defaults against the bare 198.5'
+    cite: Towers-2024
+    placeholder: true
+    code: plant::TF24_Pars::r_l
+  TF24.r_s:
+    model: TF24
+    section: tf24_production
+    symbol: 'r_{\rm s}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: trait
+    meaning: 'sapwood maintenance respiration per sapwood mass'
+    source: 'TF24_Pars default, 4012 / 608; the frozen trade-off derives it as $\beta_{\rm rs1} / \rho$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::r_s
+  TF24.r_b:
+    model: TF24
+    section: tf24_production
+    symbol: 'r_{\rm b}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: trait
+    meaning: 'bark maintenance respiration per bark mass'
+    source: 'TF24_Pars default, twice the default r_s (a default, not a link to r_s); the frozen trade-off derives it as $\beta_{\rm rb1} / \rho$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::r_b
+  TF24.r_r:
+    model: TF24
+    section: tf24_production
+    symbol: 'r_{\rm r}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: hyperparameter
+    meaning: 'fine-root maintenance respiration per root mass'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::r_r
+  TF24.r_cr:
+    model: TF24
+    section: tf24_production
+    symbol: 'r_{\rm cr}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: hyperparameter
+    meaning: 'coarse-root maintenance respiration per coarse-root mass'
+    source: 'TF24_Pars default: the default sapwood rate, by analogy (coarse roots are woody); a default, not a link to r_s'
+    placeholder: true
+    code: plant::TF24_Pars::r_cr
+  TF24.k_l:
+    model: TF24
+    section: tf24_production
+    symbol: 'k_{\rm l}'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'leaf turnover rate'
+    source: 'TF24_Pars default ($\beta_{\rm kl1}$ at $\phi_0$); the frozen trade-off derives it from lma as $\beta_{\rm kl1} (\phi / \phi_0)^{-\beta_{\rm kl2}}$'
+    cite: Wright-2004
+    placeholder: false
+    code: plant::TF24_Pars::k_l
+  TF24.k_s:
+    model: TF24
+    section: tf24_production
+    symbol: 'k_{\rm s}'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'sapwood turnover rate: the rate sapwood becomes heartwood'
+    source: 'TF24_Pars default; the frozen trade-off derives it from wood density as $\beta_{\rm ks1} (\rho / \rho_0)^{-\beta_{\rm ks2}}$, flat at the default $\beta_{\rm ks2} = 0$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::k_s
+  TF24.k_b:
+    model: TF24
+    section: tf24_production
+    symbol: 'k_{\rm b}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'bark turnover rate'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::k_b
+  TF24.k_r:
+    model: TF24
+    section: tf24_production
+    symbol: 'k_{\rm r}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'fine-root turnover rate'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::k_r
+  TF24.k_cr:
+    model: TF24
+    section: tf24_production
+    symbol: 'k_{\rm cr}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'coarse-root turnover rate'
+    source: 'TF24_Pars default: the default sapwood rate, by analogy; a default, not a link to k_s'
+    placeholder: true
+    code: plant::TF24_Pars::k_cr
+
+  # --- TF24: light and atmosphere -------------------------------------------------
+  TF24.k_I:
+    model: TF24
+    section: tf24_light
+    symbol: 'k_{\rm I}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'canopy extinction coefficient, $G / \cos\theta$: the Beer''s-law exponent of the shade a plant casts, and the projection that turns irradiance on a horizontal plane into irradiance intercepted per unit leaf area'
+    source: 'TF24_Pars default, 0.5: a spherical leaf-angle distribution under an overhead sun'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::k_I
+    fills: k_I
+  TF24.f_PAR:
+    model: TF24
+    section: tf24_light
+    symbol: 'f_{\rm PAR}'
+    units: '–'
+    class: constant
+    meaning: 'fraction of incoming shortwave that is photosynthetically active; the rest is near-infrared'
+    source: TF24_Environment default
+    placeholder: false
+    code: plant::TF24_Environment::f_PAR
+  TF24.SWdown:
+    model: TF24
+    section: tf24_light
+    symbol: 'R_{\rm sw}'
+    units: 'W m⁻²'
+    class: driver
+    meaning: 'incoming shortwave on a horizontal surface above the canopy (a flux tower''s SWdown); an extrinsic driver of the environment, constant or a spline of time'
+    source: TF24_Environment default driver
+    placeholder: false
+    code: plant::TF24_Environment::get_SWdown
+  TF24.atm_vpd:
+    model: TF24
+    section: tf24_light
+    code: plant::TF24_Environment::get_atm_vpd
+    link: 'phylloptim:atm_vpd'
+    source: 'TF24_Environment default driver, constant until a site sets it'
+    placeholder: false
+    note: 'An extrinsic driver of the environment, handed to the leaf in seat_leaf.'
+  TF24.ca:
+    model: TF24
+    section: tf24_light
+    code: plant::TF24_Environment::get_ca
+    link: 'phylloptim:ca'
+    source: 'TF24_Environment default driver, constant until a site sets it'
+    placeholder: false
+    note: 'An extrinsic driver of the environment, handed to the leaf in seat_leaf.'
+  TF24.leaf_temp:
+    model: TF24
+    section: tf24_light
+    code: plant::TF24_Environment::get_leaf_temp
+    link: 'phylloptim:leaf_temp'
+    source: 'TF24_Environment default driver, constant until a site sets it'
+    placeholder: false
+    note: 'An extrinsic driver of the environment, handed to the leaf in seat_leaf.'
+  TF24.atm_o2_kpa:
+    model: TF24
+    section: tf24_light
+    code: plant::TF24_Environment::get_atm_o2_kpa
+    link: 'phylloptim:atm_o2_kpa'
+    source: 'TF24_Environment default driver, constant until a site sets it'
+    placeholder: false
+    note: 'An extrinsic driver of the environment, handed to the leaf in seat_leaf.'
+  TF24.atm_kpa:
+    model: TF24
+    section: tf24_light
+    code: plant::TF24_Environment::get_atm_kpa
+    link: 'phylloptim:atm_kpa'
+    source: 'TF24_Environment default driver, constant until a site sets it'
+    placeholder: false
+    note: 'An extrinsic driver of the environment, handed to the leaf in seat_leaf.'
+  TF24.wind_speed:
+    model: TF24
+    section: tf24_light
+    code: plant::TF24_Environment::get_wind_speed
+    link: 'phylloptim:wind_speed_'
+    source: 'TF24_Environment default driver, constant until a site sets it'
+    placeholder: false
+    note: 'An extrinsic driver of the environment, written to the leaf before each solve; read only with the energy balance on. Plant hands over the above-canopy wind unattenuated, which the leaf reads as the wind at the leaf.'
+
+  # --- TF24: the leaf traits handed to phylloptim --------------------------------
+  TF24.vcmax_25:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::vcmax_25
+    link: 'phylloptim:vcmax_25'
+    source: 'TF24_Pars default, for Eucalyptus saligna'
+    placeholder: false
+    note: 'The frozen trade-off reads it, with jmax_25, into r_l.'
+  TF24.jmax_25:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::jmax_25
+    link: 'phylloptim:jmax_25'
+    source: 'TF24_Pars default, 1.64 times the default vcmax_25 (a default, not a link)'
+    placeholder: false
+  TF24.phi_J:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::phi_J
+    link: 'phylloptim:phi_J'
+    source: 'TF24_Pars default, 0.30 / 0.85: the earlier incident-light yield of 0.30 restated per absorbed photon'
+    placeholder: false
+  TF24.curv_fact_elec_trans:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::curv_fact_elec_trans
+    link: 'phylloptim:curv_fact_elec_trans'
+    source: 'TF24_Pars default'
+    placeholder: false
+  TF24.curv_fact_colim:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::curv_fact_colim
+    link: 'phylloptim:curv_fact_colim'
+    source: 'TF24_Pars default'
+    placeholder: false
+  TF24.R_d_25:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::R_d_25
+    link: 'phylloptim:R_d_25'
+    source: 'TF24_Pars default'
+    placeholder: false
+    note: 'Day respiration, subtracted inside the leaf; distinct from r_l, the whole-plant leaf maintenance charge.'
+  TF24.stem_P50:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::stem_P50
+    link: 'phylloptim:stem_P50'
+    source: 'TF24_Pars default: the frozen trade-off''s value at the default K_s'
+    placeholder: false
+    note: 'The frozen trade-off derives it from K_s as $10^{\beta_{\rm Hv1} + \beta_{\rm Hv2} \log_{10} K_{\rm s}}$, the hydraulic safety-efficiency trade-off.'
+  TF24.stem_c:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::stem_c
+    link: 'phylloptim:stem_c'
+    source: 'TF24_Pars default, the frozen trade-off''s $\beta_{\rm c1}$'
+    placeholder: false
+    note: 'The frozen trade-off derives it as $\beta_{\rm c1} \exp(-\beta_{\rm c2} P_{50})$, flat at the default $\beta_{\rm c2} = 0$.'
+  TF24.root_P50:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::root_P50
+    link: 'phylloptim:root_P50'
+    source: 'TF24_Pars default, 3.4, which reproduces the earlier root_b = 3.898245 to ten significant figures'
+    placeholder: true
+  TF24.root_c:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::root_c
+    link: 'phylloptim:root_c'
+    source: 'TF24_Pars default'
+    placeholder: true
+  TF24.TF24_beta2:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::TF24_beta2
+    link: 'phylloptim:TF24_beta2'
+    source: 'TF24_Pars default'
+    placeholder: false
+  TF24.TF24_cost_scale:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::TF24_cost_scale
+    link: 'phylloptim:TF24_cost_scale'
+    source: 'TF24_Pars default, the frozen trade-off''s $\beta_{\rm hks1}$ at $\rho_0$'
+    placeholder: false
+    note: 'The frozen trade-off derives it from wood density as $\beta_{\rm hks1} (\rho / \rho_0)^{-\beta_{\rm hks2}}$, flat at the default $\beta_{\rm hks2} = 0$.'
+  TF24.TF24_floor_lambda_o:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::TF24_floor_lambda_o
+    link: 'phylloptim:TF24_floor_lambda_o'
+    source: 'TF24_Pars default, zero, at which TF24_floor is TF24 exactly'
+    placeholder: false
+    note: 'TF24 is seated on the TF24_floor cost curve, which is TF24''s exactly at the default of zero. A shadow price: growth is billed the carbon kept, which adds it back.'
+  TF24.g_min:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::g_min
+    link: 'phylloptim:g_min'
+    source: 'TF24_Pars default, zero: the leaf without a residual conductance'
+    placeholder: false
+    note: 'Zero by default, which is the leaf without a residual conductance exactly; a non-zero value is untested in plant.'
+  TF24.use_energy_balance:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::use_energy_balance
+    link: 'phylloptim:use_energy_balance_'
+    source: 'TF24_Pars default, zero: the energy balance off, so the leaf is at air temperature'
+    placeholder: false
+    note: 'Held as a number in TF24_Pars and handed over as a flag: any non-zero value turns the energy balance on.'
+  TF24.d:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::d
+    link: 'phylloptim:d_'
+    source: 'TF24_Pars default'
+    placeholder: true
+  TF24.alpha_PAR:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::alpha_PAR
+    link: 'phylloptim:alpha_PAR_'
+    source: 'TF24_Pars default'
+    placeholder: false
+  TF24.alpha_NIR:
+    model: TF24
+    section: tf24_leaf
+    code: plant::TF24_Pars::alpha_NIR
+    link: 'phylloptim:alpha_NIR_'
+    source: 'TF24_Pars default'
+    placeholder: false
+
+  # --- TF24: stem and root supply -------------------------------------------------
+  TF24.K_s:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: 'K_{\rm s}'
+    units: 'kg m⁻¹ s⁻¹ MPa⁻¹'
+    class: trait
+    meaning: 'sapwood-specific conductivity of the terminal segment; the whole-stem value while $D_{\rm c} = \theta_{\rm c} = 0$'
+    source: 'TF24_Pars default: the whole-stem value 1 of the height-linear model, back-derived to the tip so that the two models'' resistances agree at a 1 m path. The frozen trade-off reads it into stem_P50'
+    cite: Towers-2024
+    placeholder: false
+    code: plant::TF24_Pars::K_s
+  TF24.D_c:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: 'D_{\rm c}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'conduit widening exponent, $D(L) \propto L^{D_{\rm c}}$ with distance $L$ from the apex; reaches the model only through the path exponent $\beta_L$'
+    source: 'TF24_Pars default; the header calls it measured and conserved across vascular plants, with a within-stem range of about 0.1 to 0.3'
+    placeholder: false
+    code: plant::TF24_Pars::D_c
+  TF24.theta_c:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: '\theta_{\rm c}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'Huber-profile exponent: sapwood area per leaf area rises toward the base as $\theta(L) = \theta (L / L_{\rm tip})^{\theta_{\rm c}}$, which is why it adds to the path exponent $\beta_L$; refused unless zero, because $\theta$ also sets sapwood mass, respiration and storage, which still read a constant $\theta$'
+    source: 'TF24_Pars default, zero; prepare_strategy refuses any other value'
+    placeholder: false
+    code: plant::TF24_Pars::theta_c
+  TF24.L_tip:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: 'L_{\rm tip}'
+    units: 'm'
+    class: hyperparameter
+    meaning: 'terminal segment length, the anchor of both within-stem profiles; identifiable only with $K_{\rm s}$ and $\theta$ in $L_{\rm tip}^{\beta_L} / (K_{\rm s} \theta)$'
+    source: TF24_Pars default
+    placeholder: false
+    code: plant::TF24_Pars::L_tip
+  TF24.root_depth_shape_eta:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: '\eta_{\rm r}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'shape exponent of fine-root mass over depth, the crown profile''s $\eta$ on the soil'
+    source: TF24_Pars default
+    placeholder: false
+    code: plant::TF24_Pars::root_depth_shape_eta
+  TF24.rooting_depth_max:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: 'D_{\rm r,max}'
+    units: 'm'
+    class: trait
+    meaning: 'maximum rooting depth; rooting depth is $\min(H, D_{\rm r,max})$, and should not exceed the soil column'
+    source: 'TF24_Pars default, the default soil depth'
+    placeholder: false
+    code: plant::TF24_Pars::rooting_depth_max
+  TF24.root_mass_carbon_scale:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: 's_{\rm r}'
+    units: 'mol C kg⁻¹'
+    class: constant
+    meaning: 'carbon per unit fine-root dry mass: turns fine-root mass per leaf area into the root carbon per leaf area the root network is built from'
+    source: 'Hard-coded, 83.26 × 0.5: mol of carbon per kg of carbon (1000 / 12.01) times a carbon fraction of one half; the header names promoting it to a trait as a follow-up'
+    placeholder: true
+    code: plant::root_mass_carbon_scale
+    literal: 41.63
+  TF24.beta_R_H:
+    model: TF24
+    section: tf24_hydraulics
+    code: plant::TF24_Model::beta_R_H
+    link: 'phylloptim:beta_R_H'
+    source: 'Hard-coded on TF24_Model'
+    placeholder: true
+    literal: 3.4e+2
+    note: 'Hard-coded on TF24_Model, which runs the root-architecture model and hands the leaf its resistances.'
+  TF24.beta_R_V:
+    model: TF24
+    section: tf24_hydraulics
+    code: plant::TF24_Model::beta_R_V
+    link: 'phylloptim:beta_R_V'
+    source: 'Hard-coded on TF24_Model'
+    placeholder: true
+    literal: 9.4e+3
+    note: 'Hard-coded on TF24_Model, as beta_R_H.'
+
+  # --- TF24: storage ---------------------------------------------------------------
+  TF24.a_st1:
+    model: TF24
+    section: tf24_storage
+    symbol: '\alpha_{\rm st1}'
+    units: 'kg kg⁻¹'
+    class: hyperparameter
+    meaning: 'storage capacity per unit sapwood mass'
+    source: 'TF24_Pars default; the header follows Stefaniak et al. 2026 (plantNSC)'
+    placeholder: true
+    code: plant::TF24_Pars::a_st1
+  TF24.a_st2:
+    model: TF24
+    section: tf24_storage
+    symbol: '\alpha_{\rm st2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'relative reserves at which the growth gate is half open'
+    source: TF24_Pars default
+    placeholder: true
+    code: plant::TF24_Pars::a_st2
+  TF24.a_st3:
+    model: TF24
+    section: tf24_storage
+    symbol: '\alpha_{\rm st3}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'storage at birth, as a fraction of capacity'
+    source: 'TF24_Pars default; the header cites Stefaniak et al. 2026, Eq. 8'
+    placeholder: true
+    code: plant::TF24_Pars::a_st3
+  TF24.storage_relaxation_offset:
+    model: TF24
+    section: tf24_storage
+    symbol: '\tau_{\rm o}'
+    units: 'yr'
+    class: hyperparameter
+    meaning: 'added to the pool''s own relaxation time, $S_{\max} / (q_{\rm c} + q_{\rm d})$, which is hours in a seedling; must be non-negative'
+    source: 'TF24_Pars default, 7 / 365 (a week)'
+    placeholder: true
+    code: plant::TF24_Pars::storage_relaxation_offset
+  TF24.storage_gate_width:
+    model: TF24
+    section: tf24_storage
+    symbol: 'w_{\rm G}'
+    units: '–'
+    class: constant
+    meaning: 'width of the logistic growth gate on relative reserves'
+    source: 'Hard-coded on TF24_Model'
+    placeholder: false
+    code: plant::TF24_Model::storage_gate_width
+    literal: 0.1
+  TF24.storage_prod_eps:
+    model: TF24
+    section: tf24_storage
+    symbol: '\epsilon_{\rm B}'
+    units: 'kg yr⁻¹'
+    class: constant
+    meaning: 'smoothing scale of the positive part of net production'
+    source: 'Hard-coded on TF24_Model'
+    placeholder: false
+    code: plant::TF24_Model::storage_prod_eps
+    literal: 1.0e-4
+
+  # --- TF24: flexible allometry and sapwood acclimation ------------------------
+  TF24.a_pl0:
+    model: TF24
+    section: tf24_plasticity
+    symbol: '\alpha_{\rm pl0}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'largest fraction of leaf and sapwood turnover a plant leaves unreplaced; zero is the fixed allometry exactly'
+    source: 'TF24_Pars default, zero: flexible allometry is off'
+    placeholder: false
+    code: plant::TF24_Pars::a_pl0
+  TF24.a_pl1:
+    model: TF24
+    section: tf24_plasticity
+    symbol: '\alpha_{\rm pl1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'tracked marginal leaf return at which withholding is half its maximum; zero is break-even, where a leaf stops covering its own upkeep'
+    source: 'TF24_Pars default, zero; the header follows Manzoni et al. 2015'
+    placeholder: false
+    code: plant::TF24_Pars::a_pl1
+  TF24.a_pl2:
+    model: TF24
+    section: tf24_plasticity
+    symbol: '\alpha_{\rm pl2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'log-gap scale of rebuilding, of the canopy floor''s taper and of sapwood replacement'
+    source: TF24_Pars default
+    placeholder: true
+    code: plant::TF24_Pars::a_pl2
+  TF24.a_pl3:
+    model: TF24
+    section: tf24_plasticity
+    symbol: '\alpha_{\rm pl3}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'smallest canopy a plant thins to, as a fraction of the leaf area its height implies'
+    source: TF24_Pars default
+    placeholder: true
+    code: plant::TF24_Pars::a_pl3
+  TF24.a_pl4:
+    model: TF24
+    section: tf24_plasticity
+    symbol: '\alpha_{\rm pl4}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'rate at which the tracked marginal leaf return follows the instantaneous one; $1 / \alpha_{\rm pl4}$ is its memory'
+    source: 'TF24_Pars default, about a four-month memory'
+    placeholder: true
+    code: plant::TF24_Pars::a_pl4
+  TF24.a_sw:
+    model: TF24
+    section: tf24_plasticity
+    symbol: '\alpha_{\rm sw}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'rate at which sapwood per leaf area moves toward the ratio that maximises growth; zero pins it to the pipe model'
+    source: 'TF24_Pars default, zero: sapwood acclimation is off'
+    placeholder: false
+    code: plant::TF24_Pars::a_sw
+  TF24.plasticity_gate_width:
+    model: TF24
+    section: tf24_plasticity
+    symbol: 'w_{\rm pl}'
+    units: '–'
+    class: constant
+    meaning: 'width of the replacement gate, in units of the marginal leaf return'
+    source: 'Hard-coded on TF24_Model'
+    placeholder: false
+    code: plant::TF24_Model::plasticity_gate_width
+    literal: 0.02
+
+  # --- TF24: seed production -----------------------------------------------------
+  TF24.omega:
+    model: TF24
+    section: tf24_fecundity
+    symbol: '\omega'
+    units: 'kg'
+    class: trait
+    meaning: 'seed mass'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::omega
+  TF24.hmat:
+    model: TF24
+    section: tf24_fecundity
+    symbol: 'H_{{\rm mat}}'
+    units: 'm'
+    class: trait
+    meaning: 'height at maturation'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::hmat
+  TF24.a_f1:
+    model: TF24
+    section: tf24_fecundity
+    symbol: '\alpha_{\rm f1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'largest fraction of production allocated to reproduction'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_f1
+  TF24.a_f2:
+    model: TF24
+    section: tf24_fecundity
+    symbol: '\alpha_{\rm f2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'sharpness of the switch to reproduction about $H_{\rm mat}$'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_f2
+  TF24.a_f3:
+    model: TF24
+    section: tf24_fecundity
+    symbol: '\alpha_{\rm f3}'
+    units: 'kg'
+    class: trait
+    meaning: 'accessory cost of reproduction per seed'
+    source: 'TF24_Pars default, three times the default seed mass; the frozen trade-off derives it as $\beta_{\rm f1} \omega$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_f3
+
+  # --- TF24: mortality and establishment ------------------------------------------
+  TF24.S_D:
+    model: TF24
+    section: tf24_mortality
+    symbol: 'S_{\rm D}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'probability an offspring survives dispersal'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::S_D
+    fills: S_D
+  TF24.a_d0:
+    model: TF24
+    section: tf24_mortality
+    symbol: '\alpha_{\rm d0}'
+    units: 'kg yr⁻¹ m⁻²'
+    class: hyperparameter
+    meaning: 'scale of the seedling''s production per leaf area below which establishment fails'
+    source: TF24_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::a_d0
+  TF24.d_I:
+    model: TF24
+    section: tf24_mortality
+    symbol: 'd_{\rm I}'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'growth-independent mortality rate'
+    source: 'TF24_Pars default; the frozen trade-off derives it from wood density as $\beta_{\rm dI1} (\rho / \rho_0)^{-\beta_{\rm dI2}}$, flat at the default $\beta_{\rm dI2} = 0$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::TF24_Pars::d_I
+  TF24.a_dG1:
+    model: TF24
+    section: tf24_mortality
+    symbol: '\alpha_{\rm dG1}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'storage-dependent mortality rate with empty reserves'
+    source: 'TF24_Pars default; the header follows Stefaniak et al. 2026, Eq. 6'
+    placeholder: true
+    code: plant::TF24_Pars::a_dG1
+  TF24.a_dG2:
+    model: TF24
+    section: tf24_mortality
+    symbol: '\alpha_{\rm dG2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'sensitivity of mortality to relative reserves'
+    source: TF24_Pars default
+    placeholder: true
+    code: plant::TF24_Pars::a_dG2
+  TF24.recruitment_decay:
+    model: TF24
+    section: tf24_mortality
+    symbol: '\kappa_{\rm G}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'rate at which establishment declines with patch age at birth'
+    source: 'TF24_Pars default, zero: no decay'
+    placeholder: false
+    code: plant::TF24_Pars::recruitment_decay
+
+  # --- TF24: the soil water column ------------------------------------------------
+  TF24.soil_number_of_depths:
+    model: TF24
+    section: tf24_soil
+    symbol: 'N'
+    units: '–'
+    class: setting
+    meaning: 'number of soil layers, from the top ($i = 0$) to the bottom ($i = N - 1$); also the number of resources the patch takes up, one per layer'
+    source: 'TF24_Environment constructor default; reset by set_soil_number_of_depths, or by the count of widths set_soil_layer_widths is given'
+    placeholder: false
+    code: plant::TF24_Environment::soil_number_of_depths
+  TF24.depth:
+    model: TF24
+    section: tf24_soil
+    symbol: 'Z'
+    units: 'm'
+    class: hyperparameter
+    meaning: 'total depth of the soil column, the sum of the layer widths and the depth to the bottom of the deepest layer; read-only from R, since only the geometry setters rebuild the layers from it'
+    source: 'TF24_Environment constructor default; set_soil_layer_widths overwrites it with the sum of the widths. No source recorded'
+    placeholder: true
+    code: plant::TF24_Environment::depth
+  TF24.dz:
+    model: TF24
+    section: tf24_soil
+    symbol: '\Delta z_i'
+    units: 'm'
+    class: setting
+    meaning: 'width of layer $i$: the geometry a caller states, from which the boundaries and midpoints follow. Equal widths $Z / N$ unless set_soil_layer_widths gives them, and then they must not decrease with depth'
+    source: 'equal layers spanning $Z$ by default; set_soil_layer_widths (or set_tf24_soil) for a graded profile'
+    placeholder: false
+    code: plant::TF24_Environment::dz
+  TF24.soil_moist_sat:
+    model: TF24
+    section: tf24_soil
+    symbol: '\theta_{\rm sat}'
+    units: 'm³ m⁻³'
+    class: hyperparameter
+    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves and the capacity a water pulse fills to; not a bound on the integrated state. One value for every layer unless set_soil_parameters gives one per layer'
+    source: 'TF24_Environment constructor default; no source recorded'
+    placeholder: true
+    code: plant::TF24_Environment::soil_moist_sat
+    aliases: [plant::TF24_Environment::soil_moist_sat_layers]
+  TF24.K_sat:
+    model: TF24
+    section: tf24_soil
+    symbol: 'K_{\rm sat}'
+    units: 'm yr⁻¹'
+    class: hyperparameter
+    meaning: 'saturated hydraulic conductivity: the drainage flux out of the base of a saturated layer. One value for every layer unless set_soil_parameters gives one per layer'
+    source: 'TF24_Environment constructor default; no source recorded. The header gives no units; m yr⁻¹ follows from the water balance, whose fluxes are in m yr⁻¹'
+    placeholder: true
+    code: plant::TF24_Environment::K_sat
+    aliases: [plant::TF24_Environment::K_sat_layers]
+  TF24.a_psi:
+    model: TF24
+    section: tf24_soil
+    symbol: 'a_\psi'
+    units: 'MPa'
+    class: hyperparameter
+    meaning: 'scale of the retention curve: the potential magnitude of a layer at saturation. One value for every layer unless set_soil_parameters gives one per layer'
+    source: 'TF24_Environment constructor default, held in MPa (in Pa until the development version, NEWS); no source recorded'
+    placeholder: true
+    code: plant::TF24_Environment::a_psi
+    aliases: [plant::TF24_Environment::a_psi_layers]
+  TF24.n_psi:
+    model: TF24
+    section: tf24_soil
+    symbol: 'n_\psi'
+    units: '–'
+    class: hyperparameter
+    meaning: 'exponent of the retention curve (Clapp and Hornberger''s $b$); also sets the conductivity exponent $2 n_\psi + 3$. One value for every layer unless set_soil_parameters gives one per layer'
+    source: 'TF24_Environment constructor default; no source recorded'
+    placeholder: true
+    code: plant::TF24_Environment::n_psi
+    aliases: [plant::TF24_Environment::n_psi_layers]
+  TF24.a_infil:
+    model: TF24
+    section: tf24_soil
+    symbol: 'a_{\rm infil}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'strength of saturation-excess runoff: 0 lets all rain infiltrate, 1 applies the full term'
+    source: 'TF24_Environment constructor default; calibrated, per NEWS, against a 0.3 m surface layer, with no source recorded'
+    placeholder: true
+    code: plant::TF24_Environment::a_infil
+  TF24.b_infil:
+    model: TF24
+    section: tf24_soil
+    symbol: 'b_{\rm infil}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'how sharply runoff rises as the top layer nears saturation. It reads layer 0 alone, so its calibration holds only for the width of layer 0 it was made at'
+    source: 'TF24_Environment constructor default; calibrated, per NEWS, against a 0.3 m surface layer, with no source recorded'
+    placeholder: true
+    code: plant::TF24_Environment::b_infil
+  TF24.soil_moist_residual:
+    model: TF24
+    section: tf24_soil
+    symbol: '\theta_r'
+    units: 'm³ m⁻³'
+    class: setting
+    meaning: 'residual moisture: a layer at or below it is not dried further, and the retention curve is evaluated at no less than it so the potential stays finite. A numerical floor, set well below operating moisture'
+    source: 'TF24_Environment member default; not bound in R'
+    placeholder: false
+    code: plant::TF24_Environment::soil_moist_residual
+  TF24.soil_psi_max_:
+    model: TF24
+    section: tf24_soil
+    symbol: '\psi^\ast_{\max}'
+    units: 'MPa'
+    class: setting
+    meaning: 'ceiling on the soil potential magnitude, which keeps the leaf''s hydraulic solve finite near the residual floor; set where root conductivity is already zero, so it does not change uptake'
+    source: 'TF24_Environment member default; not bound in R'
+    placeholder: false
+    code: plant::TF24_Environment::soil_psi_max_
+  TF24.rainfall:
+    model: TF24
+    section: tf24_soil
+    symbol: 'P'
+    units: 'm yr⁻¹'
+    class: driver
+    meaning: 'rainfall rate: the extrinsic driver named "rainfall", a constant or a spline of time'
+    source: 'set constant in the TF24_Environment constructor; a site sets it with extrinsic_drivers_set_constant or extrinsic_drivers_set_variable'
+    placeholder: true
+    code: plant::Environment::extrinsic_drivers
 
 equations:
   # --- individual plants --------------------------------------------------------
@@ -1668,6 +2642,743 @@ equations:
     overstorey: theory/models/k93.qmd
     note: 'Establishment is not part of Kohyama-1993, so every dispersed offspring establishes. Not gated on positive growth, unlike FF16: a recruit that cannot grow is filtered by the $g > 0$ inflow guard (density_boundary_height) instead.'
 
+  # --- TF24: allometry ---------------------------------------------------------------
+  TF24.leaf_area:
+    model: TF24
+    section: tf24_allometry
+    title: Leaf area carried, and height
+    latex: |
+      A_{\rm l} = A_{\rm l}^{*}(H) \, e^{\delta_{\rm l}}, \qquad H = \alpha_{{\rm l1}} \, \left(A_{\rm l}^{*} \, {\rm m^{-2}}\right)^{\alpha_{{\rm l2}}}
+    code: plant::TF24_Model::area_leaf_carried
+    also: [plant::TF24_Model::area_leaf, plant::TF24_Model::update_dependent_aux, plant::TF24_Model::height_given_mass_leaf]
+    reads: [TF24.a_l1, TF24.a_l2]
+    writes: []
+    kind: closed_form
+    fills: A_l
+    note: '$A_{\rm l}^{*}(H)$ is the leaf area a plant of height $H$ has on its allometry; $\delta_{\rm l} \le 0$ is the leaf departure state, the log of the canopy it has thinned to, zero unless flexible allometry is on ($\alpha_{\rm pl0} > 0$). Competition, assimilation and the census read the carried $A_{\rm l}$, kept in the competition_effect auxiliary; the allometric derivatives of growth read $A_{\rm l}^{*}(H)$.'
+  TF24.leaf_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Leaf mass
+    latex: |
+      M_{\rm l} = \phi \, A_{\rm l}
+    code: plant::TF24_Model::mass_leaf
+    reads: [TF24.lma]
+    writes: []
+    kind: closed_form
+  TF24.sapwood_area:
+    model: TF24
+    section: tf24_allometry
+    title: Sapwood area, at the Huber value carried
+    latex: |
+      A_{\rm s} = \theta \, e^{\delta_{\rm s}} \, A_{\rm l}
+    code: plant::TF24_Model::area_sapwood
+    also: [plant::TF24_Model::sapwood_per_leaf_area]
+    reads: [TF24.theta]
+    writes: []
+    kind: closed_form
+    note: '$\delta_{\rm s} \ge 0$ is the sapwood departure state, the log of the Huber value carried over $\theta$; zero unless flexible allometry or sapwood acclimation is on. The one-argument form, used at birth, is $\theta A_{\rm l}$.'
+  TF24.sapwood_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Sapwood mass
+    latex: |
+      M_{\rm s} = \rho \, A_{\rm s} \, H \, \eta_{\rm c}
+    code: plant::TF24_Model::mass_sapwood
+    also: [plant::CanopyShape::eta_c]
+    reads: [TF24.rho, TF24.eta]
+    writes: []
+    kind: closed_form
+  TF24.bark_area:
+    model: TF24
+    section: tf24_allometry
+    title: Bark area
+    latex: |
+      A_{\rm b} = \alpha_{{\rm b1}} \, \theta \, A_{\rm l}
+    code: plant::TF24_Model::area_bark
+    reads: [TF24.a_b1, TF24.theta]
+    writes: []
+    kind: closed_form
+    note: 'Bark follows leaf area at the resting Huber value: it does not take up the sapwood departure.'
+  TF24.bark_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Bark mass
+    latex: |
+      M_{\rm b} = \rho \, A_{\rm b} \, H \, \eta_{\rm c}
+    code: plant::TF24_Model::mass_bark
+    reads: [TF24.rho, TF24.eta]
+    writes: []
+    kind: closed_form
+  TF24.root_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Fine-root mass
+    latex: |
+      M_{\rm r} = \alpha_{{\rm r1}} \, A_{\rm l}
+    code: plant::TF24_Model::mass_root
+    reads: [TF24.a_r1]
+    writes: []
+    kind: closed_form
+  TF24.coarse_root_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Coarse-root mass
+    latex: |
+      M_{\rm cr} = \alpha_{{\rm cr1}} \, M_{\rm s}
+    code: plant::TF24_Model::mass_coarse_root
+    reads: [TF24.a_cr1]
+    writes: []
+    kind: closed_form
+  TF24.live_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Live mass
+    latex: |
+      M_{\rm a}=M_{\rm l}+M_{\rm b}+M_{\rm s}+M_{\rm r}+M_{\rm cr}
+    code: plant::TF24_Model::mass_live
+    also: [plant::TF24_Model::mass_live_given_height]
+    reads: []
+    writes: []
+    kind: identity
+  TF24.total_mass:
+    model: TF24
+    section: tf24_allometry
+    title: Total and above-ground mass
+    latex: |
+      M_{\rm tot} = M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm h} + M_{\rm r} + M_{\rm cr}, \qquad M_{\rm ag} = M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm h}
+    code: plant::TF24_Model::mass_total
+    also: [plant::TF24_Model::mass_above_ground]
+    reads: []
+    writes: []
+    kind: identity
+  TF24.stem:
+    model: TF24
+    section: tf24_allometry
+    title: Stem basal area and diameter
+    latex: |
+      A_{\rm st} = A_{\rm b} + A_{\rm s} + A_{\rm h}, \qquad D = \left(\frac{4 A_{\rm st}}{\pi}\right)^{0.5}
+    code: plant::TF24_Model::area_stem
+    also: [plant::TF24_Model::diameter_stem]
+    reads: []
+    writes: []
+    kind: closed_form
+
+  # --- TF24: light and atmosphere ---------------------------------------------------
+  TF24.light_chain:
+    model: TF24
+    section: tf24_light
+    title: The light handed to the leaf
+    latex: |
+      Q_{\rm above} = c_Q \, f_{\rm PAR} \, R_{\rm sw}, \qquad
+      Q_{\rm int} = k_{\rm I} \, \max\!\big(E, 10^{-4}\big) \, Q_{\rm above}, \qquad
+      Q_{\rm NIR} = \frac{1 - f_{\rm PAR}}{c_Q \, f_{\rm PAR}} \, Q_{\rm int}
+    code: plant::TF24_Model::net_mass_production_dt
+    also: [plant::TF24_Model::solve_leaf_over_crown]
+    reads: [TF24.k_I, TF24.f_PAR, TF24.SWdown, 'phylloptim:umol_par_per_joule']
+    writes: ['phylloptim:PPFD', 'phylloptim:NIR_int_']
+    kind: closed_form
+    note: '$E$ is the canopy openness the plant''s leaves stand in (TF24.crown_light). $Q_{\rm int}$ is photon flux intercepted per unit leaf area, the leaf''s PPFD; $Q_{\rm NIR}$ is the near-infrared it intercepts, read only with the energy balance on. Nothing upstream of the leaf absorbs: the leaf applies $\alpha_{\rm PAR}$ and $\alpha_{\rm NIR}$. Not on an Overstorey page.'
+  TF24.crown_light:
+    model: TF24
+    section: tf24_light
+    title: The light a crown is solved at
+    latex: |
+      E = \int_0^{H} \max\!\big(E(z), 10^{-4}\big) \, q(z, H) \, {\rm d}z \ \text{(mean light)}, \qquad
+      E = E(\eta_{\rm c} H) \ \text{(crown centre)}, \qquad
+      \bar{y} = \int_0^{H} y\big(E(z)\big) \, q(z, H) \, {\rm d}z \ \text{(deep crown)}
+    code: plant::TF24_Model::solve_leaf_over_crown
+    also: [plant::CanopyShape::q_from_height]
+    reads: [TF24.eta]
+    writes: []
+    kind: integrator
+    note: 'Chosen by Control''s shading_model; mean light is TF24''s default. Mean light and crown centre solve the leaf once; deep crown solves it at each quadrature node of the crown and integrates every leaf output $y$ (the carbon kept, transpiration, per-layer uptake, potentials, conductance, leaf temperature) against the crown''s leaf-area density $q$. Deep crown carries no gradient, and refuses sapwood acclimation. The flat-top and PPA models are refused.'
+
+  # --- TF24: stem and root supply -----------------------------------------------------
+  TF24.stem_path_length:
+    model: TF24
+    section: tf24_hydraulics
+    title: Effective hydraulic path length
+    latex: |
+      L_{\rm eff} = L_{\rm tip} \, \frac{(L / L_{\rm tip})^{1 - \beta_L} - 1}{1 - \beta_L}, \qquad L = \eta_{\rm c} H, \qquad \beta_L = 2 D_{\rm c} + \theta_{\rm c}
+    code: plant::stem_hydraulics::effective_path_length
+    also: [plant::TF24_Model::stem_path_exponent]
+    reads: [TF24.D_c, TF24.theta_c, TF24.L_tip, TF24.eta]
+    writes: []
+    kind: closed_form
+    note: 'The stem''s resistance as a path integral from the base to the mean height of leaf area, with conductivity widening and the Huber value profiled from the terminal segment. At $\beta_L = 1$ it is $L_{\rm tip} \ln(L / L_{\rm tip})$; at $\beta_L = 0$ it is $L - L_{\rm tip}$, and with $L_{\rm tip} = 0$ as well, the height-linear $L$. Not on an Overstorey page.'
+  TF24.leaf_specific_conductance:
+    model: TF24
+    section: tf24_hydraulics
+    title: Leaf-specific stem conductance
+    latex: |
+      k_{\max} = \frac{K_{\rm s} \, \theta \, e^{\delta_{\rm s}}}{L_{\rm eff}}
+    code: plant::TF24_Model::update_leaf_specific_conductance_max
+    reads: [TF24.K_s, TF24.theta]
+    writes: ['phylloptim:leaf_specific_conductance_max']
+    kind: closed_form
+    note: 'Handed to the leaf as its $k_{\max}$, so the stem''s supply per unit leaf area follows the Huber value the plant carries. Not on an Overstorey page.'
+  TF24.root_profile:
+    model: TF24
+    section: tf24_hydraulics
+    title: Fine roots over depth
+    latex: |
+      Q_{\rm r}(z) = \left(1 - \left(z / D_{\rm r}\right)^{\eta_{\rm r}}\right)^{2} \ \text{for } z \le D_{\rm r}, \ 0 \text{ below}, \qquad D_{\rm r} = \min(H, D_{\rm r,max})
+    code: plant::TF24_Model::Q
+    also: [plant::TF24_Model::build_root_network]
+    reads: [TF24.root_depth_shape_eta, TF24.rooting_depth_max]
+    writes: []
+    kind: closed_form
+    note: 'The crown profile''s cumulative form, laid over the soil: the fraction of fine-root mass deeper than $z$. Not on an Overstorey page.'
+  TF24.root_carbon:
+    model: TF24
+    section: tf24_hydraulics
+    title: Root carbon per leaf area in each soil layer
+    latex: |
+      C_i = s_{\rm r} \, \alpha_{\rm r1} \, \big( Q_{\rm r}(z_{i-1}) - Q_{\rm r}(z_i) \big), \qquad z_{-1} = 0
+    code: plant::TF24_Model::build_root_network
+    reads: [TF24.root_mass_carbon_scale, TF24.a_r1, TF24.beta_R_H, TF24.beta_R_V, 'phylloptim:root_network_from_carbon']
+    writes: ['phylloptim:r_R_H_min', 'phylloptim:r_R_V_sum']
+    kind: closed_form
+    note: 'Per unit leaf area, because the leaf is intensive: $M_{\rm r} / A_{\rm l} = \alpha_{\rm r1}$. $z_i$ is the depth of the bottom of soil layer $i$, counting from $i = 0$ (TF24.layer_geometry). phylloptim''s root_network_from_carbon turns $C_i$ into the resistances the leaf''s supply reads, with layer thicknesses from phylloptim::layer_thicknesses. Not on an Overstorey page.'
+  TF24.water_uptake:
+    model: TF24
+    section: tf24_hydraulics
+    title: A plant's draw on each soil layer
+    latex: |
+      U_i = \frac{E_i \, A_{\rm l} \, \tau_{\rm d} \, M_{\rm w}}{10^{3}}, \qquad \tau_{\rm d} = 60 \cdot 60 \cdot 12 \cdot 365 \ {\rm s \, yr^{-1}}
+    code: plant::TF24_Model::compute_rates
+    also: [plant::TF24_Model::evapotranspiration_dt]
+    reads: ['phylloptim:multilayer_uptake', 'phylloptim:kg_per_mol_h2o']
+    writes: []
+    kind: closed_form
+    note: '$E_i$ is the leaf''s uptake from layer $i$ per unit leaf area at the operating point (mol H₂O m⁻² s⁻¹), so $U_i$ is m³ of water a year; the patch sums it over plants into the soil balance. $\tau_{\rm d}$ counts twelve hours of daylight a day. Not on an Overstorey page.'
+
+  # --- TF24: assimilation, respiration and net production ------------------------------
+  TF24.leaf_operating_point:
+    model: TF24
+    section: tf24_production
+    title: The leaf's operating point and the carbon it keeps
+    latex: |
+      \Pi = A_{\rm kept}\big(\psi_{\rm r}^{*}\big), \qquad \psi_{\rm r}^{*} : \ \frac{{\rm d}J}{{\rm d}\psi_{\rm r}} = 0 \ \text{or a bound}, \quad \text{given } Q_{\rm int},\, Q_{\rm NIR},\, k_{\max},\, \{\psi_{{\rm s},i}\},\, \{C_i\}
+    code: plant::TF24_Model::solve_leaf
+    also: [plant::TF24_Model::seat_leaf, plant::TF24_Model::solve_leaf_over_crown]
+    reads: ['phylloptim:carbon', 'phylloptim:foc_collar', 'phylloptim:collar_bracket', 'phylloptim:cost_TF24_floor', 'phylloptim:leaf_from_collar', 'phylloptim:multilayer_uptake']
+    writes: []
+    kind: closed_form
+    overstorey: theory/assimilation-hydraulics.qmd
+    note: 'phylloptim solves for the root-collar water potential that maximises the TF24_floor objective $J$, and returns the carbon the leaf kept, $\Pi$ in µmol m⁻² s⁻¹; every equation of the solve is phylloptim''s. Growth is billed $\Pi$, the objective with the shadow price of water added back, not the objective itself: the price changes the aperture chosen and costs no carbon. The soil potentials $\psi_{{\rm s},i}$ are the soil column''s. A run that recorded its operating points replays them instead of solving again.'
+  TF24.assimilation:
+    model: TF24
+    section: tf24_production
+    title: Whole-plant assimilation
+    latex: |
+      A = \Pi \, A_{\rm l} \, \tau_{\rm d} \, 10^{-6}
+    code: plant::TF24_Model::net_mass_production_dt
+    reads: ['phylloptim:carbon']
+    writes: []
+    kind: closed_form
+    note: 'mol yr⁻¹, with $\tau_{\rm d}$ the seconds of daylight a year (TF24.water_uptake). Under deep-crown shading $\Pi$ is the crown mean. The auxiliary named assimilation is not this total: it is the leaf''s own assimilation per unit leaf area (assim_colimited_).'
+  TF24.respiration:
+    model: TF24
+    section: tf24_production
+    title: Maintenance respiration
+    latex: |
+      R = \sum_{i = {\rm l}, {\rm b}, {\rm s}, {\rm r}, {\rm cr}}{M_i \, r_i}
+    code: plant::TF24_Model::respiration
+    also: [plant::TF24_Model::respiration_leaf, plant::TF24_Model::respiration_sapwood]
+    reads: [TF24.r_l, TF24.r_b, TF24.r_s, TF24.r_r, TF24.r_cr]
+    writes: []
+    kind: closed_form
+    note: 'On the masses the plant carries: the sapwood at its departed Huber value, the leaf and fine root at the carried leaf area.'
+  TF24.turnover:
+    model: TF24
+    section: tf24_production
+    title: Tissue turnover charged
+    latex: |
+      T = u_{\rm l} \, k_{\rm l} M_{\rm l} + k_{\rm b} M_{\rm b} + u_{\rm s} \, k_{\rm s} M_{\rm s} + k_{\rm r} M_{\rm r} + k_{\rm cr} M_{\rm cr}
+    code: plant::TF24_Model::turnover
+    also: [plant::TF24_Model::turnover_leaf, plant::TF24_Model::turnover_sapwood]
+    reads: [TF24.k_l, TF24.k_b, TF24.k_s, TF24.k_r, TF24.k_cr]
+    writes: []
+    kind: closed_form
+    note: 'The turnover the plant pays to replace: $u_{\rm l}$ and $u_{\rm s}$ are the replaced fractions (TF24.replacement, TF24.sapwood_replacement), both 1 with flexible allometry off. Only leaf and sapwood, whose sizes are states, may go unreplaced; bark, fine and coarse roots are charged in full.'
+  TF24.net_production:
+    model: TF24
+    section: tf24_production
+    title: Net biomass production
+    latex: |
+      \frac{{\rm d}B}{{\rm d}t} = \alpha_{\rm bio} \, \alpha_{\rm y} \, (A - R) - T
+    code: plant::TF24_Model::net_mass_production_dt
+    also: [plant::TF24_Model::net_mass_production_dt_A]
+    reads: [TF24.a_bio, TF24.a_y]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/tf24.qmd
+    note: 'The page names ${\rm d}B/{\rm d}t$ in the growth chain without writing it. Stored as the auxiliary net_mass_production_dt, which establishment reads for a newborn. Unlike FF16 no rate is cut at ${\rm d}B/{\rm d}t \le 0$: the storage pool takes the shortfall (TF24.growth_flux).'
+
+  # --- TF24: the storage pool ---------------------------------------------------------
+  TF24.storage_capacity:
+    model: TF24
+    section: tf24_storage
+    title: Storage capacity and relative reserves
+    latex: |
+      S_{\max} = \alpha_{\rm st1} \, M_{\rm s}, \qquad r = S / S_{\max}
+    code: plant::TF24_Model::storage_capacity
+    also: [plant::TF24_Model::compute_rates]
+    reads: [TF24.a_st1]
+    writes: []
+    kind: closed_form
+    note: '$S$ is the storage state (kg); $r$ is taken as 0 where $S_{\max} = 0$, and read unclamped, the solver rejecting a step that leaves $S < 0$. The header follows Stefaniak et al. 2026 (plantNSC). Not on an Overstorey page.'
+  TF24.growth_flux:
+    model: TF24
+    section: tf24_storage
+    title: The growth flux the reserves release
+    latex: |
+      F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
+    code: plant::TF24_Model::compute_rates
+    reads: [TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
+    writes: []
+    kind: closed_form
+    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. Not on an Overstorey page.'
+  TF24.storage_ode:
+    model: TF24
+    section: tf24_storage
+    title: The storage pool
+    latex: |
+      \frac{{\rm d}S}{{\rm d}t} = \frac{q_{\rm c}\,(1 - r) - q_{\rm d}\,r}{1 + \tau_{\rm o} \, (q_{\rm c} + q_{\rm d}) / S_{\max}}, \qquad q_{\rm c} = \dot{B}_{+}\,(1 - G(r)), \qquad q_{\rm d} = \dot{B}_{+} - \dot{B}
+    code: plant::TF24_Model::compute_rates
+    reads: [TF24.storage_relaxation_offset]
+    writes: []
+    kind: derivative
+    note: 'The charge $q_{\rm c}$ is the surplus the gate withheld and the drain $q_{\rm d}$ the shortfall met from reserves; each is limited by the room the other leaves, so $S$ stays in $[0, S_{\max}]$ with no clamp. At capacity the withheld charge leaves the budget: the pool is capped by withholding, not by spending. The divisor is taken as 1 where $S_{\max} = 0$. Not on an Overstorey page.'
+  TF24.storage_initial:
+    model: TF24
+    section: tf24_storage
+    title: Reserves at birth
+    latex: |
+      S(t_0) = \alpha_{\rm st3} \, S_{\max}(H_0)
+    code: plant::TF24_Model::set_initial_states
+    reads: [TF24.a_st3, H_0]
+    writes: []
+    kind: closed_form
+    note: 'Both departures start at zero, since a seed is on its allometry. The header cites Stefaniak et al. 2026, Eq. 8. Not on an Overstorey page.'
+
+  # --- TF24: allocation and growth -----------------------------------------------------
+  TF24.allocation:
+    model: TF24
+    section: tf24_growth
+    title: Allocation to growth
+    latex: |
+      \frac{{\rm d}M_{\rm a}}{{\rm d}B}(H) = 1 -
+      \frac{\alpha_{{\rm f1}}} {1 + \exp\left(\alpha_{{\rm f2}} \left(1 - H / H_{\rm mat}\right)\right)}
+    code: plant::TF24_Model::fraction_allocation_growth
+    also: [plant::TF24_Model::fraction_allocation_reproduction]
+    reads: [TF24.a_f1, TF24.a_f2, TF24.hmat]
+    writes: []
+    kind: closed_form
+  TF24.height_leaf_area_slope:
+    model: TF24
+    section: tf24_growth
+    title: Height gained per unit leaf area
+    latex: |
+      \frac{{\rm d}H}{{\rm d}A_{\rm l}} = \alpha_{{\rm l2}} \alpha_{{\rm l1}} \left(A_{\rm l}^{*} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}-1}
+    code: plant::TF24_Model::dheight_darea_leaf
+    reads: [TF24.a_l1, TF24.a_l2]
+    writes: []
+    kind: closed_form
+  TF24.tissue_costs:
+    model: TF24
+    section: tf24_growth
+    title: Marginal tissue costs of leaf area
+    latex: |
+      \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} = \phi, \qquad
+      \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} = \rho \, \theta \, e^{\delta_{\rm s}} \, \eta_{\rm c} \, \big(H + A_{\rm l}^{*} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big), \qquad
+      \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c}\big(H + A_{\rm l}^{*} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big), \qquad
+      \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} = \alpha_{{\rm r1}}, \qquad
+      \frac{{\rm d}M_{\rm cr}}{{\rm d}A_{\rm l}} = \alpha_{{\rm cr1}} \, \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}}
+    code: plant::TF24_Model::dmass_sapwood_darea_leaf
+    also: [plant::TF24_Model::dmass_leaf_darea_leaf, plant::TF24_Model::dmass_bark_darea_leaf, plant::TF24_Model::dmass_root_darea_leaf, plant::TF24_Model::dmass_coarse_root_darea_leaf]
+    reads: [TF24.lma, TF24.rho, TF24.theta, TF24.eta, TF24.a_l1, TF24.a_l2, TF24.a_b1, TF24.a_r1, TF24.a_cr1]
+    writes: []
+    kind: closed_form
+    note: 'Sapwood is priced at the Huber value the plant carries; bark at the resting one. The code writes $H + A_{\rm l}^{*}\,{\rm d}H/{\rm d}A_{\rm l}$ as $\alpha_{\rm l1} (\alpha_{\rm l2} + 1) A_{\rm l}^{*\,\alpha_{\rm l2}}$.'
+  TF24.leaf_area_cost:
+    model: TF24
+    section: tf24_growth
+    title: Leaf area per unit of live mass
+    latex: |
+      \frac{{\rm d}A_{\rm l}}{{\rm d}M_{\rm a}}
+      = \bigg( \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm cr}}{{\rm d}A_{\rm l}}\bigg)^{-1}
+    code: plant::TF24_Model::darea_leaf_dmass_live
+    reads: []
+    writes: []
+    kind: closed_form
+  TF24.height_growth:
+    model: TF24
+    section: tf24_growth
+    title: Height growth rate
+    latex: |
+      g(x, H, E_{a}) = \frac{{\rm d}H}{{\rm d}t} = \frac{{\rm d}H}{{\rm d}A_{\rm l}}
+      \times \frac{{\rm d}A_{\rm l} }{{\rm d}M_{\rm a}}
+      \times \frac{{\rm d}M_{\rm a}}{{\rm d}B}
+      \times (1 - b) \, F
+    code: plant::TF24_Model::compute_rates
+    also: [plant::TF24_Model::dheight_darea_leaf, plant::TF24_Model::darea_leaf_dmass_live, plant::TF24_Model::fraction_allocation_growth]
+    reads: [TF24.a_l1, TF24.a_l2, TF24.a_f1, TF24.a_f2, TF24.hmat]
+    writes: []
+    kind: derivative
+    fills: g
+    cite: Towers-2024
+    overstorey: theory/models/tf24.qmd
+    note: 'The page''s chain ends in ${\rm d}B/{\rm d}t$; the code''s ends in the growth flux $F$ the reserves release (TF24.growth_flux), less the share $b$ spent rebuilding a thinned canopy (TF24.rebuild_share), which buys leaf area and no height. The allometric derivatives are taken at $A_{\rm l}^{*}(H)$, the leaf area the height implies, so extension preserves the departures. Height cannot fall.'
+  TF24.heartwood:
+    model: TF24
+    section: tf24_growth
+    title: Heartwood formation
+    latex: |
+      \frac{{\rm d}A_{\rm h}}{{\rm d}t} = k_{\rm s} \, A_{\rm s}, \qquad \frac{{\rm d}M_{\rm h}}{{\rm d}t} = k_{\rm s} \, M_{\rm s}
+    code: plant::TF24_Model::area_heartwood_dt
+    also: [plant::TF24_Model::mass_heartwood_dt, plant::TF24_Model::compute_rates]
+    reads: [TF24.k_s]
+    writes: []
+    kind: derivative
+    note: 'On the sapwood carried, whatever the plant''s carbon: heartwood forms at the full turnover rate even where the budget is charged only $u_{\rm s} k_{\rm s} M_{\rm s}$ to replace it.'
+
+  # --- TF24: flexible allometry and sapwood acclimation ------------------------------
+  TF24.marginal_leaf_return:
+    model: TF24
+    section: tf24_plasticity
+    title: The marginal leaf's return
+    latex: |
+      R_{\rm l} = \frac{\alpha_{\rm bio} \alpha_{\rm y} A - C_{\rm l}}{C_{\rm l}}, \qquad
+      C_{\rm l} = \alpha_{\rm bio} \alpha_{\rm y} \big(r_{\rm l} M_{\rm l} + r_{\rm b} M_{\rm b} + r_{\rm r} M_{\rm r}\big) + k_{\rm l} M_{\rm l} + k_{\rm b} M_{\rm b} + k_{\rm r} M_{\rm r}
+    code: plant::TF24_Model::update_marginal_leaf_return
+    reads: [TF24.a_bio, TF24.a_y, TF24.r_l, TF24.r_b, TF24.r_r, TF24.k_l, TF24.k_b, TF24.k_r]
+    writes: []
+    kind: closed_form
+    note: 'Zero at break-even, where a leaf stops covering its own upkeep (the header follows Manzoni et al. 2015). Only the costs that scale with leaf area count; sapwood is left out. Taken as 0 where $C_{\rm l} \le 0$, and stored as the auxiliary leaf_marginal_return. Not on an Overstorey page.'
+  TF24.tracked_return:
+    model: TF24
+    section: tf24_plasticity
+    title: The tracked marginal return
+    latex: |
+      \frac{{\rm d}\bar{R}_{\rm l}}{{\rm d}t} = \alpha_{\rm pl4} \big(R_{\rm l} - \bar{R}_{\rm l}\big)
+    code: plant::TF24_Model::compute_rates
+    also: [plant::TF24_Model::set_initial_states]
+    reads: [TF24.a_pl4]
+    writes: []
+    kind: derivative
+    note: 'A running mean, so the canopy answers to seasons rather than weather. At birth $\bar{R}_{\rm l}$ is the newborn''s own $R_{\rm l}$ where $\alpha_{\rm pl0} > 0$, and 0 otherwise, where it reaches no rate. Not on an Overstorey page.'
+  TF24.replacement:
+    model: TF24
+    section: tf24_plasticity
+    title: The fraction of leaf turnover replaced
+    latex: |
+      u_{\rm l} = 1 - \big(1 - \varrho(\bar{R}_{\rm l})\big)\, s(\delta_{\rm l}), \qquad
+      \varrho(R) = 1 - \frac{\alpha_{\rm pl0}}{1 + \exp\!\big((R - \alpha_{\rm pl1}) / w_{\rm pl}\big)}, \qquad
+      s(\delta_{\rm l}) = 1 - \exp\!\big((\ln \alpha_{\rm pl3} - \delta_{\rm l}) / \alpha_{\rm pl2}\big)
+    code: plant::TF24_Model::net_mass_production_dt
+    also: [plant::TF24_Model::replacement_fraction, plant::TF24_Model::shedding_gate]
+    reads: [TF24.a_pl0, TF24.a_pl1, TF24.a_pl2, TF24.a_pl3, TF24.plasticity_gate_width]
+    writes: []
+    kind: closed_form
+    note: 'Exactly 1 at $\alpha_{\rm pl0} = 0$, the fixed allometry. The taper $s$ stops shedding at the canopy floor, $\delta_{\rm l} = \ln \alpha_{\rm pl3}$, so the floor is a property of the flow rather than a clamp. Not on an Overstorey page.'
+  TF24.sapwood_replacement:
+    model: TF24
+    section: tf24_plasticity
+    title: The fraction of sapwood turnover replaced
+    latex: |
+      u_{\rm s} = u_{\rm l} \, \exp\!\big(-\delta_{\rm s} / \alpha_{\rm pl2}\big)
+    code: plant::TF24_Model::sapwood_replacement_fraction
+    reads: [TF24.a_pl2]
+    writes: []
+    kind: closed_form
+    note: 'A stem carrying more conducting area than its canopy needs declines to renew the excess, which gives the Huber value its restoring force; $\delta_{\rm s} \ge 0$ holds while $k_{\rm l} > k_{\rm s}$. Not on an Overstorey page.'
+  TF24.rebuild_share:
+    model: TF24
+    section: tf24_plasticity
+    title: The share of growth spent rebuilding the canopy
+    latex: |
+      b = u_{\rm l} \big(1 - e^{\delta_{\rm l} / \alpha_{\rm pl2}}\big), \qquad
+      m_A(H) = \phi + \alpha_{\rm r1} + \theta \, H \, \eta_{\rm c} \, \rho \, (1 + \alpha_{\rm b1})
+    code: plant::TF24_Model::compute_rates
+    also: [plant::TF24_Model::mass_live_per_area_leaf_at_height]
+    reads: [TF24.a_pl2, TF24.lma, TF24.a_r1, TF24.theta, TF24.eta, TF24.rho, TF24.a_b1]
+    writes: []
+    kind: closed_form
+    note: 'Zero when the canopy is whole ($\delta_{\rm l} = 0$), and gated by the same signal as replacement, so a plant rebuilds only as far as it is willing to maintain. $m_A$ is the mass of a unit of leaf area bought at unchanged height with its fine root, sapwood and bark, at the resting Huber value. Not on an Overstorey page.'
+  TF24.leaf_departure_ode:
+    model: TF24
+    section: tf24_plasticity
+    title: The leaf departure
+    latex: |
+      \frac{{\rm d}\delta_{\rm l}}{{\rm d}t} = \frac{b \, F \, \frac{{\rm d}M_{\rm a}}{{\rm d}B}}{m_A(H) \, A_{\rm l}} - (1 - u_{\rm l}) \, k_{\rm l}
+    code: plant::TF24_Model::compute_rates
+    reads: [TF24.k_l]
+    writes: []
+    kind: derivative
+    note: 'Leaf area loses the turnover it did not replace and regains what rebuilding buys; it cannot thin faster than leaves turn over, nor rise above zero. Not on an Overstorey page.'
+  TF24.sapwood_departure_ode:
+    model: TF24
+    section: tf24_plasticity
+    title: The sapwood departure
+    latex: |
+      \frac{{\rm d}\delta_{\rm s}}{{\rm d}t} = (1 - u_{\rm l}) \, k_{\rm l} - (1 - u_{\rm s}) \, k_{\rm s} + \frac{b \, F \, \frac{{\rm d}M_{\rm a}}{{\rm d}B}}{m_A(H) \, A_{\rm l}} \big(e^{-\delta_{\rm s}} - 1\big) + \alpha_{\rm sw} R_{\rm s}
+    code: plant::TF24_Model::compute_rates
+    reads: [TF24.k_l, TF24.k_s, TF24.a_sw]
+    writes: []
+    kind: derivative
+    note: 'The difference of leaf and sapwood losses, so a thinning canopy raises the Huber value; the rebuilding term is the geometry of adding leaf and sapwood at the ratio $\theta$. Not on an Overstorey page.'
+  TF24.sapwood_marginal_return:
+    model: TF24
+    section: tf24_plasticity
+    title: The marginal return of sapwood, in growth
+    latex: |
+      R_{\rm s} = \frac{F}{F + C} \cdot \frac{\partial_{\delta_{\rm s}} \dot{B} - \dot{B} \, \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}M_{\rm a}}}{C}, \qquad
+      \partial_{\delta_{\rm s}} \dot{B} = \alpha_{\rm bio} \alpha_{\rm y} A_{\rm l} \, \frac{\partial \Pi}{\partial k_{\max}} k_{\max} \, \tau_{\rm d} 10^{-6} - \alpha_{\rm bio} \alpha_{\rm y} r_{\rm s} M_{\rm s} - u_{\rm s} k_{\rm s} M_{\rm s} \Big(1 - \frac{1}{\alpha_{\rm pl2}}\Big), \qquad
+      C = \alpha_{\rm bio} \alpha_{\rm y} R + T
+    code: plant::TF24_Model::sapwood_marginal_return
+    also: [plant::TF24_Model::measure_dprofit_dkmax]
+    reads: [TF24.a_bio, TF24.a_y, TF24.r_s, TF24.k_s, TF24.a_pl2, 'phylloptim:carbon']
+    writes: []
+    kind: closed_form
+    note: 'Zero unless $\alpha_{\rm sw} > 0$ and $C > 0$. $\partial \Pi / \partial k_{\max}$ is a forward difference at a relative step of $10^{-3}$, re-solving the leaf, so a run with sapwood acclimation on carries no gradient. The objective is growth, not production: the second term prices extra stem in forgone leaf area. Stored as the auxiliary sapwood_marginal_return. Not on an Overstorey page.'
+
+  # --- TF24: seed production -----------------------------------------------------------
+  TF24.fecundity:
+    model: TF24
+    section: tf24_fecundity
+    title: Seed production
+    latex: |
+      f(x, H, E_{a}) = \frac{(1 - \frac{{\rm d}M_{\rm a}}{{\rm d}B}) \times F}{
+      \omega + \alpha_{{\rm f3}}}
+    code: plant::TF24_Model::fecundity_dt
+    also: [plant::TF24_Model::compute_rates, plant::TF24_Model::fraction_allocation_reproduction]
+    reads: [TF24.omega, TF24.a_f3, TF24.a_f1, TF24.a_f2, TF24.hmat]
+    writes: []
+    kind: closed_form
+    fills: f
+    note: 'Paid from the growth flux $F$, as height growth is, not from ${\rm d}B/{\rm d}t$. Not on an Overstorey page.'
+
+  # --- TF24: mortality and establishment ----------------------------------------------
+  TF24.mortality:
+    model: TF24
+    section: tf24_mortality
+    title: Mortality rate
+    latex: |
+      d(x, H, E_{a}) = d_{{\rm I}} + d_{{\rm S}}(r)
+    code: plant::TF24_Model::mortality_dt
+    also: [plant::TF24_Model::compute_rates, plant::mortality_hazard_live]
+    reads: [TF24.d_I, TF24.a_dG1, TF24.a_dG2]
+    writes: []
+    kind: closed_form
+    fills: d
+    note: 'Held at zero once the cumulative hazard is non-finite or at the establishment-failure sentinel (mortality_hazard_live), where survival is already zero. Not on an Overstorey page.'
+  TF24.mortality_intrinsic:
+    model: TF24
+    section: tf24_mortality
+    title: Growth-independent mortality
+    latex: |
+      d_{{\rm I}}(x, H) = d_{\rm I}
+    code: plant::TF24_Model::mortality_growth_independent_dt
+    reads: [TF24.d_I]
+    writes: []
+    kind: identity
+  TF24.mortality_storage:
+    model: TF24
+    section: tf24_mortality
+    title: Storage-dependent mortality
+    latex: |
+      d_{{\rm S}}(r) = \alpha_{{\rm dG1}} \exp(-\alpha_{{\rm dG2}} \, r)
+    code: plant::TF24_Model::mortality_storage_dependent_dt
+    reads: [TF24.a_dG1, TF24.a_dG2]
+    writes: []
+    kind: closed_form
+    note: 'FF16''s growth-dependent form with relative reserves $r$ in place of production per leaf area, so it is bounded in $[\alpha_{\rm dG1} e^{-\alpha_{\rm dG2}}, \alpha_{\rm dG1}]$ and death is gradual as reserves run down. The header follows Stefaniak et al. 2026, Eq. 6. Not on an Overstorey page.'
+  TF24.establishment:
+    model: TF24
+    section: tf24_mortality
+    title: Establishment probability
+    latex: |
+      S_{\rm G} (x^\prime, H_0, E_{{\rm a}0}) = \frac{\exp(-\kappa_{\rm G} \, a_0)}{1 + X^2}, \qquad X = \alpha_{{\rm d0}} \frac{A_{\rm l}}{{\rm d}B / {\rm d}t}
+    code: plant::TF24_Model::establishment_probability
+    also: [plant::TF24_Model::seed_geometry, plant::TF24_Model::net_mass_production_dt]
+    reads: [TF24.a_d0, TF24.recruitment_decay, H_0]
+    writes: []
+    kind: closed_form
+    fills: S_G
+    note: 'FF16''s form, on the seed''s net production at $H_0$ in the birth light, with both departures at rest and the tracked return at break-even; zero where ${\rm d}B/{\rm d}t \le 0$. $a_0$ is the patch age at birth. Not on an Overstorey page.'
+
+  # --- TF24: birth size, competition, census ------------------------------------------
+  TF24.seed_height:
+    model: TF24
+    section: tf24_competition
+    title: Height at birth
+    latex: |
+      M_{\rm a}(H_0) = \omega
+    code: plant::TF24_Model::height_seed
+    also: [plant::TF24_Model::prepare_strategy, plant::TF24_Model::mass_live_given_height, plant::TF24_Model::seed_geometry, plant::TF24_Model::set_initial_states, plant::TF24_Model::initial_height]
+    reads: [TF24.omega, TF24.lma, TF24.rho, TF24.theta, TF24.eta, TF24.a_l1, TF24.a_l2, TF24.a_b1, TF24.a_r1, TF24.a_cr1]
+    writes: []
+    kind: closed_form
+    fills: H_0
+    note: 'The live mass of a newborn on its allometry, coarse roots included and no storage, equals the seed mass; solved by bisection in prepare_strategy and, on an active scalar, declared through implicit_value. set_initial_states writes it onto the height state at birth. Not on an Overstorey page.'
+  TF24.competition:
+    model: TF24
+    section: tf24_competition
+    title: TF24's competition contribution
+    latex: |
+      \textrm{competition}(z, H) = k_{\rm I} \, A_{\rm l} \, Q(z, H)
+    code: plant::TF24_Model::compute_competition
+    reads: [TF24.k_I, A_l, Q]
+    writes: []
+    kind: closed_form
+    overstorey: theory/size-structured-pde.qmd
+    note: 'On the leaf area the plant carries, so a thinned canopy casts less shade.'
+  TF24.census:
+    model: TF24
+    section: tf24_competition
+    title: TF24's census metrics
+    latex: |
+      w \in \left\{ A_{\rm l}, \; M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm h}, \; A_{\rm b} + A_{\rm s} + A_{\rm h} \right\}
+    code: plant::TF24_Model::census_metrics
+    also: [plant::TF24_Model::area_leaf_carried, plant::TF24_Model::mass_above_ground, plant::TF24_Model::area_stem]
+    reads: [TF24.a_l1, TF24.a_l2]
+    writes: []
+    kind: identity
+    fills: w
+    note: 'Reported as leaf_area, mass_above_ground and area_stem, in that order, on the leaf area and sapwood the plant carries. Not on an Overstorey page.'
+
+  # --- TF24: the soil water column ------------------------------------------------
+  TF24.layer_geometry:
+    model: TF24
+    section: tf24_soil
+    title: Layer boundaries and midpoints
+    latex: |
+      z_i = \sum_{j = 0}^{i} \Delta z_j, \qquad \bar z_i = \tfrac{1}{2}\left(z_{i-1} + z_i\right),\ z_{-1} = 0, \qquad Z = z_{N-1}
+    code: plant::TF24_Environment::finalise_soil_geometry_
+    also: [plant::TF24_Environment::set_soil_number_of_depths, plant::TF24_Environment::set_soil_layer_widths, plant::TF24_Environment::get_soil_mid_depths]
+    reads: [TF24.soil_number_of_depths, TF24.depth, TF24.dz]
+    writes: ['phylloptim:soil_depth']
+    kind: closed_form
+    overstorey: theory/soil-water.qmd
+    note: 'The page (sec-layers) gives these in prose. With equal layers (set_soil_number_of_depths) $\Delta z_i = Z / N$ and the code builds $z_i = (i + 1) Z / N$ rather than the running sum, which differs from it in the last bit; set_soil_layer_widths takes the $\Delta z_i$ and sets $Z$ from them. $z_i$ is handed to the leaf as its layer depths and $\bar z_i$ as its precomputed midpoints (use_precomputed_z_soil_mid_), in place of phylloptim''s own (phylloptim:layer_midpoints, the same rule), where it sets the gravity head. The root network reads the widths as phylloptim''s layer_thicknesses of $z$ (z_thickness), equal to $\Delta z_i$ only to rounding. Setting the geometry resets the water state and drops per-layer soil parameters.'
+  TF24.rainfall_floor:
+    model: TF24
+    section: tf24_soil
+    title: Rainfall floored at zero
+    latex: |
+      P = \max\left(0,\ P_{\rm driver}(t)\right)
+    code: plant::TF24_Environment::rainfall_floored
+    also: [plant::TF24_Environment::layer_rates]
+    reads: [TF24.rainfall]
+    writes: []
+    kind: closed_form
+    note: 'Not on the Overstorey page, whose $P$ is the driver itself. A spline through intermittent rain undershoots below zero; the floor bounds the sign (counted as the rainfall clamp) and so adds the area of the undershoot to the rain received. The overload of layer_rates that the soil substeps call floors it the same way without counting the clamp.'
+  TF24.infiltration:
+    model: TF24
+    section: tf24_soil
+    title: Infiltration and saturation-excess runoff
+    latex: |
+      q_{{\rm in},0} = P\left[1 - a_{\rm infil}\left(\frac{\theta_0}{\theta_{\rm sat}}\right)^{b_{\rm infil}}\right]^{+}
+    code: plant::TF24_Environment::layer_rates
+    also: [plant::TF24_Environment::infiltrated_share]
+    reads: [TF24.a_infil, TF24.b_infil, TF24.soil_moist_sat]
+    writes: []
+    kind: closed_form
+    overstorey: theory/soil-water.qmd
+    note: 'As the page writes it (eq-infiltration). $\theta_{\rm sat}$ is layer 0''s. The floor binds where $a_{\rm infil} (\theta_0 / \theta_{\rm sat})^{b_{\rm infil}} > 1$, counted as the infiltration clamp. The rain it turns away is runoff, which no accumulator holds on its own (TF24.cumulative_fluxes). A water pulse does not pass through this term (TF24.water_pulse).'
+  TF24.drainage:
+    model: TF24
+    section: tf24_soil
+    title: Gravitational drainage
+    latex: |
+      q_{{\rm out},i} = K(\theta_i) = K_{\rm sat}\left(\frac{\tilde\theta_i}{\theta_{\rm sat}}\right)^{2n_\psi + 3}, \qquad \tilde\theta_i = \min\left(\max(\theta_i, 0),\ \theta_{\rm sat}\right)
+    code: plant::TF24_Environment::conductivity
+    also: [plant::TF24_Environment::layer_rates]
+    reads: [TF24.K_sat, TF24.soil_moist_sat, TF24.n_psi]
+    writes: []
+    kind: closed_form
+    overstorey: theory/soil-water.qmd
+    note: 'Clapp and Hornberger (1978) as parameterised by Zeng and Decker (2009). The page (eq-drainage) states the clamp $\tilde\theta_i$ in its text, not its equation, and names the function soil_K_from_soil_theta, which is conductivity in the code. $K_{\rm sat}$, $\theta_{\rm sat}$ and $n_\psi$ are layer $i$''s. A stage outside $[0, \theta_{\rm sat}]$ is counted as the soil-conductivity clamp. Free drainage: the matric gradient is dropped, so the flux carries no distance between layers and holds unchanged for unequal widths.'
+  TF24.layer_balance:
+    model: TF24
+    section: tf24_soil
+    title: Water balance of each layer
+    latex: |
+      \frac{{\rm d}\theta_i}{{\rm d}t} = \frac{q_{{\rm in},i} - q_{{\rm out},i} - u_i}{\Delta z_i}, \qquad q_{{\rm in},i} = q_{{\rm out},i-1}\ (i > 0)
+    code: plant::TF24_Environment::compute_rates
+    also: [plant::TF24_Environment::layer_rates, plant::Patch::compute_rates, plant::Patch::subsystem_rates]
+    reads: [TF24.dz, TF24.soil_moist_residual]
+    writes: [soil]
+    kind: derivative
+    overstorey: theory/soil-water.qmd
+    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. A step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Writes the rates of the moisture states in soil.'
+  TF24.layer_uptake:
+    model: TF24
+    section: tf24_soil
+    title: Root uptake from each layer, summed over the stand
+    latex: |
+      u_i = \frac{1}{A_{\rm P}} \sum_{s} \int_0^\infty N(H | x_s, a)\, c_i(x_s, H) \, {\rm d}H
+    code: plant::Patch::compute_rates
+    also: [plant::Species::consumption_rate, plant::Node::consumption_rate, plant::Individual::consumption_rate]
+    reads: [patch_area]
+    writes: []
+    kind: integrator
+    overstorey: theory/soil-water.qmd
+    note: '$u_i$ is the page''s total root uptake from layer $i$ (the resource_depletion vector), which the page defines in prose; it is not the page''s eq-layer-uptake, which is the leaf''s per-leaf-area draw (phylloptim:multilayer_uptake). $c_i$ is one plant''s consumption rate from layer $i$, in m³ yr⁻¹ (TF24.water_uptake''s $U_i$). A trapezium over the nodes in the density''s own coordinate (birth date, for TF24), plus the absorbed top layer, as for a stand total. A layer gaining water through the roots has $c_i < 0$, so $u_i$ can be negative. Not applied when the patch reads a given environment (a constant field or a recorded run), whose soil the stand does not move; under TF24w the patch column takes none of it, each plant drawing on its own column instead.'
+  TF24.retention:
+    model: TF24
+    section: tf24_soil
+    title: The retention curve, moisture to potential
+    latex: |
+      \psi^\ast_{\rm soil}(\theta) = \min\left(a_\psi\left(\frac{\max(\theta, \theta_r)}{\theta_{\rm sat}}\right)^{-n_\psi},\ \psi^\ast_{\max}\right)
+    code: plant::TF24_Environment::psi_from_soil_moist
+    also: [plant::TF24_Environment::get_soil_water_potential_state, plant::TF24_Environment::cohort_reads]
+    reads: [TF24.a_psi, TF24.n_psi, TF24.soil_moist_sat, TF24.soil_moist_residual, TF24.soil_psi_max_]
+    writes: ['phylloptim:psi_soil']
+    kind: closed_form
+    overstorey: theory/soil-water.qmd
+    note: 'The page (eq-retention) writes $a_\psi / 10^6$, with $a_\psi$ in Pa; the code holds $a_\psi$ in MPa and divides by nothing. The page''s callout caps the potential at $10^3$ MPa; the code caps it at $\psi^\ast_{\max}$ (soil_psi_max_). The floor and the cap are each counted as a clamp. A positive magnitude per layer, with that layer''s parameters, cached until the state moves and read by every cohort as the leaf''s psi_soil. The R binding evaluates layer 0''s curve.'
+  TF24.retention_inverse:
+    model: TF24
+    section: tf24_soil
+    title: The retention curve, potential to moisture
+    latex: |
+      \theta(\psi^\ast) = \theta_{\rm sat}\left(\frac{\psi^\ast}{a_\psi}\right)^{-1/n_\psi}
+    code: plant::TF24_Environment::soil_moist_from_psi
+    reads: [TF24.a_psi, TF24.n_psi, TF24.soil_moist_sat]
+    writes: []
+    kind: closed_form
+    overstorey: theory/soil-water.qmd
+    note: 'The page names it without writing it. $\psi^\ast$ is in MPa, the unit psi_from_soil_moist returns, so the two round-trip; the page''s callout that it takes Pa predates $a_\psi$''s move to MPa. It applies neither the floor nor the cap, so it inverts TF24.retention only between them. No model run calls it; the R binding evaluates layer 0''s curve.'
+  TF24.cumulative_fluxes:
+    model: TF24
+    section: tf24_soil
+    title: Cumulative water fluxes
+    latex: |
+      \frac{{\rm d}}{{\rm d}t}\left(R_{\rm P},\ R_{\rm in},\ R_{\rm dr},\ R_u,\ R_{\rm pulse}\right) = \left(P,\ q_{{\rm in},0},\ q_{{\rm out},N-1},\ \textstyle\sum_i u_i,\ 0\right)
+    code: plant::TF24_Environment::compute_rates
+    also: [plant::TF24_Environment::get_soil_water_state_cumulative_flux]
+    reads: [TF24.rainfall]
+    writes: [soil]
+    kind: derivative
+    overstorey: theory/soil-water.qmd
+    note: 'The page (sec-diagnostics) lists four, as integrals, and gives aux_num as 4; the code carries five. The fifth, the runoff of water pulses, has its rate held at zero so it stays out of the step-size error norm, and moves only when a pulse is applied (TF24.water_pulse). Continuous runoff is not accumulated on its own: it is $R_{\rm P} - R_{\rm in} - R_{\rm pulse}$. Diagnostics only: nothing in the balance reads them. Writes the rates of the trailing states in soil.'
+  TF24.water_pulse:
+    model: TF24
+    section: tf24_soil
+    title: A pulse of water into one layer
+    latex: |
+      \theta_i \leftarrow \theta_i + \frac{\min\left(d,\ \Delta z_i \left[\theta_{\rm sat} - \theta_i\right]^{+}\right)}{\Delta z_i}
+    code: plant::TF24_Environment::add_water_pulse_to_layer
+    also: [plant::TF24_Environment::add_resource_pulse, plant::TF24_Environment::add_water_pulse, plant::TF24_Environment::pulse_capacity]
+    reads: [TF24.soil_moist_sat, TF24.dz]
+    writes: [soil]
+    kind: closed_form
+    note: 'Not on the Overstorey soil-water page. A depth $d$ (m) added to layer $i$ between solver legs, by a scheduled event: layer 0 is rain, a deeper layer irrigation or a rising water table. Capped at what the layer can still hold; the excess is pulse runoff. Adds $d$ to $R_{\rm P}$, the accepted depth to $R_{\rm in}$ and the excess to $R_{\rm pulse}$, whichever layer it enters. It does not pass through TF24.infiltration. $\theta_{\rm sat}$ is layer $i$''s.'
+
 not_parameters:
   n_patches: 'Not read by any C++ code.'
   strategies: 'The species'' strategies: a container; their parameters are each model''s entries.'
@@ -1685,3 +3396,7 @@ not_parameters:
   initial_pr_patch_survival: 'Patch survival at birth of the stored initial state''s nodes.'
   initial_time: 'The patch age a resumed run starts at; 0 for a fresh one.'
   hyperpar: 'The R trade-off function the strategies were built with; opaque to C++.'
+  TF24.stem_b: 'Derived from (stem_P50, stem_c), the Weibull scale phylloptim:stem_b; phylloptim derives its own, so this reporting copy reaches nothing.'
+  TF24.psi_crit: 'Derived from (stem_P50, stem_c), the critical potential phylloptim:psi_crit; phylloptim derives its own, so this reporting copy reaches nothing.'
+  TF24.root_b: 'Derived from (root_P50, root_c), the Weibull scale phylloptim:root_b; phylloptim derives its own, so this reporting copy reaches nothing.'
+  TF24.root_psi_crit: 'Derived from (root_P50, root_c), the critical potential phylloptim:root_psi_crit; phylloptim derives its own, so this reporting copy reaches nothing.'

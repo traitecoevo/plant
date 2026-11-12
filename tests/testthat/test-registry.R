@@ -81,8 +81,11 @@ test_that("every field of each model's pars is a parameter or a listed non-param
   for (m in reg$models$id) {
     bound <- names(get(paste0(m, "_Model"))()$pars)
     lineage <- plant:::registry_lineage(reg$models, m)
+    # Only what the model's _Pars holds: a model's constants on its class and
+    # its environment's parameters are entries too, but not pars fields.
     own <- reg$parameters[!is.na(reg$parameters$model) &
-                            reg$parameters$model %in% lineage, ]
+                            reg$parameters$model %in% lineage &
+                            grepl("_Pars::", reg$parameters$code), ]
     field <- ifelse(is.na(own$field), sub("^.*::", "", own$code), own$field)
     np <- names(reg$not_parameters)
     listed <- unlist(lapply(lineage, function(l)
@@ -111,6 +114,52 @@ test_that("every model fills every per-model slot, or says why not", {
     expect_false(anyDuplicated(filled) > 0L,
                  info = sprintf("%s fills %s twice", m, toString(filled[duplicated(filled)])))
   }
+})
+
+test_that("every link resolves in the phylloptim plant is built against", {
+  skip_if_not_installed("phylloptim")
+  # The pin is checked first: a link is checked against the installed registry,
+  # which is the right one only when it is the version plant compiles.
+  pinned <- plant:::registry_pinned_version("phylloptim")
+  expect_false(is.na(pinned))
+  expect_identical(as.character(utils::packageVersion("phylloptim")), pinned)
+
+  reg <- model_registry()
+  expect_gt(nrow(reg$links), 0L)
+  expect_true(all(reg$links$resolved))
+  expect_false(anyNA(reg$links$kind))
+  # A linked parameter takes its description from its target, not from here.
+  target <- yaml::read_yaml(system.file("model-registry.yml", package = "phylloptim"))
+  i <- match("TF24.stem_P50", reg$parameters$id)
+  expect_identical(reg$parameters$link[[i]], "phylloptim:stem_P50")
+  expect_identical(reg$parameters$symbol[[i]], target$parameters$stem_P50$symbol)
+  expect_identical(reg$parameters$units[[i]], target$parameters$stem_P50$units)
+  # Every linked parameter still names the plant member that hands it over.
+  linked <- reg$parameters[!is.na(reg$parameters$link), ]
+  expect_false(anyNA(linked$symbol))
+  expect_true(all(startsWith(linked$code, "plant::")))
+  # and a page can render a linked equation through the same call.
+  expect_identical(registry_equation("phylloptim:carbon", reg),
+                   trimws(target$equations$carbon$latex))
+})
+
+test_that("the reader refuses a link it cannot resolve", {
+  skip_if_not_installed("phylloptim")
+  base <- yaml::read_yaml(system.file("model-registry.yml", package = "plant"))
+  refuse <- function(edit, pattern) {
+    f <- withr::local_tempfile(fileext = ".yml")
+    yaml::write_yaml(edit(base), f)
+    expect_error(suppressWarnings(model_registry(f)), pattern)
+  }
+  refuse(function(x) { x$parameters$TF24.stem_P50$link <- "phylloptim:no_such_id"; x },
+         "does not hold")
+  refuse(function(x) { x$parameters$TF24.stem_P50$link <- "phylloptim:carbon"; x },
+         "is an equation in phylloptim's registry, not a parameter")
+  refuse(function(x) { x$equations$TF24.assimilation$reads <- list("phylloptim:no_such_id"); x },
+         "does not hold")
+  # The equivalent mutation of a live entry, so the mechanism is seen to bite.
+  refuse(function(x) { x$equations$TF24.assimilation$reads <- list("phylloptim:carbon_kept"); x },
+         "does not hold")
 })
 
 test_that("a document takes an equation's LaTeX from the registry", {
@@ -181,4 +230,44 @@ test_that("the reader refuses what the schema forbids", {
   refuse(function(x) { x$not_parameters[["FF61.foo"]] <- "typo"; x },
          "names an unknown model")
   refuse(function(x) { x$models$K93$unfilled$w <- ""; x }, "with no reason")
+  # Links: to a declared package only, and a linked parameter restates nothing.
+  refuse(function(x) { x$parameters$TF24.stem_P50$link <- "leafy:stem_P50"; x },
+         "for a package under links")
+  refuse(function(x) { x$parameters$TF24.stem_P50$symbol <- "P"; x },
+         "must not restate it")
+  refuse(function(x) { x$equations$TF24.assimilation$reads <- list("leafy:carbon"); x },
+         "nor a link to a package under links")
+  refuse(function(x) { x$links$phylloptim <- ""; x }, "needs a description")
+  refuse(function(x) { x$links$phylloptim$models <- list("NOPE"); x },
+         "needs the models it serves")
+  # A model the package is not declared for may not link to it.
+  refuse(function(x) { x$parameters$FF16.lma$link <- "phylloptim:vcmax_25"; x },
+         "linked only for TF24")
+  # A linked parameter states its own provenance.
+  refuse(function(x) { x$parameters$TF24.stem_P50$source <- NULL; x }, "lacks source")
+  refuse(function(x) { x$equations$TF24.light_chain$writes <- list("leafy:PPFD"); x },
+         "a link to no package under links")
+})
+
+test_that("every link written in free text resolves too", {
+  skip_if_not_installed("phylloptim")
+  # Notes and reasons name phylloptim's ids in prose; a rename there would
+  # otherwise leave the prose pointing at nothing.
+  reg <- model_registry()
+  target <- yaml::read_yaml(system.file("model-registry.yml", package = "phylloptim"))
+  text <- c(unlist(reg$raw$parameters), unlist(reg$raw$equations),
+            unlist(reg$raw$not_parameters))
+  ids <- unique(unlist(regmatches(text, gregexpr("(?<![:A-Za-z])phylloptim:[A-Za-z_][A-Za-z0-9_]*",
+                                                 text, perl = TRUE))))
+  ids <- sub("^phylloptim:", "", ids)
+  expect_gt(length(ids), 0L)
+  missing <- setdiff(ids, c(names(target$parameters), names(target$equations)))
+  expect_true(length(missing) == 0L,
+              info = paste("not in phylloptim's registry:", toString(missing)))
+})
+
+test_that("a phylloptim other than the pinned one is warned about", {
+  skip_if_not_installed("phylloptim")
+  local_mocked_bindings(registry_pinned_version = function(package) "0.0.1")
+  expect_warning(model_registry(), "plant is built against phylloptim 0.0.1")
 })

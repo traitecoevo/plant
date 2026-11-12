@@ -14,8 +14,12 @@ A list of class \code{plant_model_registry} with \code{package},
   \code{sections} (a named character vector, in document order),
   \code{slots}, \code{parameters} and \code{equations} (data frames, one row
   per entry, keyed by \code{id}; \code{reads}, \code{writes} and \code{also}
-  are list columns), \code{not_parameters} (a named character vector of
-  reasons), \code{raw} (the parsed YAML) and \code{path}.
+  are list columns; a linked parameter's \code{link} names its target),
+  \code{links} (one row per link: the entry it is on, its target's package
+  and id, the target's kind, and whether it resolved), \code{linked} (one
+  row per package linked to: the installed and the pinned version),
+  \code{not_parameters} (a named character vector of reasons), \code{raw}
+  (the parsed YAML) and \code{path}.
 }
 \description{
 Reads plant's model registry: one record per equation of the
@@ -25,6 +29,22 @@ shared layer reads and every model supplies).
 Each record names the C++ symbol that evaluates or holds it. The registry is
 a record of the model, not a second implementation of it; documents render
 their equations from it (see \code{\link{registry_equation}}).
+}
+\details{
+An entry may link to another package's registry instead of restating it:
+TF24's leaf parameters are phylloptim's, and its equations read phylloptim's
+equations. A link is written \code{package:id}. A linked parameter takes its
+symbol, units, class and meaning from its target when the registry is read,
+so nothing is copied, and states its own source and placeholder, since its
+value is plant's. In an equation, a link in \code{reads} is something of the
+other package's that the equation's code reads or calls, and a link in
+\code{writes} is an input of the other package's that it seats. Links resolve
+against the installed package, which is the version plant compiles against
+(\code{LinkingTo} pins it exactly); a target that is missing there is an
+error, and an installed version other than the pinned one is a warning,
+because the other registry's ids are not versioned. Where the package is
+not installed, links stay unresolved and their borrowed fields are
+\code{NA}.
 }
 \examples{
 reg <- model_registry()

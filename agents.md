@@ -392,7 +392,8 @@ The shipped models:
 - **It is a record, not a check.** No replicas or probes of the equations. `test-registry.R` checks only that named symbols exist on their class, that every `reads` resolves, and that every bound field is accounted for.
 - **No line numbers and no default values in it.** Values are read off the live model.
 - **Overstorey's notation.** Where an Overstorey theory page already writes an equation, the entry takes its LaTeX (`overstorey:` names the page).
-- **The shared layer is written once.** The quantities every model supplies to it (`g`, `d`, `f`, `S_G`, ...) are `slots`, and a model's equation says which slot it `fills`. An equation phylloptim computes (TF24's leaf) is phylloptim's entry, pointed at rather than copied.
+- **The shared layer is written once.** The quantities every model supplies to it (`g`, `d`, `f`, `S_G`, ...) are `slots`, and a model's equation says which slot it `fills`.
+- **What phylloptim computes is linked, never copied.** TF24's leaf traits are parameters carrying `link: 'phylloptim:<id>'` and only the plant member that hands them over; their symbol, units and meaning are read from phylloptim's installed registry. TF24's equations name phylloptim's equations in `reads` the same way. Links resolve against the installed phylloptim, and `test-registry.R` asserts that it is the version `LinkingTo` pins, because phylloptim's ids carry no version. So a phylloptim bump that renames or removes a registry id fails here, and the link is updated in the bump's PR.
 
 ### Scientific versioning — bump when the science changes
 
