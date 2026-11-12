@@ -34,8 +34,11 @@ their equations from it (see \code{\link{registry_equation}}).
 An entry may link to another package's registry instead of restating it:
 TF24's leaf parameters are phylloptim's, and its equations read phylloptim's
 equations. A link is written \code{package:id}. A linked parameter takes its
-symbol, units, class, meaning, source, placeholder and citation from its
-target when the registry is read, so nothing is copied. Links resolve
+symbol, units, class and meaning from its target when the registry is read,
+so nothing is copied, and states its own source and placeholder, since its
+value is plant's. In an equation, a link in \code{reads} is something of the
+other package's that the equation's code reads or calls, and a link in
+\code{writes} is an input of the other package's that it seats. Links resolve
 against the installed package, which is the version plant compiles against
 (\code{LinkingTo} pins it exactly); a target that is missing there is an
 error, and an installed version other than the pinned one is a warning,

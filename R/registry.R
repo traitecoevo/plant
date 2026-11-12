@@ -16,8 +16,11 @@
 ##' An entry may link to another package's registry instead of restating it:
 ##' TF24's leaf parameters are phylloptim's, and its equations read phylloptim's
 ##' equations. A link is written \code{package:id}. A linked parameter takes its
-##' symbol, units, class, meaning, source, placeholder and citation from its
-##' target when the registry is read, so nothing is copied. Links resolve
+##' symbol, units, class and meaning from its target when the registry is read,
+##' so nothing is copied, and states its own source and placeholder, since its
+##' value is plant's. In an equation, a link in \code{reads} is something of the
+##' other package's that the equation's code reads or calls, and a link in
+##' \code{writes} is an input of the other package's that it seats. Links resolve
 ##' against the installed package, which is the version plant compiles against
 ##' (\code{LinkingTo} pins it exactly); a target that is missing there is an
 ##' error, and an installed version other than the pinned one is a warning,
@@ -185,16 +188,40 @@ registry_read <- function(path) {
   need(raw$models, "model", c("title", "header"))
   need(raw$slots, "slot", c("symbol", "units", "meaning", "code"))
 
-  # A link names a declared package and an id in its registry. A linked
-  # parameter carries only where plant holds it; the rest is its target's.
+  # A link names a declared package and an id in its registry, and is made
+  # only by an entry of a model the package is declared for (or one extending
+  # it). A linked parameter takes its description from its target and states
+  # its own provenance: the value is plant's.
   for (pkg in names(raw$links)) {
-    if (!is.character(raw$links[[pkg]]) || !nzchar(raw$links[[pkg]])) {
+    l <- raw$links[[pkg]]
+    if (!is.list(l) || !is.character(l$description) || length(l$description) != 1L ||
+        !nzchar(l$description)) {
       fail(sprintf("links: '%s' needs a description", pkg))
     }
+    bad <- setdiff(unlist(l$models), names(raw$models))
+    if (length(l$models) == 0L || length(bad) > 0L) {
+      fail(sprintf("links: '%s' needs the models it serves, from models (not %s)",
+                   pkg, toString(bad)))
+    }
+  }
+  lineage_of <- function(model) {
+    out <- character()
+    while (!is.null(model) && !model %in% out) {
+      out <- c(out, model)
+      model <- raw$models[[model]]$extends
+    }
+    out
   }
   link_ok <- function(x) {
     l <- registry_parse_link(x)
     !is.null(l) && l[["package"]] %in% names(raw$links)
+  }
+  link_scoped <- function(kind, id, model, x) {
+    pkg <- registry_parse_link(x)[["package"]]
+    if (length(intersect(lineage_of(model), unlist(raw$links[[pkg]]$models))) == 0L) {
+      fail(sprintf("%s '%s' links to %s, which is linked only for %s", kind, id, x,
+                   toString(unlist(raw$links[[pkg]]$models))))
+    }
   }
   linked <- vapply(raw$parameters, function(e) !is.null(e$link), logical(1))
   for (id in names(raw$parameters)[linked]) {
@@ -203,13 +230,15 @@ registry_read <- function(path) {
       fail(sprintf("parameter '%s': link '%s' is not package:id for a package under links",
                    id, toString(e$link)))
     }
+    link_scoped("parameter", id, e$model, e$link)
     copied <- intersect(registry_borrowed, names(e))
     if (length(copied) > 0L) {
       fail(sprintf("parameter '%s' links to %s, so it takes %s from there and must not restate it",
                    id, e$link, toString(copied)))
     }
   }
-  need(raw$parameters[linked], "parameter", c("section", "code", "link"))
+  need(raw$parameters[linked], "parameter",
+       c("section", "code", "link", "source", "placeholder"))
   need(raw$parameters[!linked], "parameter",
        c("section", "symbol", "units", "class", "meaning", "source",
          "placeholder", "code"))
@@ -304,6 +333,18 @@ registry_read <- function(path) {
       fail(sprintf("equation '%s' reads %s, which is neither a parameter nor a slot, nor a link to a package under links",
                    id, toString(bad)))
     }
+    # A link in `writes` is an input of the linked package's that this
+    # equation's code seats.
+    links_written <- Filter(function(w) !is.null(registry_parse_link(w)),
+                            unlist(e$writes))
+    bad <- links_written[!vapply(links_written, link_ok, logical(1))]
+    if (length(bad) > 0L) {
+      fail(sprintf("equation '%s' writes %s, a link to no package under links",
+                   id, toString(bad)))
+    }
+    for (x in c(Filter(link_ok, reads), links_written)) {
+      link_scoped("equation", id, e$model, x)
+    }
     if (!is.null(e$fills) && !e$fills %in% names(raw$slots)) {
       fail(sprintf("equation '%s' fills unknown slot '%s'", id, e$fills))
     }
@@ -320,8 +361,9 @@ registry_read <- function(path) {
 }
 
 ## The fields a linked parameter takes from its target rather than stating.
-registry_borrowed <- c("symbol", "units", "class", "meaning", "source",
-                       "placeholder", "cite")
+## Its source, placeholder and citation are plant's: the value comes off
+## plant's model, so its provenance is plant's to state.
+registry_borrowed <- c("symbol", "units", "class", "meaning")
 
 ## "phylloptim:carbon" -> c(package = "phylloptim", id = "carbon"); NULL if x
 ## is not written as a link.
@@ -370,8 +412,10 @@ registry_resolve_links <- function(raw) {
             call. = FALSE)
   }
   linked <- data.frame(package = packages,
-                       description = vapply(packages, function(p) raw$links[[p]],
+                       description = vapply(packages, function(p) raw$links[[p]]$description,
                                             character(1), USE.NAMES = FALSE),
+                       models = vapply(packages, function(p) toString(unlist(raw$links[[p]]$models)),
+                                       character(1), USE.NAMES = FALSE),
                        installed = installed, pinned = pinned,
                        stringsAsFactors = FALSE)
 
@@ -408,7 +452,8 @@ registry_resolve_links <- function(raw) {
     for (f in registry_borrowed) parameters[[id]][[f]] <- target[[f]]
   }
   for (id in names(raw$equations)) {
-    for (r in unlist(raw$equations[[id]]$reads)) {
+    e <- raw$equations[[id]]
+    for (r in c(unlist(e$reads), unlist(e$writes))) {
       if (!is.null(registry_parse_link(r))) look_up(id, r, NULL)
     }
   }

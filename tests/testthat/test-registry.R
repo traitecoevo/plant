@@ -238,4 +238,36 @@ test_that("the reader refuses what the schema forbids", {
   refuse(function(x) { x$equations$TF24.assimilation$reads <- list("leafy:carbon"); x },
          "nor a link to a package under links")
   refuse(function(x) { x$links$phylloptim <- ""; x }, "needs a description")
+  refuse(function(x) { x$links$phylloptim$models <- list("NOPE"); x },
+         "needs the models it serves")
+  # A model the package is not declared for may not link to it.
+  refuse(function(x) { x$parameters$FF16.lma$link <- "phylloptim:vcmax_25"; x },
+         "linked only for TF24")
+  # A linked parameter states its own provenance.
+  refuse(function(x) { x$parameters$TF24.stem_P50$source <- NULL; x }, "lacks source")
+  refuse(function(x) { x$equations$TF24.light_chain$writes <- list("leafy:PPFD"); x },
+         "a link to no package under links")
+})
+
+test_that("every link written in free text resolves too", {
+  skip_if_not_installed("phylloptim")
+  # Notes and reasons name phylloptim's ids in prose; a rename there would
+  # otherwise leave the prose pointing at nothing.
+  reg <- model_registry()
+  target <- yaml::read_yaml(system.file("model-registry.yml", package = "phylloptim"))
+  text <- c(unlist(reg$raw$parameters), unlist(reg$raw$equations),
+            unlist(reg$raw$not_parameters))
+  ids <- unique(unlist(regmatches(text, gregexpr("(?<![:A-Za-z])phylloptim:[A-Za-z_][A-Za-z0-9_]*",
+                                                 text, perl = TRUE))))
+  ids <- sub("^phylloptim:", "", ids)
+  expect_gt(length(ids), 0L)
+  missing <- setdiff(ids, c(names(target$parameters), names(target$equations)))
+  expect_true(length(missing) == 0L,
+              info = paste("not in phylloptim's registry:", toString(missing)))
+})
+
+test_that("a phylloptim other than the pinned one is warned about", {
+  skip_if_not_installed("phylloptim")
+  local_mocked_bindings(registry_pinned_version = function(package) "0.0.1")
+  expect_warning(model_registry(), "plant is built against phylloptim 0.0.1")
 })
