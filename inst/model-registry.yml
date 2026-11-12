@@ -2335,14 +2335,14 @@ equations:
     section: stand
     title: A stand total within a patch
     latex: |
-      W(a) = \sum_{i = 1}^{N} \int_{0}^{\infty} N(H | x_i, a)\, w(x_i, H, E_a) \, {\rm d}H
+      W(a) = \sum_{i = 1}^{K} \int_{0}^{\infty} N(H | x_i, a)\, w(x_i, H, E_a) \, {\rm d}H
     code: plant::SCM::census_sum
     also: [plant::Species::census_integral, plant::Individual::census_value, plant::SCM::census]
     reads: [w]
     writes: []
     kind: integrator
     overstorey: theory/size-structured-pde.qmd
-    note: 'At the current patch age, per patch (not divided by the patch area). A trapezium over the nodes in the density''s own coordinate ($\int \nu\, w \, {\rm d}a_0$ on the birth-date one), plus the absorbed top layer. The page''s upper summation limit $N$ is the number of species ($K$ elsewhere on the page).'
+    note: 'At the current patch age, per patch (not divided by the patch area). A trapezium over the nodes in the density''s own coordinate ($\int \nu\, w \, {\rm d}a_0$ on the birth-date one), plus the absorbed top layer. $K$ is the number of species.'
 
   # --- FF16: production -----------------------------------------------------------
   FF16.leaf_photosynthesis:
