@@ -82,8 +82,8 @@ T effective_path_length(const T& L_top, const T& L_tip, const T& beta) {
   const T x = log(L_top / L_tip);  // > 0 given the precondition
   const T e = T(1.0) - beta;
 
-  // beta == 1 exactly: the logarithmic limit. Conduit widening and theta's
-  // basipetal rise together make the resistance per unit length fall as 1/L,
+  // beta == 1 exactly: the logarithmic limit. Conduit widening (with any
+  // basipetal rise in theta) makes the resistance per unit length fall as 1/L,
   // so resistance grows only as log(H).
   if (to_passive(e) == 0.0) {
     return T(L_tip * x);

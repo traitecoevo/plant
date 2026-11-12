@@ -229,10 +229,10 @@ struct TF24_Pars {
   S root_depth_shape_eta = 0.2;
   // * Root hydraulics
   // Root vulnerability curve, proportion of conductivity =
-  // exp(-(psi/root_b)^root_c). Declared before root_psi_crit, which derives
-  // from them. Both are settable from R, because the defaults put root shutoff
-  // at ~5.87 MPa: too conservative for taxa that operate below that (e.g.
-  // Acacia aneura).
+  // exp(-(psi/root_b)^root_c), with root_b derived from (root_P50, root_c).
+  // Those two are settable from R, because the defaults put root shutoff at
+  // ~5.87 MPa: too conservative for taxa that operate below that (e.g. Acacia
+  // aneura).
   S root_c = 2.680147;
   // THE SCALE PARAMETER IS P50, matching the stem side and phylloptim, which
   // takes (root_c, root_P50) and derives the other two itself by these same
@@ -241,9 +241,11 @@ struct TF24_Pars {
   // root_psi_crit moves with it by the same fraction.
   S root_P50 = 3.4;
   S root_b = root_P50 / power(-log(1 - 50.0 / 100.0), 1 / root_c);
-  // Potential at 5% remaining root conductivity [MPa]. Derived, exactly as
-  // psi_crit is from b and c, and like root_b a reporting copy: phylloptim
-  // derives its own from (root_P50, root_c), so setting either changes nothing.
+  // Potential at 5% remaining root conductivity [MPa]. Like root_b, derived
+  // once from the defaults and never updated: phylloptim derives both from
+  // (root_P50, root_c), so nothing reads these, setting root_b or
+  // root_psi_crit changes nothing, and after root_P50 or root_c is set they
+  // still describe the default curve.
   S root_psi_crit = root_b*power(log(1/0.05),1/root_c);
   // Maximum rooting depth [m]. Rooting depth is min(height, rooting_depth_max),
   // so this also bounds the depth over which roots can draw water. Should not
@@ -289,9 +291,9 @@ struct TF24_Pars {
   // (dimensionless) and leaf$theta_ coexist in one session.
   S theta_c = 0.0;
   // Terminal segment length [m]. Not an innocuous numerical cutoff: it enters
-  // the resistance with elasticity beta ~ 0.6 and trades off exactly against
-  // both K_s and theta, which are identifiable only in the grouping
-  // L_tip^beta/(K_s*theta). It must therefore come from the SAME
+  // the resistance with an elasticity close to beta (0.4 at the defaults), and
+  // trades off against both K_s and theta, which are identifiable only in the
+  // grouping L_tip^beta/(K_s*theta). It must therefore come from the SAME
   // terminal-segment definition over which K_s and theta were measured -- none
   // of the three may be calibrated independently of the others (invariance
   // criterion I5).
