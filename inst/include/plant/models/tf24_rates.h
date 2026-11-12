@@ -56,16 +56,18 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   write_leaf_readings(vars, area_leaf_);
 
   // consumption rates should be emerging from net_mass_produciton_dt
-  // convert evapotranspiration per leaf area per soil layer (mol H20 m^-2 s^-1) to canopy-level total 
-  // yearly evapotranspiration per soil layer (m yr^-1)
+  // convert the plant's evapotranspiration per soil layer (mol H2O s^-1) to a
+  // yearly volume per soil layer (m^3 yr^-1). Patch::compute_rates turns the
+  // species' total into a depth (m yr^-1) by dividing by the patch area;
+  // TF24w divides each plant's by its own ground instead
   // stubbing out E_p for integration
   int soil_number_of_depths_ = environment.get_soil_number_of_depths();
 
 
   for (int i = 0; i < soil_number_of_depths_; i++) {
 
-    // evapotranspiration (mol H20 m^-2 s^-1 layer^-1)
-    // consumption rate (m yr^-1 layer ^-1)
+    // evapotranspiration, per plant (mol H2O s^-1 layer^-1)
+    // consumption rate, per plant (m^3 yr^-1 layer^-1)
     vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*kg_per_mol_h2o);
   }
 

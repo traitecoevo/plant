@@ -52,12 +52,9 @@ public:
     return fallback;
   }
 
-  // constructor for R interface - default settings can be modified
-  // except for soil_number_of_depths
-  // which are only updated on construction
-  
-  // Layer geometry is set after construction, through set_soil_number_of_depths
-  // or set_soil_layer_widths.
+  // constructor for R interface - default settings can be modified.
+  // Layer geometry, soil_number_of_depths included, can be changed after
+  // construction, through set_soil_number_of_depths or set_soil_layer_widths.
   TF24_Environment(int soil_number_of_depths = 5,
                    double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil)
                    double K_sat = 163.0411, //saturated hydraulic conductivity of soil
@@ -324,7 +321,7 @@ public:
 
   int get_soil_number_of_depths() const {return soil_number_of_depths;}
 
-  // The integrated soil state: one moisture per layer, then the four
+  // The integrated soil state: one moisture per layer, then the `aux_num`
   // cumulative-flux accumulators.
   size_t ode_size() const { return vars.state_size(); }
 
@@ -768,11 +765,13 @@ public:
   //   * water_out_i  = gravitational drainage = conductivity(theta_i, i),
   //                    a Clapp & Hornberger (1978) / Zeng & Decker (2009)
   //                    unsaturated hydraulic conductivity;
-  //   * root_uptake_i= resource_depletion[i], supplied by the plants via the
-  //                    strategy's evapotranspiration_dt (m yr^-1).
+  //   * root_uptake_i= resource_depletion[i] (m yr^-1): the plants' uptake from
+  //                    the layer, built from each strategy's
+  //                    evapotranspiration_dt and divided by the patch area in
+  //                    Patch::compute_rates.
   //
   // The final `aux_num` state slots accumulate diagnostic cumulative fluxes
-  // (rainfall, infiltration, deep drainage, total root uptake).
+  // (rainfall, infiltration, deep drainage, total root uptake, pulse runoff).
   //
   // This is an explicit, first-order representation; drainage is instantaneous
   // single-direction (no upward capillary flux between layers - that is handled
@@ -784,7 +783,10 @@ public:
   // distance, so it holds unchanged for unequal layers, and mass conservation,
   // sum(dz[i] * dtheta_i/dt) = infiltration - deep drainage - total uptake, is
   // exact for any widths (pinned on a graded profile in
-  // test-tf24-water-budget.R).
+  // test-tf24-water-budget.R) while no layer is held at the residual moisture.
+  // A held layer's rate is set to zero, but layer_rates still passes its
+  // drainage to the layer below and its uptake is still booked, so the budget
+  // stops closing there.
   //
   // ⚠️ BUT IF ANYONE ADDS A CAPILLARY OR DIFFUSIVE FLUX -- and soil evaporation
   // will make them want to, because a top layer drying from above needs upward

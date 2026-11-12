@@ -47,7 +47,7 @@ struct FF16_Pars {
   S a_l1        = 5.44; // height with 1m2 leaf [m]
   S a_l2        = 0.306; // dimensionless scaling of height with leaf area
   // Root mass per leaf area
-  S a_r1        = 0.07;  //[kg / m]
+  S a_r1        = 0.07;  //[kg / m2]
   // Coarse (structural) root mass per unit sapwood mass. Coarse roots are
   // treated as the below-ground continuation of the sapwood cylinder, so they
   // inherit its height scaling and the structural root:shoot ratio is
@@ -59,7 +59,7 @@ struct FF16_Pars {
 
   // * Production
   // Ratio of leaf dark respiration to leaf mass [mol CO2 / yr  / kg]
-  // =  [mol CO2 / m2 / yr]  |  (39.27 = 2100 * 0.00187)  | narea * photosynthesis_per_nitrogen
+  // =  [mol CO2 / m2 / yr]  |  (39.27 = 21000 * 0.00187) | narea * photosynthesis_per_nitrogen
   //    / [kg(leaf) / m2 ]   |    / (0.1978791)           | lma
   // Hard coded in value of lma here so that this value doesn't change
   // if that trait changes above.
@@ -545,7 +545,7 @@ public:
   S fecundity_dt(const S& net_mass_production_dt,
                  const S& fraction_allocation_reproduction) const;
 
-  // Fraction of mass growth that is leaves
+  // Leaf area per unit live mass, d a_l / d m_live
   S darea_leaf_dmass_live(const S& area_leaf) const;
 
   // change in height per change in leaf area
@@ -554,7 +554,7 @@ public:
   S darea_leaf_dheight(const S& area_leaf) const {
     return 1.0 / dheight_darea_leaf(area_leaf);
   }
-  // Mass of leaf needed for new unit area leaf, d m_s / d a_l
+  // Mass of leaf needed for new unit area leaf, d m_l / d a_l
   const S& dmass_leaf_darea_leaf(const S& area_leaf) const;
   // Mass of stem needed for new unit area leaf, d m_s / d a_l
   S dmass_sapwood_darea_leaf(const S& area_leaf) const;
@@ -1152,7 +1152,7 @@ S FF16_Model<S>::dheight_darea_leaf(const S& area_leaf,
   return pars.a_l1 * pars.a_l2 * area_leaf_pow_a_l2 / area_leaf;
 }
 
-// Mass of leaf needed for new unit area leaf, d m_s / d a_l
+// Mass of leaf needed for new unit area leaf, d m_l / d a_l
 template <typename S>
 const S& FF16_Model<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
   return pars.lma;

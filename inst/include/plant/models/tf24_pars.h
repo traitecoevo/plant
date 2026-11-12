@@ -38,7 +38,7 @@ struct TF24_Pars {
   S theta     = 1.0/4669;   // Sapwood area per leaf area [dimensionless]
   S a_l1      = 5.44;       // height with 1m2 leaf [m]
   S a_l2      = 0.306;      // scaling of height with leaf area
-  S a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m]
+  S a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m2]
   // Coarse (structural) root mass per unit sapwood mass. Coarse roots are
   // treated as the below-ground continuation of the sapwood cylinder, so they
   // inherit its height scaling and the structural root:shoot ratio is
@@ -173,7 +173,7 @@ struct TF24_Pars {
   // TF24_K_s_from_whole_stem(1), so that the two models' resistances agree at
   // TF24_H_ANCHOR = 1 m. The ratio is 2.9782.
   //
-  // Only theta/K_s is identifiable, so agreement with the height-linear model
+  // Only theta*K_s is identifiable, so agreement with the height-linear model
   // holds at exactly ONE height and nowhere else. That is by construction:
   // changing the height dependence is the object of the exercise.
   S K_s = 0.33577377016801868;
@@ -229,10 +229,10 @@ struct TF24_Pars {
   S root_depth_shape_eta = 0.2;
   // * Root hydraulics
   // Root vulnerability curve, proportion of conductivity =
-  // exp(-(psi/root_b)^root_c). Declared before root_psi_crit, which derives
-  // from them. Both are settable from R, because the defaults put root shutoff
-  // at ~5.87 MPa: too conservative for taxa that operate below that (e.g.
-  // Acacia aneura).
+  // exp(-(psi/root_b)^root_c), with root_b derived from (root_P50, root_c).
+  // Those two are settable from R, because the defaults put root shutoff at
+  // ~5.87 MPa: too conservative for taxa that operate below that (e.g. Acacia
+  // aneura).
   S root_c = 2.680147;
   // THE SCALE PARAMETER IS P50, matching the stem side and phylloptim, which
   // takes (root_c, root_P50) and derives the other two itself by these same
@@ -241,9 +241,11 @@ struct TF24_Pars {
   // root_psi_crit moves with it by the same fraction.
   S root_P50 = 3.4;
   S root_b = root_P50 / power(-log(1 - 50.0 / 100.0), 1 / root_c);
-  // Potential at 5% remaining root conductivity [MPa]. Derived, exactly as
-  // psi_crit is from b and c: if you set root_b or root_c directly, set this
-  // too, or the vulnerability curve and the shutoff threshold disagree.
+  // Potential at 5% remaining root conductivity [MPa]. Like root_b, derived
+  // once from the defaults and never updated: phylloptim derives both from
+  // (root_P50, root_c), so nothing reads these, setting root_b or
+  // root_psi_crit changes nothing, and after root_P50 or root_c is set they
+  // still describe the default curve.
   S root_psi_crit = root_b*power(log(1/0.05),1/root_c);
   // Maximum rooting depth [m]. Rooting depth is min(height, rooting_depth_max),
   // so this also bounds the depth over which roots can draw water. Should not
@@ -270,10 +272,10 @@ struct TF24_Pars {
   // Measured, not fitted: conserved across terrestrial vascular plants, with a
   // within-stem range of roughly 0.1-0.3.
   S D_c = 0.2;
-  // Huber-profile exponent: theta(L) = theta*(L/L_tip)^(-theta_c). NOTE THE
-  // MINUS SIGN. theta falls basipetally while the Huber value 1/theta rises, so
-  // a positive theta_c means less leaf area supported per unit sapwood towards
-  // the base -- that is the compensation mechanism.
+  // Huber-profile exponent: theta(L) = theta*(L/L_tip)^theta_c. NOTE THE
+  // PLUS SIGN. theta is sapwood area per leaf area, the Huber value, and rises
+  // basipetally, so a positive theta_c means less leaf area supported per unit
+  // sapwood towards the base -- that is the compensation mechanism.
   //
   // NOT YET IMPLEMENTED: prepare_strategy() throws on any non-zero value. theta
   // is not a hydraulics-only trait -- it also sets area_sapwood, area_bark,
@@ -289,11 +291,12 @@ struct TF24_Pars {
   // (dimensionless) and leaf$theta_ coexist in one session.
   S theta_c = 0.0;
   // Terminal segment length [m]. Not an innocuous numerical cutoff: it enters
-  // the resistance with elasticity beta ~ 0.6 and trades off exactly against
-  // both K_s and theta, which are identifiable only in the grouping
-  // theta*L_tip^beta/K_s. It must therefore come from the SAME terminal-segment
-  // definition over which K_s and theta were measured -- none of the three may
-  // be calibrated independently of the others (invariance criterion I5).
+  // the resistance with an elasticity close to beta (0.4 at the defaults), and
+  // trades off against both K_s and theta, which are identifiable only in the
+  // grouping L_tip^beta/(K_s*theta). It must therefore come from the SAME
+  // terminal-segment definition over which K_s and theta were measured -- none
+  // of the three may be calibrated independently of the others (invariance
+  // criterion I5).
   S L_tip = 0.02;
   // Germination
   S recruitment_decay = 0.0;

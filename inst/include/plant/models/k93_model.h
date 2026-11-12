@@ -24,8 +24,8 @@ struct K93_Pars {
   double c_0 = 0.008;    // Intercept (yr-1)
   double c_1 = 0.00044;  // Suppression rate (m2.cm-2.yr-1)
   // * Reproduction
-  double d_0 = 0.00073;  // Recruitment rate (cm2.yr-1)
-  double d_1 = 0.044;    // Reduction from suppression (m2.cm-2.yr-1)
+  double d_0 = 0.00073;  // Recruitment rate (cm-2.yr-1)
+  double d_1 = 0.044;    // Reduction from suppression (m2.cm-2)
   // Probability of survival during dispersal (required by scm.h)
   double S_D = 1.0;
   // Smoothing / canopy shape parameter
@@ -239,7 +239,8 @@ inline void K93_Model::compute_rates(const K93_Environment& environment, Interna
   double height = vars.state(HEIGHT_INDEX);
 
   // suppression integral mapped [0, 1] using adaptive spline
-  // back transform to basal area and add suppression from self
+  // back transform to the cumulative basal area above this height; no
+  // suppression from the plant itself is added
   double competition = environment.get_environment_at_height(height);
 
   double cumulative_basal_area = -log(competition) / pars.k_I;
