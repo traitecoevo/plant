@@ -340,10 +340,11 @@ void TF24_Model<S>::build_root_network(
 
   // Fine-root carbon is distributed over depth using the same cumulative shape
   // function Q() used for the leaf canopy, but parameterised over soil depth
-  // instead of crown height. Q(z, rooting_depth, 0.2) gives the fraction of
-  // roots *below* depth z, so layer a holds root_mass_scale * (Q(z_{a-1}) -
-  // Q(z_a)). rooting_depth is capped at the soil column depth and the loop
-  // breaks once Q reaches 0, so deeper layers stay at zero.
+  // instead of crown height. Q(z, rooting_depth, pars.root_depth_shape_eta)
+  // gives the fraction of roots *below* depth z, so layer a holds
+  // root_mass_scale * (Q(z_{a-1}) - Q(z_a)). rooting_depth is capped at
+  // pars.rooting_depth_max and the loop breaks once Q reaches 0, so deeper
+  // layers stay at zero.
   //
   // The quantity is carbon PER UNIT LEAF AREA, and that is a hard requirement
   // rather than a convenience: the leaf is intensive, it takes resistances built
@@ -542,8 +543,9 @@ S TF24_Model<S>::solve_leaf_over_crown(
       }
       // Integrate each leaf output to its leaf-area-weighted crown mean (q
       // integrates to one over the crown). soil_consumption_ feeds the patch
-      // water balance, so it must be the depth-integrated total; the rest are
-      // diagnostics reported through compute_rates.
+      // water balance: one value per soil layer, each the crown mean per unit
+      // leaf area, which evapotranspiration_dt scales by the plant's leaf area;
+      // the rest are diagnostics reported through compute_rates.
       leaf.profit_          = function_integrator.integrate_vector(profit_y, 0.0, height);
       leaf.transpiration_   = function_integrator.integrate_vector(trans_y, 0.0, height);
       leaf.E_up_            = function_integrator.integrate_vector(eup_y, 0.0, height);
@@ -684,8 +686,9 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
   const S mass_bark_    = mass_bark(area_bark_, height);
   const S mass_root_    = mass_root(area_leaf_);
 
-  // psi_soil (-MPa): the patch column's, computed once per soil state and cached
-  // in the environment -- or, in TF24w, this cohort's own column (#681).
+  // psi_soil (MPa, a positive magnitude): the patch column's, computed once
+  // per soil state and cached in the environment -- or, in TF24w, this
+  // cohort's own column (#681).
   const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
 
   const S leaf_specific_conductance_max =

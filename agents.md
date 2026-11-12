@@ -577,13 +577,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
   same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
 - ⚠️ **TF24 and its subclasses run one cost curve, `TF24_floor`, seated once in `TF24_Model::prepare_strategy()`.** phylloptim's collar-solve entry points are templated on the curve, and plant's call sites name `Leaf::CostCurve::TF24_floor` explicitly. Each must name the curve that is seated: one that names another solves that curve while `shadow_cost()` reports the seated curve's price, and nothing errors. To change the curve, change the seat and every `CostCurve::TF24_floor` together (`git grep -n 'CostCurve::'`).
-- ⚠️ **TF24's leaf parameters must keep phylloptim's names.** They are handed to
-  the `Leaf` constructor **positionally**, so a name that disagrees with the slot
-  it lands in is silent, not a compile error. `stem_P50`, `stem_c`, `stem_b`,
-  `TF24_beta2`, `TF24_cost_scale`, `TF24_floor_lambda_o`, `root_c`, `root_P50`.
-  The one deliberate asymmetry: `TF24_Pars` exposes `root_b` (the Weibull scale)
-  where phylloptim takes `root_P50` (the quantile), so `prepare_strategy()`
-  converts — those are different quantities, not a naming mismatch.
+- ⚠️ **TF24's leaf parameters must keep phylloptim's names.** They are handed to the `Leaf` constructor **positionally**, so a name that disagrees with the slot it lands in is silent, not a compile error. `stem_P50`, `stem_c`, `TF24_beta2`, `TF24_cost_scale`, `TF24_floor_lambda_o`, `root_c`, `root_P50`. Each vulnerability curve reaches phylloptim as its (P50, c) pair, in `construct_leaf()` and in `leaf_pars_on_tape()`, and phylloptim derives the Weibull scale and the critical potential itself. `TF24_Pars`'s `stem_b`, `psi_crit`, `root_b` and `root_psi_crit` are derived reporting copies that reach nothing, so setting one does not change the curve.
 - ⚠️ **Never put a non-finite number in an ODE state, and do not read
   `check_finite_ode_state` as protection against one.** It tests the cohort
   density (`exp(log_density)`, so `-Inf` passes as a finite zero) and the

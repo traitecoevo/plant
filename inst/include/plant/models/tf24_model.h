@@ -637,7 +637,6 @@ public:
   S fecundity_dt(const S& net_mass_production_dt,
                  const S& fraction_allocation_reproduction) const;
 
-  // Fraction of mass growth that is leaves
   // Leaf area bought per unit live mass. Takes the sapwood departure because
   // the stem that comes with a new leaf is priced at the Huber value the plant
   // ACTUALLY carries, not at pars.theta. Without that a plant holding extra
@@ -648,7 +647,7 @@ public:
 
   // change in height per change in leaf area
   S dheight_darea_leaf(const S& area_leaf) const;
-  // Mass of leaf needed for new unit area leaf, d m_s / d a_l
+  // Mass of leaf needed for new unit area leaf, d m_l / d a_l
   S dmass_leaf_darea_leaf(const S& area_leaf) const;
   // Mass of stem needed for new unit area leaf, d m_s / d a_l
   S dmass_sapwood_darea_leaf(const S& area_leaf,

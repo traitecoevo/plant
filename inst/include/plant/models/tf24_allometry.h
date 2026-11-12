@@ -140,7 +140,7 @@ S TF24_Model<S>::dheight_darea_leaf(const S& area_leaf) const {
   return pars.a_l1 * pars.a_l2 * pow(area_leaf, pars.a_l2 - 1);
 }
 
-// Mass of leaf needed for new unit area leaf, d m_s / d a_l
+// Mass of leaf needed for new unit area leaf, d m_l / d a_l
 template <typename S>
 S TF24_Model<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
   return pars.lma;

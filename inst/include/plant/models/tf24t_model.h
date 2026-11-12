@@ -23,9 +23,13 @@ namespace plant {
 // Leaf::damage_rates() is the right-hand side, written once there:
 //
 //   dA/dt     = alpha * softplus(T_leaf - t_accl; s) - beta * A
-//   dI/dt     = k_imp(T_leaf) * F - (k_rec_eff(T_leaf) + k_mat) * I
-//   dD/dt     = k_mat * I                         - (k_l + max(0, dL/dt)/L) * D
+//   dI/dt     = k_imp(T_leaf, A) * F
+//               - (k_rec_eff(T_leaf) + k_mat_eff(T_leaf)) * I
+//   dD/dt     = k_mat_eff(T_leaf) * I - (k_l + max(0, dL/dt)/L) * D
 //   dTbar/dt  = k_mean_leaf_temp * (Tleaf - Tbar)
+//
+// Repair and maturation run at their temperature-adjusted rates, and the
+// acclimation A shifts the temperature at which impairment sets in.
 //
 // What THIS class owns is only what a whole plant adds: the dilution of damaged
 // leaf by turnover and canopy growth (the last term of dD/dt), the per-day to

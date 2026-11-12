@@ -38,7 +38,7 @@ struct TF24_Pars {
   S theta     = 1.0/4669;   // Sapwood area per leaf area [dimensionless]
   S a_l1      = 5.44;       // height with 1m2 leaf [m]
   S a_l2      = 0.306;      // scaling of height with leaf area
-  S a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m]
+  S a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m2]
   // Coarse (structural) root mass per unit sapwood mass. Coarse roots are
   // treated as the below-ground continuation of the sapwood cylinder, so they
   // inherit its height scaling and the structural root:shoot ratio is
@@ -173,7 +173,7 @@ struct TF24_Pars {
   // TF24_K_s_from_whole_stem(1), so that the two models' resistances agree at
   // TF24_H_ANCHOR = 1 m. The ratio is 2.9782.
   //
-  // Only theta/K_s is identifiable, so agreement with the height-linear model
+  // Only theta*K_s is identifiable, so agreement with the height-linear model
   // holds at exactly ONE height and nowhere else. That is by construction:
   // changing the height dependence is the object of the exercise.
   S K_s = 0.33577377016801868;
@@ -270,10 +270,10 @@ struct TF24_Pars {
   // Measured, not fitted: conserved across terrestrial vascular plants, with a
   // within-stem range of roughly 0.1-0.3.
   S D_c = 0.2;
-  // Huber-profile exponent: theta(L) = theta*(L/L_tip)^(-theta_c). NOTE THE
-  // MINUS SIGN. theta falls basipetally while the Huber value 1/theta rises, so
-  // a positive theta_c means less leaf area supported per unit sapwood towards
-  // the base -- that is the compensation mechanism.
+  // Huber-profile exponent: theta(L) = theta*(L/L_tip)^theta_c. NOTE THE
+  // PLUS SIGN. theta is sapwood area per leaf area, the Huber value, and rises
+  // basipetally, so a positive theta_c means less leaf area supported per unit
+  // sapwood towards the base -- that is the compensation mechanism.
   //
   // NOT YET IMPLEMENTED: prepare_strategy() throws on any non-zero value. theta
   // is not a hydraulics-only trait -- it also sets area_sapwood, area_bark,
@@ -291,9 +291,10 @@ struct TF24_Pars {
   // Terminal segment length [m]. Not an innocuous numerical cutoff: it enters
   // the resistance with elasticity beta ~ 0.6 and trades off exactly against
   // both K_s and theta, which are identifiable only in the grouping
-  // theta*L_tip^beta/K_s. It must therefore come from the SAME terminal-segment
-  // definition over which K_s and theta were measured -- none of the three may
-  // be calibrated independently of the others (invariance criterion I5).
+  // L_tip^beta/(K_s*theta). It must therefore come from the SAME
+  // terminal-segment definition over which K_s and theta were measured -- none
+  // of the three may be calibrated independently of the others (invariance
+  // criterion I5).
   S L_tip = 0.02;
   // Germination
   S recruitment_decay = 0.0;

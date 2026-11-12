@@ -16,19 +16,19 @@ namespace stem_hydraulics {
 //   D(L)     = D_tip * (L/L_tip)^D_c            conduit diameter (widening)
 //   n_A(L)  propto (D(L)/D_tip)^-2              conduit density (packing limit)
 //   k_s(L)   = K_s   * (L/L_tip)^(2*D_c)        sapwood-specific conductivity
-//   theta(L) = theta * (L/L_tip)^(-theta_c)     leaf area per sapwood area
+//   theta(L) = theta * (L/L_tip)^theta_c        sapwood area per leaf area
 //
 // The exponent on conductivity is 2*D_c, NOT 4*D_c: the D^4 of Hagen-Poiseuille
 // survives only along a single continuous conduit, and at the tissue level a
 // conserved lumen fraction means widening is paid for by proportionally fewer
 // conduits, halving the effective exponent.
 //
-// Note the SIGN on theta: theta falls basipetally (so the Huber value 1/theta
-// rises), hence -theta_c. A positive theta_c means less leaf area supported per
-// unit sapwood as you move down the plant. Getting this backwards inverts the
-// compensation the whole exercise is about.
+// Note the SIGN on theta_c: theta, the Huber value, rises basipetally, hence
+// +theta_c. A positive theta_c means less leaf area supported per unit sapwood
+// as you move down the plant. Getting this backwards inverts the compensation
+// the whole exercise is about.
 //
-// Leaf-specific resistance is R_L = (theta / K_s) * L_eff, where
+// Leaf-specific resistance is R_L = L_eff / (K_s * theta), where
 //
 //   L_eff = INT_{L_tip}^{L_top} (L / L_tip)^(-beta) dL,   beta = 2*D_c + theta_c
 //
@@ -82,8 +82,9 @@ T effective_path_length(const T& L_top, const T& L_tip, const T& beta) {
   const T x = log(L_top / L_tip);  // > 0 given the precondition
   const T e = T(1.0) - beta;
 
-  // beta == 1 exactly: the logarithmic limit. theta's basipetal decline cancels
-  // the conductivity gain term for term, and resistance grows only as log(H).
+  // beta == 1 exactly: the logarithmic limit. Conduit widening and theta's
+  // basipetal rise together make the resistance per unit length fall as 1/L,
+  // so resistance grows only as log(H).
   if (to_passive(e) == 0.0) {
     return T(L_tip * x);
   }
