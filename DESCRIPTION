@@ -52,7 +52,7 @@ Suggests:
     kableExtra
 Remotes:
     richfitz/RcppR6,
-    traitecoevo/odelia@8e08188,
+    traitecoevo/odelia@v0.11.1,
     traitecoevo/phylloptim@e2c9460
 URL: https://traitecoevo.github.io/plant/, https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
