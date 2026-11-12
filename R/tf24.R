@@ -23,7 +23,7 @@ TF24_Parameters <- function(...) {
 
 ##' Height at which the stem hydraulic path is anchored [m].
 ##'
-##' TF24's resistance depends on `theta` and `K_s` only through their ratio, so
+##' TF24's resistance depends on `theta` and `K_s` only through their product, so
 ##' there is exactly one free scalar and the height-dependent model can be made
 ##' to agree with the older height-linear one at exactly **one** height -- never
 ##' two. `TF24_H_ANCHOR` is that height. It is the pivot of a rotation: below it
@@ -38,7 +38,7 @@ TF24_Parameters <- function(...) {
 ##'
 ##' This is provenance for a default, not a model parameter, which is why it does
 ##' not live in `TF24_Pars`. Exposing it would add a fourth knob to the grouping
-##' `theta * L_tip^beta / K_s`, which is already identifiable only as a whole --
+##' `L_tip^beta / (K_s * theta)`, which is already identifiable only as a whole --
 ##' and inviting independent calibration of its members is exactly what
 ##' invariance criterion I5 forbids.
 ##' @export
@@ -74,7 +74,7 @@ TF24_K_s_from_whole_stem <- function(K_s, D_c = 0.2, theta_c = 0,
   eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
   L_top <- H_anchor * eta_c
   beta <- 2 * D_c + theta_c
-  # R_L = (theta/K_s) * L_eff, so matching R_L at H_anchor across the two models
+  # R_L = L_eff / (K_s * theta), so matching R_L at H_anchor across the two models
   # means K_s_tip / K_s = L_eff(beta) / L_eff(0). Widening SHORTENS the effective
   # path, so K_s must come DOWN to compensate -- the tip of a widening stem is
   # narrower, hence less conductive, than the uniform stem it replaces.

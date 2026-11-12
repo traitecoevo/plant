@@ -242,8 +242,8 @@ struct TF24_Pars {
   S root_P50 = 3.4;
   S root_b = root_P50 / power(-log(1 - 50.0 / 100.0), 1 / root_c);
   // Potential at 5% remaining root conductivity [MPa]. Derived, exactly as
-  // psi_crit is from b and c: if you set root_b or root_c directly, set this
-  // too, or the vulnerability curve and the shutoff threshold disagree.
+  // psi_crit is from b and c, and like root_b a reporting copy: phylloptim
+  // derives its own from (root_P50, root_c), so setting either changes nothing.
   S root_psi_crit = root_b*power(log(1/0.05),1/root_c);
   // Maximum rooting depth [m]. Rooting depth is min(height, rooting_depth_max),
   // so this also bounds the depth over which roots can draw water. Should not

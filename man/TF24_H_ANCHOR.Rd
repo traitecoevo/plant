@@ -7,7 +7,7 @@
 TF24_H_ANCHOR
 }
 \description{
-TF24's resistance depends on `theta` and `K_s` only through their ratio, so
+TF24's resistance depends on `theta` and `K_s` only through their product, so
 there is exactly one free scalar and the height-dependent model can be made
 to agree with the older height-linear one at exactly **one** height -- never
 two. `TF24_H_ANCHOR` is that height. It is the pivot of a rotation: below it
@@ -23,7 +23,7 @@ hydraulics with it.
 
 This is provenance for a default, not a model parameter, which is why it does
 not live in `TF24_Pars`. Exposing it would add a fourth knob to the grouping
-`theta * L_tip^beta / K_s`, which is already identifiable only as a whole --
+`L_tip^beta / (K_s * theta)`, which is already identifiable only as a whole --
 and inviting independent calibration of its members is exactly what
 invariance criterion I5 forbids.
 }
