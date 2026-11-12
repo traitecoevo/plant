@@ -1,8 +1,9 @@
 # The model registry: the equations of the size-structured layer plant's
 # models share and of each model (FF16, K93, TF24 and TF24's subclasses), the
 # parameters those equations read, and the C++ symbol that evaluates each, in
-# one file that documents are generated FROM rather than written beside. It follows phylloptim's registry
-# (traitecoevo/phylloptim#168), so the two read alike.
+# one file that documents are generated FROM rather than written beside. It
+# follows phylloptim's registry (traitecoevo/phylloptim#168), so the two read
+# alike.
 #
 # Four rules, so it does not rot:
 #
@@ -15,8 +16,8 @@
 #      named here is in the headers on its class, that every `reads` names a
 #      parameter, a slot or a link, that every link (in free text too)
 #      resolves, and that every bound field of the classes it covers
-#      (Parameters, and each model's _Pars as its entries arrive) is accounted
-#      for. The LaTeX is not checked against the code: this is a record, not a
+#      (Parameters, each model's _Pars, and the traits a subclass adds beside
+#      them) is accounted for. The LaTeX is not checked against the code: this is a record, not a
 #      second implementation.
 #   3. The notation is Overstorey's. Where an Overstorey theory page already
 #      writes an equation, the entry takes its symbols and LaTeX.
@@ -1782,49 +1783,50 @@ parameters:
     section: tf24t_thermal
     code: plant::TF24t_Model::k_i
     link: 'phylloptim:k_i_'
-    source: 'TF24t_Model default, the leaf''s: Bison and Michaletz''s 177-species fit of heat inactivation'
+    source: 'TF24t_Model default, the leaf''s: Bison and Michaletz''s 177-species fit of heat inactivation; must be finite and non-negative'
     placeholder: false
+    note: 'The leaf''s protection baseline, k_i_baseline_, is not seated by TF24t and keeps the leaf''s default, so setting k_i below it charges $c_{\rm prot} (k_{i,\mathrm{base}} - k_i)$ through the leaf''s day respiration.'
   TF24t.k_i_Ea:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::k_i_Ea
     link: 'phylloptim:k_i_Ea_'
-    source: 'TF24t_Model default, the leaf''s: Bison and Michaletz''s 177-species fit'
+    source: 'TF24t_Model default, the leaf''s: Bison and Michaletz''s 177-species fit; must be finite and non-negative'
     placeholder: false
   TF24t.k_i_Tiso:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::k_i_Tiso
     link: 'phylloptim:k_i_Tiso_'
-    source: 'TF24t_Model default, the leaf''s: Bison and Michaletz''s 177-species fit'
+    source: 'TF24t_Model default, the leaf''s: Bison and Michaletz''s 177-species fit; must be finite'
     placeholder: false
   TF24t.k_rec:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::k_rec
     link: 'phylloptim:k_rec_'
-    source: 'TF24t_Model default, the leaf''s; a calibration target, not a measured value'
+    source: 'TF24t_Model default, the leaf''s; a calibration target, not a measured value; must be finite and non-negative'
     placeholder: true
   TF24t.k_rec_Ea:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::k_rec_Ea
     link: 'phylloptim:k_rec_Ea_'
-    source: 'TF24t_Model default, zero: repair independent of temperature'
+    source: 'TF24t_Model default, zero: repair independent of temperature; must be finite and non-negative'
     placeholder: true
   TF24t.k_mat:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::k_mat
     link: 'phylloptim:k_mat_'
-    source: 'TF24t_Model default, the leaf''s; a calibration target, not a measured value'
+    source: 'TF24t_Model default, the leaf''s; a calibration target, not a measured value; must be finite and non-negative'
     placeholder: true
   TF24t.k_mat_Ea:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::k_mat_Ea
     link: 'phylloptim:k_mat_Ea_'
-    source: 'TF24t_Model default, zero: maturation independent of temperature'
+    source: 'TF24t_Model default, zero: maturation independent of temperature; must be finite and non-negative'
     placeholder: true
   TF24t.dTopt_max:
     model: TF24t
@@ -1852,14 +1854,14 @@ parameters:
     section: tf24t_thermal
     code: plant::TF24t_Model::alpha
     link: 'phylloptim:acclim_alpha_'
-    source: 'TF24t_Model default; a calibration target'
+    source: 'TF24t_Model default; a calibration target; must be finite and non-negative'
     placeholder: true
   TF24t.beta:
     model: TF24t
     section: tf24t_thermal
     code: plant::TF24t_Model::beta
     link: 'phylloptim:acclim_beta_'
-    source: 'TF24t_Model default; a calibration target'
+    source: 'TF24t_Model default; a calibration target; must be finite and non-negative'
     placeholder: true
   TF24t.t_accl:
     model: TF24t
@@ -1910,7 +1912,7 @@ parameters:
     units: 'day⁻¹'
     class: setting
     meaning: 'rate at which the running mean leaf temperature follows the leaf temperature; a diagnostic, read by no rate'
-    source: 'TF24t_Model default, about a 30-day memory'
+    source: 'TF24t_Model default; must be finite and non-negative'
     placeholder: false
     code: plant::TF24t_Model::k_mean_leaf_temp
   TF24t.c_build:
@@ -3108,7 +3110,7 @@ equations:
     section: tf24_production
     title: Whole-plant assimilation
     latex: |
-      A = \Pi \, A_{\rm l} \, \tau_{\rm d} \, 10^{-6}
+      A_{\rm P} = \Pi \, A_{\rm l} \, \tau_{\rm d} \, 10^{-6}
     code: plant::TF24_Model::net_mass_production_dt
     reads: ['phylloptim:carbon']
     writes: []
@@ -3143,7 +3145,7 @@ equations:
     section: tf24_production
     title: Net biomass production
     latex: |
-      \frac{{\rm d}B}{{\rm d}t} = \alpha_{\rm bio} \, \alpha_{\rm y} \, (A - R) - T
+      \frac{{\rm d}B}{{\rm d}t} = \alpha_{\rm bio} \, \alpha_{\rm y} \, (A_{\rm P} - R) - T
     code: plant::TF24_Model::net_mass_production_dt
     also: [plant::TF24_Model::net_mass_production_dt_A]
     reads: [TF24.a_bio, TF24.a_y]
@@ -3286,7 +3288,7 @@ equations:
     section: tf24_plasticity
     title: The marginal leaf's return
     latex: |
-      R_{\rm l} = \frac{\alpha_{\rm bio} \alpha_{\rm y} A - C_{\rm l}}{C_{\rm l}}, \qquad
+      R_{\rm l} = \frac{\alpha_{\rm bio} \alpha_{\rm y} A_{\rm P} - C_{\rm l}}{C_{\rm l}}, \qquad
       C_{\rm l} = \alpha_{\rm bio} \alpha_{\rm y} \big(r_{\rm l} M_{\rm l} + r_{\rm b} M_{\rm b} + r_{\rm r} M_{\rm r}\big) + k_{\rm l} M_{\rm l} + k_{\rm b} M_{\rm b} + k_{\rm r} M_{\rm r}
     code: plant::TF24_Model::update_marginal_leaf_return
     reads: [TF24.a_bio, TF24.a_y, TF24.r_l, TF24.r_b, TF24.r_r, TF24.k_l, TF24.k_b, TF24.k_r]
@@ -3549,7 +3551,7 @@ equations:
     writes: [soil]
     kind: derivative
     overstorey: theory/soil-water.qmd
-    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. A step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Writes the rates of the moisture states in soil.'
+    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Writes the rates of the moisture states in soil.'
   TF24.layer_uptake:
     model: TF24
     section: tf24_soil
@@ -3622,7 +3624,7 @@ equations:
     latex: |
       \Pi = A_{\rm kept}\big(\tilde\psi_{\rm r}\big), \qquad \tilde\psi_{\rm r} = \min\!\big(\max(\psi_{\rm r}, \psi_a), \psi_b\big)
     code: plant::TF24f_Model::solve_leaf
-    reads: ['phylloptim:carbon', 'phylloptim:collar_bracket']
+    reads: ['phylloptim:carbon', 'phylloptim:collar_bracket', 'phylloptim:cost_TF24_floor', 'phylloptim:leaf_from_collar', 'phylloptim:multilayer_uptake']
     writes: []
     kind: closed_form
     overstorey: theory/models/tf24.qmd
@@ -3639,7 +3641,7 @@ equations:
     writes: []
     kind: derivative
     overstorey: theory/models/tf24.qmd
-    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$ so a state outside the bracket is pulled back in. It is 0 at phylloptim''s shut and reversed-gradient exits. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
+    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$ so a state outside the bracket is pulled back in. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the rate then does not depend on the state. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
   TF24f.collar_initial:
     model: TF24f
     section: tf24f_tracking
@@ -3681,13 +3683,13 @@ equations:
     section: tf24t_thermal
     title: Acclimation, impairment and damage
     latex: |
-      \frac{{\rm d}}{{\rm d}t}\big(A, I, D\big) = n_{\rm d} \, \mathbf{r}(T_{\rm leaf}, A, I, D) - \Big(0,\ 0,\ \big(k_{\rm l} + \max(0, \dot A_{\rm l}^{*}) / A_{\rm l}^{*}\big) D\Big), \qquad \dot A_{\rm l}^{*} = g \Big/ \frac{{\rm d}H}{{\rm d}A_{\rm l}}
+      \frac{{\rm d}}{{\rm d}t}\big(A, I, D\big) = n_{\rm d} \, \mathbf{r}(T_{\rm leaf}, A, I_{\rm leaf}, D_{\rm leaf}) - \Big(0,\ 0,\ \big(k_{\rm l} + \max(0, \dot A_{\rm l}^{*}) / A_{\rm l}^{*}\big) D_{\rm leaf}\Big), \qquad \dot A_{\rm l}^{*} = g \Big/ \frac{{\rm d}H}{{\rm d}A_{\rm l}}
     code: plant::TF24t_Model::compute_rates
     also: [plant::TF24t_Model::leaf_damage_rates_per_year]
-    reads: [TF24t.days_per_year, TF24.k_l, 'phylloptim:damage_rates']
+    reads: [TF24t.days_per_year, TF24.k_l, g, 'phylloptim:damage_rates']
     writes: []
     kind: derivative
-    note: '$\mathbf{r}$ is phylloptim''s damage_rates, per day, at the operating point''s leaf temperature; $n_{\rm d}$ puts it on the per-year clock. What plant adds is the dilution of damaged leaf by turnover and canopy growth, per year already, with the growth taken from the height rate at the allometric leaf area $A_{\rm l}^{*}(H)$. States acclim_thermostab, impaired and damaged. No derivative path carries TF24t: its rebind is deleted.'
+    note: '$\mathbf{r}$ is phylloptim''s damage_rates, taken at the clamped states handed to the leaf (TF24t.leaf_damage_state), per day, at the operating point''s leaf temperature; $n_{\rm d}$ puts it on the per-year clock. What plant adds is the dilution of damaged leaf by turnover and canopy growth, per year already, with the growth taken from the height rate at the allometric leaf area $A_{\rm l}^{*}(H)$. States acclim_thermostab, impaired and damaged. No derivative path carries TF24t: its rebind is deleted.'
   TF24t.mean_leaf_temp:
     model: TF24t
     section: tf24t_thermal
@@ -3715,12 +3717,12 @@ equations:
     section: tf24t_thermal
     title: Net production less the whole-plant thermal costs
     latex: |
-      \frac{{\rm d}B}{{\rm d}t} = \frac{{\rm d}B}{{\rm d}t}\bigg|_{\rm TF24} - c_{\rm build} \max(0, \Delta T_{\rm opt}) \, k_{\rm l} M_{\rm l} - c_{\rm induct} \, \dot A_{+} \, A_{\rm l}, \qquad \dot A_{+} = \tfrac{1}{2}\Big(\dot A + \sqrt{\dot A^2 + \epsilon_A^2}\Big)
+      \frac{{\rm d}B}{{\rm d}t} = \frac{{\rm d}B}{{\rm d}t}\bigg|_{\rm TF24} - c_{\rm build} \max(0, \delta_0) \, k_{\rm l} M_{\rm l} - c_{\rm induct} \, \dot A_{+} \, A_{\rm l}, \qquad \dot A_{+} = \tfrac{1}{2}\Big(\dot A + \sqrt{\dot A^2 + \epsilon_A^2}\Big)
     code: plant::TF24t_Model::net_mass_production_dt
     reads: [TF24t.c_build, TF24t.topt_offset, TF24t.c_accl_induct, TF24t.induct_eps, TF24.k_l]
     writes: []
     kind: closed_form
-    note: 'Replaces TF24.net_production, and so reaches growth, storage, fecundity and establishment. The construction premium amortises the constitutive offset $\Delta T_{\rm opt}$ (topt_offset) through leaf turnover, charged on the whole turnover $k_{\rm l} M_{\rm l}$ rather than the replaced share. The induction cost is per unit leaf area, and is $c_{\rm induct} \epsilon_A A_{\rm l} / 2$, not zero, at the acclimation equilibrium. The leaf''s own maintenance costs are in its day respiration and are not charged again.'
+    note: 'Replaces TF24.net_production, and so reaches growth, storage, fecundity and establishment. The construction premium amortises the constitutive offset $\delta_0$ (topt_offset) through leaf turnover, charged on the whole turnover $k_{\rm l} M_{\rm l}$ rather than the replaced share. The induction cost is per unit leaf area, and is $c_{\rm induct} \epsilon_A A_{\rm l} / 2$, not zero, at the acclimation equilibrium. The leaf''s own maintenance costs are in its day respiration and are not charged again.'
 
   # --- TF24w: private root-zone water ------------------------------------------------
   TF24w.crown_area:
@@ -3745,7 +3747,7 @@ equations:
     reads: []
     writes: []
     kind: closed_form
-    note: '$n_j w_j$ is a cohort''s density times its trapezium weight over birth date, so a column stands for its cohort''s ground per m² of patch; $C$ is the crown cover, $b$ the bare ground, whose water $\theta_{0,i}$ is the environment''s own column (TF24.layer_balance), and the shares and $b$ sum to one. The boundary node carries no column. Taken once per rate evaluation, before any column is rated.'
+    note: '$n_j w_j$ is a cohort''s density times its trapezium weight over birth date, so a column stands for its cohort''s ground per m² of patch; $C$ is the crown cover, $b$ the bare ground, whose water $\theta_{0,i}$ is the environment''s own column (TF24.layer_balance), and the shares and $b$ sum to one. The boundary node carries no column; the absorbed top layer, where there is one, carries one with its own density as $n_j w_j$. Taken once per rate evaluation, before any column is rated.'
   TF24w.column_balance:
     model: TF24w
     section: tf24w_water
@@ -3757,7 +3759,7 @@ equations:
     reads: [TF24w.water_mixing_rate, TF24.dz]
     writes: []
     kind: derivative
-    note: 'The soil column''s own infiltration, drainage and residual floor (TF24.infiltration, TF24.drainage, TF24.layer_balance) on the column''s water, with the plant''s uptake $U_{j,i}$ (TF24.water_uptake) spread over its own ground. The mixing term is added only for $m > 0$. Land transfer adds further terms (TF24w.land_transfer). States water_1 to water_5; the column''s infiltration and deep drainage are reported as auxiliaries.'
+    note: 'The soil column''s own infiltration, drainage and residual floor (TF24.infiltration, TF24.drainage, TF24.layer_balance) on the column''s water, with the plant''s uptake $U_{j,i}$ (TF24.water_uptake) spread over its own ground. The mixing term is added only for $m > 0$. Land transfer adds further terms (TF24w.land_transfer). States water_1 to water_5; the column''s infiltration and deep drainage are reported as auxiliaries. Under TF24w the soil is not substepped (the patch''s soil subsystem is off, since a substep would integrate the bare column without the exchange terms), and TF24w is refused off the birth-date coordinate, on the gradient path, in a stochastic patch and with more than five soil layers.'
   TF24w.leaf_soil:
     model: TF24w
     section: tf24w_water
@@ -3781,10 +3783,23 @@ equations:
       \frac{{\rm d}\theta_{j,i}}{{\rm d}t} \mathrel{+}= \big(\theta^{\rm rel}_i - \theta_{j,i}\big) \frac{\dot s_j}{s_j} \ \text{for } \dot s_j > 0
     code: plant::Patch::private_water_exchange
     also: [plant::Species::for_each_water_column]
-    reads: [TF24w.water_mixing_rate]
+    reads: [TF24w.water_mixing_rate, g, d]
     writes: []
     kind: derivative
-    note: 'A column''s share moves as its crown grows and its cohort dies ($d_j$ is the mortality rate), and the youngest cohort''s quadrature weight grows ($\dot w_j / w_j$). Land a shrinking share releases carries its water; $\theta^{\rm rel}_i$ is the area-weighted content of all released land, the bare ground''s included, and growing shares (the bare ground too, if $b \ge 10^{-6}$) take land at that content, so re-tiling conserves the patch''s water. The bare column also relaxes toward $\bar\theta_i$ at $m$ (if $b \ge 10^{-6}$), and the boundary node''s uptake is charged to every column alike per unit of ground. The environment''s infiltration, drainage and uptake accumulators are replaced by area-weighted totals over every column.'
+    note: 'A column''s share moves as its crown grows and its cohort dies ($d_j$ is the mortality rate), and the youngest cohort''s quadrature weight grows ($\dot w_j / w_j$). Land a shrinking share releases carries its water; $\theta^{\rm rel}_i$ is the area-weighted content of all released land, the bare ground''s included, and growing shares (the bare ground too, if $b \ge 10^{-6}$) take land at that content, so re-tiling conserves the patch''s water. The code takes ${\rm d}A_{\rm l}/{\rm d}H$ at the carried leaf area and has no term for the leaf departure''s own rate, so with flexible allometry on ($\delta_{\rm l} \neq 0$) $g_j$ is not the crown''s relative growth rate: it is off by $e^{-\alpha_{\rm l2} \delta_{\rm l}}$ and lacks $\dot\delta_{\rm l}$. The two agree at the default, where $\delta_{\rm l} = 0$. The bare column also relaxes toward $\bar\theta_i$ at $m$ (if $b \ge 10^{-6}$), and the boundary node''s uptake is charged to every column alike per unit of ground. The environment''s infiltration, drainage and uptake accumulators are replaced by area-weighted totals over every column.'
+  TF24w.water_pulse:
+    model: TF24w
+    section: tf24w_water
+    title: A pulse of water into one layer of every column
+    latex: |
+      \theta_{j,i} \leftarrow \theta_{j,i} + \frac{\min\left(d,\ \Delta z_i \left[\theta_{\rm sat} - \theta_{j,i}\right]^{+}\right)}{\Delta z_i} \ \text{for every column } j, \qquad
+      \text{accepted} = \sum_j s_j \, \text{accepted}_j + b \, \text{accepted}_0
+    code: plant::Patch::private_water_pulse
+    also: [plant::TF24_Environment::pulse_capacity, plant::TF24_Environment::add_resource_pulse, plant::TF24_Environment::adjust_pulse_accumulators]
+    reads: [TF24.soil_moist_sat, TF24.dz]
+    writes: []
+    kind: closed_form
+    note: 'Replaces TF24.water_pulse under TF24w: a depth $d$ lands on every private column, each capped by what its layer can still hold, and on the bare ground through TF24.water_pulse. The boundary node''s column is skipped. The shares are taken from a fresh aggregate pass. The pulse''s accepted and excess depths, and the environment''s pulse accumulators, are area-weighted over every column, so the patch''s water budget still closes.'
   TF24w.column_initial:
     model: TF24w
     section: tf24w_water

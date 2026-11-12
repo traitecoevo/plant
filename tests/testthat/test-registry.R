@@ -107,7 +107,7 @@ test_that("every field a subclass adds beside pars is a parameter or a listed no
     m <- sub$id[[i]]
     s <- get(paste0(m, "_Model"))()
     added <- setdiff(names(s), names(get(paste0(sub$extends[[i]], "_Model"))()))
-    added <- added[vapply(added, function(f) is.numeric(s[[f]]), logical(1))]
+    added <- added[vapply(added, function(f) is.atomic(s[[f]]), logical(1))]
     own <- reg$parameters[reg$parameters$model %in% m &
                             grepl(paste0("^plant::", m, "_Model::"), reg$parameters$code), ]
     field <- ifelse(is.na(own$field), sub("^.*::", "", own$code), own$field)
@@ -207,7 +207,11 @@ test_that("the values are read off the live model, not stored", {
   # and another model's is not this model's to give.
   k <- match("K93.b_0", v$id)
   expect_false(is.na(k))
-  expect_true(is.na(v$value[[k]]))
+  expect_true(is.na(v$value[[k]]))  # A subclass's trait beside pars is read off the strategy itself, and the
+  # parent's parameters off its pars.
+  vt <- registry_values(reg, "TF24t")
+  expect_identical(vt$value[[match("TF24t.k_i", vt$id)]], TF24t_Model()$k_i)
+  expect_identical(vt$value[[match("TF24.lma", vt$id)]], TF24t_Model()$pars$lma)
 })
 
 test_that("the reader refuses what the schema forbids", {

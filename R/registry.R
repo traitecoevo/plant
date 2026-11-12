@@ -126,8 +126,10 @@ registry_equation <- function(id, registry = model_registry()) {
 ##' model runs with. Parameters held on \code{Parameters} are read from
 ##' \code{scm_base_parameters(model)}, and a model's own parameters (those of
 ##' \code{model} and of any model it extends) from its default strategy's
-##' \code{pars}; a \code{literal} gives its own value. Other models'
-##' parameters, and any not held as a single number, are \code{NA}.
+##' \code{pars}, or from the strategy itself for a subclass's traits held
+##' beside \code{pars}; a \code{literal} gives its own value. Other models'
+##' parameters, those held on the environment, and any not held as a single
+##' number, are \code{NA}.
 ##'
 ##' @param registry A registry from \code{\link{model_registry}}.
 ##' @param model The model whose defaults to read, e.g. \code{"FF16"}.
@@ -144,7 +146,11 @@ registry_values <- function(registry = model_registry(), model = "FF16") {
   value <- rep(NA_real_, nrow(pars))
   scalar <- function(v) if (is.numeric(v) && length(v) == 1L) v else NA_real_
   for (i in which(on_parameters)) value[[i]] <- scalar(p[[field[[i]]]])
-  for (i in which(on_model)) value[[i]] <- scalar(s$pars[[field[[i]]]])
+  # A subclass's own traits sit beside pars, at the strategy's top level.
+  for (i in which(on_model)) {
+    v <- s$pars[[field[[i]]]]
+    value[[i]] <- scalar(if (is.null(v)) s[[field[[i]]]] else v)
+  }
   lit <- !is.na(pars$literal)
   value[lit] <- as.numeric(pars$literal[lit])
   pars$value <- value
