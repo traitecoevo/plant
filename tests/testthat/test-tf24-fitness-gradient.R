@@ -41,8 +41,8 @@ test_that("TF24 reports its fitness under the names the gradient uses", {
   scm <- fitness_stand_run(fitness_stand_parameters(10))
   f <- stand_fitness(scm)
   expect_equal(names(f), c("1.net_reproduction_ratio", "1.offspring_production"))
-  expect_identical(f[["1.net_reproduction_ratio"]], scm$net_reproduction_ratios)
-  expect_identical(f[["1.offspring_production"]], scm$offspring_production)
+  expect_identical(f[["1.net_reproduction_ratio"]], scm$patch$net_reproduction_ratios)
+  expect_identical(f[["1.offspring_production"]], scm$patch$offspring_production)
   expect_false("S_D" %in% names(census_undifferentiable_tf24()))
   g <- stand_gradient(scm, metrics = names(f), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
@@ -131,12 +131,12 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
   # Linear, not quadratic: the adaptive runs' slope in b differs from the
   # swept slope of their own steps by about 2.5%. Seven runs here.
   expect_lt(abs(excess), 1e-8)
-  expect_equal(resident$net_reproduction_ratios, 1, tolerance = 1e-8)
+  expect_equal(resident$patch$net_reproduction_ratios, 1, tolerance = 1e-8)
 
   # An invader at the resident's traits has the resident's ratio, one.
   resident$keep_states <- TRUE
   resident$run_mutant(fitness_stand_parameters(1))
-  expect_equal(resident$net_reproduction_ratios, 1, tolerance = 1e-8)
+  expect_equal(resident$patch$net_reproduction_ratios, 1, tolerance = 1e-8)
 
   # An invader at lma x0.9, differentiated in the recorded field of the
   # resident's equilibrium: the sweep against a central difference of
@@ -155,7 +155,7 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
       q <- invader
       q$strategies[[1]]$pars[[name]] <- v
       resident$run_mutant(q)
-      resident$net_reproduction_ratios
+      resident$patch$net_reproduction_ratios
     }
     fd <- (at(x + h) - at(x - h)) / (2 * h)
     expect_equal(gi$gradient["1.net_reproduction_ratio", paste0("1.", name)],

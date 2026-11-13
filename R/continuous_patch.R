@@ -303,7 +303,7 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' at a fixed point sees the same field, so that one cohort's output is the
 ##' invader's fitness. The resident's own strategy scores a resident cohort's
 ##' lifetime output per seed, which is one at the resident's demographic
-##' equilibrium (it is not \code{scm$net_reproduction_ratios}, which a
+##' equilibrium (it is not the run's \code{net_reproduction_ratios}, which a
 ##' continuous patch's ever-growing node list does not make a per-cohort
 ##' quantity).
 ##'
@@ -346,7 +346,7 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   scm <- as_scm(scm)
   pm <- add_mutant(p, traits, hyperpar = hyperpar,
                    birth_rate = as.list(rep(1, nrow(traits))))
-  pm$patch_type <- "fixed"
+  pm$fitness_weighting <- "none"
   pm$max_patch_lifetime <- lifetime
   pm$node_schedule_times <- rep(list(0), nrow(traits))
   pm$initial_state <- numeric(0)

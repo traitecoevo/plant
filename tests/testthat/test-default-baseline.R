@@ -23,7 +23,7 @@ test_that("default runs reproduce the baseline recorded before #661", {
 test_that("snapshots read the run and do not move it", {
   snapshot_run <- function(interval) {
     p <- testing_parameters("FF16")
-    p$patch_type <- "fixed"
+    p$fitness_weighting <- "none"
     p$max_patch_lifetime <- 60
     p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
@@ -37,14 +37,14 @@ test_that("snapshots read the run and do not move it", {
   expect_gt(length(b$snapshots), 10)
   expect_identical(b$patch$ode_state, a$patch$ode_state)
   expect_identical(b$ode_times, a$ode_times)
-  expect_identical(b$net_reproduction_ratios, a$net_reproduction_ratios)
+  expect_identical(b$patch$net_reproduction_ratios, a$patch$net_reproduction_ratios)
 })
 
 test_that("a fitness window weights the run and does not move it", {
   ## The window is a weighting of arrivals: the stand it weights is the stand
   ## an unweighted run makes, step for step.
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 60
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
@@ -53,5 +53,5 @@ test_that("a fitness window weights the run and does not move it", {
   b <- run(fitness_window(p, 10, 30), control = ctrl)$solver
   expect_identical(b$patch$ode_state, a$patch$ode_state)
   expect_identical(b$ode_times, a$ode_times)
-  expect_false(identical(b$net_reproduction_ratios, a$net_reproduction_ratios))
+  expect_false(identical(b$patch$net_reproduction_ratios, a$patch$net_reproduction_ratios))
 })

@@ -228,15 +228,15 @@ parameters:
     code: plant::Parameters::patch_area
 
   # --- patch age --------------------------------------------------------------
-  patch_type:
+  fitness_weighting:
     section: patch_age
-    symbol: '\text{patch type}'
+    symbol: '\text{fitness weighting}'
     units: '–'
     class: setting
-    meaning: 'the disturbance regime: "meta-population" (Weibull patch ages), "fixed" (no disturbance) or "fitness_window" (an arrival window)'
+    meaning: 'how a cohort''s fitness is weighted by its birth date: "patch_age" (Weibull patch ages), "none" (no disturbance) or "window" (an arrival window)'
     source: Parameters default
     placeholder: false
-    code: plant::Parameters::patch_type
+    code: plant::Parameters::fitness_weighting
   max_patch_lifetime:
     section: patch_age
     symbol: 'a_{\rm max}'
@@ -272,7 +272,7 @@ parameters:
     symbol: 'a_{\rm start}'
     units: 'yr'
     class: setting
-    meaning: 'first arrival date the fitness window weights; read when patch_type is "fitness_window"'
+    meaning: 'first arrival date the fitness window weights; read when fitness_weighting is "window"'
     source: no default (0, which the window refuses)
     placeholder: false
     code: plant::Parameters::fitness_window_start
@@ -2220,7 +2220,7 @@ equations:
       S_{\rm P} (a_0, a) = \exp\left( - \int_{a_0}^{a} d_{\rm P}(a^\prime) \, {\rm d} a^\prime \right)
     code: plant::Disturbance_Regime::pr_survival
     also: [plant::Node::offspring_dt_dfecundity_rate]
-    reads: [patch_type]
+    reads: [fitness_weighting]
     writes: []
     kind: integrator
     overstorey: theory/size-structured-pde.qmd
@@ -2232,7 +2232,7 @@ equations:
       P(a) = P(0) S_{\rm P} (0, a), \qquad P(0) = \frac1{\int_0^\infty S_{\rm P} (0, a) {\rm d}a}
     code: plant::Disturbance_Regime::density
     also: [plant::Node::patch_density]
-    reads: [patch_type]
+    reads: [fitness_weighting]
     writes: []
     kind: closed_form
     overstorey: theory/size-structured-pde.qmd
@@ -2244,11 +2244,11 @@ equations:
       d_{\rm P}(a) = \lambda \psi a^{\psi-1}, \qquad S_{\rm P}(0, a) = \exp(-\lambda a^\psi), \qquad P(0) = \frac{\psi \lambda^{\frac1{\psi}}}{\Gamma\left(\frac1{\psi}\right)}
     code: plant::Weibull_Disturbance_Regime::pr_survival
     also: [plant::Weibull_Disturbance_Regime::density, plant::Weibull_Disturbance_Regime::Weibull_Disturbance_Regime]
-    reads: [shape, patch_type]
+    reads: [shape, fitness_weighting]
     writes: []
     kind: closed_form
     overstorey: theory/size-structured-pde.qmd
-    note: 'patch_type "meta-population". The hazard $d_{\rm P}$ is implied by $S_{\rm P}$; no function evaluates it.'
+    note: 'fitness_weighting "patch_age". The hazard $d_{\rm P}$ is implied by $S_{\rm P}$; no function evaluates it.'
   weibull_scale:
     section: patch_age
     title: Weibull scale from the mean disturbance interval
@@ -2278,10 +2278,10 @@ equations:
       P(a) = 1, \qquad S_{\rm P}(a_0, a) = 1
     code: plant::No_Disturbance::density
     also: [plant::No_Disturbance::pr_survival]
-    reads: [patch_type]
+    reads: [fitness_weighting]
     writes: []
     kind: identity
-    note: 'Not on an Overstorey page. patch_type "fixed": a single patch run to max_patch_lifetime; $P$ is a unit weight rather than a density, so fitness is the unweighted integral of lifetime output over birth dates.'
+    note: 'Not on an Overstorey page. fitness_weighting "none": a single patch run to max_patch_lifetime; $P$ is a unit weight rather than a density, so fitness is the unweighted integral of lifetime output over birth dates.'
   fitness_window_weight:
     section: patch_age
     title: The fitness window's arrival weight
@@ -2289,10 +2289,10 @@ equations:
       P(a_0) = \frac{v(a_0)}{\int_{a_{\rm start}}^{a_{\rm end}} v(a) \, {\rm d}a} \text{ for } a_{\rm start} \le a_0 \le a_{\rm end}, \text{ and } 0 \text{ otherwise}, \qquad S_{\rm P}(a_0, a) = 1
     code: plant::Fitness_Window::density
     also: [plant::Fitness_Window::pr_survival, plant::Fitness_Window::Fitness_Window]
-    reads: [patch_type, fitness_window_start, fitness_window_end, fitness_window_weight_x, fitness_window_weight_y]
+    reads: [fitness_weighting, fitness_window_start, fitness_window_end, fitness_window_weight_x, fitness_window_weight_y]
     writes: []
     kind: closed_form
-    note: 'Not on an Overstorey page. patch_type "fitness_window": one long run with no disturbance, weighting arrivals by date. $v$ is piecewise linear through the knots $(a_k, v_k)$, constant beyond the end knots, and 1 with no knots.'
+    note: 'Not on an Overstorey page. fitness_weighting "window": one long run with no disturbance, weighting arrivals by date. $v$ is piecewise linear through the knots $(a_k, v_k)$, constant beyond the end knots, and 1 with no knots.'
 
   # --- reproduction ---------------------------------------------------------------
   net_reproduction_ratio:
@@ -2302,7 +2302,7 @@ equations:
       R\left(x^\prime,x\right) = \int _0^{a_{\rm max}} P\left(a_0\right) \, S_{\rm D} \, \tilde{R}\left(x^\prime, a_0, a_{\rm max} \right) \, {\rm d}a_0
     code: plant::Patch::net_reproduction_ratio_of
     also: [plant::Patch::fitness_integral, plant::Node::weighted_fecundity, plant::Species::weighted_fecundity_by_node, plant::util::trapezium]
-    reads: [S_D, f, d, S_G, patch_type, max_patch_lifetime]
+    reads: [S_D, f, d, S_G, fitness_weighting, max_patch_lifetime]
     writes: []
     kind: integrator
     overstorey: theory/adaptive-dynamics.qmd

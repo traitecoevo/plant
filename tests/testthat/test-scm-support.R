@@ -11,8 +11,14 @@ test_that("collect", {
   expect_silent(res <- run(p1, env, ctrl)$solver)
 
   expect_contains(
-    names(res), c("clone", "collect", "compute_competition_effect_error_by_node_for_species_i", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "set_node_schedule_times", "time")
+    names(res), c("clone", "collect", "history", "initialize", "schedule", "ode_times", "parameters", "patch", "reset", "run", "run_mutant", "set_node_schedule_times", "time")
   )
+  ## The fitness values and error signals are the patch's, read from it (#460).
+  fitness <- c("net_reproduction_ratios", "offspring_production",
+               "net_reproduction_ratio_errors", "refinement_error_by_node",
+               "compute_competition_effect_error_by_node_for_species_i")
+  expect_contains(names(res$patch), fitness)
+  expect_false(any(c(fitness, "net_reproduction_ratio_for_species") %in% names(res)))
 
 })
 

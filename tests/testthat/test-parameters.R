@@ -15,7 +15,7 @@ test_that("Creation & defaults", {
     
     expected <- list(n_patches=1,
                      patch_area=1.0,
-                     patch_type = "meta-population",
+                     fitness_weighting = "patch_age",
                      max_patch_lifetime=105.32)
 
     expect_equal(p[names(expected)], expected)

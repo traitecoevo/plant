@@ -139,7 +139,7 @@ test_that("the events path reproduces the default path exactly", {
       scm <- SCM(x, e)(p, Environment(x), ev, control())
       scm$run()
       list(ode_times = scm$ode_times,
-           net_reproduction_ratios = scm$net_reproduction_ratios,
+           net_reproduction_ratios = scm$patch$net_reproduction_ratios,
            ode_state = scm$patch$ode_state)
     }
 
@@ -349,7 +349,7 @@ test_that("harvest respects its size band", {
     events(node_introductions(p),
            harvest(time = 10, fraction = 0.9, size_min = 1e6))
   })
-  expect_equal(spared$net_reproduction_ratios, base$net_reproduction_ratios)
+  expect_equal(spared$patch$net_reproduction_ratios, base$patch$net_reproduction_ratios)
   expect_equal(spared$event_log$applied[[1]][[2]], 0)
 
   ## A band that covers everything takes more than one that covers the top.
@@ -381,7 +381,7 @@ test_that("a climate extreme accrues dose only above its threshold", {
            climate_extreme(time = 10, intensity = 30, threshold = 40))
   })
   expect_equal(mild$event_log$applied[[1]][[1]], 0)
-  expect_equal(mild$net_reproduction_ratios, base$net_reproduction_ratios)
+  expect_equal(mild$patch$net_reproduction_ratios, base$patch$net_reproduction_ratios)
 
   ## Above it, damage rises with both peak intensity and duration -- which is
   ## the sub-integration doing its work, since duration enters nowhere else.

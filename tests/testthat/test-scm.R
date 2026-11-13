@@ -192,8 +192,8 @@ test_that("A pinned run on a run's own steps reproduces it", {
     pinned <- rerun(TRUE)
     expect_identical(pinned$ode_times, free$ode_times)
     expect_identical(pinned$ode_step_sizes, free$ode_step_sizes)
-    expect_identical(pinned$net_reproduction_ratios,
-                     free$net_reproduction_ratios)
+    expect_identical(pinned$patch$net_reproduction_ratios,
+                     free$patch$net_reproduction_ratios)
     expect_identical(pinned$patch$ode_state, free$patch$ode_state)
 
     ## The sizes are what makes it exact: they are not recoverable from the
@@ -259,7 +259,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
   ## pays.
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 1
-  p0$patch_type <- "fixed"
+  p0$fitness_weighting <- "none"
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
   wet <- function() {
     e <- Environment("TF24")
@@ -271,7 +271,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
                           ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
                           ode_soil_substep = substep))$solver
   }
-  fitness <- function(scm) sum(scm$offspring_production)
+  fitness <- function(scm) sum(scm$patch$offspring_production)
 
   coupled <- run_substep(FALSE)
   substepped <- run_substep(TRUE)
@@ -352,7 +352,7 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
   ## one stopped at every knot, with ode_soil_substep on and off.
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 2
-  p0$patch_type <- "fixed"
+  p0$fitness_weighting <- "none"
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
   set.seed(4)
   days <- seq(0, 2 * 365 + 5)
@@ -379,8 +379,8 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
                     rainfall_pulse(time = knots, depth = rep(0, length(knots))))
     stopped <- run(p, env(), ctrl, events = stops)$solver
     free <- run(p, env(), ctrl)$solver
-    expect_lt(abs(sum(free$offspring_production) /
-                  sum(stopped$offspring_production) - 1), 2e-5)
+    expect_lt(abs(sum(free$patch$offspring_production) /
+                  sum(stopped$patch$offspring_production) - 1), 2e-5)
     t <- free$ode_times
     substepped <- lengths(free$ode_soil_substep_ends[-1]) > 0
     spans <- vapply(seq_along(substepped), function(k)
@@ -405,7 +405,7 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## its record, so a pinned run, the sweep and an invader take it as the run did.
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 3
-  p0$patch_type <- "fixed"
+  p0$fitness_weighting <- "none"
   lma <- 0.1978791
   p <- add_strategies(p0, trait_matrix(lma, "lma"))
   env <- function() {
@@ -481,9 +481,9 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## An invader with the stand's traits, integrated on the run's steps with the
   ## soil read from the run, has the stand's fitness. Not to the bit: on this
   ## stand it misses by 4e-14 with the soil coupled too.
-  ratios <- substepped$net_reproduction_ratios
+  ratios <- substepped$patch$net_reproduction_ratios
   substepped$run_mutant(p)
-  expect_equal(substepped$net_reproduction_ratios, ratios, tolerance = 1e-12)
+  expect_equal(substepped$patch$net_reproduction_ratios, ratios, tolerance = 1e-12)
 })
 
 test_that("schedule setting", {
@@ -545,13 +545,13 @@ test_that("Offspring production & error calculations correct", {
       else total
     }
 
-    expect_equal(scm$net_reproduction_ratio_for_species(1), net_reproduction_ratio_R(scm))
-    expect_equal(scm$net_reproduction_ratios, net_reproduction_ratio_R(scm))
-    expect_equal(scm$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
+    patch <- scm$patch
+    expect_equal(patch$net_reproduction_ratios, net_reproduction_ratio_R(scm))
+    expect_equal(patch$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
 
     lae_cmp <-
       scm$patch$species[[1]]$compute_competition_effect_by_nodes_error(scm$patch$compute_competition(0))
-    expect_identical(scm$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)
+    expect_identical(patch$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)
 
   }
 })
@@ -569,7 +569,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     scm <- SCM(x, e)(p1, env, empty_events(), ctrl)
     scm$collect_refinement_errors <- TRUE
     scm$run()
-    new_total <- scm$refinement_error_by_node
+    new_total <- scm$patch$refinement_error_by_node
 
     ## Reference: sample the competition error per introduction step and take
     ## the column-wise max with the reproduction error (the logic the R-side
@@ -595,7 +595,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     }
     rbind_list <- function(z) do.call("rbind", as.list(z))
     lai_error <- lapply(lai_error, function(z) rbind_list(pad_matrix(z)))
-    repro <- scm_ref$net_reproduction_ratio_errors
+    repro <- scm_ref$patch$net_reproduction_ratio_errors
     f <- function(m) suppressWarnings(apply(m, 2, max, na.rm = TRUE))
     ref_total <- lapply(seq_len(n_spp), function(idx)
       f(rbind(lai_error[[idx]], repro[[idx]])))
@@ -649,7 +649,7 @@ test_that("A second run on one SCM reproduces the first", {
   unrun <- utils::tail(new_scm()$patch$ode_state, n_env)
 
   scm$run()
-  first_offspring <- scm$offspring_production
+  first_offspring <- scm$patch$offspring_production
   first_state <- scm$patch$ode_state
 
   ## The run moved the environment, which is the state the reset has to put
@@ -661,7 +661,7 @@ test_that("A second run on one SCM reproduces the first", {
   expect_identical(utils::tail(scm$patch$ode_state, n_env), unrun)
 
   scm$run()
-  expect_identical(scm$offspring_production, first_offspring)
+  expect_identical(scm$patch$offspring_production, first_offspring)
   expect_identical(scm$patch$ode_state, first_state)
 })
 

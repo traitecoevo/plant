@@ -650,7 +650,7 @@ Parameters:
   list:
     - patch_area: double
     - n_patches: size_t
-    - patch_type: "std::string"
+    - fitness_weighting: "std::string"
     - max_patch_lifetime: double
     - fitness_window_start: double
     - fitness_window_end: double
@@ -834,7 +834,18 @@ Patch:
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
     has_constant_field: {type: bool, access: member, readonly: true}
+    # Fitness: totals, not per capita
+    net_reproduction_ratios: {type: "std::vector<double>", access: member}
+    offspring_production: {type: "std::vector<double>", access: member}
+    # The per-node errors that drive schedule refinement: the reproduction
+    # integral's, and the combined signal refine_schedule() splits on
+    net_reproduction_ratio_errors: {type: "std::vector<std::vector<double>>", access: member}
+    refinement_error_by_node: {type: "std::vector<std::vector<double>>", access: member}
   methods:
+    compute_competition_effect_error_by_node_for_species_i:
+      args: [species_index: "plant::util::index"]
+      return_type: "std::vector<double>"
+      name_cpp: r_compute_competition_effect_error_by_node_for_species_i
     # The opt-in domain check the adaptive stepper calls on a completed step
     # (odelia #55/#56). Exposed so a test can pin the contract directly.
     ode_state_valid:
@@ -933,16 +944,6 @@ SCM:
       return_type: void
     reset:
       return_type: void
-    # Fitness / reproduction
-    net_reproduction_ratio_for_species:
-      args: [species_index: "plant::util::index"]
-      return_type: double
-      name_cpp: r_net_reproduction_ratio_for_species
-    # Schedule-refinement error signals
-    compute_competition_effect_error_by_node_for_species_i:
-      args: [species_index: "plant::util::index"]
-      return_type: "std::vector<double>"
-      name_cpp: r_compute_competition_effect_error_by_node_for_species_i
     # Node schedule
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
@@ -951,9 +952,6 @@ SCM:
   active:
     # Lifecycle / state
     time: {type: double, access: member}
-    # Outputs (totals)
-    net_reproduction_ratios: {type: "std::vector<double>", access: member}
-    offspring_production: {type: "std::vector<double>", access: member}
     # Run / parameters / state access
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
@@ -964,14 +962,6 @@ SCM:
       type: "std::vector<plant::Patch<T,E>>"
       access: member
       name_cpp: r_history
-    # Fitness / reproduction error signals
-    net_reproduction_ratio_errors:
-      type: "std::vector<std::vector<double>>"
-      access: member
-      name_cpp: r_net_reproduction_ratio_errors
-    refinement_error_by_node:
-      type: "std::vector<std::vector<double>>"
-      access: member
     # The schedule of events
     schedule:
       type: "plant::Schedule"

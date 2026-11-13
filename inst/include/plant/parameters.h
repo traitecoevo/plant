@@ -69,7 +69,7 @@ struct Parameters {
   Parameters() :
     patch_area(1.0),
     n_patches(1),
-    patch_type("meta-population"),
+    fitness_weighting("patch_age"),
     max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
     fitness_window_start(0.0),
     fitness_window_end(0.0),
@@ -81,11 +81,12 @@ struct Parameters {
   // Data -- public for now (see github issue #17).
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
-  // "meta-population" (Weibull patch ages), "fixed" (no disturbance) or
-  // "fitness_window"; validate() refuses anything else.
-  std::string patch_type;
+  // How a cohort's fitness is weighted by its birth date: "patch_age" (the
+  // Weibull distribution of patch ages), "none" (no disturbance) or "window"
+  // (an arrival window); validate() refuses anything else.
+  std::string fitness_weighting;
   double max_patch_lifetime; // Disturbance interval (years)
-  // The arrival window and its weight, read when patch_type is "fitness_window": the
+  // The arrival window and its weight, read when fitness_weighting is "window": the
   // continuous patch's regime (#519, disturbances/fitness_window.h). Both ends
   // default to zero, which validate() refuses, so a window has to be chosen.
   double fitness_window_start;
@@ -182,22 +183,22 @@ void Parameters<T,E>::validate() {
   // Disturbances used to describe evolution of a metapopulation of patches
   // when calculating fitness, otherwise defaults to fixed-duration run without
   // disturbance
-  if(patch_type == "meta-population") {
+  if (fitness_weighting == "patch_age") {
     disturbance = std::make_shared<Weibull_Disturbance_Regime>(max_patch_lifetime);
   }
-  else if (patch_type == "fitness_window") {
+  else if (fitness_weighting == "window") {
     disturbance = std::make_shared<Fitness_Window>(fitness_window_start, fitness_window_end,
                                                   fitness_window_weight_x,
                                                   fitness_window_weight_y);
   }
-  else if (patch_type == "fixed") {
+  else if (fitness_weighting == "none") {
     disturbance = std::make_shared<No_Disturbance>();
   }
   else {
     // Named rather than defaulted: a misspelt type would otherwise run with no
     // weighting at all and report a fitness for it.
-    util::stop("Unknown patch_type \"" + patch_type + "\": use "
-               "\"meta-population\", \"fixed\" or \"fitness_window\"");
+    util::stop("Unknown fitness_weighting \"" + fitness_weighting + "\": use "
+               "\"patch_age\", \"none\" or \"window\"");
   }
 }
 

@@ -13,6 +13,20 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`Parameters$patch_type` is `Parameters$fitness_weighting`, and its values are renamed.** The field says how a cohort's fitness is weighted by its birth date. No number moves. ⚠️ A `Parameters` object is a list, and a name the C++ side does not know is dropped without a word, so `p$patch_type <- "fixed"` would now run under the default weighting; `run()` and `scenario()` refuse a `p` that still has a `patch_type`, saved ones included, naming the replacement. The window's own fields, `fitness_window_start`, `fitness_window_end`, `fitness_window_weight_x` and `fitness_window_weight_y`, and `fitness_window()` keep their names (#428). Migration:
+  * `p$patch_type` -> `p$fitness_weighting`
+  * `p$patch_type <- "meta-population"` -> `p$fitness_weighting <- "patch_age"` (the default)
+  * `p$patch_type <- "fixed"` -> `p$fitness_weighting <- "none"`
+  * `p$patch_type <- "fitness_window"` -> `p$fitness_weighting <- "window"`, which `fitness_window(p, start, end)` sets
+  * `Parameters(...)(patch_type = x)` -> `Parameters(...)(fitness_weighting = y)`, mapping `x` to `y` as above
+* **The fitness values and refinement errors are read from the patch, not the `SCM` (#460).** The `SCM` copied them from its `Patch`, which computes them; the copies are removed. A removed field reads as `NULL` rather than an error, so search for every use. No number moves. The `plant_run` keeps its own `$net_reproduction_ratios` and `$offspring_production`, and `tidy()` its, unchanged (#428). Migration:
+  * `scm$net_reproduction_ratios` -> `scm$patch$net_reproduction_ratios`, or `res$net_reproduction_ratios` on the `plant_run`
+  * `scm$offspring_production` -> `scm$patch$offspring_production`, or `res$offspring_production` on the `plant_run`
+  * `scm$net_reproduction_ratio_errors` -> `scm$patch$net_reproduction_ratio_errors`
+  * `scm$refinement_error_by_node` -> `scm$patch$refinement_error_by_node`
+  * `scm$compute_competition_effect_error_by_node_for_species_i(i)` -> `scm$patch$compute_competition_effect_error_by_node_for_species_i(i)`
+  * `scm$net_reproduction_ratio_for_species(i)` (removed) -> `scm$patch$net_reproduction_ratios[i]`, the same number
+  * here `scm` is the live solver, `res$solver` on a `plant_run`
 * **The old run entry points are removed: `run()` is the one verb, and `scm_base_parameters()` is `base_parameters()`.** `run_scm()`, `run_stochastic_collect()`, `grow_individual_to_size()`, `grow_individual_to_height()` and `grow_individual_to_time()` are removed with no deprecation period, and `scm_base_parameters()` is renamed. No number moves: `run()` drives the same solvers the same way. A deterministic `run()` returns a `plant_run`, with the live `SCM` at `$solver`, and `tidy()` of one run with `record = "steps"` returns exactly the list `run_scm(..., collect = TRUE)` returned, in the same order. ⚠️ `run()`'s argument is `control`, not `ctrl`: a positional third argument still binds, but a named `ctrl =` is refused ("run() does not take ctrl here"). `run()` also refuses a `control` that is not a `Control` and `events` that are not an `Events` or `NULL`, which `run_scm()` passed on (#428). Migration:
   * `run_scm(p, env, ctrl)` -> `run(p, env, ctrl)$solver`, the `SCM` as before; `run(p, env, ctrl)` alone is the `plant_run`, whose `$offspring_production`, `$net_reproduction_ratios` and `$event_log` are the solver's
   * `run_scm(p, ctrl = ctrl)` -> `run(p, control = ctrl)$solver`

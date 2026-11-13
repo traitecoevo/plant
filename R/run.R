@@ -36,6 +36,14 @@ scenario <- function(p, env = NULL, control = plant::control(), events = NULL) {
     stop("`events` must be an Events object, as events() returns, or NULL",
          call. = FALSE)
   }
+  ## A Parameters object is a list, and the C++ side ignores a name it does not
+  ## know, so a `p` still carrying the old field would run under the default
+  ## weighting and report a different fitness with nothing said.
+  if (!is.null(p$patch_type)) {
+    stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", ",
+         "\"none\" and \"window\" for \"meta-population\", \"fixed\" and ",
+         "\"fitness_window\"", call. = FALSE)
+  }
   structure(list(p = p, env = env, control = control, events = events),
             class = "plant_scenario")
 }
@@ -310,11 +318,12 @@ run_stochastic <- function(x, until, from, record, refine_schedule) {
 }
 
 new_plant_run <- function(scm, scenario, record, mutants = NULL) {
+  patch <- scm$patch
   structure(list(scenario = scenario,
                  time = scm$time,
                  complete = scm$complete,
-                 offspring_production = scm$offspring_production,
-                 net_reproduction_ratios = scm$net_reproduction_ratios,
+                 offspring_production = patch$offspring_production,
+                 net_reproduction_ratios = patch$net_reproduction_ratios,
                  event_log = scm$event_log,
                  record = record,
                  mutants = mutants,
@@ -395,8 +404,9 @@ tidy.plant_run <- function(x, ...) {
          call. = FALSE)
   }
   results <- tidy_patch(lapply(scm$history, "[[", "state"))
-  results[["offspring_production"]] <- scm$offspring_production
-  results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
+  patch <- scm$patch
+  results[["offspring_production"]] <- patch$offspring_production
+  results[["net_reproduction_ratios"]] <- patch$net_reproduction_ratios
   results[["p"]] <- scm$parameters
   ## Events are given separately from `p`, so `p` alone does not describe the
   ## run: the schedule asked for and what was applied (including how much of

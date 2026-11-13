@@ -89,8 +89,8 @@ test_that("exposing the root parameters left default behaviour unchanged", {
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run(p, env)$solver
-  expect_true(is.finite(out$offspring_production))
-  expect_gte(out$offspring_production, 0)
+  expect_true(is.finite(out$patch$offspring_production))
+  expect_gte(out$patch$offspring_production, 0)
 })
 
 # ---------------------------------------------------------------------------
@@ -163,6 +163,6 @@ test_that("an unequal-layer column runs end to end", {
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run(p, env)$solver
-  expect_true(is.finite(out$offspring_production))
-  expect_gte(out$offspring_production, 0)
+  expect_true(is.finite(out$patch$offspring_production))
+  expect_gte(out$patch$offspring_production, 0)
 })

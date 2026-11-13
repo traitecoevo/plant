@@ -48,7 +48,7 @@ is dead, and returns each one's lifetime offspring per seed. Every arrival
 at a fixed point sees the same field, so that one cohort's output is the
 invader's fitness. The resident's own strategy scores a resident cohort's
 lifetime output per seed, which is one at the resident's demographic
-equilibrium (it is not \code{scm$net_reproduction_ratios}, which a
+equilibrium (it is not the run's \code{net_reproduction_ratios}, which a
 continuous patch's ever-growing node list does not make a per-cohort
 quantity).
 

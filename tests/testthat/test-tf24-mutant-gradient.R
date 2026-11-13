@@ -4,7 +4,7 @@
 
 tf24_resident <- function(lifetime = 2) {
   p <- testing_parameters("TF24")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
@@ -47,20 +47,20 @@ test_that("a TF24 invader's census gradient is the difference across pinned runs
 test_that("a TF24 invader solves its own leaf, alone or beside another", {
   p <- tf24_resident()
   scm <- run(p, tf24_env(), tf24_control())$solver
-  resident <- scm$net_reproduction_ratios
+  resident <- scm$patch$net_reproduction_ratios
   invaders <- function(lma) {
     q <- add_strategies(testing_parameters("TF24"), trait_matrix(lma, "lma"),
                         hyperpar = default_hyperpar("TF24"),
                         birth_rate = rep(1, length(lma)))
-    q$patch_type <- p$patch_type
+    q$fitness_weighting <- p$fitness_weighting
     q$max_patch_lifetime <- p$max_patch_lifetime
     q$node_schedule_times <- rep(p$node_schedule_times, length(lma))
     q
   }
   scm$run_mutant(invaders(c(0.0825, 0.1)))
-  together <- scm$net_reproduction_ratios
+  together <- scm$patch$net_reproduction_ratios
   scm$run_mutant(invaders(0.1))
-  alone <- scm$net_reproduction_ratios
+  alone <- scm$patch$net_reproduction_ratios
   # The resident as its own invader solves the leaf the resident solved.
   expect_equal(together[[1]], resident, tolerance = 1e-12)
   # And an invader's fitness does not depend on who invades beside it.
@@ -89,7 +89,7 @@ test_that("a TF24 invasion of a resumed resident is differentiated", {
     q <- pm
     q$strategies[[1]]$pars$lma <- v
     scm$run_mutant(q)
-    scm$net_reproduction_ratios
+    scm$patch$net_reproduction_ratios
   }
   expect_equal(g$gradient[["1.net_reproduction_ratio", "1.lma"]],
                (at(x + h) - at(x - h)) / (2 * h), tolerance = 1e-3)

@@ -3169,6 +3169,10 @@ Patch___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
+Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
+}
+
 Patch___FF16__FF16_Env__ode_state_valid <- function(obj_, y) {
     .Call('_plant_Patch___FF16__FF16_Env__ode_state_valid', PACKAGE = 'plant', obj_, y)
 }
@@ -3301,8 +3305,28 @@ Patch___FF16__FF16_Env__has_constant_field__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16__FF16_Env__net_reproduction_ratios__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16__FF16_Env__offspring_production__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__offspring_production__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16__FF16_Env__refinement_error_by_node__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___TF24__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___TF24__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+}
+
+Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 Patch___TF24__TF24_Env__ode_state_valid <- function(obj_, y) {
@@ -3437,8 +3461,28 @@ Patch___TF24__TF24_Env__has_constant_field__get <- function(obj_) {
     .Call('_plant_Patch___TF24__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___TF24__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
+    .Call('_plant_Patch___TF24__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24__TF24_Env__offspring_production__get <- function(obj_) {
+    .Call('_plant_Patch___TF24__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
+    .Call('_plant_Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24__TF24_Env__refinement_error_by_node__get <- function(obj_) {
+    .Call('_plant_Patch___TF24__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___TF24f__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___TF24f__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+}
+
+Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 Patch___TF24f__TF24_Env__ode_state_valid <- function(obj_, y) {
@@ -3573,8 +3617,28 @@ Patch___TF24f__TF24_Env__has_constant_field__get <- function(obj_) {
     .Call('_plant_Patch___TF24f__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___TF24f__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
+    .Call('_plant_Patch___TF24f__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24f__TF24_Env__offspring_production__get <- function(obj_) {
+    .Call('_plant_Patch___TF24f__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
+    .Call('_plant_Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24f__TF24_Env__refinement_error_by_node__get <- function(obj_) {
+    .Call('_plant_Patch___TF24f__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___TF24t__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___TF24t__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+}
+
+Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 Patch___TF24t__TF24_Env__ode_state_valid <- function(obj_, y) {
@@ -3709,8 +3773,28 @@ Patch___TF24t__TF24_Env__has_constant_field__get <- function(obj_) {
     .Call('_plant_Patch___TF24t__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___TF24t__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
+    .Call('_plant_Patch___TF24t__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24t__TF24_Env__offspring_production__get <- function(obj_) {
+    .Call('_plant_Patch___TF24t__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
+    .Call('_plant_Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24t__TF24_Env__refinement_error_by_node__get <- function(obj_) {
+    .Call('_plant_Patch___TF24t__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___TF24w__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___TF24w__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+}
+
+Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 Patch___TF24w__TF24_Env__ode_state_valid <- function(obj_, y) {
@@ -3845,8 +3929,28 @@ Patch___TF24w__TF24_Env__has_constant_field__get <- function(obj_) {
     .Call('_plant_Patch___TF24w__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___TF24w__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
+    .Call('_plant_Patch___TF24w__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24w__TF24_Env__offspring_production__get <- function(obj_) {
+    .Call('_plant_Patch___TF24w__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
+    .Call('_plant_Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___TF24w__TF24_Env__refinement_error_by_node__get <- function(obj_) {
+    .Call('_plant_Patch___TF24w__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___K93__K93_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+}
+
+Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 Patch___K93__K93_Env__ode_state_valid <- function(obj_, y) {
@@ -3981,6 +4085,22 @@ Patch___K93__K93_Env__has_constant_field__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___K93__K93_Env__net_reproduction_ratios__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__offspring_production__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__offspring_production__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__net_reproduction_ratio_errors__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__refinement_error_by_node__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___FF16__FF16_Env__ctor <- function(parameters, environment, events, control) {
     .Call('_plant_SCM___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
@@ -4013,28 +4133,12 @@ SCM___FF16__FF16_Env__reset <- function(obj_) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___FF16__FF16_Env__net_reproduction_ratio_for_species <- function(obj_, species_index) {
-    .Call('_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
-}
-
-SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
-    .Call('_plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
-}
-
 SCM___FF16__FF16_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
 SCM___FF16__FF16_Env__time__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__time__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___FF16__FF16_Env__net_reproduction_ratios__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___FF16__FF16_Env__offspring_production__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__offspring_production__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16__FF16_Env__parameters__get <- function(obj_) {
@@ -4047,14 +4151,6 @@ SCM___FF16__FF16_Env__patch__get <- function(obj_) {
 
 SCM___FF16__FF16_Env__history__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__history__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___FF16__FF16_Env__refinement_error_by_node__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16__FF16_Env__schedule__get <- function(obj_) {
@@ -4161,28 +4257,12 @@ SCM___TF24__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24__TF24_Env__net_reproduction_ratio_for_species <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
-}
-
-SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
-}
-
 SCM___TF24__TF24_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
 SCM___TF24__TF24_Env__time__get <- function(obj_) {
     .Call('_plant_SCM___TF24__TF24_Env__time__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24__TF24_Env__offspring_production__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24__TF24_Env__parameters__get <- function(obj_) {
@@ -4195,14 +4275,6 @@ SCM___TF24__TF24_Env__patch__get <- function(obj_) {
 
 SCM___TF24__TF24_Env__history__get <- function(obj_) {
     .Call('_plant_SCM___TF24__TF24_Env__history__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24__TF24_Env__refinement_error_by_node__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24__TF24_Env__schedule__get <- function(obj_) {
@@ -4309,28 +4381,12 @@ SCM___TF24f__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
-}
-
-SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
-}
-
 SCM___TF24f__TF24_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
 SCM___TF24f__TF24_Env__time__get <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__time__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24f__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24f__TF24_Env__offspring_production__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24f__TF24_Env__parameters__get <- function(obj_) {
@@ -4343,14 +4399,6 @@ SCM___TF24f__TF24_Env__patch__get <- function(obj_) {
 
 SCM___TF24f__TF24_Env__history__get <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__history__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24f__TF24_Env__refinement_error_by_node__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24f__TF24_Env__schedule__get <- function(obj_) {
@@ -4457,28 +4505,12 @@ SCM___TF24t__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_SCM___TF24t__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
-}
-
-SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
-}
-
 SCM___TF24t__TF24_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___TF24t__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
 SCM___TF24t__TF24_Env__time__get <- function(obj_) {
     .Call('_plant_SCM___TF24t__TF24_Env__time__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24t__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24t__TF24_Env__offspring_production__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24t__TF24_Env__parameters__get <- function(obj_) {
@@ -4491,14 +4523,6 @@ SCM___TF24t__TF24_Env__patch__get <- function(obj_) {
 
 SCM___TF24t__TF24_Env__history__get <- function(obj_) {
     .Call('_plant_SCM___TF24t__TF24_Env__history__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24t__TF24_Env__refinement_error_by_node__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24t__TF24_Env__schedule__get <- function(obj_) {
@@ -4605,28 +4629,12 @@ SCM___TF24w__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_SCM___TF24w__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
-}
-
-SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
-}
-
 SCM___TF24w__TF24_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___TF24w__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
 SCM___TF24w__TF24_Env__time__get <- function(obj_) {
     .Call('_plant_SCM___TF24w__TF24_Env__time__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24w__TF24_Env__net_reproduction_ratios__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24w__TF24_Env__offspring_production__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__offspring_production__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24w__TF24_Env__parameters__get <- function(obj_) {
@@ -4639,14 +4647,6 @@ SCM___TF24w__TF24_Env__patch__get <- function(obj_) {
 
 SCM___TF24w__TF24_Env__history__get <- function(obj_) {
     .Call('_plant_SCM___TF24w__TF24_Env__history__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___TF24w__TF24_Env__refinement_error_by_node__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24w__TF24_Env__schedule__get <- function(obj_) {
@@ -4753,28 +4753,12 @@ SCM___K93__K93_Env__reset <- function(obj_) {
     invisible(.Call('_plant_SCM___K93__K93_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___K93__K93_Env__net_reproduction_ratio_for_species <- function(obj_, species_index) {
-    .Call('_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
-}
-
-SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
-    .Call('_plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
-}
-
 SCM___K93__K93_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___K93__K93_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
 SCM___K93__K93_Env__time__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__time__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___K93__K93_Env__net_reproduction_ratios__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__net_reproduction_ratios__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___K93__K93_Env__offspring_production__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__offspring_production__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___K93__K93_Env__parameters__get <- function(obj_) {
@@ -4787,14 +4771,6 @@ SCM___K93__K93_Env__patch__get <- function(obj_) {
 
 SCM___K93__K93_Env__history__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__history__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___K93__K93_Env__net_reproduction_ratio_errors__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
-}
-
-SCM___K93__K93_Env__refinement_error_by_node__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___K93__K93_Env__schedule__get <- function(obj_) {

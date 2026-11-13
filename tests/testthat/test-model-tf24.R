@@ -273,7 +273,7 @@ test_that("offspring arrival", {
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
                        hyperpar = default_hyperpar("TF24"), birth_rate = list(20))
 
-  out <- run(p1, env, ctrl)$solver
+  out <- run(p1, env, ctrl)
   expect_equal(out$offspring_production, 9.12669320, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
@@ -287,7 +287,7 @@ test_that("offspring arrival", {
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = default_hyperpar("TF24"), birth_rate = list(20, 20))
 
-  out <- run(p2, env, ctrl)$solver
+  out <- run(p2, env, ctrl)
   expect_equal(out$offspring_production[[1]], 5.68263921, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 
@@ -331,7 +331,7 @@ test_that("offspring arrival", {
   # its light optimum: offspring peak near 1400 and the extra light dries the
   # soil faster. A build of v13 with the old light reproduced every old value
   # to ~1e-12, so the change is the light and not the code.
-  out_bd <- run(p2, env, Control(node_density_coordinate = "birth_date"))$solver
+  out_bd <- run(p2, env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 151.44086321, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 23.70609023, tolerance = 2e-2)
 })
@@ -384,16 +384,16 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
 
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
                        hyperpar = default_hyperpar("TF24"), birth_rate = list(20))
-  out <- run(linear(p1), env, ctrl)$solver
+  out <- run(linear(p1), env, ctrl)
   expect_equal(out$offspring_production, 18.91718234, tolerance = 2e-2)
 
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = default_hyperpar("TF24"), birth_rate = list(20, 20))
-  out2 <- run(linear(p2), env, ctrl)$solver
+  out2 <- run(linear(p2), env, ctrl)
   expect_equal(out2$offspring_production[[1]], 12.23143319, tolerance = 2e-2)
   expect_lt(out2$offspring_production[[2]], 0.5)
 
-  out_bd <- run(linear(p2), env, Control(node_density_coordinate = "birth_date"))$solver
+  out_bd <- run(linear(p2), env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 185.29515663, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 37.56661294, tolerance = 2e-2)
 })
@@ -472,7 +472,7 @@ test_that("SCM completes under extreme seasonal drought (#517, #550)", {
   y <- 0.4 * sin(2 * pi * x) + 0.5   # rainfall sweeps [0.1, 0.9]
   env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
 
-  out <- run(p1, env)$solver
+  out <- run(p1, env)
   expect_true(is.finite(out$offspring_production))
   expect_gt(out$offspring_production, 1e-3)
 })

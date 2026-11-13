@@ -161,7 +161,7 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   # 6 itself, in the field of the state the resident resumed from. Establishment
   # reads it, so a_d0 is the column that shows the wrong canopy (it was 26 % off).
   p <- resident_parameters(lifetime = 12)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))
   burn <- run(p, NULL, mutant_control(), until = 0)$solver
   burn$run_to(6)
