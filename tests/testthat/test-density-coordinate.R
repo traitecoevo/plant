@@ -43,7 +43,7 @@ offspring_in_coordinate <- function(p, x, birth_date, step_max = NULL) {
   if (!is.null(step_max)) {
     ctrl$ode_step_size_max <- step_max
   }
-  run_scm(p, Environment(x), ctrl)$offspring_production
+  run(p, Environment(x), ctrl)$offspring_production
 }
 
 ## A short collected run per (model, coordinate), computed once and shared.
@@ -716,7 +716,7 @@ test_that("auto resolves to the coordinate each model requires", {
       add_strategies(p, trait_matrix(0.0825, "lma"),
                      hyperpar = default_hyperpar(x), birth_rate = list(20))
     }
-    run_scm(p, Environment(x), ctrl)$patch$species[[1]]$density_in_birth_date
+    run(p, Environment(x), ctrl)$solver$patch$species[[1]]$density_in_birth_date
   }
 
   ## TF24's two coordinates disagree by several times, so this is the whole
@@ -742,16 +742,16 @@ test_that("an unrecognised coordinate is refused rather than guessed", {
   ## silently read as one of them would come back as a plausible number rather
   ## than an error. Each near miss must name what was expected.
   for (bad in c("birthdate", "birth date", "Height", "birth_dates", "auto ")) {
-    expect_error(run_scm(p, Environment("FF16"),
-                         Control(node_density_coordinate = bad)),
+    expect_error(run(p, Environment("FF16"),
+                     Control(node_density_coordinate = bad)),
                  "Unknown node_density_coordinate")
   }
 
   ## The empty string is the one non-"auto" value that is accepted, because it
   ## is how Control already spells "let the model decide" for shading_model.
   ## Asserted so the two conventions cannot drift apart silently.
-  expect_false(run_scm(p, Environment("FF16"),
-                       Control(node_density_coordinate = ""))$
+  expect_false(run(p, Environment("FF16"),
+                   Control(node_density_coordinate = ""))$solver$
                  patch$species[[1]]$density_in_birth_date)
 })
 
@@ -768,7 +768,7 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   p$max_patch_lifetime <- 20
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 10)
   p$node_schedule_times <- list(seq(0, 20, by = 1))
-  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
+  scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
   sp <- scm$patch$species[[1]]
   # The run reached its end, and the shaded cohorts did die.
   expect_equal(scm$time, 20)

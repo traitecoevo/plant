@@ -79,7 +79,9 @@ tidy_env <- function(results) {
 
 #' Turns output of plant solver into a tidy data object 
 #'
-#' @param results output of run_scm(..., collect = TRUE)
+#' @param results the patch's state at each step, as
+#'   \code{lapply(res$solver$history, "[[", "state")} gives it for a run with
+#'   \code{record = "steps"}
 #'
 #' @return a list, containing outputs of plant solver in tidy format
 #' @keywords internal

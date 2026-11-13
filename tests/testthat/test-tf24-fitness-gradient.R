@@ -33,8 +33,8 @@ fitness_stand_control <- function() {
 }
 
 fitness_stand_run <- function(p, record = TRUE) {
-  run_scm(p, fitness_stand_environment(), fitness_stand_control(),
-          keep_states = record)
+  run(p, fitness_stand_environment(), fitness_stand_control(),
+      record = if (record) "states" else character(0))$solver
 }
 
 test_that("TF24 reports its fitness under the names the gradient uses", {

@@ -671,7 +671,7 @@ Parameters:
     - initial_pr_patch_survival: "std::vector<double>"
     - initial_time: double
     # The trade-off function the strategies were built with (an R closure or
-    # NULL). Opaque to C++; carried so it survives validate() and run_scm().
+    # NULL). Opaque to C++; carried so it survives validate() and run().
     - hyperpar: SEXP
 
 Node:
@@ -1099,7 +1099,7 @@ StochasticPatch:
     ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
     node_ode_size: {type: size_t, access: member}
     # Structured per-species state (mirrors Patch::state); read by
-    # run_stochastic_collect each step. See issue #498.
+    # run(method = "stochastic", record = "steps") each step. See issue #498.
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
   methods:
     compute_competition: {return_type: double, args: [height: double]}

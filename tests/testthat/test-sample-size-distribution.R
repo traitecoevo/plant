@@ -8,8 +8,8 @@ sampling_run <- local({
       p$max_patch_lifetime <- 20
       p <- add_strategies(p, trait_matrix(c(0.0825, 0.2), "lma"),
                           birth_rate = c(20, 20))
-      cache <<- run_scm(p, ctrl = control(node_density_coordinate = "birth_date"),
-                        collect = TRUE)
+      cache <<- tidy(run(p, control = control(node_density_coordinate = "birth_date"),
+                         record = "steps"))
     }
     cache
   }
@@ -19,8 +19,8 @@ test_that("sampling refuses a run carried in height, and bad arguments", {
   p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
-  height_run <- run_scm(p, ctrl = control(node_density_coordinate = "height"),
-                        collect = TRUE)
+  height_run <- tidy(run(p, control = control(node_density_coordinate = "height"),
+                         record = "steps"))
   expect_error(sample_size_distribution(height_run, area = 10), "birth date")
 
   res <- sampling_run()

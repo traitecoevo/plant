@@ -22,7 +22,7 @@ tf24_control <- function() {
 
 test_that("a TF24 invader's census gradient is the difference across pinned runs", {
   p <- tf24_resident()
-  scm <- run_scm(p, tf24_env(), tf24_control(), keep_states = TRUE)
+  scm <- run(p, tf24_env(), tf24_control(), record = "states")$solver
   pm <- p
   pm$strategies[[1]]$pars$lma <- 0.1
   scm$run_mutant(pm)
@@ -46,7 +46,7 @@ test_that("a TF24 invader's census gradient is the difference across pinned runs
 
 test_that("a TF24 invader solves its own leaf, alone or beside another", {
   p <- tf24_resident()
-  scm <- run_scm(p, tf24_env(), tf24_control())
+  scm <- run(p, tf24_env(), tf24_control())$solver
   resident <- scm$net_reproduction_ratios
   invaders <- function(lma) {
     q <- add_strategies(testing_parameters("TF24"), trait_matrix(lma, "lma"),
@@ -70,11 +70,11 @@ test_that("a TF24 invader solves its own leaf, alone or beside another", {
 
 test_that("a TF24 invasion of a resumed resident is differentiated", {
   p <- tf24_resident()
-  burn <- run_scm(p, tf24_env(), tf24_control(), run = FALSE)
+  burn <- run(p, tf24_env(), tf24_control(), until = 0)$solver
   burn$run_to(1)
   state <- export_patch_state(burn)
-  scm <- run_scm(set_initial_state(p, state), tf24_env(), tf24_control(),
-                 keep_states = TRUE)
+  scm <- run(set_initial_state(p, state), tf24_env(), tf24_control(),
+             record = "states")$solver
   pm <- p
   pm$initial_time <- state$time
   pm$node_schedule_times <- state$node_schedule_times

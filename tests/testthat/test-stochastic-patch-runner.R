@@ -136,12 +136,13 @@ test_that("collect returns a well-formed, non-empty trajectory (#498)", {
     ## and the cost is linear in the number of individuals.
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           patch_area=1)
-    res <- run_stochastic_collect(p, Environment(x), stochastic_control(x))
+    res <- tidy(run(p, Environment(x), stochastic_control(x),
+                    method = "stochastic", record = "steps"))
 
     ## Regression guard for #498: the collector used to read a removed `state`
     ## accessor and silently returned empty output, which `expect_silent` could
     ## not catch. Assert the trajectory is actually populated.
-    expect_setequal(names(res), c("time", "species", "env", "p"))
+    expect_setequal(names(res), c("time", "species", "env"))
     expect_gt(length(res$time), 1)
     expect_false(is.unsorted(res$time))          # patch age is non-decreasing
     expect_length(res$species, 1)
@@ -233,7 +234,8 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
       set.seed(1)
       p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                             patch_area=1)
-      run_stochastic_collect(p, Environment(x), stochastic_control(x))
+      tidy(run(p, Environment(x), stochastic_control(x),
+               method = "stochastic", record = "steps"))
     }
     res <- run_once()
     sp <- res$species[[1]]
@@ -251,8 +253,8 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   s <- TF24_Model()
   s$pars$storage_relaxation_offset <- 0
   p <- Parameters("TF24", "TF24_Env")(strategies = list(s), patch_area = 1)
-  res <- run_stochastic_collect(p, Environment("TF24"),
-                                stochastic_control("TF24"))
+  res <- tidy(run(p, Environment("TF24"), stochastic_control("TF24"),
+                  method = "stochastic", record = "steps"))
   ia <- attr(res$species, "is_alive")[[1]]
   expect_equal(dim(res$species[[1]])[3], 48L)
   expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 1L)
@@ -305,7 +307,8 @@ test_that("the collected trajectory reports a moving soil state", {
   e <- environment_types[[x]]
   set.seed(1)
   p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()), patch_area=1)
-  res <- run_stochastic_collect(p, Environment(x), stochastic_control(x))
+  res <- tidy(run(p, Environment(x), stochastic_control(x),
+                  method = "stochastic", record = "steps"))
 
   expect_true("env" %in% names(res))
   expect_length(res$env, length(res$time))

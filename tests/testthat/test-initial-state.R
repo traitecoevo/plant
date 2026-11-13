@@ -119,7 +119,7 @@ test_that("make_initial_state seeds a patch from a size distribution", {
   expect_equal(sort(seeded$patch$species[[1]]$heights, decreasing = TRUE),
                seeded$patch$species[[1]]$heights)
 
-  out <- run_scm(p2, env, ctrl, collect = TRUE)
+  out <- tidy(run(p2, env, ctrl, record = "steps"))
   expect_true(is.finite(out$net_reproduction_ratios))
   expect_gt(out$net_reproduction_ratios, 0)
 })
@@ -144,7 +144,7 @@ test_that("seeded runs work with tidy outputs and plot_size_distribution", {
 
   st  <- make_initial_state(p1, heights = seq(1, 8, length.out = 10),
                             densities = rep(0.2, 10))
-  res <- run_scm(set_initial_state(p1, st), collect = TRUE)
+  res <- tidy(run(set_initial_state(p1, st), record = "steps"))
 
   # the standard tidy `species` table, with the seeded nodes present at t = 0
   expect_true(all(c("time", "height", "density", "log_density", "node",

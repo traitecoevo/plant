@@ -22,7 +22,7 @@
 # Individual triggers make_strategy_ptr() -> prepare_strategy(), which binds the
 # assimilation function pointer. NOTE: a stand-alone Individual is not inside a
 # Patch, so its environment is never put into the stepped (PPA) mode; PPA-vs-
-# others differences in the light profile only appear through run_scm() below.
+# others differences in the light profile only appear through run() below.
 make_ind <- function(model, height = 10) {
   s <- FF16_Model()
   s$control$shading_model <- model
@@ -105,14 +105,14 @@ test_that("flat-top-soft-box has a continuous competition profile and runs", {
   p0$max_patch_lifetime <- 40
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "flat-top-soft-box"
-  out <- run_scm(p1, Environment("FF16"), ctrl)
+  out <- run(p1, Environment("FF16"), ctrl)$solver
   expect_true(is.finite(out$offspring_production))
 
   # The mis-shaped competition propagates to the dynamics: a soft-box stand
   # differs from the correct crown-centre stand (same crown-centre assimilation, but
   # a different shade profile).
   ctrl_flat <- Control(); ctrl_flat$shading_model <- "crown-centre"
-  out_flat <- run_scm(p1, Environment("FF16"), ctrl_flat)
+  out_flat <- run(p1, Environment("FF16"), ctrl_flat)$solver
   expect_false(isTRUE(all.equal(out$offspring_production,
                                 out_flat$offspring_production, tolerance = 1e-2)))
 })
@@ -125,7 +125,7 @@ test_that("flat-top-box cannot build a light environment (discontinuous competit
   p0$max_patch_lifetime <- 40
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "flat-top-box"
-  expect_error(run_scm(p1, Environment("FF16"), ctrl),
+  expect_error(run(p1, Environment("FF16"), ctrl),
                "no light environment can be built from it")
 })
 
@@ -158,7 +158,7 @@ test_that("mean-light assimilation >= deep-crown (Jensen, concave photosynthesis
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   run_op <- function(m) {
     ctrl <- Control(); ctrl$shading_model <- m
-    run_scm(p1, Environment("FF16"), ctrl)$offspring_production
+    run(p1, Environment("FF16"), ctrl)$offspring_production
   }
   op_deep <- run_op("deep-crown")
   op_avg  <- run_op("mean-light")
@@ -182,9 +182,9 @@ test_that("deep-crown reproduces the baseline SCM result", {
   env <- Environment("FF16")
   # shading_model defaults to "deep-crown"
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
-  over_height <- run_scm(p1, env, Control(node_density_coordinate = "height"))
+  over_height <- run(p1, env, Control(node_density_coordinate = "height"))$solver
   expect_equal(over_height$offspring_production, 16.8846, tolerance = 1e-4)
-  over_birth_date <- run_scm(p1, env, Control(node_density_coordinate = "birth_date"))
+  over_birth_date <- run(p1, env, Control(node_density_coordinate = "birth_date"))$solver
   expect_equal(over_birth_date$offspring_production, 17.1720, tolerance = 1e-4)
 })
 
@@ -195,9 +195,9 @@ test_that("crown-centre runs through the SCM and changes the outcome", {
   # Compare crown-centre against deep-crown at the *same* (shortened) horizon, so
   # any difference is purely the model, not the horizon -- no dependence on the
   # full-lifetime baseline constant.
-  deep <- run_scm(p1, Environment("FF16"), Control())$offspring_production
+  deep <- run(p1, Environment("FF16"), Control())$offspring_production
   ctrl <- Control(); ctrl$shading_model <- "crown-centre"
-  out <- run_scm(p1, Environment("FF16"), ctrl)
+  out <- run(p1, Environment("FF16"), ctrl)$solver
   expect_true(is.finite(out$offspring_production))
   # crown-centre removes self-shading within the crown, so production differs
   expect_false(isTRUE(all.equal(out$offspring_production, deep, tolerance = 1e-3)))
@@ -261,8 +261,8 @@ test_that("PPA runs through the SCM (smoothed) and changes the outcome", {
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl_deep <- Control(); ctrl_deep$shading_model <- "deep-crown"
   ctrl_ppa  <- Control(); ctrl_ppa$shading_model  <- "ppa"
-  out_deep <- run_scm(p1, Environment("FF16"), ctrl_deep)
-  out_ppa  <- run_scm(p1, Environment("FF16"), ctrl_ppa)
+  out_deep <- run(p1, Environment("FF16"), ctrl_deep)$solver
+  out_ppa  <- run(p1, Environment("FF16"), ctrl_ppa)$solver
   expect_true(is.finite(out_ppa$offspring_production))
   expect_gt(out_ppa$offspring_production, out_deep$offspring_production)
 })
@@ -275,7 +275,7 @@ test_that("a hard PPA step (no smoothing) defeats the adaptive solver", {
   p0$max_patch_lifetime <- 40
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "ppa"; ctrl$ppa_layer_smoothing <- 0
-  expect_error(run_scm(p1, Environment("FF16"), ctrl))
+  expect_error(run(p1, Environment("FF16"), ctrl))
 })
 
 test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
@@ -283,9 +283,9 @@ test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
   p0$max_patch_lifetime <- 40
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "ppa"
-  adaptive <- run_scm(p1, Environment("FF16"), ctrl)$offspring_production
+  adaptive <- run(p1, Environment("FF16"), ctrl)$offspring_production
   pf <- p1; pf$ode_times <- seq(0, p0$max_patch_lifetime, length.out = 800)
-  fixed <- run_scm(pf, Environment("FF16"), ctrl)$offspring_production
+  fixed <- run(pf, Environment("FF16"), ctrl)$offspring_production
   expect_equal(adaptive, fixed, tolerance = 1e-2)
 })
 

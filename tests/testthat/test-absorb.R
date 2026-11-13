@@ -24,14 +24,14 @@ h_abs <- function(epsilon) {
 
 test_that("the top layer is off by default and refused where it cannot work", {
   expect_equal(Control()$absorb_epsilon, 0)
-  expect_false(run_scm(ff16(5))$patch$species[[1]]$top_layer$on)
-  expect_error(run_scm(ff16(5), ctrl = Control(absorb_epsilon = 0.01)), "birth-date")
-  expect_error(run_scm(ff16(5), ctrl = ctrl(absorb = 0.5)), "\\(0, 0.5\\)")
+  expect_false(run(ff16(5))$solver$patch$species[[1]]$top_layer$on)
+  expect_error(run(ff16(5), control = Control(absorb_epsilon = 0.01)), "birth-date")
+  expect_error(run(ff16(5), control = ctrl(absorb = 0.5)), "\\(0, 0.5\\)")
   ## K93 has no maturation height, so nothing says where its growth stops.
   p <- testing_parameters("K93")
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = 20)
-  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.01)), "asymptotic height")
+  expect_error(run(p, control = ctrl(absorb = 0.01)), "asymptotic height")
 })
 
 test_that("absorbing a stand conserves its density to rounding at the instant", {
@@ -135,7 +135,7 @@ test_that("an event reaches the trees the top layer holds", {
   p <- ff16(152)
   mark <- harvest(time = 150.51, fraction = 0)
   run_with <- function(ev) {
-    s <- run_scm(p, ctrl = ctrl(absorb = 0.05), events = ev, run = FALSE)
+    s <- run(p, control = ctrl(absorb = 0.05), events = ev, until = 0)$solver
     s$run_to(150)
     before <- s$patch$species[[1]]$top_layer
     s$run_to(150.51)
@@ -168,7 +168,7 @@ test_that("a layer whose density is spent empties rather than lingering", {
   ## And no cohort left to absorb: every exported one dead.
   state$ode_state[7 * seq_len(n)] <- -750
   q <- set_initial_state(ff16(160), state)
-  r <- run_scm(q, ctrl = ctrl(absorb = 0.05), events = state$events, run = FALSE)
+  r <- run(q, control = ctrl(absorb = 0.05), events = state$events, until = 0)$solver
   r$snapshot_interval <- 1
   r$run_to(152)
   layer <- r$patch$species[[1]]$top_layer
@@ -206,17 +206,17 @@ test_that("a frozen cohort's height does not move the field", {
 })
 
 test_that("refinement, a bad epsilon and a bad absorbing height are refused", {
-  expect_error(run_scm(ff16(20), ctrl = ctrl(absorb = 0.05), refine_schedule = TRUE),
+  expect_error(run(ff16(20), control = ctrl(absorb = 0.05), refine_schedule = TRUE),
                "top layer")
-  expect_error(run_scm(ff16(5), ctrl = ctrl(absorb = -0.1)), "zero \\(off\\)")
-  expect_error(run_scm(ff16(5), ctrl = ctrl(absorb = NaN)), "zero \\(off\\)")
+  expect_error(run(ff16(5), control = ctrl(absorb = -0.1)), "zero \\(off\\)")
+  expect_error(run(ff16(5), control = ctrl(absorb = NaN)), "zero \\(off\\)")
   p <- ff16(5)
   p$strategies[[1]]$pars$a_f2 <- 0
-  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "a_f2")
+  expect_error(run(p, control = ctrl(absorb = 0.05)), "a_f2")
   ## A negative a_f2 can still give a positive height, but allocation to
   ## reproduction then falls with height, so there is no asymptote to absorb at.
   p$strategies[[1]]$pars$a_f2 <- -50
-  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "a_f2")
+  expect_error(run(p, control = ctrl(absorb = 0.05)), "a_f2")
 })
 
 test_that("a cohort born with no density is refused rather than scored zero", {
@@ -224,17 +224,17 @@ test_that("a cohort born with no density is refused rather than scored zero", {
   ## cohorts would be frozen at birth and score nothing per seed.
   p <- ff16(5)
   p$strategies[[1]]$birth_rate_y <- 0
-  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "birth rate zero")
+  expect_error(run(p, control = ctrl(absorb = 0.05)), "birth rate zero")
   ## Off, it runs as it always has.
-  expect_true(is.finite(run_scm(p, ctrl = ctrl())$net_reproduction_ratios))
+  expect_true(is.finite(run(p, control = ctrl())$net_reproduction_ratios))
 })
 
 test_that("tidying a collected run says what the node rows leave out", {
   ## The layer is no node, so tidy_patch() and every integral over its rows
   ## miss what it carries.
-  expect_warning(run_scm(ff16(150), ctrl = ctrl(absorb = 0.05), collect = TRUE),
+  expect_warning(tidy(run(ff16(150), control = ctrl(absorb = 0.05), record = "steps")),
                  "top layer")
-  expect_no_warning(run_scm(ff16(20), ctrl = ctrl(), collect = TRUE))
+  expect_no_warning(tidy(run(ff16(20), control = ctrl(), record = "steps")))
 })
 
 ## Guards for any change to the fitness integral (#658 routes it through a plain
@@ -243,7 +243,7 @@ test_that("tidying a collected run says what the node rows leave out", {
 test_that("offspring production scales the layer's seeds by the birth rate", {
   p <- ff16(150)
   p$strategies[[1]]$birth_rate_y <- 2
-  s <- run_scm(p, ctrl = ctrl(absorb = 0.05))
+  s <- run(p, control = ctrl(absorb = 0.05))$solver
   layer <- s$patch$species[[1]]$top_layer
   expect_gt(layer$seeds, 0)
   expect_equal(layer$seeds_birth, 2 * layer$seeds, tolerance = 1e-12)
@@ -280,8 +280,8 @@ test_that("TF24 absorbs at its own asymptotic height", {
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 25, 1))
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  s <- run_scm(p, env, Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.05,
-                               ode_step_size_max = 0.05))
+  s <- run(p, env, Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.05,
+                           ode_step_size_max = 0.05))$solver
   layer <- s$patch$species[[1]]$top_layer
   pars <- p$strategies[[1]]$pars
   expect_gt(layer$density, 0)
@@ -291,7 +291,7 @@ test_that("TF24 absorbs at its own asymptotic height", {
 
 test_that("cohorts an arrival window weights are never absorbed", {
   p <- fitness_window(ff16(400), 50, 60)
-  s <- run_scm(p, ctrl = ctrl(absorb = 0.05))
+  s <- run(p, control = ctrl(absorb = 0.05))$solver
   sp <- s$patch$species[[1]]
   in_window <- sp$node_times >= 50 & sp$node_times <= 60
   ## The window's cohorts grew past the height and kept their own nodes; others
@@ -313,7 +313,7 @@ test_that("a window resumed from a burn-in scores its own cohorts, not the layer
   state <- export_patch_state(burn)
   p2 <- fitness_window(set_initial_state(ff16(300), state), 150, 200)
   p2$node_schedule_times <- list(node_schedule_times_periodic(150, 300, 1))
-  s <- run_scm(p2, ctrl = ctrl(absorb = 0.05))
+  s <- run(p2, control = ctrl(absorb = 0.05))$solver
   sp <- s$patch$species[[1]]
   out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
   k <- which(sp$node_times >= 150 & sp$node_times <= 200)
@@ -344,6 +344,6 @@ test_that("the top layer survives an export and a resume", {
 })
 
 test_that("a gradient refuses the top layer", {
-  s <- run_scm(ff16(10), ctrl = ctrl(absorb = 0.05), keep_states = TRUE)
+  s <- run(ff16(10), control = ctrl(absorb = 0.05), record = "states")$solver
   expect_error(stand_gradient(s, metrics = "leaf_area", hyperpar = NULL), "not differentiable")
 })

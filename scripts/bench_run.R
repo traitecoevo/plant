@@ -29,8 +29,8 @@ env <- Environment(model)
 ctrl <- Control()
 
 runs <- c(FF16 = 10L, TF24 = 1L)[[model]]
-invisible(run_scm(p, env, ctrl))
+invisible(run(p, env, ctrl))
 for (r in seq_len(reps)) {
-  t <- system.time(for (i in seq_len(runs)) run_scm(p, env, ctrl))[["elapsed"]]
+  t <- system.time(for (i in seq_len(runs)) run(p, env, ctrl)$solver)[["elapsed"]]
   cat(sprintf("%s\t%d\t%.4f\n", model, r, t))
 }

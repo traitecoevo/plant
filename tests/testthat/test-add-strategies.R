@@ -43,6 +43,6 @@ test_that("add_strategies is pipe-friendly", {
   p <- testing_parameters("FF16") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   expect_equal(p$strategies[[1]]$pars$lma, 0.0825)
-  out <- run_scm(p, Environment("FF16"), Control())
+  out <- run(p, Environment("FF16"), Control())$solver
   expect_false(is.null(out))
 })

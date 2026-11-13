@@ -67,7 +67,7 @@ test_that("TF24 C++ allometry matches the R formulas with coarse roots on", {
 test_that("FF16_expand_state adds the expected derived columns", {
   p <- testing_parameters("FF16")
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
-  out <- run_scm(p, Environment("FF16"), Control(), collect = TRUE)
+  out <- tidy(run(p, Environment("FF16"), Control(), record = "steps"))
   es <- FF16_expand_state(out)
 
   derived <- c("area_leaf", "mass_leaf", "area_sapwood", "mass_sapwood",

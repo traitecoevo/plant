@@ -25,7 +25,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
 ┌─────────────────────────────────────────────────────────────┐
 │  R layer  (R/*.R)                                            │
 │  - user-facing constructors, dispatch, hyperparameters       │
-│  - run_scm (collect/refine_schedule) / run_stochastic        │
+│  - run() over both solvers and single plants -> plant_run    │
 │  - tidy outputs, plotting, utilities                         │
 └───────────────────────────▲─────────────────────────────────┘
                             │   RcppR6 + Rcpp generated bindings
@@ -122,19 +122,15 @@ Every Model carries a `Control` and an `ExtrinsicDrivers` object.
 
 `plant` solves the same model two ways:
 
-1. **Deterministic — SCM, the solver by the method of characteristics.** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output collection and adaptive schedule refinement are options on `run_scm()` (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
+1. **Deterministic — SCM, the solver by the method of characteristics.** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run()](R/run.R) in R. Recording every step for `tidy()` and adaptive schedule refinement are arguments of `run()` (`record = "steps"`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
 
-2. **Stochastic — finite-size population.**
-   Individuals arrive and die as discrete events.
-   `StochasticPatchRunner<T,E>` in C++; [R/stochastic.R](R/stochastic.R):
-   `stochastic_schedule()`, `run_stochastic_collect()`, and in R
-   `run(p, method = "stochastic")`, which shares their runner.
+2. **Stochastic — finite-size population.** Individuals arrive and die as discrete events. `StochasticPatchRunner<T,E>` in C++; in R, `run(p, method = "stochastic")`, which builds the runner with arrivals drawn by `stochastic_schedule()` and steps it with the helpers in [R/stochastic.R](R/stochastic.R).
 
-Both share the same `Model`, `Environment`, `Individual`, and `Parameters`.
+Both share the same `Model`, `Environment`, `Individual`, and `Parameters`. A single plant grown on its own, `run(individual, times = )` or `run(individual, sizes = )`, is neither: it integrates one `Individual` through `IndividualRunner` in the light it is given, with the growers in [R/individual.R](R/individual.R).
 
 ### Where the schedule and the control defaults live
 
-Adaptive schedule refinement is `SCM::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run()` ([R/run.R](R/run.R)) builds and runs an `SCM` the way `run_scm(p, env = NULL, ctrl = control(), refine_schedule = FALSE, collect = FALSE, keep_states = FALSE, events = NULL, run = TRUE)` does, and returns a `plant_run`. `run_scm()` returns the `SCM` object, or with `collect = TRUE` the tidied results list, whose `p` element holds the possibly-refined parameters. With `collect_refinement_errors` set, `SCM::run()` accumulates each node's refinement error, read back as `refinement_error_by_node`; each `Node` records its introduction time and the patch density at its birth, so fitness and error calculations do not re-derive them after the run.
+Adaptive schedule refinement is `SCM::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run()` ([R/run.R](R/run.R)) builds an `SCM` from a `scenario` (`p`, `env`, `control`, `events`), runs it and returns a `plant_run`: the scenario as run, whose `p` holds the possibly-refined parameters, the fitness values and event log as copies, and the live `SCM` at `$solver`. `tidy()` of a run recorded with `record = "steps"` returns the tidied steps with those values, `p`, `events` and `event_log`. With `collect_refinement_errors` set, `SCM::run()` accumulates each node's refinement error, read back as `refinement_error_by_node`; each `Node` records its introduction time and the patch density at its birth, so fitness and error calculations do not re-derive them after the run.
 
 The numeric defaults every run uses are set in one place, the C++ `Control()` constructor ([src/control.cpp](src/control.cpp)); `control_accurate()` tightens the ODE and schedule tolerances for a high-accuracy run.
 
@@ -193,8 +189,8 @@ much as the prose. Rules:
 
 - **One bullet per change; PR number(s) at the end** in parens, e.g. `(#463)`.
 - **State the `old -> new` mapping explicitly**, with the call form, not just the
-  name. `run_scm_collect(p, …) -> run_scm(p, …, collect = TRUE)` is actionable;
-  "consolidated the SCM interface" is not.
+  name. `run_scm_collect(p, …) -> tidy(run(p, …, record = "steps"))` is
+  actionable; "consolidated the SCM interface" is not.
 - **One sub-bullet per affected symbol** when a change touches several:
   ```markdown
   * <one-line what-and-why> (#NNN). Migration:
@@ -206,8 +202,8 @@ much as the prose. Rules:
   via an attribute, a returned list element, or a follow-up getter, map *that*
   too — a name-only mapping silently drops it. (Real example: `build_schedule()`
   returned its result with `attr(., "offspring_production")`; the faithful
-  migration is `scm <- run_scm(p, refine_schedule = TRUE); scm$parameters;
-  scm$offspring_production` — the `$parameters`-only mapping loses the
+  migration is `res <- run(p, refine_schedule = TRUE); res$scenario$p;
+  res$offspring_production` — the parameters-only mapping loses the
   offspring count.)
 - **Flag semantic (not mechanical) changes loudly.** A symbol whose *meaning* or
   *default* changed while its name stayed the same (e.g. raw `Control()` now
@@ -230,9 +226,9 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`). These are `switch()` statements that must list every model; the schedule helpers are found by name from the `Parameters` object's template types, so they need no row. |
 | [run.R](R/run.R) | `run()`, the one verb (#428), for a patch by either solver (`method =`) and for a single plant (`run(individual, times = )`): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
-| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. The fast settings are the C++ `Control()` defaults and schedule refinement is `SCM::refine_schedule` (§3) |
-| [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
-| [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
+| [scm_support.R](R/scm_support.R) | `base_parameters`, the `Control` presets `control` (alias) / `control_accurate` / `control_tf24`, `export_patch_state` / `make_initial_state` / `set_initial_state`, `fitness_window`. The fast settings are the C++ `Control()` defaults and schedule refinement is `SCM::refine_schedule` (§3) |
+| [stochastic.R](R/stochastic.R) | The stochastic run's arrival schedule, runner and step collection, internal to `run(method = "stochastic")` |
+| [individual.R](R/individual.R) | The internal growers behind `run(individual, ...)`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
 | [tidy_outputs.R](R/tidy_outputs.R) | `tidy_patch`, `tidy_species`, `tidy_env`, `interpolate_to_{times,heights}`, `integrate_over_size_distribution` |
 | [tidy_plots.R](R/tidy_plots.R) | Plotting helpers (`plot_size_distribution`) |
@@ -255,7 +251,7 @@ FF16_Parameters <- function(...)                 Parameters("FF16", "FF16_Env")(
 `Individual(...)` / `Parameters(...)` return the correctly-typed generated
 constructor. Generic code recovers the type with
 `extract_RcppR6_template_types(obj, "Parameters")` and then dispatches
-(see `run_scm` in [scm_support.R](R/scm_support.R)).
+(see `run.plant_scenario` in [run.R](R/run.R)).
 
 ### Hyperparameters vs. raw strategy parameters
 
@@ -272,12 +268,12 @@ LMA, wood density). A **trade-off (hyperpar) function** — a closure
 `f(m, s, filter = TRUE)` — translates traits → strategy parameters and encodes
 the trade-offs. **It travels with the `Parameters` object**, in `p$hyperpar`
 (a `SEXP` field of the C++ struct, held opaquely in an `RObjectHandle`, so it
-survives `validate()`, `run_scm()` and `scm$parameters`); `param_hyperpar(p)`
+survives `validate()`, `run()` and the result's `scenario$p`); `param_hyperpar(p)`
 reads it and `generate_strategy`, `add_strategies`, `add_mutant`,
 `stand_gradient` and `fixed_point_fitness` take that as their default. The
 rules:
 
-- `scm_base_parameters(model)` attaches **no** trade-offs: a trait is written
+- `base_parameters(model)` attaches **no** trade-offs: a trait is written
   straight to `pars`, and `generate_strategy()` says so once per session.
   `hyperpar = NULL` is the same identity, chosen explicitly.
 - `default_parameters(model)` attaches plant's **frozen testing trade-offs** (`default_hyperpar(model)`, defined in [default_parameters.R](R/default_parameters.R)) and warns that this is a testing set, not a recommended parameterisation. Every test uses it through the `testing_parameters()` helper, so the goldens rest on it: changing the frozen copy means re-blessing them. The *recommended* trade-offs and the species/site parameter sets belong to `fieldtrial`.

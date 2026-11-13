@@ -87,7 +87,7 @@ tidy_snapshots <- function(scm) {
 ##'
 ##' @title Run until the stand's block means settle
 ##' @param scm A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or an \code{SCM} built and not yet run to the end, as
-##'   \code{run_scm(p, ..., run = FALSE)} returns one, whose schedule reaches
+##'   \code{run(p, ..., until = 0)$solver} is, whose schedule reaches
 ##'   \code{t_max}. Its \code{snapshot_interval} is set to
 ##'   \code{snapshot_interval} if it is zero.
 ##' @param block Years per block.

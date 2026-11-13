@@ -37,8 +37,7 @@ mutant_fitness <- function(scm, lma) {
 }
 
 test_that("a mutant's fitness gradient is the difference across pinned runs", {
-  scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 keep_states = TRUE)
+  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
   resident <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                              traits = "1.lma", hyperpar = NULL)
 
@@ -76,8 +75,7 @@ test_that("a mutant's fitness gradient is the difference across pinned runs", {
 })
 
 test_that("several invaders against one resident each carry their own columns", {
-  scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 keep_states = TRUE)
+  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
   scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "2.net_reproduction_ratio"),
@@ -100,7 +98,7 @@ test_that("several invaders against one resident each carry their own columns", 
 })
 
 test_that("a sweep of an invasion that kept no states runs it again, as an invasion", {
-  scm <- run_scm(resident_parameters(lifetime = 3), NULL, mutant_control())
+  scm <- run(resident_parameters(lifetime = 3), NULL, mutant_control())$solver
   scm$run_mutant(mutant_parameters(scm, 0.0825))
   again <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                           hyperpar = NULL)
@@ -121,8 +119,7 @@ mutant_fitness_of <- function(scm) {
 }
 
 test_that("invaders do not shade each other, and an invader's birth rate reaches only its output", {
-  scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 keep_states = TRUE)
+  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
   scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "1.offspring_production"),
@@ -143,8 +140,7 @@ test_that("an invader introduced after the pinned run starts has a gradient", {
   # The invader's patch is empty, and FF16's environment carries no state, so
   # the pinned run steps with no state until its first cohort; the sweep passes
   # those steps over (odelia 0.7.3).
-  scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 keep_states = TRUE)
+  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
   p <- mutant_parameters(scm, 0.09)
   tt <- p$node_schedule_times[[1]]
   p$node_schedule_times <- list(tt[tt >= 1])
@@ -167,11 +163,11 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   p <- resident_parameters(lifetime = 12)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))
-  burn <- run_scm(p, NULL, mutant_control(), run = FALSE)
+  burn <- run(p, NULL, mutant_control(), until = 0)$solver
   burn$run_to(6)
   state <- export_patch_state(burn)
   p2 <- set_initial_state(p, state)
-  scm <- run_scm(p2, NULL, mutant_control(), keep_states = TRUE)
+  scm <- run(p2, NULL, mutant_control(), record = "states")$solver
   pm <- mutant_parameters(scm, 0.09)
   pm$initial_state <- numeric(0)
   pm$n_initial_cohorts <- integer(0)
@@ -195,9 +191,9 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
 
 test_that("an invader's gradient through the run's harvest is the difference across invasions", {
   p <- resident_parameters()
-  scm <- run_scm(p, NULL, mutant_control(), keep_states = TRUE,
-                 events = events(events_default(p),
-                                 harvest(time = 4, fraction = 0.5)))
+  scm <- run(p, NULL, mutant_control(),
+             events = events(events_default(p),
+                             harvest(time = 4, fraction = 0.5)), record = "states")$solver
   pm <- mutant_parameters(scm, 0.09)
   scm$run_mutant(pm)
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",

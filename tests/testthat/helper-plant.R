@@ -52,7 +52,7 @@ tf24_probe <- function(strategy, soil_theta, height = 5) {
 
 # plant's testing parameter set, quietly: today's C++ defaults with the frozen
 # trade-off functions attached (see ?default_parameters). Every test that builds
-# strategies from traits uses this rather than scm_base_parameters(), which
+# strategies from traits uses this rather than base_parameters(), which
 # attaches no trade-offs, so the goldens and baselines keep their numbers.
 testing_parameters <- function(model) {
   default_parameters(model, quiet = TRUE)

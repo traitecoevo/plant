@@ -85,8 +85,7 @@ p1 <- add_strategies(p0, traits, hyperpar = hyperpar, birth_rate = list(
                                y = sin(seq(0, 200, len = 20)) + 2)
                           ))
                         
-results <- build_schedule(p1)
-results <- run_scm_collect(results)
+results <- tidy(run(p1, refine_schedule = TRUE, record = "steps"))
 
 
 ```

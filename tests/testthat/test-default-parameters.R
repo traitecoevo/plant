@@ -1,12 +1,12 @@
 # Trade-offs travel with Parameters: `p$hyperpar` carries the function the
 # strategies were built with, default_parameters() attaches plant's frozen
-# testing trade-offs, and the bare scm_base_parameters() attaches none.
+# testing trade-offs, and the bare base_parameters() attaches none.
 
 tf24_derived <- c("k_l", "d_I", "TF24_cost_scale", "k_s", "r_s", "r_b", "a_f3",
                   "r_l", "stem_c", "stem_P50", "stem_b", "psi_crit")
 
-test_that("scm_base_parameters attaches no trade-offs: traits go straight to pars", {
-  p <- scm_base_parameters("TF24")
+test_that("base_parameters attaches no trade-offs: traits go straight to pars", {
+  p <- base_parameters("TF24")
   expect_null(p$hyperpar)
   expect_true(plant:::is_identity_hyperpar(param_hyperpar(p)))
   # K_s is what TF24's trade-off turns into the stem curve; with none attached
@@ -19,7 +19,7 @@ test_that("scm_base_parameters attaches no trade-offs: traits go straight to par
 test_that("generate_strategy says, once, that no trade-offs are attached", {
   # Make rlang's once-per-session message fire on every call for the test.
   rlang::local_options(rlib_message_verbosity = "verbose")
-  p <- scm_base_parameters("FF16")
+  p <- base_parameters("FF16")
   expect_message(generate_strategy(p, trait_matrix(0.1, "lma")),
                  "No trade-off function is attached")
   # The explicit identity is a choice, and is not remarked on.
@@ -46,7 +46,7 @@ test_that("default_parameters warns that it is a testing set and attaches the fr
 test_that("the attached trade-offs reproduce the explicit ones bit for bit", {
   m <- cbind(lma = c(0.1, 0.3), rho = c(600, 900), K_s = c(0.2, 0.8))
   a <- add_strategies(default_parameters("TF24", quiet = TRUE), m, birth_rate = c(1, 1))
-  b <- add_strategies(scm_base_parameters("TF24"), m, birth_rate = c(1, 1),
+  b <- add_strategies(base_parameters("TF24"), m, birth_rate = c(1, 1),
                       hyperpar = default_hyperpar("TF24"))
   expect_identical(a$strategies, b$strategies)
   expect_true(all(tf24_derived %in% names(a$strategies[[1]]$pars)))
@@ -54,7 +54,7 @@ test_that("the attached trade-offs reproduce the explicit ones bit for bit", {
 
   m <- cbind(lma = c(0.1, 0.3), narea = c(1.5e-3, 2.5e-3))
   a <- add_strategies(default_parameters("FF16", quiet = TRUE), m, birth_rate = c(1, 1))
-  b <- add_strategies(scm_base_parameters("FF16"), m, birth_rate = c(1, 1),
+  b <- add_strategies(base_parameters("FF16"), m, birth_rate = c(1, 1),
                       hyperpar = default_hyperpar("FF16"))
   expect_identical(a$strategies, b$strategies)
   # The TF24 variants share TF24's trade-offs.
@@ -73,17 +73,17 @@ test_that("an explicit hyperpar still overrides the one Parameters carry", {
   expect_false(identical(s$pars$stem_P50, TF24_Model()$pars$stem_P50))
 })
 
-test_that("the trade-offs survive validate(), run_scm() and a saved object", {
+test_that("the trade-offs survive validate(), run() and a saved object", {
   p <- default_parameters("FF16", quiet = TRUE)
   p$max_patch_lifetime <- 3
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   f <- p$hyperpar
   expect_identical(plant:::validate(p)$hyperpar, f)
 
-  scm <- run_scm(p)
+  scm <- run(p)$solver
   expect_identical(scm$parameters$hyperpar, f)
   expect_identical(param_hyperpar(scm$parameters), f)
-  res <- run_scm(p, collect = TRUE)
+  res <- tidy(run(p, record = "steps"))
   expect_identical(res$p$hyperpar, f)
 
   m <- trait_matrix(c(0.1, 0.2), "lma")
@@ -165,7 +165,7 @@ test_that("parameter_table groups every parameter of a model", {
   # A Parameters object is classified by what it carries.
   p <- default_parameters("TF24", quiet = TRUE)
   expect_identical(parameter_table(p)$group, parameter_table("TF24")$group)
-  p <- scm_base_parameters("TF24")
+  p <- base_parameters("TF24")
   expect_false(any(parameter_table(p)$group == "derived"))
   expect_error(parameter_table(1), "model name or a Parameters")
   expect_error(parameter_table("TF24", hyperpar = 1), "must be a trade-off function")

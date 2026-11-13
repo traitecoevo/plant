@@ -21,7 +21,7 @@ fitness_parameters <- function(lifetime = 8, lma = 0.0825, hmat = 3,
 }
 
 fitness_stand <- function(..., ctrl = fitness_control()) {
-  run_scm(fitness_parameters(...), NULL, ctrl, keep_states = TRUE)
+  run(fitness_parameters(...), NULL, ctrl, record = "states")$solver
 }
 
 pinned <- function(scm) {
@@ -32,7 +32,7 @@ pinned <- function(scm) {
 }
 
 # The stand's fitness metrics for a run of `p`.
-fitness_of <- function(p) stand_fitness(run_scm(p, NULL, fitness_control()))
+fitness_of <- function(p) stand_fitness(run(p, NULL, fitness_control())$solver)
 
 test_that("FF16 reports its fitness under the names the gradient uses", {
   scm <- fitness_stand(lma = c(0.0825, 0.2))
@@ -120,7 +120,7 @@ test_that("the fitness gradient over a window is the pinned-step central differe
   # regime's, read at the birth dates, so they carry no derivative and the
   # normalisation divides the gradient as it divides the value.
   p <- fitness_window(fitness_parameters(), 2, 5)
-  scm <- run_scm(p, NULL, fitness_control(), keep_states = TRUE)
+  scm <- run(p, NULL, fitness_control(), record = "states")$solver
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "1.offspring_production"),
                       hyperpar = NULL)

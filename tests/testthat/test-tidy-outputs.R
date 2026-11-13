@@ -12,7 +12,7 @@ for (x in c("FF16", "K93")) {
   ctrl <- Control()
 
   expect_silent(
-    results <- run_scm(p1, env, ctrl, collect = TRUE)
+    results <- tidy(run(p1, env, ctrl, record = "steps"))
   )
 
   expect_contains(names(results), c("steps",  "n_spp", "species", "env", "offspring_production",   "net_reproduction_ratios", "p"))
@@ -100,7 +100,7 @@ test_that("tidy_individual returns a tidy table of individual states over time",
   env$set_fixed_environment(1.0, 100)
   times <- seq(0, 50, length.out = 11)
 
-  res <- grow_individual_to_time(ind, times, env)
+  res <- run(ind, times = times, env = env)
   tidy <- tidy_individual(res)
 
   expect_s3_class(tidy, "tbl_df")
@@ -122,7 +122,7 @@ test_that("tidy_individual keeps every state, by name", {
   s <- generate_strategy(p, trait_matrix(0.0825, "lma"))[[1]]
   env <- Environment("TF24")
   env$set_fixed_environment(1.0, 150)
-  res <- grow_individual_to_time(TF24_Individual(s), c(1, 2), env)
+  res <- run(TF24_Individual(s), times = c(1, 2), env = env)
   tidy <- tidy_individual(res)
   expect_identical(names(tidy), c("step", "time", colnames(res$state)))
   expect_true("storage" %in% names(tidy))
@@ -243,8 +243,8 @@ birth_date_run <- local({
       p$max_patch_lifetime <- 20
       p <- add_strategies(p, trait_matrix(c(0.0825, 0.2), "lma"),
                           birth_rate = c(20, 20))
-      cache <<- run_scm(p, ctrl = control(node_density_coordinate = "birth_date"),
-                        collect = TRUE)
+      cache <<- tidy(run(p, control = control(node_density_coordinate = "birth_date"),
+                         record = "steps"))
     }
     cache
   }
@@ -263,8 +263,8 @@ test_that("a run carried in birth date is integrated over birth date", {
                  unname(totals[s, ]))
   }
   ## A run carried in height has nothing to integrate over birth date.
-  height_run <- run_scm(res$p, ctrl = control(node_density_coordinate = "height"),
-                        collect = TRUE)
+  height_run <- tidy(run(res$p, control = control(node_density_coordinate = "height"),
+                         record = "steps"))
   expect_error(integrate_over_size_distribution(height_run$species,
                                                 coordinate = "birth_date"),
                "carried in birth date")

@@ -27,7 +27,7 @@ ff16_stand <- function(lifetime = 5, lma = 0.0825, birth_rate = 2,
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(lma, "lma"),
                       birth_rate = as.list(rep(birth_rate, length(lma))))
-  run_scm(p, NULL, ctrl, keep_states = TRUE, ...)
+  run(p, NULL, ctrl, record = "states", ...)$solver
 }
 
 # The perturbed run stepped exactly where the recorded one stepped.
@@ -39,7 +39,7 @@ pinned <- function(scm) {
 }
 
 census_of <- function(ctrl = referee_control()) {
-  function(p) stand_census(run_scm(p, NULL, ctrl))
+  function(p) stand_census(run(p, NULL, ctrl)$solver)
 }
 
 test_that("FF16 declares the three census metrics and names its columns", {
@@ -109,7 +109,7 @@ test_that("respiration, turnover and net production differentiate in every param
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = list(2))
   p$strategies[[1]]$pars$a_cr1 <- 0.25
-  scm <- run_scm(p, NULL, referee_control(), keep_states = TRUE)
+  scm <- run(p, NULL, referee_control(), record = "states")$solver
   g <- stand_gradient(scm, metrics = "mass_above_ground", hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   q <- pinned(scm)
@@ -133,7 +133,7 @@ test_that("a trait's total through the FF16 trade-off function is the difference
     p <- add_strategies(p, trait_matrix(v, "lma"), birth_rate = list(2))
     p$ode_times <- scm$ode_times
     p$ode_step_sizes <- scm$ode_step_sizes
-    stand_census(run_scm(p, NULL, referee_control()))[["mass_above_ground"]]
+    stand_census(run(p, NULL, referee_control())$solver)[["mass_above_ground"]]
   }
   fd <- (at(x + h) - at(x - h)) / (2 * h)
   expect_equal(g$gradient["mass_above_ground", "1.lma"], fd, tolerance = 1e-5)
@@ -181,6 +181,6 @@ test_that("the gradient refuses what it cannot differentiate, by name", {
   p <- testing_parameters("K93")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(1))
-  scm <- run_scm(p, NULL, Control(node_density_coordinate = "birth_date"))
+  scm <- run(p, NULL, Control(node_density_coordinate = "birth_date"))$solver
   expect_error(stand_gradient(scm, hyperpar = NULL), "No census is declared for the K93 model")
 })

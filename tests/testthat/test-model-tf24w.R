@@ -26,7 +26,7 @@ tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
   }
   ctrl <- control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05,
                   absorb_epsilon = absorb)
-  run_scm(p, env, ctrl, events = ev, run = FALSE)
+  run(p, env, ctrl, events = ev, until = 0)$solver
 }
 
 test_that("TF24w declares its states, readings and version", {
@@ -47,8 +47,8 @@ test_that("TF24w refuses the height coordinate", {
   p <- testing_parameters("TF24w")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"))
-  expect_error(run_scm(p, Environment("TF24w"),
-                       control(node_density_coordinate = "height"), run = FALSE),
+  expect_error(run(p, Environment("TF24w"),
+                   control(node_density_coordinate = "height"), until = 0),
                "birth-date")
 })
 
@@ -125,8 +125,8 @@ test_that("the resident's own copy, introduced as a rare second species, scores 
   env <- Environment("TF24w")
   env$extrinsic_drivers_set_constant("rainfall", 0.3)
   env$water_mixing_rate <- 1
-  scm <- run_scm(p, env, control(node_density_coordinate = "birth_date",
-                                 ode_step_size_max = 0.05), run = FALSE)
+  scm <- run(p, env, control(node_density_coordinate = "birth_date",
+                             ode_step_size_max = 0.05), until = 0)$solver
   scm$run()
   R <- scm$net_reproduction_ratios
   expect_equal(R[[2]], R[[1]], tolerance = 1e-10)

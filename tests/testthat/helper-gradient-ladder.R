@@ -524,7 +524,7 @@ ladder_stand_trajectory <- function(lifetime = 2) {
 ladder_run <- function(p, ctrl = NULL, env = NULL) {
   if (is.null(ctrl)) ctrl <- ladder_control()
   if (is.null(env)) env <- Environment("TF24")
-  run_scm(p, env, ctrl, collect = FALSE)
+  run(p, env, ctrl)$solver
 }
 
 # The water a run is driven with. `rain = NULL` is the default environment, so a

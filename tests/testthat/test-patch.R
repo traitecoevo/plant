@@ -175,8 +175,8 @@ for (x in names(strategy_types)) {
     # net reproductive ratio.
     p2$strategies[[1]]$birth_rate_y <- 1
     p10$strategies[[1]]$birth_rate_y <- 1
-    expect_warning(scm2   <- run_scm(p2))
-    expect_warning(scm10a <- run_scm(p10))
+    expect_warning(scm2   <- run(p2)$solver)
+    expect_warning(scm10a <- run(p10)$solver)
     expect_gt(scm10a$net_reproduction_ratios, scm2$net_reproduction_ratios)
 
     # Birth rate scaled x5 with the x5 patch area gives the same seed input per
@@ -184,7 +184,7 @@ for (x in names(strategy_types)) {
     # unchanged from above, so it is not re-run.)
     p10b <- p10
     p10b$strategies[[1]]$birth_rate_y <- 5
-    expect_warning(scm10b <- run_scm(p10b))
+    expect_warning(scm10b <- run(p10b)$solver)
     expect_equal(scm2$net_reproduction_ratios,
                  scm10b$net_reproduction_ratios, tolerance = 1e-4)
     expect_gt(scm10a$net_reproduction_ratios, scm10b$net_reproduction_ratios)

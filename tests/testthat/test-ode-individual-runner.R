@@ -66,7 +66,7 @@ test_that("get_plant_internals_fun", {
   }
 })
 
-test_that("grow_individual_to_size", {
+test_that("run() grows an individual to sizes", {
   for (x in names(strategy_types)) {
     #cat(x)
     env <- Environment(x)
@@ -126,7 +126,7 @@ test_that("grow_individual_to_size", {
     }
     
     ## Do all plants using the proper function:
-    obj <- grow_individual_to_size(Individual(x, e)(s), heights, "height", env)
+    obj <- run(Individual(x, e)(s), sizes = heights, size_name = "height", env = env)
     expect_inherits(obj$time, "numeric")
     expect_true(all(obj$time >= res$t0))
     expect_true(all(obj$time <= res$t1))
@@ -150,7 +150,7 @@ test_that("grow_individual_to_size", {
 ## TODO(#482): another useful function could be to construct splines for
 ## arbitrary variables during a run; we end up with all the state here
 ## so that should be fairly straightforward.
-test_that("grow_individual_to_size", {
+test_that("run() grows an individual to sizes, and stops at time_max", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
     e <- environment_types[[x]]
@@ -165,20 +165,21 @@ test_that("grow_individual_to_size", {
     env <- Environment(x)
     env$set_fixed_environment(1.0, height_max = 150)
     
-    res <- grow_individual_to_size(pl, sizes, "height", env, 10000)
+    res <- run(pl, sizes = sizes, size_name = "height", env = env, time_max = 10000)
 
     expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
 
     sizes2 <- c(sizes, dplyr::last(sizes) * 2)
     if(x %in% c("FF16", "TF24")){
-      expect_warning(res2 <- grow_individual_to_size(pl, sizes2, "height", env, 100),
+      expect_warning(res2 <- run(pl, sizes = sizes2, size_name = "height", env = env,
+                                 time_max = 100),
                 "Time exceeded time_max")
       expect_equal(length(res2$time), length(sizes2))
       expect_equal(dplyr::last(res2$time), NA_real_)
       expect_false(any(is.na(res2$time[-length(sizes2)])))
 
-      expect_silent(res3 <- grow_individual_to_size(pl, sizes2, "height", env,
-                                           100, warn=FALSE))
+      expect_silent(res3 <- run(pl, sizes = sizes2, size_name = "height", env = env,
+                                time_max = 100, warn=FALSE))
       ## warn=FALSE must produce the same numeric result as the warning version.
       ## Compare the value payload only: the `individual`/`env` entries are live
       ## reference objects whose C++ `.ptr` always differs between two calls
@@ -187,8 +188,8 @@ test_that("grow_individual_to_size", {
       expect_equal(res3$state, res2$state)
       expect_equal(res3$trajectory, res2$trajectory)
 
-      expect_silent(res4 <- grow_individual_to_size(pl, sizes2, "height", env,
-                                           100, warn=FALSE, filter=TRUE))
+      expect_silent(res4 <- run(pl, sizes = sizes2, size_name = "height", env = env,
+                                time_max = 100, warn=FALSE, filter=TRUE))
 
       ## Manually filter:
       cmp <- res2
@@ -209,7 +210,7 @@ test_that("grow_individual_to_size", {
   }
 })
 
-test_that("grow_individual_to_time", {
+test_that("run() grows an individual to times", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
     e <- environment_types[[x]]
@@ -218,7 +219,7 @@ test_that("grow_individual_to_time", {
     env$set_fixed_environment(1.0, height_max = 150)
 
     times <- c(0, 10^(-4:3))
-    res <- grow_individual_to_time(pl, times, env)
+    res <- run(pl, times = times, env = env)
     expect_inherits(res$individual, "list")
     expect_equal(length(res$individual), length(times))
 
@@ -240,7 +241,8 @@ test_that("Sensible behaviour on integration failure", {
   env$set_fixed_environment(1.0, height_max = 150)
 
   sizes <- seq_range(c(pl$state("height"), 50), 50)
-  expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
+  expect_warning(res <- run(pl, sizes = sizes, size_name = "height", env = env,
+                            time_max = 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
   expect_inherits(res$individual, "list")
   expect_equal(nrow(res$state), length(res$time))
@@ -273,7 +275,8 @@ test_that("Sensible behaviour on integration failure", {
   env$set_fixed_environment(1.0, height_max = 150)
      
   sizes <- seq_range(c(pl$state("height"), 50), 50)
-  expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
+  expect_warning(res <- run(pl, sizes = sizes, size_name = "height", env = env,
+                            time_max = 1000, warn = TRUE, filter = TRUE),
                   "50 larger sizes dropped")
   expect_equal(res$individual, list())
   expect_equal(res$time, numeric(0))

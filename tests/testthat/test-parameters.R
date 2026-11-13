@@ -105,10 +105,10 @@ test_that("Validate", {
 })
 
 
-test_that("scm_base_parameters", {
+test_that("base_parameters", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
-    p <- scm_base_parameters(x)
+    p <- base_parameters(x)
     expect_inherits(p, sprintf("Parameters<%s,%s>", x, e))
     expect_null(p$hyperpar)
   }

@@ -62,41 +62,12 @@ stochastic_schedule <- function(p) {
   sched
 }
 
-##' Run a stochastic simulation of a patch, given a Parameters
-##'
-##' This one might need to be made differently so that different
-##' schedules can be added easily.
-##' Not sure if this is how we will generally want to do this.
-##' Consider this function liable to change.
-##'
-##' @title Run a stochastic patch, Collecting Output
-##' @param p A \code{\link{FF16_Parameters}} object
-##' @param env Environment object
-##' @param ctrl Control object
-##' @param random_schedule setting to TRUE causes algorithm to generate
-##' a random schedule based on offspring arrival and area.
-##' @author Rich FitzJohn
-##' @export
-run_stochastic_collect <- function(p, env = NULL, 
-                                   ctrl = Control(), 
-                                   random_schedule=TRUE) {
-  
-  types <- extract_RcppR6_template_types(p, "Parameters")
-
-  if (is.null(env)) {
-    env <- Environment(types[[1]])
-  }
-  obj <- stochastic_runner(p, env, ctrl, random_schedule)
-  c(tidy_stochastic_steps(collect_stochastic_steps(obj)), list(p = p))
-}
-
-## The stochastic runner for p, with arrivals drawn at random or on p's schedule.
-stochastic_runner <- function(p, env, ctrl, random_schedule = TRUE) {
+## The stochastic runner for p, with each species' arrivals drawn at random
+## from its birth rate and p$patch_area (stochastic_schedule()).
+stochastic_runner <- function(p, env, ctrl) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
-  if (random_schedule) {
-    obj$schedule <- stochastic_schedule(p)
-  }
+  obj$schedule <- stochastic_schedule(p)
   obj
 }
 
@@ -116,9 +87,9 @@ collect_stochastic_steps <- function(obj) {
 ## The collected steps as arrays: time, species and env.
 tidy_stochastic_steps <- function(res) {
   time <- sapply(res, "[[", "time")
-  ## `env` is what StochasticPatch reports it as, and what run_scm's collected
-  ## output calls it. This read used to ask for "light_env", a name nothing
-  ## produced, so every element came back NULL.
+  ## `env` is what StochasticPatch reports it as, and what a deterministic
+  ## run's tidy() calls it. This read used to ask for "light_env", a name
+  ## nothing produced, so every element came back NULL.
   env <- lapply(res, "[[", "env")
   species <- lapply(res, "[[", "species")
 

@@ -19,8 +19,7 @@ birth_parameters <- function(birth_rate, lma = c(0.0825, 0.2), hmat = 3,
 }
 
 test_that("the birth rate is a column, named per species, for a constant rate", {
-  scm <- run_scm(birth_parameters(c(2, 1)), NULL, birth_control(),
-                 keep_states = TRUE)
+  scm <- run(birth_parameters(c(2, 1)), NULL, birth_control(), record = "states")$solver
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", hyperpar = NULL)
   expect_true(all(c("1.birth_rate", "2.birth_rate") %in% colnames(g$gradient)))
   expect_false(any(stand_gradient_refused(g)))
@@ -31,8 +30,7 @@ test_that("the birth rate is a column, named per species, for a constant rate", 
 
 test_that("d(fitness)/d(birth rate) is the pinned-step central difference", {
   b <- c(2, 1)
-  scm <- run_scm(birth_parameters(b), NULL, birth_control(),
-                 keep_states = TRUE)
+  scm <- run(birth_parameters(b), NULL, birth_control(), record = "states")$solver
   metrics <- c("1.net_reproduction_ratio", "2.net_reproduction_ratio",
                "1.offspring_production", "2.offspring_production")
   g <- stand_gradient(scm, metrics = metrics,
@@ -43,7 +41,7 @@ test_that("d(fitness)/d(birth rate) is the pinned-step central difference", {
     p <- birth_parameters(b_)
     p$ode_times <- scm$ode_times
     p$ode_step_sizes <- scm$ode_step_sizes
-    stand_fitness(run_scm(p, NULL, birth_control()))
+    stand_fitness(run(p, NULL, birth_control())$solver)
   }
   for (j in 1:2) {
     h <- 1e-5 * b[j]
@@ -71,7 +69,7 @@ test_that("a variable birth rate has no column rather than a zero", {
   p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
                       birth_rate = list(list(x = c(0, 3), y = c(2, 2))))
   expect_true(p$strategies[[1]]$is_variable_birth_rate)
-  scm <- run_scm(p, NULL, birth_control(), keep_states = TRUE)
+  scm <- run(p, NULL, birth_control(), record = "states")$solver
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", hyperpar = NULL)
   expect_false("1.birth_rate" %in% colnames(g$gradient))
   expect_error(stand_gradient(scm, traits = "1.birth_rate", hyperpar = NULL), "Unknown trait")
@@ -82,8 +80,7 @@ test_that("the birth-rate column passes through a hyperparameter function as its
   p$max_patch_lifetime <- 6
   p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
                       birth_rate = 2)
-  scm <- run_scm(p, NULL, Control(node_density_coordinate = "birth_date"),
-                 keep_states = TRUE)
+  scm <- run(p, NULL, Control(node_density_coordinate = "birth_date"), record = "states")$solver
   through <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                             traits = c("1.lma", "1.birth_rate"),
                             hyperpar = default_hyperpar("FF16"))

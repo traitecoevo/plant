@@ -30,7 +30,7 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(lma, "lma"))
 
-  out <- run_scm(p, env, collect = TRUE)
+  out <- tidy(run(p, env, record = "steps"))
 
   # theta is intensive (m3 m^-3), so storage is sum(theta * width) -- the WIDTH of
   # each layer, one per row, not the first cumulative depth. Those coincide only
@@ -183,7 +183,7 @@ test_that("rainfall driver is floored at zero", {
   knots <- times[times > 0 & times < 2]
   stops <- events(events_default(p),
                   rainfall_pulse(time = knots, depth = rep(0, length(knots))))
-  out <- run_scm(p, env, events = stops, collect = TRUE)
+  out <- tidy(run(p, env, events = stops, record = "steps"))
 
   flux <- out$env$soil_moist_cumulative_flux
   # Cumulative rainfall and infiltration are both monotone non-decreasing: the

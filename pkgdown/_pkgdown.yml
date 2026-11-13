@@ -32,7 +32,7 @@ reference:
 
 - title: Parameters and strategies
   contents:
-  - scm_base_parameters
+  - base_parameters
   - default_parameters
   - trait_matrix
   - add_strategies
@@ -53,9 +53,7 @@ reference:
   - scenario
   - run_mutant
   - tidy.plant_run
-  - run_scm
   - environment_type
-  - run_stochastic_collect
   - run_until_converged
   - events
   - rainfall_pulse
@@ -79,8 +77,6 @@ reference:
 - title: Individuals
   contents:
   - Individual
-  - grow_individual_to_size
-  - grow_individual_to_time
   - optimise_individual_rate_at_size_by_trait
   - resource_compensation_point
   - Leaf

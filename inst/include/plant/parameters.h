@@ -28,7 +28,7 @@ namespace plant {
 // An R object held across the boundary, protected for as long as this holds
 // it. Parameters carries the trade-off function its strategies were built with
 // (an R closure, or NULL) so that it survives the round trip through C++ that
-// validate(), run_scm() and every copy of a Parameters make; C++ never reads
+// validate(), run() and every copy of a Parameters make; C++ never reads
 // it. Only RcppCommon.h is available here -- this header is included before
 // Rcpp.h, so Rcpp::RObject cannot be -- hence the hand-rolled preserve/release.
 class RObjectHandle {
@@ -150,7 +150,7 @@ struct Parameters {
 
   // The trade-off function (an R closure satisfying `f(m, s, filter = TRUE)`,
   // or NULL) the strategies here were built with: R's `param_hyperpar(p)`
-  // reads it, and it rides along unchanged through validate() and run_scm().
+  // reads it, and it rides along unchanged through validate() and run().
   // Opaque to C++, which is why it is a SEXP and not a Function.
   RObjectHandle hyperpar;
 

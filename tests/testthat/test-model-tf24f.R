@@ -29,7 +29,7 @@ test_that("TF24f validates acclimation knobs", {
   p1 <- testing_parameters("TF24f") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   s1 <- p1$strategies[[1]]; s1$k_acclim <- -1; p1$strategies[[1]] <- s1
-  expect_error(run_scm(p1, collect = FALSE, refine_schedule = FALSE), "k_acclim")
+  expect_error(run(p1), "k_acclim")
 })
 
 test_that("TF24f collect_all_auxiliary option", {
@@ -188,8 +188,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     and a full patch runs end-to-end to a finite, positive offspring count.
   expect_true("opt_root_psi_state" %in% TF24f_Individual()$ode_names)
   pf <- mk("TF24f")
-  slow <- run_scm(set_k_acclim(pf, 1),  Environment("TF24f"), Control())$offspring_production
-  fast <- run_scm(set_k_acclim(pf, 10), Environment("TF24f"), Control())$offspring_production
+  slow <- run(set_k_acclim(pf, 1),  Environment("TF24f"), Control())$offspring_production
+  fast <- run(set_k_acclim(pf, 10), Environment("TF24f"), Control())$offspring_production
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
 
@@ -233,9 +233,9 @@ test_that("acclimation runs, is active, and converges to TF24", {
   tight <- Control()
   tight$ode_tol_rel <- 1e-6
   tight$ode_tol_abs <- 1e-6
-  tf24 <- run_scm(mk("TF24"), Environment("TF24"), tight)$offspring_production
-  converged <- run_scm(set_k_acclim(pf, 100), Environment("TF24f"),
-                       Control())$offspring_production
+  tf24 <- run(mk("TF24"), Environment("TF24"), tight)$offspring_production
+  converged <- run(set_k_acclim(pf, 100), Environment("TF24f"),
+                   Control())$offspring_production
   expect_equal(converged, tf24, tolerance = 1e-2)
   # ...and the approach is monotone: a higher gain is never further away.
   expect_lt(abs(converged - tf24), abs(fast - tf24))
@@ -275,7 +275,7 @@ test_that("E conservation", {
   env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
   ctrl <- Control()
 
-  results <- run_scm(p1, env = env, ctrl = ctrl, collect = TRUE)
+  results <- tidy(run(p1, env = env, control = ctrl, record = "steps"))
 
   results %>%
     expand_state() %>%
@@ -307,13 +307,13 @@ test_that("TF24f AD gradient tracks TF24 (#527)", {
     add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
                    hyperpar = default_hyperpar(type), birth_rate = 20)
   }
-  ref <- run_scm(base("TF24"), collect = TRUE, refine_schedule = FALSE)$species
+  ref <- tidy(run(base("TF24"), record = "steps"))$species
 
   p <- base("TF24f")
   s <- p$strategies[[1]]
   s$k_acclim <- 10
   p$strategies[[1]] <- s
-  res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)$species
+  res <- tidy(run(p, record = "steps"))$species
 
   expect_equal(nrow(res), nrow(ref))
   dh <- abs(res$height - ref$height)

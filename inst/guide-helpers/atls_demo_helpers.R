@@ -202,7 +202,7 @@ atls_scm_fitness <- function(air_temp, type = "TF24t", mutate = identity,
   env <- Environment(type)
   env$extrinsic_drivers_set_constant("leaf_temp", air_temp)
   if (!is.null(PPFD)) env$extrinsic_drivers_set_constant("SWdown", PPFD / (0.5 * 4.57))
-  res <- run_scm(p, env = env, collect = FALSE, refine_schedule = FALSE)
+  res <- run(p, env = env)$solver
   data.frame(type = type, air_temp = air_temp,
              R0 = res$net_reproduction_ratios,
              offspring = res$offspring_production)

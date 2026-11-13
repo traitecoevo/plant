@@ -66,7 +66,7 @@ test_that("every C++ symbol the registry names is in plant's headers, on its cla
 
 test_that("every field Parameters binds is a parameter or a listed non-parameter", {
   reg <- model_registry()
-  bound <- names(scm_base_parameters("FF16"))
+  bound <- names(base_parameters("FF16"))
   on_parameters <- grepl("^plant::Parameters::", reg$parameters$code)
   field <- ifelse(is.na(reg$parameters$field),
                   sub("^.*::", "", reg$parameters$code), reg$parameters$field)
@@ -196,7 +196,7 @@ test_that("a document takes an equation's LaTeX from the registry", {
 test_that("the values are read off the live model, not stored", {
   reg <- model_registry()
   v <- registry_values(reg, "FF16")
-  p <- scm_base_parameters("FF16")
+  p <- base_parameters("FF16")
   i <- match("plant::Parameters::max_patch_lifetime", v$code)
   expect_false(is.na(i))
   expect_identical(v$value[[i]], p$max_patch_lifetime)

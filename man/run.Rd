@@ -30,14 +30,18 @@ run(x, ...)
 \item{x}{What to run: a scenario, a \code{Parameters} object, a
 \code{plant_run} to continue, or an \code{Individual}.}
 
-\item{...}{For a \code{Parameters} object, the arguments below; for an
-\code{Individual} grown to \code{sizes}, arguments of
-\code{\link{grow_individual_to_size}}.}
+\item{...}{For a \code{Parameters} object, the arguments below. For an
+\code{Individual} grown to \code{sizes}: \code{time_max}, the time to
+stop at if a size is never reached (default \code{Inf}); \code{warn},
+whether to warn when sizes are dropped (default \code{TRUE}); and
+\code{filter}, whether to drop sizes not reached from the result
+(default \code{FALSE}).}
 
 \item{until}{Where to stop: \code{NULL} runs the whole patch lifetime, and a
 time stops at the first step boundary at or past it. A time at or before
-the start builds the run without taking a step, as
-\code{run_scm(run = FALSE)} does. Continue with \code{run(res)}.}
+the start builds the run without taking a step, for a caller that drives
+it: \code{\link{run_until_converged}}, or \code{run(res, until = )}.
+Continue with \code{run(res)}.}
 
 \item{from}{Where to start: \code{NULL} starts the patch empty; a state
 exported with \code{\link{export_patch_state}}, or a \code{plant_run}
@@ -56,8 +60,14 @@ own \code{events} instead resumes on \code{p}'s; set
 (\code{\link{stand_gradient}}).}
 
 \item{refine_schedule}{Refine the node-introduction schedule before the
-run, as \code{\link{run_scm}} does. The refined schedule is in the result's
-\code{scenario$p}.}
+run, bisecting the intervals whose nodes' error exceeds
+\code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
+The refined schedule is in the result's \code{scenario$p}, with the ODE
+schedule the final run took (\code{ode_times}, \code{ode_step_sizes},
+\code{ode_soil_input_slopes}, \code{ode_soil_substep_ends}), so a later
+run of those parameters takes those steps exactly. With
+\code{record = "states"}, refinement's own runs keep no states and one
+more run keeps them.}
 
 \item{method}{\code{"deterministic"} (the default) or \code{"stochastic"}.}
 
@@ -81,9 +91,11 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   result's fitness values and \code{event_log} are \code{NULL}, its
   \code{steps} hold what \code{record = "steps"} kept, and its solver is a
   \code{StochasticPatchRunner}. An \code{Individual}'s run returns a
-  \code{plant_individual_run} instead: the list
-  \code{\link{grow_individual_to_time}} or
-  \code{\link{grow_individual_to_size}} returns.
+  \code{plant_individual_run} instead: a list with \code{time} (the times given, or
+  when each size was reached, \code{NA} for one that was not), \code{state} (the ODE
+  state at each time, as a matrix), \code{individual} (a list of the plant
+  at each) and \code{env}, and when grown to sizes \code{trajectory}, the
+  state at every step taken.
 
   A result holds until its solver moves. Whatever moves it -- \code{run()}
   continuing it, \code{run_mutant()}, \code{run_until_converged()} --
@@ -118,10 +130,10 @@ its result's fitness values are \code{NULL}, and it refuses \code{until},
 \code{from}, \code{refine_schedule}, \code{record = "states"} and events.
 Seed R's random number generator to repeat one.
 
-A single plant is grown by \code{run(individual, times = )} or
-\code{run(individual, sizes = )}, which return what
-\code{\link{grow_individual_to_time}} and
-\code{\link{grow_individual_to_size}} do, for \code{tidy()} to read.
+A single plant is grown by \code{run(individual, times = )}, which reports
+it at each time, or \code{run(individual, sizes = )}, which grows it to
+each size and bisects for the time it is reached. A plant grown on its own
+sees the environment it is given, not a patch's shading.
 }
 \seealso{
 \code{\link{scenario}}, \code{\link{run_mutant}},

@@ -1,7 +1,7 @@
 #' Sample individuals from the size distribution
 #'
 #' Draws a random sample of individual plants from a stand simulated by
-#' [run_scm()]: how many stand in a given ground area, and how big each one is.
+#' [run()]: how many stand in a given ground area, and how big each one is.
 #' Given several times, the same individuals are followed through all of them,
 #' so each grows with its cohort and, once dead, stays dead.
 #'
@@ -25,7 +25,7 @@
 #' `control(node_density_coordinate = "birth_date")`. Set the seed with
 #' [set.seed()] to make a sample reproducible.
 #'
-#' @param results Output of `run_scm(p, ctrl, collect = TRUE)`, run with
+#' @param results Output of `tidy(run(p, control = ctrl, record = "steps"))`, run with
 #'   density in birth date.
 #' @param area Ground area to sample (m^2).
 #' @param times Times at which to report the sample. Defaults to the end of the
@@ -40,8 +40,8 @@
 #' p <- default_parameters("FF16", quiet = TRUE)
 #' p$max_patch_lifetime <- 50
 #' p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
-#' results <- run_scm(p, ctrl = control(node_density_coordinate = "birth_date"),
-#'                    collect = TRUE)
+#' results <- tidy(run(p, control = control(node_density_coordinate = "birth_date"),
+#'                     record = "steps"))
 #' set.seed(1)
 #' trees <- sample_size_distribution(results, area = 400, times = c(10, 20, 50))
 #' }

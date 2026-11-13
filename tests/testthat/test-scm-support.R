@@ -8,7 +8,7 @@ test_that("collect", {
   p0$disturbance_mean_interval <- 30.0
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
-  expect_silent(res <- run_scm(p1, env, ctrl))
+  expect_silent(res <- run(p1, env, ctrl)$solver)
 
   expect_contains(
     names(res), c("clone", "collect", "compute_competition_effect_error_by_node_for_species_i", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "set_node_schedule_times", "time")
@@ -56,7 +56,7 @@ test_that("collect_auxiliary_variables", {
   # two species
   p1 <- add_strategies(p0, trait_matrix(0.082, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177))
 
-  results <- run_scm(p1, env, ctrl, collect = TRUE)
+  results <- tidy(run(p1, env, ctrl, record = "steps"))
   
   # check columns,should contain auxillary variables
   expect_equal(ncol(results$species), 16)
