@@ -1790,13 +1790,18 @@ void Patch<T,E>::private_water_exchange(const std::vector<value_type>& resource_
         return;
       }
       const value_type& area_leaf_a = ind.aux(st.aux_idx_competition_effect);
-      const double area_leaf = to_passive(area_leaf_a);
       const double share = nw * to_passive(st.crown_area(area_leaf_a)) * scale;
       // A share's relative rate: the crown's growth, less mortality, plus the
-      // growth of the ground the quadrature assigns the cohort.
+      // growth of the ground the quadrature assigns the cohort. The crown is
+      // the carried leaf area A*(h) exp(departure), so its relative growth is
+      // the allometry's slope at A*(h) times dh/dt over A*(h), plus the
+      // departure's own rate.
+      const value_type area_leaf_star = st.area_leaf(ind.state(HEIGHT_INDEX));
       const double growth =
-        to_passive(ind.rate(HEIGHT_INDEX)) * to_passive(st.darea_leaf_dheight(area_leaf_a)) /
-          area_leaf -
+        to_passive(ind.rate(HEIGHT_INDEX)) *
+          to_passive(st.darea_leaf_dheight(area_leaf_star)) /
+          to_passive(area_leaf_star) +
+        to_passive(ind.rate(st.state_idx_log_area_leaf_departure)) -
         to_passive(ind.rate(MORTALITY_INDEX)) + weight_growth;
       cols.push_back({&ind, st.state_idx_water_first, share, growth, 0.0});
       cover_dt += share * growth;

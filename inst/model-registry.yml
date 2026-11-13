@@ -3780,14 +3780,14 @@ equations:
     latex: |
       \dot s_j = \begin{cases} s_j \, g_j & C \le 1 \\ s_j \big(g_j - \textstyle\sum_k s_k g_k\big) & C > 1 \end{cases}, \qquad
       \dot b = \begin{cases} -\textstyle\sum_j \dot s_j & C \le 1 \\ 0 & C > 1 \end{cases}, \qquad
-      g_j = \frac{\dot H_j \, {\rm d}A_{\rm l}/{\rm d}H}{A_{{\rm l},j}} - d_j + \frac{\dot w_j}{w_j}, \qquad
+      g_j = \frac{\dot H_j \, {\rm d}A_{\rm l}^{*}/{\rm d}H}{A_{\rm l}^{*}(H_j)} + \dot\delta_{{\rm l},j} - d_j + \frac{\dot w_j}{w_j}, \qquad
       \frac{{\rm d}\theta_{j,i}}{{\rm d}t} \mathrel{+}= \big(\theta^{\rm rel}_i - \theta_{j,i}\big) \frac{\dot s_j}{s_j} \ \text{for } \dot s_j > 0
     code: plant::Patch::private_water_exchange
     also: [plant::Species::for_each_water_column]
     reads: [TF24w.water_mixing_rate, g, d]
     writes: []
     kind: derivative
-    note: 'A column''s share moves as its crown grows and its cohort dies ($d_j$ is the mortality rate), and the youngest cohort''s quadrature weight grows ($\dot w_j / w_j$). Land a shrinking share releases carries its water; $\theta^{\rm rel}_i$ is the area-weighted content of all released land, the bare ground''s included, and growing shares (the bare ground too, if $b \ge 10^{-6}$) take land at that content, so re-tiling conserves the patch''s water. The code takes ${\rm d}A_{\rm l}/{\rm d}H$ at the carried leaf area and has no term for the leaf departure''s own rate, so with flexible allometry on ($\delta_{\rm l} \neq 0$) $g_j$ is not the crown''s relative growth rate: it is off by $e^{-\alpha_{\rm l2} \delta_{\rm l}}$ and lacks $\dot\delta_{\rm l}$. The two agree at the default, where $\delta_{\rm l} = 0$. The bare column also relaxes toward $\bar\theta_i$ at $m$ (if $b \ge 10^{-6}$), and the boundary node''s uptake is charged to every column alike per unit of ground. The environment''s infiltration, drainage and uptake accumulators are replaced by area-weighted totals over every column.'
+    note: 'A column''s share moves as its crown grows and its cohort dies ($d_j$ is the mortality rate), and the youngest cohort''s quadrature weight grows ($\dot w_j / w_j$). The crown is the carried leaf area $A_{\rm l}^{*}(H) \, e^{\delta_{\rm l}}$, so it grows with the height and with the leaf departure. Land a shrinking share releases carries its water; $\theta^{\rm rel}_i$ is the area-weighted content of all released land, the bare ground''s included, and growing shares (the bare ground too, if $b \ge 10^{-6}$) take land at that content, so re-tiling conserves the patch''s water. The bare column also relaxes toward $\bar\theta_i$ at $m$ (if $b \ge 10^{-6}$), and the boundary node''s uptake is charged to every column alike per unit of ground. The environment''s infiltration, drainage and uptake accumulators are replaced by area-weighted totals over every column.'
   TF24w.water_pulse:
     model: TF24w
     section: tf24w_water

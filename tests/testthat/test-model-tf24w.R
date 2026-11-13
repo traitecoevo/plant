@@ -7,12 +7,14 @@
 # coordinate.
 tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
                         rainfall_pulses = TRUE, absorb = 0, seed = 1,
-                        schedule = seq(0, years - 1, by = 1), lma = 0.0825) {
+                        schedule = seq(0, years - 1, by = 1), lma = 0.0825,
+                        a_pl0 = 0) {
   p <- testing_parameters(type)
   p$fitness_weighting <- "none"
   p$max_patch_lifetime <- years
   p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = default_hyperpar(type),
                       birth_rate = birth_rate)
+  p$strategies[[1]]$pars$a_pl0 <- a_pl0
   p$node_schedule_times <- list(schedule)
   env <- Environment(type)
   env$extrinsic_drivers_set_constant("rainfall", 0)
@@ -33,7 +35,7 @@ test_that("TF24w declares its states, readings and version", {
   s <- TF24w_Model()
   nm <- TF24w_Individual(s)$ode_names
   expect_identical(nm, c(TF24_Individual()$ode_names, paste0("water_", 1:5)))
-  expect_identical(model_id("TF24w"), paste0("TF24w@v", model_version("TF24"), ".1"))
+  expect_identical(model_id("TF24w"), paste0("TF24w@v", model_version("TF24"), ".2"))
   expect_true(all(c("water_infiltration", "water_drainage", "crown_area") %in%
                     TF24w_Individual(s)$aux_names))
   # The crown-LAI parameter is TF24's, inert there, and reaches the hyperpar.
@@ -61,6 +63,7 @@ tf24w_columns <- function(scm) {
   list(water = sapply(nodes, function(n) n$ode_state[first:(first + 4)]),
        log_density = sapply(nodes, function(n) n$ode_state[which(nm == "log_density")]),
        height = sapply(nodes, function(n) n$ode_state[which(nm == "height")]),
+       departure = sapply(nodes, function(n) n$ode_state[which(nm == "log_area_leaf_departure")]),
        bare = scm$patch$environment$get_soil_water_state())
 }
 
@@ -140,7 +143,8 @@ test_that("the resident's own copy, introduced as a rare second species, scores 
 tf24w_storage <- function(scm, dz = 0.3) {
   sp <- scm$patch$species[[1]]
   s <- scm$patch$parameters$strategies[[1]]$pars
-  crown <- function(h) (h / s$a_l1)^(1 / s$a_l2) / s$L_crown
+  # The crown is the carried leaf area, A*(h) exp(departure), over L_crown.
+  crown <- function(h, departure) (h / s$a_l1)^(1 / s$a_l2) * exp(departure) / s$L_crown
   cols <- tf24w_columns(scm)
   x <- c(sp$node_times, scm$patch$time)
   n <- exp(cols$log_density)
@@ -153,7 +157,7 @@ tf24w_storage <- function(scm, dz = 0.3) {
     right <- x[k + 1] - x[k]
     w[k] <- (left + right) / 2
   }
-  share <- w * n * crown(h)
+  share <- w * n * crown(h, cols$departure)
   cover <- sum(share)
   share <- share / max(1, cover)
   bare <- max(0, 1 - cover)
@@ -176,5 +180,18 @@ test_that("the water budget closes over births, growth, death and pulses", {
   budget <- (st$total - start) - (flux[[2]] - flux[[3]] - flux[[4]])
   expect_gt(flux[[2]], 0)
   expect_gt(st$cover, 0)
+  expect_lt(abs(budget), 1e-6 * flux[[2]])
+})
+
+test_that("the water budget closes with flexible allometry on", {
+  # A crown is the carried leaf area, which moves with the leaf departure as
+  # well as the height, so its relative growth rate has a term for each.
+  scm <- tf24w_stand("TF24w", mixing = 1, years = 12, birth_rate = 20, a_pl0 = 1)
+  start <- sum(scm$patch$environment$get_soil_water_state() * 0.3)
+  scm$run()
+  expect_lt(min(tf24w_columns(scm)$departure), -0.01)
+  flux <- scm$patch$environment$get_soil_water_state_cumulative_flux()
+  st <- tf24w_storage(scm)
+  budget <- (st$total - start) - (flux[[2]] - flux[[3]] - flux[[4]])
   expect_lt(abs(budget), 1e-6 * flux[[2]])
 })

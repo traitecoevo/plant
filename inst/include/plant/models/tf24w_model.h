@@ -48,7 +48,7 @@ public:
   // Compound scientific version, as TF24f's: "<TF24 version>.<revision>", so a
   // TF24 science change invalidates TF24w too, and this revision moves for
   // changes to the private-water model itself.
-  static constexpr int private_water_revision = 1;
+  static constexpr int private_water_revision = 2;
 
   // Soil layers a column carries: the environment's default. The name is what
   // the HasPrivateWater concept tests for.
@@ -111,6 +111,9 @@ protected:
   }
   // The column's potentials for the leaf, filled before the base rates run.
   std::vector<S> psi_soil_own_;
+  // Fill them from the column a newborn is given, for the leaf solves made
+  // before it has states of its own.
+  void use_newborn_column(const TF24_Environment<S>& environment);
   // Scratch for compute_rates, rewritten in full on every call.
   std::vector<S> water_flux_own_, theta_own_, uptake_own_, rate_own_;
 };
@@ -203,8 +206,22 @@ void TF24w_Model<S>::compute_rates(const TF24_Environment<S>& environment,
 }
 
 template <typename S>
+void TF24w_Model<S>::use_newborn_column(const TF24_Environment<S>& environment) {
+  const int n = environment.get_soil_number_of_depths();
+  psi_soil_own_.resize(n);
+  for (int i = 0; i < n; ++i) {
+    psi_soil_own_[i] =
+      environment.psi_from_soil_moist(S(environment.private_water_newborn(i)), i);
+  }
+}
+
+template <typename S>
 void TF24w_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                            Internals<S>& vars) {
+  // Under flexible allometry the base seeds the tracked marginal balance with
+  // a leaf solve, which must read this newborn's column, not whichever column
+  // the potentials were last filled from.
+  use_newborn_column(environment);
   base_type::set_initial_states(environment, vars);
   const int n = environment.get_soil_number_of_depths();
   for (int i = 0; i < static_cast<int>(n_water_layers); ++i) {
@@ -215,12 +232,7 @@ void TF24w_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
 
 template <typename S>
 S TF24w_Model<S>::establishment_probability(const TF24_Environment<S>& environment) {
-  const int n = environment.get_soil_number_of_depths();
-  psi_soil_own_.resize(n);
-  for (int i = 0; i < n; ++i) {
-    psi_soil_own_[i] =
-      environment.psi_from_soil_moist(S(environment.private_water_newborn(i)), i);
-  }
+  use_newborn_column(environment);
   return base_type::establishment_probability(environment);
 }
 
