@@ -5,6 +5,7 @@
 \alias{run.plant_scenario}
 \alias{run.Parameters}
 \alias{run.plant_run}
+\alias{run.Individual}
 \title{Run plant}
 \usage{
 run(x, ...)
@@ -15,20 +16,23 @@ run(x, ...)
   until = NULL,
   from = NULL,
   record = character(0),
-  refine_schedule = FALSE
+  refine_schedule = FALSE,
+  method = c("deterministic", "stochastic")
 )
 
 \method{run}{Parameters}(x, env = NULL, control = plant::control(), events = NULL, ...)
 
 \method{run}{plant_run}(x, ..., until = NULL)
+
+\method{run}{Individual}(x, env = NULL, ..., times = NULL, sizes = NULL, size_name = "height")
 }
 \arguments{
-\item{x}{What to run: a scenario, a \code{Parameters} object, or a
-\code{plant_run} to continue.}
+\item{x}{What to run: a scenario, a \code{Parameters} object, a
+\code{plant_run} to continue, or an \code{Individual}.}
 
-\item{...}{For a \code{Parameters} object, \code{env}, \code{control} and
-\code{events}, as \code{\link{scenario}} takes them, then the arguments
-below.}
+\item{...}{For a \code{Parameters} object, the arguments below; for an
+\code{Individual} grown to \code{sizes}, arguments of
+\code{\link{grow_individual_to_size}}.}
 
 \item{until}{Where to stop: \code{NULL} runs the whole patch lifetime, and a
 time stops at the first step boundary at or past it. A time at or before
@@ -54,6 +58,17 @@ own \code{events} instead resumes on \code{p}'s; set
 \item{refine_schedule}{Refine the node-introduction schedule before the
 run, as \code{\link{run_scm}} does. The refined schedule is in the result's
 \code{scenario$p}.}
+
+\item{method}{\code{"deterministic"} (the default) or \code{"stochastic"}.}
+
+\item{env, control, events}{For a \code{Parameters} object, as
+\code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
+the \code{Environment} it grows in, by default its model's.}
+
+\item{times, sizes}{For an \code{Individual}, the times to report it at, or
+the sizes to grow it to (increasing); give one.}
+
+\item{size_name}{The size \code{sizes} are of.}
 }
 \value{
 A \code{plant_run}: a list with \code{scenario} (what was run, its
@@ -61,8 +76,14 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   \code{complete} (where the run stands), \code{offspring_production} and
   \code{net_reproduction_ratios} (per species, at \code{time}),
   \code{event_log} (what each event did), \code{mutants} (the invaders'
-  \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL})
-  and \code{solver}, the live \code{SCM}.
+  \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL}),
+  \code{method}, and \code{solver}, the live \code{SCM}. A stochastic
+  result's fitness values and \code{event_log} are \code{NULL}, its
+  \code{steps} hold what \code{record = "steps"} kept, and its solver is a
+  \code{StochasticPatchRunner}. An \code{Individual}'s run returns a
+  \code{plant_individual_run} instead: the list
+  \code{\link{grow_individual_to_time}} or
+  \code{\link{grow_individual_to_size}} returns.
 
   A result holds until its solver moves. Whatever moves it -- \code{run()}
   continuing it, \code{run_mutant()}, \code{run_until_converged()} --
@@ -81,10 +102,26 @@ One verb for a run, whatever describes it:
   \item a \code{\link{scenario}}, the bundle of everything a run takes;
   \item a \code{Parameters} object, with the rest given as arguments
     (\code{run(p, env = env)} is \code{run(scenario(p, env))});
-  \item a previous result, which continues it to \code{until}.
+  \item a previous result, which continues it to \code{until};
+  \item an \code{Individual}, a single plant grown on its own.
 }
 
-The run is the deterministic solver, by the method of characteristics.
+\code{method} chooses the solver: \code{"deterministic"}, by the method of
+characteristics, or \code{"stochastic"}, the finite population of
+individuals, arriving at random and each establishing and dying by chance.
+The stochastic run takes the scenario's \code{p}, \code{env} and
+\code{control} and runs the whole lifetime. Arrivals are drawn from each
+species' birth rate and \code{p$patch_area}, not from
+\code{p$node_schedule_times}; the result's \code{scenario$p} carries the
+times drawn. It has no fitness integral, so
+its result's fitness values are \code{NULL}, and it refuses \code{until},
+\code{from}, \code{refine_schedule}, \code{record = "states"} and events.
+Seed R's random number generator to repeat one.
+
+A single plant is grown by \code{run(individual, times = )} or
+\code{run(individual, sizes = )}, which return what
+\code{\link{grow_individual_to_time}} and
+\code{\link{grow_individual_to_size}} do, for \code{tidy()} to read.
 }
 \seealso{
 \code{\link{scenario}}, \code{\link{run_mutant}},

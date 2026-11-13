@@ -142,6 +142,10 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   expect_identical(inv$offspring_production, scm$offspring_production)
   expect_identical(inv$mutants, pm)
   expect_identical(inv$scenario, res$scenario)
+  expect_output(print(inv), "1 species invading")
+  inv3 <- run_mutant(run(p), add_mutant(p, trait_matrix(c(0.09, 0.1, 0.11), "lma"),
+                                           birth_rate = as.list(rep(1, 3))))
+  expect_output(print(inv3), "3 species invading")
   expect_error(export_patch_state(res), "moved on")
   expect_error(tidy(res), "moved on")
   expect_error(run_mutant(inv, pm), "resident")
@@ -166,4 +170,67 @@ test_that("run() refuses what it cannot do", {
   expect_error(scenario(list()), "Parameters")
   expect_error(scenario(p, events = list()), "Events")
   expect_error(run(p, from = run_scm(p)), "export_patch_state")
+})
+
+## The stochastic solver and a single plant under run(). Each is the function
+## run() calls, so each is asserted identical to it.
+
+stochastic_stand <- function(lifetime = 20) {
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- lifetime
+  add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 2)
+}
+
+test_that("a stochastic run is run_stochastic_collect()'s, under the same seed", {
+  p <- stochastic_stand()
+  set.seed(42)
+  collected <- run_stochastic_collect(p)
+  set.seed(42)
+  res <- run(p, method = "stochastic", record = "steps")
+  expect_s3_class(res, "plant_run")
+  expect_identical(res$method, "stochastic")
+  expect_identical(tidy(res), collected[c("time", "species", "env")])
+  expect_true(res$complete)
+  expect_null(res$offspring_production)
+  ## The scenario records the arrivals drawn, not p's deterministic schedule.
+  expect_identical(res$scenario$p, res$solver$parameters)
+  expect_false(identical(res$scenario$p$node_schedule_times, p$node_schedule_times))
+  expect_output(print(res), "stochastic")
+  ## Unrecorded, it draws the same individuals and ends in the same state.
+  set.seed(42)
+  quiet <- run(p, method = "stochastic")
+  expect_identical(quiet$solver$patch$state, res$solver$patch$state)
+  expect_error(tidy(quiet), "record = \"steps\"")
+})
+
+test_that("a stochastic run refuses what it cannot do", {
+  p <- stochastic_stand(5)
+  expect_error(run(p, method = "stochastic", until = 2), "until")
+  expect_error(run(p, method = "stochastic", refine_schedule = TRUE), "refine_schedule")
+  expect_error(run(p, method = "stochastic", record = "states"), "states")
+  expect_error(run(p, method = "stochastic",
+                   events = events(node_introductions(p), harvest(time = 2, fraction = 0.3))),
+               "events")
+  expect_error(run(p, method = "stochastic", from = run(p)), "from")
+  res <- run(p, method = "stochastic")
+  expect_error(export_patch_state(res), "deterministic")
+  expect_error(run(res), "deterministic")
+  expect_error(run_mutant(res, p), "deterministic")
+  expect_error(run(p, method = "neither"), "should be one of")
+})
+
+test_that("a single plant's run is grow_individual_to_*()'s", {
+  ind <- FF16_Individual()
+  env <- Environment("FF16")
+  at_times <- run(ind, times = c(1, 5, 10))
+  expect_s3_class(at_times, "plant_individual_run")
+  expect_identical(unclass(at_times)[c("time", "state")],
+                   grow_individual_to_time(ind, c(1, 5, 10), env)[c("time", "state")])
+  expect_identical(tidy(at_times), tidy_individual(grow_individual_to_time(ind, c(1, 5, 10), env)))
+  at_sizes <- run(ind, sizes = c(1, 5), env = env)
+  expect_identical(unclass(at_sizes)[c("time", "state")],
+                   grow_individual_to_size(ind, c(1, 5), "height", env)[c("time", "state")])
+  expect_error(run(ind), "one of")
+  expect_error(run(ind, times = 1, sizes = 1), "one of")
+  expect_error(run(ind, times = 1, warn = FALSE), "does not take warn")
 })

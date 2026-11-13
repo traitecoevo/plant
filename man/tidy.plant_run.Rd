@@ -2,18 +2,27 @@
 % Please edit documentation in R/run.R
 \name{tidy.plant_run}
 \alias{tidy.plant_run}
+\alias{tidy.plant_individual_run}
 \title{Tidy a run's recorded steps}
 \usage{
 \method{tidy}{plant_run}(x, ...)
+
+\method{tidy}{plant_individual_run}(x, ...)
 }
 \arguments{
-\item{x}{A \code{plant_run} run with \code{record = "steps"}.}
+\item{x}{A \code{plant_run} run with \code{record = "steps"}, or a single
+plant's run.}
 
 \item{...}{Unused.}
 }
 \value{
-The tidied patch: \code{steps}, \code{n_spp}, \code{species} and
-  \code{env}, as \code{run_scm(collect = TRUE)} gives them.
+For a deterministic run, the tidied patch: \code{steps},
+  \code{n_spp}, \code{species} and \code{env}, as
+  \code{run_scm(collect = TRUE)} gives them. For a stochastic run,
+  \code{time}, \code{species} and \code{env}, as
+  \code{\link{run_stochastic_collect}} gives them. For a single plant, a
+  tibble of its state at each reported time, as
+  \code{\link{tidy_individual}} gives it.
 }
 \description{
 Tidy a run's recorded steps

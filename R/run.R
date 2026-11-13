@@ -57,16 +57,32 @@ print.plant_scenario <- function(x, ...) {
 ##'   \item a \code{\link{scenario}}, the bundle of everything a run takes;
 ##'   \item a \code{Parameters} object, with the rest given as arguments
 ##'     (\code{run(p, env = env)} is \code{run(scenario(p, env))});
-##'   \item a previous result, which continues it to \code{until}.
+##'   \item a previous result, which continues it to \code{until};
+##'   \item an \code{Individual}, a single plant grown on its own.
 ##' }
 ##'
-##' The run is the deterministic solver, by the method of characteristics.
+##' \code{method} chooses the solver: \code{"deterministic"}, by the method of
+##' characteristics, or \code{"stochastic"}, the finite population of
+##' individuals, arriving at random and each establishing and dying by chance.
+##' The stochastic run takes the scenario's \code{p}, \code{env} and
+##' \code{control} and runs the whole lifetime. Arrivals are drawn from each
+##' species' birth rate and \code{p$patch_area}, not from
+##' \code{p$node_schedule_times}; the result's \code{scenario$p} carries the
+##' times drawn. It has no fitness integral, so
+##' its result's fitness values are \code{NULL}, and it refuses \code{until},
+##' \code{from}, \code{refine_schedule}, \code{record = "states"} and events.
+##' Seed R's random number generator to repeat one.
 ##'
-##' @param x What to run: a scenario, a \code{Parameters} object, or a
-##'   \code{plant_run} to continue.
-##' @param ... For a \code{Parameters} object, \code{env}, \code{control} and
-##'   \code{events}, as \code{\link{scenario}} takes them, then the arguments
-##'   below.
+##' A single plant is grown by \code{run(individual, times = )} or
+##' \code{run(individual, sizes = )}, which return what
+##' \code{\link{grow_individual_to_time}} and
+##' \code{\link{grow_individual_to_size}} do, for \code{tidy()} to read.
+##'
+##' @param x What to run: a scenario, a \code{Parameters} object, a
+##'   \code{plant_run} to continue, or an \code{Individual}.
+##' @param ... For a \code{Parameters} object, the arguments below; for an
+##'   \code{Individual} grown to \code{sizes}, arguments of
+##'   \code{\link{grow_individual_to_size}}.
 ##' @param until Where to stop: \code{NULL} runs the whole patch lifetime, and a
 ##'   time stops at the first step boundary at or past it. A time at or before
 ##'   the start builds the run without taking a step, as
@@ -85,6 +101,13 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{"steps"}, the patch at every step, which \code{tidy()} reads; and
 ##'   \code{"states"}, the ODE state at every step, which a gradient sweeps
 ##'   (\code{\link{stand_gradient}}).
+##' @param method \code{"deterministic"} (the default) or \code{"stochastic"}.
+##' @param env,control,events For a \code{Parameters} object, as
+##'   \code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
+##'   the \code{Environment} it grows in, by default its model's.
+##' @param times,sizes For an \code{Individual}, the times to report it at, or
+##'   the sizes to grow it to (increasing); give one.
+##' @param size_name The size \code{sizes} are of.
 ##' @param refine_schedule Refine the node-introduction schedule before the
 ##'   run, as \code{\link{run_scm}} does. The refined schedule is in the result's
 ##'   \code{scenario$p}.
@@ -93,8 +116,14 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{complete} (where the run stands), \code{offspring_production} and
 ##'   \code{net_reproduction_ratios} (per species, at \code{time}),
 ##'   \code{event_log} (what each event did), \code{mutants} (the invaders'
-##'   \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL})
-##'   and \code{solver}, the live \code{SCM}.
+##'   \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL}),
+##'   \code{method}, and \code{solver}, the live \code{SCM}. A stochastic
+##'   result's fitness values and \code{event_log} are \code{NULL}, its
+##'   \code{steps} hold what \code{record = "steps"} kept, and its solver is a
+##'   \code{StochasticPatchRunner}. An \code{Individual}'s run returns a
+##'   \code{plant_individual_run} instead: the list
+##'   \code{\link{grow_individual_to_time}} or
+##'   \code{\link{grow_individual_to_size}} returns.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
 ##'   continuing it, \code{run_mutant()}, \code{run_until_converged()} --
@@ -114,12 +143,17 @@ run <- function(x, ...) {
 ##' @rdname run
 ##' @export
 run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
-                               record = character(0), refine_schedule = FALSE) {
+                               record = character(0), refine_schedule = FALSE,
+                               method = c("deterministic", "stochastic")) {
   no_more_arguments(...)
+  method <- match.arg(method)
   unknown <- setdiff(record, c("steps", "states"))
   if (length(unknown) > 0L) {
     stop("`record` takes \"steps\" and \"states\", not ",
          paste0("\"", unknown, "\"", collapse = ", "), call. = FALSE)
+  }
+  if (method == "stochastic") {
+    return(run_stochastic(x, until, from, record, refine_schedule))
   }
   if (refine_schedule && !is.null(until)) {
     stop("`refine_schedule` refines over the whole run, so it cannot stop at `until`",
@@ -233,6 +267,36 @@ no_more_arguments <- function(...) {
   }
 }
 
+## The stochastic solver under run(). It runs the whole lifetime and reports no
+## fitness, so whatever needs a stopping point, a resume, a recording for
+## gradients or events is refused by name.
+run_stochastic <- function(x, until, from, record, refine_schedule) {
+  refused <- c(until = !is.null(until), from = !is.null(from),
+               refine_schedule = isTRUE(refine_schedule),
+               `record = "states"` = "states" %in% record,
+               events = !is.null(x$events))
+  if (any(refused)) {
+    stop("The stochastic solver runs the whole lifetime with no events; it ",
+         "cannot take ", paste(names(refused)[refused], collapse = ", "),
+         call. = FALSE)
+  }
+  obj <- stochastic_runner(x$p, x$env, x$control)
+  steps <- NULL
+  if ("steps" %in% record) {
+    steps <- collect_stochastic_steps(obj)
+  } else {
+    obj$run()
+  }
+  ## The arrivals drawn are on the solver's parameters; keep them, so a saved
+  ## result records who arrived when.
+  x$p <- obj$parameters
+  structure(list(scenario = x, time = obj$time, complete = obj$complete,
+                 offspring_production = NULL, net_reproduction_ratios = NULL,
+                 event_log = NULL, record = record, mutants = NULL,
+                 method = "stochastic", steps = steps, solver = obj),
+            class = "plant_run")
+}
+
 new_plant_run <- function(scm, scenario, record, mutants = NULL) {
   structure(list(scenario = scenario,
                  time = scm$time,
@@ -242,19 +306,42 @@ new_plant_run <- function(scm, scenario, record, mutants = NULL) {
                  event_log = scm$event_log,
                  record = record,
                  mutants = mutants,
+                 method = "deterministic",
                  solver = scm),
             class = "plant_run")
+}
+
+##' @rdname run
+##' @export
+run.Individual <- function(x, env = NULL, ..., times = NULL, sizes = NULL,
+                           size_name = "height") {
+  if (is.null(times) == is.null(sizes)) {
+    stop("Give one of `times` and `sizes`", call. = FALSE)
+  }
+  if (is.null(env)) {
+    env <- Environment(x$strategy_name)
+  }
+  out <- if (is.null(times)) {
+    grow_individual_to_size(x, sizes, size_name, env, ...)
+  } else {
+    no_more_arguments(...)
+    grow_individual_to_time(x, times, env)
+  }
+  structure(out, class = "plant_individual_run")
 }
 
 ##' @export
 print.plant_run <- function(x, ...) {
   model <- extract_RcppR6_template_types(x$scenario$p, "Parameters")[[1]]
-  cat(sprintf("<plant_run> %s, %d species%s, at t = %g of %g%s\n", model,
-              length(x$offspring_production),
+  cat(sprintf("<plant_run> %s%s, %d species%s, at t = %g of %g%s\n", model,
+              if (identical(x$method, "stochastic")) " (stochastic)" else "",
+              length((x$mutants %||% x$scenario$p)$strategies),
               if (is.null(x$mutants)) "" else " invading",
               x$time, x$scenario$p$max_patch_lifetime,
               if (isTRUE(x$complete)) " (complete)" else ""))
-  cat("  offspring_production:", format(x$offspring_production, digits = 4), "\n")
+  if (!is.null(x$offspring_production)) {
+    cat("  offspring_production:", format(x$offspring_production, digits = 4), "\n")
+  }
   invisible(x)
 }
 
@@ -264,17 +351,36 @@ generics::tidy
 
 ##' Tidy a run's recorded steps
 ##'
-##' @param x A \code{plant_run} run with \code{record = "steps"}.
+##' @param x A \code{plant_run} run with \code{record = "steps"}, or a single
+##'   plant's run.
 ##' @param ... Unused.
-##' @return The tidied patch: \code{steps}, \code{n_spp}, \code{species} and
-##'   \code{env}, as \code{run_scm(collect = TRUE)} gives them.
+##' @return For a deterministic run, the tidied patch: \code{steps},
+##'   \code{n_spp}, \code{species} and \code{env}, as
+##'   \code{run_scm(collect = TRUE)} gives them. For a stochastic run,
+##'   \code{time}, \code{species} and \code{env}, as
+##'   \code{\link{run_stochastic_collect}} gives them. For a single plant, a
+##'   tibble of its state at each reported time, as
+##'   \code{\link{tidy_individual}} gives it.
 ##' @export
 tidy.plant_run <- function(x, ...) {
-  scm <- as_scm(x)
+  ## A deterministic result is checked as current first: its steps are the
+  ## solver's history, which a later run overwrites.
+  if (!identical(x$method, "stochastic")) {
+    as_scm(x)
+  }
   if (!"steps" %in% x$record) {
     stop("This run kept no steps: run it with record = \"steps\"", call. = FALSE)
   }
-  tidy_patch(lapply(scm$history, "[[", "state"))
+  if (identical(x$method, "stochastic")) {
+    return(tidy_stochastic_steps(x$steps))
+  }
+  tidy_patch(lapply(x$solver$history, "[[", "state"))
+}
+
+##' @rdname tidy.plant_run
+##' @export
+tidy.plant_individual_run <- function(x, ...) {
+  tidy_individual(x)
 }
 
 ##' Run invaders against a resident
@@ -316,6 +422,10 @@ run_mutant <- function(resident, p, constant = FALSE) {
 as_scm <- function(x) {
   if (!inherits(x, "plant_run")) {
     return(x)
+  }
+  if (identical(x$method, "stochastic")) {
+    stop("This is a stochastic run, which has no fitness, gradient, export or continuation: ",
+         "that needs the deterministic solver", call. = FALSE)
   }
   scm <- x$solver
   time <- tryCatch(scm$time, error = function(e) {
