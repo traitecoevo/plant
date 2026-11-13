@@ -12,15 +12,12 @@ Each of these is compared bit for bit or at a stated tolerance by a test. None m
 | `tests/testthat/reference/reference-gradient.tsv`, `reference-kinds.tsv` | the differenced reference the analytic leaf rows are refereed against, every step's reading, and which operating-point kinds each regime reached | `test-gradient-ladder-whole-run-difference.R` | `scripts/capture-reference-gradient.R`; read its header first, because the differenced implementation it used is gone |
 | `tests/testthat/FF16_reference/` | FF16 against Daniel's original R implementation of the growth model | `test-model-ff16-reference-comparison.R` | not re-blessed: it is an independent implementation |
 | `tests/testthat/_snaps/model-version.md` | each model's default `pars`, `control` and top-level science fields, against its `scientific_version` | `test-model-version.R` | `testthat::snapshot_accept("model-version")`, with the version bump |
-| `tests/testthat/test_data/scenario_baseline.rds` | each TF24 hydraulic scenario's two classifications (`observed`, `persists`) and its offspring production at `SCENARIO_TOL` (1e-3) | `test-scenario-gateway.R`, only with `PLANT_RUN_SCENARIOS=1` | `make bless-scenarios`, with the before-and-after table in NEWS |
 
-Three of these skip on CRAN (the default baseline, the drift guard, which is a snapshot, and the gateway), so a run with `NOT_CRAN` unset has no live gate on a version bump: check they ran before believing one.
+Two of these skip on CRAN (the default baseline, and the drift guard, which is a snapshot), so a run with `NOT_CRAN` unset has no live gate on a version bump: check they ran before believing one.
 
 ## Validating a build
 
 Run the suite against an installed plant, not the checkout: `R_LIBS=<lib> make test-installed`, and read the "loaded from" line it prints. agents.md §8 explains each setting it makes. Build against odelia and phylloptim at the shas pinned in `DESCRIPTION`'s `Remotes:`, and `rm -f src/*.o` first whenever a `LinkingTo` dependency changed (agents.md §6). Compare the pass count with a control run of the same invocation on a reference build, never with a remembered number.
-
-The scenario gateway runs with `PLANT_RUN_SCENARIOS=1` and is needed for any change that touches TF24 or its environment.
 
 ## Measuring speed
 

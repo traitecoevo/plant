@@ -326,8 +326,6 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make test` | `make all` then `devtools::test()` |
 | `make test-installed` | run the suite against the plant installed in `R_LIBS`, not this checkout (§8) |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
-| `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
-| `make bless-scenarios` | regenerate the gateway test baseline (`tests/testthat/test_data/scenario_baseline.rds`) — only when a changed outcome is intended |
 
 Practical rules:
 
@@ -424,14 +422,7 @@ Rules:
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
 - **TF24t and TF24w are compound versions the same way**: `"<TF24 version>.<thermal revision>"`, bumped through `thermal_revision` in `tf24t_model.h` for a change to the thermal-damage layer, and `"<TF24 version>.<private water revision>"`, bumped through `private_water_revision` in `tf24w_model.h` for a change to the private-water model.
-- A bump is deliberate: it invalidates that model's `logpile` cache and forces
-  reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
-  fails when a default changes without a bump (snapshot of each model's default
-  `pars`/`control`); pure equation changes are not auto-detected and rely on
-  review. **The drift guard skips on CRAN**, and so does the scenario gateway,
-  so in an invocation that sets that flag a bump has no live gate at all: check
-  both ran before believing one. Adding a new model → add its constant and a dispatch arm in
-  `src/strategy_version.cpp`.
+- A bump is deliberate: it invalidates that model's `logpile` cache and forces reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R) fails when a default changes without a bump (snapshot of each model's default `pars`/`control`); pure equation changes are not auto-detected and rely on review. **The drift guard skips on CRAN**, so in an invocation that sets that flag a bump has no live gate at all: check it ran before believing one. Adding a new model → add its constant and a dispatch arm in `src/strategy_version.cpp`.
 
 ---
 
@@ -475,24 +466,6 @@ count from `getOption("Ncpus")` / the `TESTTHAT_CPUS` env var, defaulting to
 more cores. Parallelism only pays off with an optimised build: run `make`
 (compiles with `-O2`) before timing, not a bare `devtools::load_all()`, which
 builds unoptimised and is much slower.
-
-There is also an opt-in **scenario gateway** test
-([test-scenario-gateway.R](tests/testthat/test-scenario-gateway.R)), skipped by
-default and enabled with `PLANT_RUN_SCENARIOS=1`. It runs the full SCM for every
-TF24 hydraulic scenario in `inst/scenarios/` and diffs the per-scenario
-outcomes against a recorded baseline — a *baseline diff*, not an "all pass"
-assertion, so it catches both regressions and improvements (many scenarios are
-expected to fail by design). It diffs two classifications (`observed`,
-`persists`) and `offspring_production` at a relative tolerance (`SCENARIO_TOL`,
-default `1e-3`), and prints the full per-scenario table on any failure. When a
-changed outcome is intended, re-bless the baseline with `make bless-scenarios`
-— **in its own commit, with the before/after table in NEWS**. A baseline diff
-only carries information while the baseline is current, and one that is not
-hands every later PR a failure it did not cause (#639). A scenario is scored on
-two axes, and neither is a headline: whether the model ran (`observed`), and
-whether the population replaced itself (`persists`, R0 >= 1). "Ran" alone is a
-weak test, because a run at an R0 of 1e-14 counts as one. The gateway runs on the
-birth-date coordinate, which TF24 needs (#590).
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
 `benchmarks.yml`.

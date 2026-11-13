@@ -464,8 +464,7 @@ private:
   // Cache for scan_heights(). ⚠️ EVERY PATH THAT CAN CHANGE A NODE HEIGHT MUST
   // CALL invalidate_height_scan(): a stale cache here reports the wrong ordering
   // and so the wrong competition profile, with nothing raised. Check the coverage
-  // by asserting cache == freshly-computed on every call across the suite and the
-  // scenario gateway.
+  // by asserting cache == freshly-computed on every call across the suite.
   HeightScan compute_height_scan() const;
   void invalidate_height_scan() { height_scan_valid = false; }
   mutable HeightScan height_scan_cache{value_type(0.0), true};
