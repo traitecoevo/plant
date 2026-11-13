@@ -179,7 +179,7 @@ run_scm <- function(p, env = NULL,
 ##' as a record of the run that made them.
 ##'
 ##' @title Export patch state from an SCM
-##' @param scm An \code{SCM} object that has been run.
+##' @param scm An \code{SCM} object that has been run, or a \code{plant_run}.
 ##' @param step Optional 1-based index into \code{scm$history} (requires the run
 ##'   to have been performed with \code{collect = TRUE}); when \code{NULL}
 ##'   (default) the SCM's current/final patch is used.
@@ -205,6 +205,7 @@ run_scm <- function(p, env = NULL,
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{run_scm}}
 ##' @export
 export_patch_state <- function(scm, step = NULL) {
+  scm <- as_scm(scm)
   patch <- if (is.null(step)) scm$patch else scm$history[[step]]
   time <- patch$time
   species <- patch$species

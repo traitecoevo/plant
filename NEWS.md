@@ -1273,6 +1273,8 @@ were not previously recorded here:
 
 ### Added
 
+* **`run()`, one verb for a run, and `scenario()`, what a run takes (#428).** `run(p, env = , control = , events = )`, or `run(scenario(p, env, control, events))`, runs the deterministic solver and returns a `plant_run`. That is a list with the scenario as run (`$scenario`, whose `p` carries any refined schedule), `$offspring_production`, `$net_reproduction_ratios` and `$event_log`, kept as values so the result can be saved, and the live solver at `$solver`. A saved scenario's environment and solver cannot be used after reading back. `until = t` stops at the first step boundary at or past `t`, and `run(res)` continues the run. `from = ` resumes from an exported state or a previous run, with the events it still had to apply and the scenario's own introductions from the export on. `record = "steps"` keeps what `tidy(res)` reads (`generics::tidy`), and `record = "states"` keeps what `stand_gradient()` sweeps. `run_mutant(res, p)` runs invaders against a resident. A result holds until its solver moves: whatever moves it (`run()` continuing it, `run_mutant()`, `run_until_converged()`, which then returns it as `$run`) returns the new result, and a stale one is refused. `export_patch_state()`, `run_until_converged()`, `fixed_point_fitness()`, `tidy_snapshots()`, `stand_gradient()` and the other `stand_*` functions accept a `plant_run` where they took an `SCM`. `run_scm()` is unchanged; the stochastic solver and individuals come to `run()` next.
+
 * **TF24w: TF24 with a private root-zone soil column per cohort (#681).** TF24
   integrates one soil column for the patch, which every plant reads and drains, so
   water a plant does not transpire is water every plant gets. In `TF24w` each

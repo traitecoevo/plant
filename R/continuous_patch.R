@@ -20,7 +20,7 @@
 ##' species); a coarser interval cuts it.
 ##'
 ##' @title Tidy a run's snapshots
-##' @param scm An \code{SCM} that was run with a positive
+##' @param scm An \code{SCM} or \code{plant_run} that was run with a positive
 ##'   \code{snapshot_interval}.
 ##' @return A list of three: \code{species}, a data frame with one row per
 ##'   snapshot and species (\code{time}, \code{species}, \code{n_nodes},
@@ -34,6 +34,7 @@
 ##' @seealso \code{\link{run_until_converged}}
 ##' @export
 tidy_snapshots <- function(scm) {
+  scm <- as_scm(scm)
   snaps <- scm$snapshots
   if (length(snaps) == 0L) {
     stop("this SCM kept no snapshots: set scm$snapshot_interval before its run")
@@ -85,7 +86,7 @@ tidy_snapshots <- function(scm) {
 ##' times.
 ##'
 ##' @title Run until the stand's block means settle
-##' @param scm An \code{SCM} built and not yet run to the end, as
+##' @param scm A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or an \code{SCM} built and not yet run to the end, as
 ##'   \code{run_scm(p, ..., run = FALSE)} returns one, whose schedule reaches
 ##'   \code{t_max}. Its \code{snapshot_interval} is set to
 ##'   \code{snapshot_interval} if it is zero.
@@ -113,7 +114,8 @@ tidy_snapshots <- function(scm) {
 ##' @return A list: \code{converged}, \code{time} (where the run stands), and
 ##'   \code{trace}, a data frame with one row per block of the block means and
 ##'   the relative range of each over the window ending there (\code{rel_*},
-##'   \code{NA} until \code{window} blocks have run).
+##'   \code{NA} until \code{window} blocks have run). Given a \code{plant_run},
+##'   also \code{run}, the result where the run now stands.
 ##' @seealso \code{\link{tidy_snapshots}}, \code{\link{export_patch_state}}
 ##' @export
 run_until_converged <- function(scm, block = 20, tol = 0.02,
@@ -121,6 +123,8 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
                                 statistics = c("density", "height_max", "environment"),
                                 snapshot_interval = 1, environment_entries = NULL,
                                 window = 3, tol_abs = 0) {
+  given <- scm
+  scm <- as_scm(scm)
   checked <- check_convergence_args(scm, block, tol, t_max, statistics,
                                     missing(statistics), snapshot_interval,
                                     environment_entries, window, tol_abs)
@@ -181,8 +185,12 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
             " (the tallest cohort of a stand with none alive is undefined)",
             call. = FALSE)
   }
-  list(converged = converged, time = scm$time,
-       trace = as.data.frame(do.call(rbind, trace)))
+  out <- list(converged = converged, time = scm$time,
+              trace = as.data.frame(do.call(rbind, trace)))
+  if (inherits(given, "plant_run")) {
+    out$run <- new_plant_run(scm, given$scenario, given$record, given$mutants)
+  }
+  out
 }
 
 # The arguments of run_until_converged(), checked; returns the statistics and
@@ -213,8 +221,8 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
     stop("`tol_abs` must be a non-negative number", call. = FALSE)
   }
   if (isTRUE(scm$complete)) {
-    stop("this SCM's run has already finished; build one with ",
-         "run_scm(p, ..., run = FALSE) and let run_until_converged() run it", call. = FALSE)
+    stop("this run has already finished; build one with run(p, until = 0) ",
+         "and let run_until_converged() run it", call. = FALSE)
   }
   if (!(length(block) == 1L && is.finite(block) && block > 0)) {
     stop("`block` must be a positive number of years", call. = FALSE)
@@ -305,7 +313,8 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
 ##' together, as one community, since nothing they do moves a constant field.
 ##' \code{scm} is consumed: afterwards it holds the invaders, and the field is
-##' cleared, so a later run of it builds its own.
+##' cleared, so a later run of it builds its own. A \code{plant_run} given here
+##' is refused afterwards, so pass every invader in one call.
 ##'
 ##' The introduction grid has to make the stand a fixed point. Between two
 ##' introductions the field swings, and a grid that is too coarse makes the
@@ -316,7 +325,7 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' the grid, end the resident's run there with \code{max_patch_lifetime}.
 ##'
 ##' @title Invader fitness at a fixed point
-##' @param scm The resident's \code{SCM}, run to its fixed point.
+##' @param scm The resident's \code{plant_run} or \code{SCM}, run to its fixed point.
 ##' @param p The resident's \code{Parameters}; each invader's strategy is built
 ##'   from them as \code{\link{add_mutant}} builds one.
 ##' @param traits A trait matrix, one row per invader.
@@ -334,6 +343,7 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' @export
 fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
                                 lifetime = 3000, survival_tol = 1e-8) {
+  scm <- as_scm(scm)
   pm <- add_mutant(p, traits, hyperpar = hyperpar,
                    birth_rate = as.list(rep(1, nrow(traits))))
   pm$patch_type <- "fixed"
