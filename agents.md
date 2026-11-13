@@ -127,7 +127,8 @@ Every Model carries a `Control` and an `ExtrinsicDrivers` object.
 2. **Stochastic — finite-size population.**
    Individuals arrive and die as discrete events.
    `StochasticPatchRunner<T,E>` in C++; [R/stochastic.R](R/stochastic.R):
-   `stochastic_schedule()`, `run_stochastic_collect()`.
+   `stochastic_schedule()`, `run_stochastic_collect()`, and in R
+   `run(p, method = "stochastic")`, which shares their runner.
 
 Both share the same `Model`, `Environment`, `Individual`, and `Parameters`.
 
@@ -228,7 +229,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, and FF16's stand report |
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`). These are `switch()` statements that must list every model; the schedule helpers are found by name from the `Parameters` object's template types, so they need no row. |
-| [run.R](R/run.R) | `run()`, the one verb (#428): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
+| [run.R](R/run.R) | `run()`, the one verb (#428), for a patch by either solver (`method =`) and for a single plant (`run(individual, times = )`): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
 | [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. The fast settings are the C++ `Control()` defaults and schedule refinement is `SCM::refine_schedule` (§3) |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |

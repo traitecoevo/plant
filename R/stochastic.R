@@ -86,26 +86,35 @@ run_stochastic_collect <- function(p, env = NULL,
   if (is.null(env)) {
     env <- Environment(types[[1]])
   }
-  
-  ## Per-step snapshot of the patch: a list(time, species) where each species is
-  ## a state matrix carrying an `is_alive` attribute. Read from obj$patch$state
-  ## (the runner has no `state` accessor of its own; see issue #498).
-  collect <- function(obj) {
-    obj$patch$state
-  }
+  obj <- stochastic_runner(p, env, ctrl, random_schedule)
+  c(tidy_stochastic_steps(collect_stochastic_steps(obj)), list(p = p))
+}
+
+## The stochastic runner for p, with arrivals drawn at random or on p's schedule.
+stochastic_runner <- function(p, env, ctrl, random_schedule = TRUE) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
   if (random_schedule) {
     obj$schedule <- stochastic_schedule(p)
   }
+  obj
+}
 
-  res <- list(collect(obj))
-
+## Runs `obj` to the end, keeping the patch at its start and after every step: a
+## list(time, species) where each species is a state matrix carrying an
+## `is_alive` attribute. Read from obj$patch$state (the runner has no `state`
+## accessor of its own; see issue #498).
+collect_stochastic_steps <- function(obj) {
+  res <- list(obj$patch$state)
   while (!obj$complete) {
     obj$run_next()
-    res <- c(res, list(collect(obj)))
+    res <- c(res, list(obj$patch$state))
   }
+  res
+}
 
+## The collected steps as arrays: time, species and env.
+tidy_stochastic_steps <- function(res) {
   time <- sapply(res, "[[", "time")
   ## `env` is what StochasticPatch reports it as, and what run_scm's collected
   ## output calls it. This read used to ask for "light_env", a name nothing
@@ -130,13 +139,7 @@ run_stochastic_collect <- function(p, env = NULL,
   # meta-populations worked without a continuous gradient to integrate over.
   # patch_density <- obj$patch$density(time)
 
-  ret <- list(time=time,
-              species=species,
-              env=env,
-              # offspring_production is not defined for the finite-population
-              # model (no patch-density integral); omitted. patch_density
-              # likewise (see note above).
-              p=p)
-
-  ret
+  # offspring_production is not defined for the finite-population model (no
+  # patch-density integral); omitted. patch_density likewise (see note above).
+  list(time = time, species = species, env = env)
 }
