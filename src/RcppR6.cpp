@@ -3623,6 +3623,10 @@ plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > Patch_
   return plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> >(parameters, environment, control);
 }
 // [[Rcpp::export]]
+std::vector<double> Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, plant::util::index species_index) {
+  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
+}
+// [[Rcpp::export]]
 bool Patch___FF16__FF16_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, std::vector<double> y) {
   return obj_->ode_state_valid(y);
 }
@@ -3769,10 +3773,34 @@ bool Patch___FF16__FF16_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant
   return obj_->has_constant_field();
 }
 
+// [[Rcpp::export]]
+std::vector<double> Patch___FF16__FF16_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratios();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Patch___FF16__FF16_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->offspring_production();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___FF16__FF16_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > Patch___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
   return plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> >(parameters, environment, control);
+}
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
+  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
 }
 // [[Rcpp::export]]
 bool Patch___TF24__TF24_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<double> y) {
@@ -3921,10 +3949,34 @@ bool Patch___TF24__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant
   return obj_->has_constant_field();
 }
 
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratios();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->offspring_production();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > Patch___TF24f__TF24_Env__ctor(plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
   return plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >(parameters, environment, control);
+}
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
+  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
 }
 // [[Rcpp::export]]
 bool Patch___TF24f__TF24_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<double> y) {
@@ -4073,10 +4125,34 @@ bool Patch___TF24f__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plan
   return obj_->has_constant_field();
 }
 
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24f__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratios();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24f__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->offspring_production();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24f__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > Patch___TF24t__TF24_Env__ctor(plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
   return plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >(parameters, environment, control);
+}
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
+  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
 }
 // [[Rcpp::export]]
 bool Patch___TF24t__TF24_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<double> y) {
@@ -4225,10 +4301,34 @@ bool Patch___TF24t__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plan
   return obj_->has_constant_field();
 }
 
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24t__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratios();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24t__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->offspring_production();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24t__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > Patch___TF24w__TF24_Env__ctor(plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
   return plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >(parameters, environment, control);
+}
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
+  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
 }
 // [[Rcpp::export]]
 bool Patch___TF24w__TF24_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<double> y) {
@@ -4377,10 +4477,34 @@ bool Patch___TF24w__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plan
   return obj_->has_constant_field();
 }
 
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24w__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratios();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Patch___TF24w__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->offspring_production();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___TF24w__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::K93_Model,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Model,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
   return plant::Patch<plant::K93_Model,plant::K93_Environment>(parameters, environment, control);
+}
+// [[Rcpp::export]]
+std::vector<double> Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_, plant::util::index species_index) {
+  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
 }
 // [[Rcpp::export]]
 bool Patch___K93__K93_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_, std::vector<double> y) {
@@ -4529,6 +4653,26 @@ bool Patch___K93__K93_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::
   return obj_->has_constant_field();
 }
 
+// [[Rcpp::export]]
+std::vector<double> Patch___K93__K93_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->net_reproduction_ratios();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Patch___K93__K93_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->offspring_production();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> Patch___K93__K93_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
 
 // [[Rcpp::export]]
 plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Environment<double> > parameters, plant::FF16_Environment<double> environment, plant::Events events, plant::Control control) {
@@ -4563,30 +4707,12 @@ void SCM___FF16__FF16_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Mo
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___FF16__FF16_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_net_reproduction_ratio_for_species(species_index);
-}
-// [[Rcpp::export]]
-std::vector<double> SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
-}
-// [[Rcpp::export]]
 void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 double SCM___FF16__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->time();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___FF16__FF16_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->net_reproduction_ratios();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___FF16__FF16_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->offspring_production();
 }
 
 // [[Rcpp::export]]
@@ -4602,16 +4728,6 @@ plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > SCM___
 // [[Rcpp::export]]
 std::vector<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> >> SCM___FF16__FF16_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->r_history();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___FF16__FF16_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->refinement_error_by_node();
 }
 
 // [[Rcpp::export]]
@@ -4733,30 +4849,12 @@ void SCM___TF24__TF24_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Mo
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___TF24__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_net_reproduction_ratio_for_species(species_index);
-}
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
-}
-// [[Rcpp::export]]
 void SCM___TF24__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 double SCM___TF24__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->time();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->net_reproduction_ratios();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->offspring_production();
 }
 
 // [[Rcpp::export]]
@@ -4772,16 +4870,6 @@ plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > SCM___
 // [[Rcpp::export]]
 std::vector<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> >> SCM___TF24__TF24_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_history();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->refinement_error_by_node();
 }
 
 // [[Rcpp::export]]
@@ -4903,30 +4991,12 @@ void SCM___TF24f__TF24_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_net_reproduction_ratio_for_species(species_index);
-}
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
-}
-// [[Rcpp::export]]
 void SCM___TF24f__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 double SCM___TF24f__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->time();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24f__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->net_reproduction_ratios();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24f__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->offspring_production();
 }
 
 // [[Rcpp::export]]
@@ -4942,16 +5012,6 @@ plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > SCM__
 // [[Rcpp::export]]
 std::vector<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >> SCM___TF24f__TF24_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_history();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24f__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->refinement_error_by_node();
 }
 
 // [[Rcpp::export]]
@@ -5073,30 +5133,12 @@ void SCM___TF24t__TF24_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_net_reproduction_ratio_for_species(species_index);
-}
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
-}
-// [[Rcpp::export]]
 void SCM___TF24t__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 double SCM___TF24t__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->time();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24t__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->net_reproduction_ratios();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24t__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->offspring_production();
 }
 
 // [[Rcpp::export]]
@@ -5112,16 +5154,6 @@ plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > SCM__
 // [[Rcpp::export]]
 std::vector<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >> SCM___TF24t__TF24_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_history();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24t__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->refinement_error_by_node();
 }
 
 // [[Rcpp::export]]
@@ -5243,30 +5275,12 @@ void SCM___TF24w__TF24_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_net_reproduction_ratio_for_species(species_index);
-}
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index) {
-  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
-}
-// [[Rcpp::export]]
 void SCM___TF24w__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 double SCM___TF24w__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->time();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24w__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->net_reproduction_ratios();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___TF24w__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->offspring_production();
 }
 
 // [[Rcpp::export]]
@@ -5282,16 +5296,6 @@ plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > SCM__
 // [[Rcpp::export]]
 std::vector<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >> SCM___TF24w__TF24_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_history();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24w__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->refinement_error_by_node();
 }
 
 // [[Rcpp::export]]
@@ -5413,30 +5417,12 @@ void SCM___K93__K93_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___K93__K93_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_, plant::util::index species_index) {
-  return obj_->r_net_reproduction_ratio_for_species(species_index);
-}
-// [[Rcpp::export]]
-std::vector<double> SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_, plant::util::index species_index) {
-  return obj_->r_compute_competition_effect_error_by_node_for_species_i(species_index);
-}
-// [[Rcpp::export]]
 void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 double SCM___K93__K93_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_) {
   return obj_->time();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___K93__K93_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_) {
-  return obj_->net_reproduction_ratios();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___K93__K93_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_) {
-  return obj_->offspring_production();
 }
 
 // [[Rcpp::export]]
@@ -5452,16 +5438,6 @@ plant::Patch<plant::K93_Model,plant::K93_Environment> SCM___K93__K93_Env__patch_
 // [[Rcpp::export]]
 std::vector<plant::Patch<plant::K93_Model,plant::K93_Environment>> SCM___K93__K93_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_) {
   return obj_->r_history();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___K93__K93_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_) {
-  return obj_->refinement_error_by_node();
 }
 
 // [[Rcpp::export]]

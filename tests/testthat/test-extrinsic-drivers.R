@@ -119,7 +119,7 @@ test_that("Variable birth rate is driven through the SCM", {
                                 drv$evaluate("birth_rate", 50))))
 
   # and the run itself produces a finite reproductive output
-  expect_true(is.finite(out$net_reproduction_ratios))
+  expect_true(is.finite(out$patch$net_reproduction_ratios))
 })
 
 # --- Time-varying climate drivers in TF24 ------------------------------------

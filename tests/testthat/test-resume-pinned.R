@@ -16,7 +16,7 @@ resumed_parameters <- function() {
 
 test_that("an empty patch starts at initial_time", {
   p <- ff16_parameters(20)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   tt <- p$node_schedule_times[[1]]
   p$initial_time <- 5
   p$node_schedule_times <- list(tt[tt >= 5])
@@ -34,7 +34,7 @@ test_that("an empty patch starts at initial_time", {
   p0$max_patch_lifetime <- 15
   p0$node_schedule_times <- list(tt[tt >= 5] - 5)
   scm0 <- run(p0)$solver
-  expect_equal(scm$net_reproduction_ratios, scm0$net_reproduction_ratios,
+  expect_equal(scm$patch$net_reproduction_ratios, scm0$patch$net_reproduction_ratios,
                tolerance = 1e-6)
 })
 
@@ -49,7 +49,7 @@ test_that("a resumed run reruns its own recorded schedule", {
   expect_equal(p3$ode_times[[1]], r$state$time)
   scm3 <- run(p3)$solver
   expect_identical(scm3$patch$ode_state, scm2$patch$ode_state)
-  expect_identical(scm3$net_reproduction_ratios, scm2$net_reproduction_ratios)
+  expect_identical(scm3$patch$net_reproduction_ratios, scm2$patch$net_reproduction_ratios)
 })
 
 test_that("a mutant invades a resumed resident", {
@@ -92,11 +92,11 @@ test_that("an exported state carries the events still to come", {
   ## step-size restart; without them the harvest at 15 is lost.
   p2 <- set_initial_state(p, state)
   with_events <- run(p2, events = state$events)$solver
-  expect_equal(with_events$net_reproduction_ratios, scm$net_reproduction_ratios,
+  expect_equal(with_events$patch$net_reproduction_ratios, scm$patch$net_reproduction_ratios,
                tolerance = 1e-3)
   without <- run(p2)$solver
-  expect_gt(abs(without$net_reproduction_ratios - scm$net_reproduction_ratios),
-            1e-2 * scm$net_reproduction_ratios)
+  expect_gt(abs(without$patch$net_reproduction_ratios - scm$patch$net_reproduction_ratios),
+            1e-2 * scm$patch$net_reproduction_ratios)
 })
 
 test_that("a resume with no introductions left is refused, not stopped at its start", {
@@ -127,7 +127,7 @@ test_that("an invader introduced at the resume instant stands in the resident's 
   ctrl <- Control(node_density_coordinate = "birth_date")
   mk <- function(lifetime) {
     p <- testing_parameters("FF16")
-    p$patch_type <- "fixed"
+    p$fitness_weighting <- "none"
     p$max_patch_lifetime <- lifetime
     add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   }
@@ -159,7 +159,7 @@ test_that("an invader of a resumed resident starts empty, at the resume time", {
   ctrl <- Control(node_density_coordinate = "birth_date")
   mk <- function(lifetime) {
     p <- testing_parameters("FF16")
-    p$patch_type <- "fixed"
+    p$fitness_weighting <- "none"
     p$max_patch_lifetime <- lifetime
     add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   }
@@ -178,5 +178,5 @@ test_that("an invader of a resumed resident starts empty, at the resume time", {
   expect_error(res$run_mutant(empty), "initial_time")
   empty$initial_time <- state$time
   res$run_mutant(empty)
-  expect_true(is.finite(res$net_reproduction_ratios))
+  expect_true(is.finite(res$patch$net_reproduction_ratios))
 })

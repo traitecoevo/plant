@@ -89,7 +89,7 @@ test_that("K93 offspring production is unchanged", {
   #p1$birth_rate <- 20
 
   out <- run(p1, env, ctrl)$solver
-  expect_equal(out$offspring_production, 0.0753261, tolerance = 1e-4)
+  expect_equal(out$patch$offspring_production, 0.0753261, tolerance = 1e-4)
 
   # Three species from paper
   sp <- trait_matrix(c(0.042, 0.063, 0.052,
@@ -106,6 +106,6 @@ test_that("K93 offspring production is unchanged", {
   #p2$birth_rate <- c(20, 20, 20)
   out <- run(p2, env, ctrl)$solver
 
-  expect_equal(out$offspring_production, c(0.00253742, 0.23214643, 0.21944157),
+  expect_equal(out$patch$offspring_production, c(0.00253742, 0.23214643, 0.21944157),
                tolerance = 1e-4)
 })

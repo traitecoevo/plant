@@ -5,7 +5,7 @@
 
 ff16_fixed_point <- function(b = 1, t_eq = 300, absorb = 0.02, by = 1) {
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- t_eq + 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = b)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, t_eq + 1, by))
@@ -65,7 +65,7 @@ test_that("a constant field keeps the environment's own state", {
   # TF24's soil is part of the field. Held, the patch stands in it whatever state
   # it is set to, and the soil's own rates are zero, so it does not move either.
   p <- testing_parameters("TF24")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 6
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
@@ -127,7 +127,7 @@ test_that("a field taken inside an interval scores as one taken at its start", {
 
 test_that("a constant field needs a resident to take it from", {
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(),
                                  Control(node_density_coordinate = "birth_date"))
@@ -151,7 +151,7 @@ test_that("an invader that outlives its run is refused", {
 ## The parameters fixed_point_fitness() builds for one invader.
 constant_invader <- function(fp, lma, lifetime = 200) {
   pm <- add_mutant(fp$p, trait_matrix(lma, "lma"), birth_rate = list(1))
-  pm$patch_type <- "fixed"
+  pm$fitness_weighting <- "none"
   pm$max_patch_lifetime <- lifetime
   pm$node_schedule_times <- list(0)
   pm$initial_time <- 0

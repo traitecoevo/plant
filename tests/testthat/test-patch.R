@@ -13,7 +13,7 @@ for (x in names(strategy_types)) {
   node <- Node(x, e)(s)
   
   p <- Parameters(x, e)(strategies=list(s),
-                        patch_type = 'meta-population')
+                        fitness_weighting = "patch_age")
   env <- Environment(x)
   
   # The FF16 references below are blessed on the birth-date coordinate, named
@@ -177,7 +177,7 @@ for (x in names(strategy_types)) {
     p10$strategies[[1]]$birth_rate_y <- 1
     expect_warning(scm2   <- run(p2)$solver)
     expect_warning(scm10a <- run(p10)$solver)
-    expect_gt(scm10a$net_reproduction_ratios, scm2$net_reproduction_ratios)
+    expect_gt(scm10a$patch$net_reproduction_ratios, scm2$patch$net_reproduction_ratios)
 
     # Birth rate scaled x5 with the x5 patch area gives the same seed input per
     # unit area, hence the same reproductive ratio as the small patch. (p2 is
@@ -185,9 +185,9 @@ for (x in names(strategy_types)) {
     p10b <- p10
     p10b$strategies[[1]]$birth_rate_y <- 5
     expect_warning(scm10b <- run(p10b)$solver)
-    expect_equal(scm2$net_reproduction_ratios,
-                 scm10b$net_reproduction_ratios, tolerance = 1e-4)
-    expect_gt(scm10a$net_reproduction_ratios, scm10b$net_reproduction_ratios)
+    expect_equal(scm2$patch$net_reproduction_ratios,
+                 scm10b$patch$net_reproduction_ratios, tolerance = 1e-4)
+    expect_gt(scm10a$patch$net_reproduction_ratios, scm10b$patch$net_reproduction_ratios)
   })
   
   test_that("Weibull Disturbance as default", {
@@ -208,7 +208,7 @@ for (x in names(strategy_types)) {
   })
   
   test_that("No Disturbance for fixed-time patches", {
-    p$patch_type <- "fixed"
+    p$fitness_weighting <- "none"
     env <- Environment(x)
     ctrl <- Control()
 
@@ -252,7 +252,7 @@ test_that("TF24 patch aux reports the per-layer uptake", {
   s$birth_rate_y <- 1
   s$is_variable_birth_rate <- FALSE
   p <- Parameters("TF24", "TF24_Env")(strategies = list(s),
-                                      patch_type = "meta-population")
+                                      fitness_weighting = "patch_age")
   # On the height coordinate, which this was written against when it was the
   # default; TF24's default is now the birth-date coordinate, whose patch total
   # integrates this one hand-placed node differently.
@@ -329,7 +329,7 @@ for (x in names(strategy_types)) {
     s$birth_rate_y <- 1
     s$is_variable_birth_rate <- FALSE
     e <- environment_types[[x]]
-    p <- Parameters(x, e)(strategies = list(s), patch_type = "meta-population")
+    p <- Parameters(x, e)(strategies = list(s), fitness_weighting = "patch_age")
     patch <- Patch(x, e)(p, Environment(x), Control())
     patch$introduce_new_node(1, 0)
 
@@ -359,7 +359,7 @@ test_that("TF24 patch aux goes back the way it came", {
   s$birth_rate_y <- 1
   s$is_variable_birth_rate <- FALSE
   p <- Parameters("TF24", "TF24_Env")(strategies = list(s),
-                                      patch_type = "meta-population")
+                                      fitness_weighting = "patch_age")
   patch <- Patch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
   patch$introduce_new_node(1, 0)
   patch$set_ode_state(patch$ode_state, 1.0)

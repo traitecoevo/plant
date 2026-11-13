@@ -8910,6 +8910,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___FF16__FF16_Env__ode_state_valid
 bool Patch___FF16__FF16_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, std::vector<double> y);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__ode_state_valid(SEXP obj_SEXP, SEXP ySEXP) {
@@ -9283,6 +9295,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___FF16__FF16_Env__net_reproduction_ratios__get
+std::vector<double> Patch___FF16__FF16_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__net_reproduction_ratios__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16__FF16_Env__offspring_production__get
+std::vector<double> Patch___FF16__FF16_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__offspring_production__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__offspring_production__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get
+std::vector<std::vector<double>> Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16__FF16_Env__refinement_error_by_node__get
+std::vector<std::vector<double>> Patch___FF16__FF16_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__refinement_error_by_node__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___TF24__TF24_Env__ctor
 plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > Patch___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control);
 RcppExport SEXP _plant_Patch___TF24__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -9293,6 +9349,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::TF24_Environment<double> >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__ctor(parameters, environment, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9669,6 +9737,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___TF24__TF24_Env__net_reproduction_ratios__get
+std::vector<double> Patch___TF24__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__net_reproduction_ratios__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24__TF24_Env__offspring_production__get
+std::vector<double> Patch___TF24__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__offspring_production__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get
+std::vector<std::vector<double>> Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24__TF24_Env__refinement_error_by_node__get
+std::vector<std::vector<double>> Patch___TF24__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__refinement_error_by_node__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___TF24f__TF24_Env__ctor
 plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > Patch___TF24f__TF24_Env__ctor(plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control);
 RcppExport SEXP _plant_Patch___TF24f__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -9679,6 +9791,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::TF24_Environment<double> >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__ctor(parameters, environment, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10055,6 +10179,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___TF24f__TF24_Env__net_reproduction_ratios__get
+std::vector<double> Patch___TF24f__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__net_reproduction_ratios__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24f__TF24_Env__offspring_production__get
+std::vector<double> Patch___TF24f__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__offspring_production__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get
+std::vector<std::vector<double>> Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24f__TF24_Env__refinement_error_by_node__get
+std::vector<std::vector<double>> Patch___TF24f__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__refinement_error_by_node__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___TF24t__TF24_Env__ctor
 plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > Patch___TF24t__TF24_Env__ctor(plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control);
 RcppExport SEXP _plant_Patch___TF24t__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -10065,6 +10233,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::TF24_Environment<double> >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__ctor(parameters, environment, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10441,6 +10621,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___TF24t__TF24_Env__net_reproduction_ratios__get
+std::vector<double> Patch___TF24t__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__net_reproduction_ratios__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24t__TF24_Env__offspring_production__get
+std::vector<double> Patch___TF24t__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__offspring_production__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get
+std::vector<std::vector<double>> Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24t__TF24_Env__refinement_error_by_node__get
+std::vector<std::vector<double>> Patch___TF24t__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__refinement_error_by_node__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___TF24w__TF24_Env__ctor
 plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > Patch___TF24w__TF24_Env__ctor(plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control);
 RcppExport SEXP _plant_Patch___TF24w__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -10451,6 +10675,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::TF24_Environment<double> >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__ctor(parameters, environment, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10827,6 +11063,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___TF24w__TF24_Env__net_reproduction_ratios__get
+std::vector<double> Patch___TF24w__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24w__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__net_reproduction_ratios__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24w__TF24_Env__offspring_production__get
+std::vector<double> Patch___TF24w__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24w__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__offspring_production__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get
+std::vector<std::vector<double>> Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___TF24w__TF24_Env__refinement_error_by_node__get
+std::vector<std::vector<double>> Patch___TF24w__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24w__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__refinement_error_by_node__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___K93__K93_Env__ctor
 plant::Patch<plant::K93_Model,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Model,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control);
 RcppExport SEXP _plant_Patch___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -10837,6 +11117,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ctor(parameters, environment, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11213,6 +11505,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___K93__K93_Env__net_reproduction_ratios__get
+std::vector<double> Patch___K93__K93_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__net_reproduction_ratios__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___K93__K93_Env__offspring_production__get
+std::vector<double> Patch___K93__K93_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__offspring_production__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__offspring_production__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___K93__K93_Env__net_reproduction_ratio_errors__get
+std::vector<std::vector<double>> Patch___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__net_reproduction_ratio_errors__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___K93__K93_Env__refinement_error_by_node__get
+std::vector<std::vector<double>> Patch___K93__K93_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__refinement_error_by_node__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___FF16__FF16_Env__ctor
 plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Environment<double> > parameters, plant::FF16_Environment<double> environment, plant::Events events, plant::Control control);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP eventsSEXP, SEXP controlSEXP) {
@@ -11301,30 +11637,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___FF16__FF16_Env__net_reproduction_ratio_for_species
-double SCM___FF16__FF16_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__net_reproduction_ratio_for_species(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i
-std::vector<double> SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // SCM___FF16__FF16_Env__set_node_schedule_times
 void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
@@ -11344,28 +11656,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__time__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___FF16__FF16_Env__net_reproduction_ratios__get
-std::vector<double> SCM___FF16__FF16_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__net_reproduction_ratios__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___FF16__FF16_Env__offspring_production__get
-std::vector<double> SCM___FF16__FF16_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__offspring_production__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__offspring_production__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11399,28 +11689,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__history__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___FF16__FF16_Env__refinement_error_by_node__get
-std::vector<std::vector<double>> SCM___FF16__FF16_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__refinement_error_by_node__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11710,30 +11978,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24__TF24_Env__net_reproduction_ratio_for_species
-double SCM___TF24__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__net_reproduction_ratio_for_species(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i
-std::vector<double> SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // SCM___TF24__TF24_Env__set_node_schedule_times
 void SCM___TF24__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___TF24__TF24_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
@@ -11753,28 +11997,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__time__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24__TF24_Env__net_reproduction_ratios__get
-std::vector<double> SCM___TF24__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__net_reproduction_ratios__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24__TF24_Env__offspring_production__get
-std::vector<double> SCM___TF24__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__offspring_production__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11808,28 +12030,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__history__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double>> SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24__TF24_Env__refinement_error_by_node__get
-std::vector<std::vector<double>> SCM___TF24__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__refinement_error_by_node__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -12119,30 +12319,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species
-double SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i
-std::vector<double> SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // SCM___TF24f__TF24_Env__set_node_schedule_times
 void SCM___TF24f__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___TF24f__TF24_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
@@ -12162,28 +12338,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__time__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24f__TF24_Env__net_reproduction_ratios__get
-std::vector<double> SCM___TF24f__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__net_reproduction_ratios__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24f__TF24_Env__offspring_production__get
-std::vector<double> SCM___TF24f__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__offspring_production__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -12217,28 +12371,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__history__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double>> SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24f__TF24_Env__refinement_error_by_node__get
-std::vector<std::vector<double>> SCM___TF24f__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__refinement_error_by_node__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -12528,30 +12660,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species
-double SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i
-std::vector<double> SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // SCM___TF24t__TF24_Env__set_node_schedule_times
 void SCM___TF24t__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___TF24t__TF24_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
@@ -12571,28 +12679,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__time__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24t__TF24_Env__net_reproduction_ratios__get
-std::vector<double> SCM___TF24t__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__net_reproduction_ratios__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24t__TF24_Env__offspring_production__get
-std::vector<double> SCM___TF24t__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__offspring_production__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -12626,28 +12712,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__history__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double>> SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24t__TF24_Env__refinement_error_by_node__get
-std::vector<std::vector<double>> SCM___TF24t__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__refinement_error_by_node__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -12937,30 +13001,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species
-double SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i
-std::vector<double> SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // SCM___TF24w__TF24_Env__set_node_schedule_times
 void SCM___TF24w__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___TF24w__TF24_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
@@ -12980,28 +13020,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__time__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24w__TF24_Env__net_reproduction_ratios__get
-std::vector<double> SCM___TF24w__TF24_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24w__TF24_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__net_reproduction_ratios__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24w__TF24_Env__offspring_production__get
-std::vector<double> SCM___TF24w__TF24_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24w__TF24_Env__offspring_production__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__offspring_production__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -13035,28 +13053,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__history__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double>> SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___TF24w__TF24_Env__refinement_error_by_node__get
-std::vector<std::vector<double>> SCM___TF24w__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24w__TF24_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24w__TF24_Env__refinement_error_by_node__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -13346,30 +13342,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___K93__K93_Env__net_reproduction_ratio_for_species
-double SCM___K93__K93_Env__net_reproduction_ratio_for_species(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__net_reproduction_ratio_for_species(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i
-std::vector<double> SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // SCM___K93__K93_Env__set_node_schedule_times
 void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___K93__K93_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
@@ -13389,28 +13361,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__time__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___K93__K93_Env__net_reproduction_ratios__get
-std::vector<double> SCM___K93__K93_Env__net_reproduction_ratios__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_SCM___K93__K93_Env__net_reproduction_ratios__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__net_reproduction_ratios__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___K93__K93_Env__offspring_production__get
-std::vector<double> SCM___K93__K93_Env__offspring_production__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_SCM___K93__K93_Env__offspring_production__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__offspring_production__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -13444,28 +13394,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__history__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___K93__K93_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__net_reproduction_ratio_errors__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// SCM___K93__K93_Env__refinement_error_by_node__get
-std::vector<std::vector<double>> SCM___K93__K93_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_SCM___K93__K93_Env__refinement_error_by_node__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__refinement_error_by_node__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -20260,6 +20188,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__set, 2},
     {"_plant_Species___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_rates__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ctor, 3},
+    {"_plant_Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_Patch___FF16__FF16_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_state_valid, 2},
     {"_plant_Patch___FF16__FF16_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__introduce_new_node, 3},
     {"_plant_Patch___FF16__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_environment, 1},
@@ -20293,7 +20222,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__node_ode_size__get, 1},
     {"_plant_Patch___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__state__get, 1},
     {"_plant_Patch___FF16__FF16_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__has_constant_field__get, 1},
+    {"_plant_Patch___FF16__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__net_reproduction_ratios__get, 1},
+    {"_plant_Patch___FF16__FF16_Env__offspring_production__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__offspring_production__get, 1},
+    {"_plant_Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__net_reproduction_ratio_errors__get, 1},
+    {"_plant_Patch___FF16__FF16_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__refinement_error_by_node__get, 1},
     {"_plant_Patch___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__ctor, 3},
+    {"_plant_Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_Patch___TF24__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__compute_environment, 1},
@@ -20327,7 +20261,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__state__get, 1},
     {"_plant_Patch___TF24__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__has_constant_field__get, 1},
+    {"_plant_Patch___TF24__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__net_reproduction_ratios__get, 1},
+    {"_plant_Patch___TF24__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__offspring_production__get, 1},
+    {"_plant_Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__net_reproduction_ratio_errors__get, 1},
+    {"_plant_Patch___TF24__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__ctor, 3},
+    {"_plant_Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_Patch___TF24f__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24f__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24f__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__compute_environment, 1},
@@ -20361,7 +20300,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24f__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__state__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__has_constant_field__get, 1},
+    {"_plant_Patch___TF24f__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__net_reproduction_ratios__get, 1},
+    {"_plant_Patch___TF24f__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__offspring_production__get, 1},
+    {"_plant_Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__net_reproduction_ratio_errors__get, 1},
+    {"_plant_Patch___TF24f__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__ctor, 3},
+    {"_plant_Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_Patch___TF24t__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24t__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24t__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__compute_environment, 1},
@@ -20395,7 +20339,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24t__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__state__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__has_constant_field__get, 1},
+    {"_plant_Patch___TF24t__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__net_reproduction_ratios__get, 1},
+    {"_plant_Patch___TF24t__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__offspring_production__get, 1},
+    {"_plant_Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__net_reproduction_ratio_errors__get, 1},
+    {"_plant_Patch___TF24t__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__ctor, 3},
+    {"_plant_Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_Patch___TF24w__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24w__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24w__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__compute_environment, 1},
@@ -20429,7 +20378,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24w__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__state__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__has_constant_field__get, 1},
+    {"_plant_Patch___TF24w__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__net_reproduction_ratios__get, 1},
+    {"_plant_Patch___TF24w__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__offspring_production__get, 1},
+    {"_plant_Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__net_reproduction_ratio_errors__get, 1},
+    {"_plant_Patch___TF24w__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 3},
+    {"_plant_Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_Patch___K93__K93_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_state_valid, 2},
     {"_plant_Patch___K93__K93_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___K93__K93_Env__introduce_new_node, 3},
     {"_plant_Patch___K93__K93_Env__compute_environment", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_environment, 1},
@@ -20463,6 +20417,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__node_ode_size__get, 1},
     {"_plant_Patch___K93__K93_Env__state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__state__get, 1},
     {"_plant_Patch___K93__K93_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__has_constant_field__get, 1},
+    {"_plant_Patch___K93__K93_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__net_reproduction_ratios__get, 1},
+    {"_plant_Patch___K93__K93_Env__offspring_production__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__offspring_production__get, 1},
+    {"_plant_Patch___K93__K93_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__net_reproduction_ratio_errors__get, 1},
+    {"_plant_Patch___K93__K93_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 4},
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
     {"_plant_SCM___FF16__FF16_Env__run_to", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_to, 2},
@@ -20471,17 +20429,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__store_recording", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__store_recording, 1},
     {"_plant_SCM___FF16__FF16_Env__refine_schedule", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__refine_schedule, 1},
     {"_plant_SCM___FF16__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__reset, 1},
-    {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___FF16__FF16_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__set_node_schedule_times, 2},
     {"_plant_SCM___FF16__FF16_Env__time__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__time__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__offspring_production__get, 1},
     {"_plant_SCM___FF16__FF16_Env__parameters__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__parameters__get, 1},
     {"_plant_SCM___FF16__FF16_Env__patch__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__patch__get, 1},
     {"_plant_SCM___FF16__FF16_Env__history__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__history__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___FF16__FF16_Env__schedule__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__schedule__get, 1},
     {"_plant_SCM___FF16__FF16_Env__schedule__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__schedule__set, 2},
     {"_plant_SCM___FF16__FF16_Env__events__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__events__get, 1},
@@ -20508,17 +20460,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__reset, 1},
-    {"_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___TF24__TF24_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__set_node_schedule_times, 2},
     {"_plant_SCM___TF24__TF24_Env__time__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__time__get, 1},
-    {"_plant_SCM___TF24__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__net_reproduction_ratios__get, 1},
-    {"_plant_SCM___TF24__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__offspring_production__get, 1},
     {"_plant_SCM___TF24__TF24_Env__parameters__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__parameters__get, 1},
     {"_plant_SCM___TF24__TF24_Env__patch__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__patch__get, 1},
     {"_plant_SCM___TF24__TF24_Env__history__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__history__get, 1},
-    {"_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___TF24__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___TF24__TF24_Env__schedule__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__schedule__get, 1},
     {"_plant_SCM___TF24__TF24_Env__schedule__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__schedule__set, 2},
     {"_plant_SCM___TF24__TF24_Env__events__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__events__get, 1},
@@ -20545,17 +20491,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24f__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24f__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24f__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__reset, 1},
-    {"_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___TF24f__TF24_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__set_node_schedule_times, 2},
     {"_plant_SCM___TF24f__TF24_Env__time__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__time__get, 1},
-    {"_plant_SCM___TF24f__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__net_reproduction_ratios__get, 1},
-    {"_plant_SCM___TF24f__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__offspring_production__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__parameters__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__parameters__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__patch__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__patch__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__history__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__history__get, 1},
-    {"_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___TF24f__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__schedule__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__schedule__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__schedule__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__schedule__set, 2},
     {"_plant_SCM___TF24f__TF24_Env__events__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__events__get, 1},
@@ -20582,17 +20522,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24t__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24t__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24t__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__reset, 1},
-    {"_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___TF24t__TF24_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__set_node_schedule_times, 2},
     {"_plant_SCM___TF24t__TF24_Env__time__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__time__get, 1},
-    {"_plant_SCM___TF24t__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__net_reproduction_ratios__get, 1},
-    {"_plant_SCM___TF24t__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__offspring_production__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__parameters__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__parameters__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__patch__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__patch__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__history__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__history__get, 1},
-    {"_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___TF24t__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__schedule__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__schedule__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__schedule__set", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__schedule__set, 2},
     {"_plant_SCM___TF24t__TF24_Env__events__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__events__get, 1},
@@ -20619,17 +20553,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24w__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24w__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24w__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__reset, 1},
-    {"_plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___TF24w__TF24_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__set_node_schedule_times, 2},
     {"_plant_SCM___TF24w__TF24_Env__time__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__time__get, 1},
-    {"_plant_SCM___TF24w__TF24_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__net_reproduction_ratios__get, 1},
-    {"_plant_SCM___TF24w__TF24_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__offspring_production__get, 1},
     {"_plant_SCM___TF24w__TF24_Env__parameters__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__parameters__get, 1},
     {"_plant_SCM___TF24w__TF24_Env__patch__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__patch__get, 1},
     {"_plant_SCM___TF24w__TF24_Env__history__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__history__get, 1},
-    {"_plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___TF24w__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___TF24w__TF24_Env__schedule__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__schedule__get, 1},
     {"_plant_SCM___TF24w__TF24_Env__schedule__set", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__schedule__set, 2},
     {"_plant_SCM___TF24w__TF24_Env__events__get", (DL_FUNC) &_plant_SCM___TF24w__TF24_Env__events__get, 1},
@@ -20656,17 +20584,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__store_recording", (DL_FUNC) &_plant_SCM___K93__K93_Env__store_recording, 1},
     {"_plant_SCM___K93__K93_Env__refine_schedule", (DL_FUNC) &_plant_SCM___K93__K93_Env__refine_schedule, 1},
     {"_plant_SCM___K93__K93_Env__reset", (DL_FUNC) &_plant_SCM___K93__K93_Env__reset, 1},
-    {"_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___K93__K93_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___K93__K93_Env__set_node_schedule_times, 2},
     {"_plant_SCM___K93__K93_Env__time__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__time__get, 1},
-    {"_plant_SCM___K93__K93_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratios__get, 1},
-    {"_plant_SCM___K93__K93_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__offspring_production__get, 1},
     {"_plant_SCM___K93__K93_Env__parameters__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__parameters__get, 1},
     {"_plant_SCM___K93__K93_Env__patch__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__patch__get, 1},
     {"_plant_SCM___K93__K93_Env__history__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__history__get, 1},
-    {"_plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___K93__K93_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__schedule__get, 1},
     {"_plant_SCM___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__schedule__set, 2},
     {"_plant_SCM___K93__K93_Env__events__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__events__get, 1},

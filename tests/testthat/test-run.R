@@ -19,8 +19,8 @@ scm_by_hand <- function(p, env = NULL, ctrl = control(), events = NULL,
 ## What that entry point returned when asked to collect, from a collected SCM.
 collected_by_hand <- function(scm) {
   results <- tidy_patch(lapply(scm$history, "[[", "state"))
-  results[["offspring_production"]] <- scm$offspring_production
-  results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
+  results[["offspring_production"]] <- scm$patch$offspring_production
+  results[["net_reproduction_ratios"]] <- scm$patch$net_reproduction_ratios
   results[["p"]] <- scm$parameters
   results[["events"]] <- scm$events
   results[["event_log"]] <- scm$event_log
@@ -30,8 +30,8 @@ collected_by_hand <- function(scm) {
 outputs <- function(x) {
   scm <- if (inherits(x, "plant_run")) x$solver else x
   list(ode_state = scm$patch$ode_state,
-       offspring_production = scm$offspring_production,
-       net_reproduction_ratios = scm$net_reproduction_ratios)
+       offspring_production = scm$patch$offspring_production,
+       net_reproduction_ratios = scm$patch$net_reproduction_ratios)
 }
 
 test_that("run(p) is the SCM run by hand, and reports what it ran", {
@@ -40,7 +40,7 @@ test_that("run(p) is the SCM run by hand, and reports what it ran", {
   expect_s3_class(res, "plant_run")
   expect_identical(outputs(res), outputs(scm_by_hand(p)))
   expect_true(res$complete)
-  expect_identical(res$offspring_production, res$solver$offspring_production)
+  expect_identical(res$offspring_production, res$solver$patch$offspring_production)
   expect_s3_class(res$scenario, "plant_scenario")
   expect_identical(res$scenario$p$max_patch_lifetime, 20)
   expect_null(res$mutants)
@@ -130,7 +130,7 @@ test_that("until at the start builds the run unrun, as the SCM is built", {
 
 test_that("a resume is set_initial_state() with the state's pending events", {
   p <- ff16_parameters(20)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   ctrl <- control(node_density_coordinate = "birth_date")
   ev <- events(node_introductions(p), harvest(time = 15, fraction = 0.3))
   part <- run(p, control = ctrl, events = ev, until = 8)
@@ -147,9 +147,9 @@ test_that("a resume is set_initial_state() with the state's pending events", {
 
 test_that("a resume into a longer scenario keeps its introductions", {
   short <- ff16_parameters(20)
-  short$patch_type <- "fixed"
+  short$fitness_weighting <- "none"
   long <- ff16_parameters(40)
-  long$patch_type <- "fixed"
+  long$fitness_weighting <- "none"
   ## A harvest pending at the export, so the introductions travel as events.
   ev <- events(node_introductions(short), harvest(time = 15, fraction = 0.3))
   part <- run(short, events = ev, until = 8)
@@ -178,7 +178,7 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   res <- run(p)
   inv <- run_mutant(res, pm)
   expect_s3_class(inv, "plant_run")
-  expect_identical(inv$offspring_production, scm$offspring_production)
+  expect_identical(inv$offspring_production, scm$patch$offspring_production)
   expect_identical(inv$mutants, pm)
   expect_identical(inv$scenario, res$scenario)
   expect_output(print(inv), "1 species invading")
@@ -192,7 +192,7 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   scm <- scm_by_hand(p)
   scm$run_mutant_constant(pm)
   inv <- run_mutant(run(p), pm, constant = TRUE)
-  expect_identical(inv$offspring_production, scm$offspring_production)
+  expect_identical(inv$offspring_production, scm$patch$offspring_production)
 
   expect_error(run_mutant(run(p, until = 5), pm), "not finished")
   expect_error(run_mutant(scm, pm), "plant_run")

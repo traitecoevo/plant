@@ -781,7 +781,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Model<double> ,
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["fitness_window_start"] = Rcpp::wrap(x.fitness_window_start);
   ret["fitness_window_end"] = Rcpp::wrap(x.fitness_window_end);
@@ -818,8 +818,8 @@ template <> inline plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Envi
   if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  if (xl.containsElementNamed("patch_type")) ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
+  if (xl.containsElementNamed("fitness_weighting")) ret.fitness_weighting = Rcpp::as<std::string >(xl["fitness_weighting"]);
   // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
   if (xl.containsElementNamed("max_patch_lifetime")) ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.fitness_window_start = Rcpp::as<decltype(retfitness_window_start) >(xl["fitness_window_start"]);
@@ -860,6 +860,18 @@ template <> inline plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Envi
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -868,7 +880,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24_Model<double> ,
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["fitness_window_start"] = Rcpp::wrap(x.fitness_window_start);
   ret["fitness_window_end"] = Rcpp::wrap(x.fitness_window_end);
@@ -905,8 +917,8 @@ template <> inline plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Envi
   if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  if (xl.containsElementNamed("patch_type")) ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
+  if (xl.containsElementNamed("fitness_weighting")) ret.fitness_weighting = Rcpp::as<std::string >(xl["fitness_weighting"]);
   // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
   if (xl.containsElementNamed("max_patch_lifetime")) ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.fitness_window_start = Rcpp::as<decltype(retfitness_window_start) >(xl["fitness_window_start"]);
@@ -947,6 +959,18 @@ template <> inline plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Envi
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -955,7 +979,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24f_Model<double> 
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["fitness_window_start"] = Rcpp::wrap(x.fitness_window_start);
   ret["fitness_window_end"] = Rcpp::wrap(x.fitness_window_end);
@@ -992,8 +1016,8 @@ template <> inline plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  if (xl.containsElementNamed("patch_type")) ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
+  if (xl.containsElementNamed("fitness_weighting")) ret.fitness_weighting = Rcpp::as<std::string >(xl["fitness_weighting"]);
   // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
   if (xl.containsElementNamed("max_patch_lifetime")) ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.fitness_window_start = Rcpp::as<decltype(retfitness_window_start) >(xl["fitness_window_start"]);
@@ -1034,6 +1058,18 @@ template <> inline plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1042,7 +1078,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24t_Model<double> 
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["fitness_window_start"] = Rcpp::wrap(x.fitness_window_start);
   ret["fitness_window_end"] = Rcpp::wrap(x.fitness_window_end);
@@ -1079,8 +1115,8 @@ template <> inline plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  if (xl.containsElementNamed("patch_type")) ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
+  if (xl.containsElementNamed("fitness_weighting")) ret.fitness_weighting = Rcpp::as<std::string >(xl["fitness_weighting"]);
   // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
   if (xl.containsElementNamed("max_patch_lifetime")) ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.fitness_window_start = Rcpp::as<decltype(retfitness_window_start) >(xl["fitness_window_start"]);
@@ -1121,6 +1157,18 @@ template <> inline plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1129,7 +1177,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24w_Model<double> 
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["fitness_window_start"] = Rcpp::wrap(x.fitness_window_start);
   ret["fitness_window_end"] = Rcpp::wrap(x.fitness_window_end);
@@ -1166,8 +1214,8 @@ template <> inline plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  if (xl.containsElementNamed("patch_type")) ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
+  if (xl.containsElementNamed("fitness_weighting")) ret.fitness_weighting = Rcpp::as<std::string >(xl["fitness_weighting"]);
   // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
   if (xl.containsElementNamed("max_patch_lifetime")) ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.fitness_window_start = Rcpp::as<decltype(retfitness_window_start) >(xl["fitness_window_start"]);
@@ -1208,6 +1256,18 @@ template <> inline plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1216,7 +1276,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Model,plant::K93
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["fitness_window_start"] = Rcpp::wrap(x.fitness_window_start);
   ret["fitness_window_end"] = Rcpp::wrap(x.fitness_window_end);
@@ -1253,8 +1313,8 @@ template <> inline plant::Parameters<plant::K93_Model,plant::K93_Environment> as
   if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  if (xl.containsElementNamed("patch_type")) ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
+  if (xl.containsElementNamed("fitness_weighting")) ret.fitness_weighting = Rcpp::as<std::string >(xl["fitness_weighting"]);
   // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
   if (xl.containsElementNamed("max_patch_lifetime")) ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.fitness_window_start = Rcpp::as<decltype(retfitness_window_start) >(xl["fitness_window_start"]);
@@ -1295,6 +1355,18 @@ template <> inline plant::Parameters<plant::K93_Model,plant::K93_Environment> as
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }

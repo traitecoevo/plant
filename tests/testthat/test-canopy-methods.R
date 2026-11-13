@@ -106,15 +106,15 @@ test_that("flat-top-soft-box has a continuous competition profile and runs", {
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "flat-top-soft-box"
   out <- run(p1, Environment("FF16"), ctrl)$solver
-  expect_true(is.finite(out$offspring_production))
+  expect_true(is.finite(out$patch$offspring_production))
 
   # The mis-shaped competition propagates to the dynamics: a soft-box stand
   # differs from the correct crown-centre stand (same crown-centre assimilation, but
   # a different shade profile).
   ctrl_flat <- Control(); ctrl_flat$shading_model <- "crown-centre"
   out_flat <- run(p1, Environment("FF16"), ctrl_flat)$solver
-  expect_false(isTRUE(all.equal(out$offspring_production,
-                                out_flat$offspring_production, tolerance = 1e-2)))
+  expect_false(isTRUE(all.equal(out$patch$offspring_production,
+                                out_flat$patch$offspring_production, tolerance = 1e-2)))
 })
 
 test_that("flat-top-box cannot build a light environment (discontinuous competition)", {
@@ -183,9 +183,9 @@ test_that("deep-crown reproduces the baseline SCM result", {
   # shading_model defaults to "deep-crown"
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   over_height <- run(p1, env, Control(node_density_coordinate = "height"))$solver
-  expect_equal(over_height$offspring_production, 16.8846, tolerance = 1e-4)
+  expect_equal(over_height$patch$offspring_production, 16.8846, tolerance = 1e-4)
   over_birth_date <- run(p1, env, Control(node_density_coordinate = "birth_date"))$solver
-  expect_equal(over_birth_date$offspring_production, 17.1720, tolerance = 1e-4)
+  expect_equal(over_birth_date$patch$offspring_production, 17.1720, tolerance = 1e-4)
 })
 
 test_that("crown-centre runs through the SCM and changes the outcome", {
@@ -198,9 +198,9 @@ test_that("crown-centre runs through the SCM and changes the outcome", {
   deep <- run(p1, Environment("FF16"), Control())$offspring_production
   ctrl <- Control(); ctrl$shading_model <- "crown-centre"
   out <- run(p1, Environment("FF16"), ctrl)$solver
-  expect_true(is.finite(out$offspring_production))
+  expect_true(is.finite(out$patch$offspring_production))
   # crown-centre removes self-shading within the crown, so production differs
-  expect_false(isTRUE(all.equal(out$offspring_production, deep, tolerance = 1e-3)))
+  expect_false(isTRUE(all.equal(out$patch$offspring_production, deep, tolerance = 1e-3)))
 })
 
 test_that("PPA discretises the light profile into optical-depth layers", {
@@ -263,8 +263,8 @@ test_that("PPA runs through the SCM (smoothed) and changes the outcome", {
   ctrl_ppa  <- Control(); ctrl_ppa$shading_model  <- "ppa"
   out_deep <- run(p1, Environment("FF16"), ctrl_deep)$solver
   out_ppa  <- run(p1, Environment("FF16"), ctrl_ppa)$solver
-  expect_true(is.finite(out_ppa$offspring_production))
-  expect_gt(out_ppa$offspring_production, out_deep$offspring_production)
+  expect_true(is.finite(out_ppa$patch$offspring_production))
+  expect_gt(out_ppa$patch$offspring_production, out_deep$patch$offspring_production)
 })
 
 test_that("a hard PPA step (no smoothing) defeats the adaptive solver", {
@@ -472,7 +472,7 @@ slope_patch <- function(eta, n = 6) {
   s$birth_rate_y <- 1
   s$is_variable_birth_rate <- FALSE
   p <- Parameters("FF16", "FF16_Env")(strategies = list(s),
-                                      patch_type = "meta-population")
+                                      fitness_weighting = "patch_age")
   patch <- Patch("FF16", "FF16_Env")(p, Environment("FF16"), Control())
   for (i in seq_len(n)) {
     patch$introduce_new_node(1, i * 1.0)
@@ -523,7 +523,7 @@ test_that("the fused value tracks the association the value reduction uses", {
     s
   }
   p <- Parameters("FF16", "FF16_Env")(strategies = list(mk(12), mk(4), mk(7.3)),
-                                      patch_type = "meta-population")
+                                      fitness_weighting = "patch_age")
   patch <- Patch("FF16", "FF16_Env")(p, Environment("FF16"), Control())
   n1 <- Node("FF16", "FF16_Env")(p$strategies[[1]])$ode_size
   for (i in 1:5) {
@@ -558,7 +558,7 @@ test_that("the vertical slope is refused for the hard-step shading model", {
     s$birth_rate_y <- 1
     s$is_variable_birth_rate <- FALSE
     p <- Parameters("FF16", "FF16_Env")(strategies = list(s),
-                                        patch_type = "meta-population")
+                                        fitness_weighting = "patch_age")
     # The Patch overwrites every strategy's control with its own, so the shading
     # model has to be set on the Control the Patch is given.
     ctrl <- Control()

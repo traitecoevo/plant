@@ -30,6 +30,6 @@ test_that("Schedule building", {
 
     ## Refinement leaves the Parameters self-describing (schedule + ode times).
     expect_equal(length(p2$ode_times), length(scm$ode_times))
-    expect_true(length(scm$offspring_production) == 1L)
+    expect_true(length(scm$patch$offspring_production) == 1L)
   }
 })

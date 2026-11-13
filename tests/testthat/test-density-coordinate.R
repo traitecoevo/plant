@@ -764,7 +764,7 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   # coordinate nothing raises a density, so the guard rejects such a stage and
   # the stepper retries it smaller, where a stop would end the run.
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 20
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 10)
   p$node_schedule_times <- list(seq(0, 20, by = 1))
@@ -777,5 +777,5 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   # is log(birth rate) plus at most a few units of establishment and patch
   # density.
   expect_lt(max(sp$log_densities_state), log(10) + 1)
-  expect_true(is.finite(scm$offspring_production))
+  expect_true(is.finite(scm$patch$offspring_production))
 })

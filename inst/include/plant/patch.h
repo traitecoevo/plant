@@ -238,9 +238,6 @@ public:
   value_type net_reproduction_ratio_of(size_t species_index) const;
   value_type offspring_production_of(size_t species_index) const;
 
-  double net_reproduction_ratio_for_species(size_t species_index,
-                                            std::vector<double> const& scalars,
-                                            bool birth_scaled = false) const;
   // Offspring production: fitness scaled by the birth rate over time.
   std::vector<double> offspring_production() const;
   // Overall fitness (unscaled, scalars == 1).
@@ -582,7 +579,16 @@ public:
   parameters_type r_parameters() const {return parameters;}
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
-  std::vector<double> r_compute_competition_effect_error_by_node_for_species_i(size_t species_index) const;
+  // The per-node competition (light) error for one species: the per-step
+  // sample collect_competition_errors() accumulates. Exposed so a test can
+  // rebuild the refinement signal by hand. It is scaled by the total
+  // competition effect, compute_competition(0.0), which already divides by
+  // the patch area, so no further area scaling is needed; the collector reads
+  // it through this same path.
+  std::vector<double> competition_effect_error_by_node(size_t species_index) const;
+  std::vector<double> r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
+    return competition_effect_error_by_node(species_index.check_bounds(size()));
+  }
   void r_set_time(double time);
   void r_set_state(double time,
                    const std::vector<double>& state,
@@ -761,7 +767,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   validate_ode_tolerances(control);
 
   // The validated member, not the argument: validate() derives the regime from
-  // patch_type and max_patch_lifetime, so an argument whose lifetime was
+  // fitness_weighting and max_patch_lifetime, so an argument whose lifetime was
   // assigned after its own construction still carries the regime of the lifetime
   // it was constructed with.
   survival_weighting = parameters.disturbance;
@@ -810,7 +816,7 @@ template <class U>
 Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   using T2 = at_scalar<T, U>;
   using E2 = at_scalar<E, U>;
-  // What a rebound patch reads, and nothing else. patch_type and
+  // What a rebound patch reads, and nothing else. fitness_weighting and
   // max_patch_lifetime are read by validate(), which the constructor below runs
   // to rebuild the disturbance regime: without them the rebound patch gets a
   // different one, pr_patch_survival moves, and the fecundity rates differ with
@@ -823,10 +829,10 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   // per width per gradient, into an object that never looked at them.
   Parameters<T2,E2> p2;
   p2.patch_area = parameters.patch_area;
-  p2.patch_type = parameters.patch_type;
+  p2.fitness_weighting = parameters.fitness_weighting;
   p2.max_patch_lifetime = parameters.max_patch_lifetime;
   // The fitness window is built from these four by the same validate(): left
-  // behind, a "fitness_window" patch_type would refuse to build at all, and a copy
+  // behind, a "window" fitness_weighting would refuse to build at all, and a copy
   // that defaulted them silently would weight the rebound patch differently.
   p2.fitness_window_start = parameters.fitness_window_start;
   p2.fitness_window_end = parameters.fitness_window_end;
@@ -1216,7 +1222,7 @@ Patch<T,E>::compute_competition_and_slope(double z) const {
 }
 
 template <typename T, typename E>
-std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_species_i(size_t species_index) const {
+std::vector<double> Patch<T,E>::competition_effect_error_by_node(size_t species_index) const {
   const double tot_competition_effect =
     odelia::util::to_passive(compute_competition(0.0));
   return species[species_index].r_compute_competition_effect_by_nodes_error(tot_competition_effect);
@@ -1290,15 +1296,6 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
   return util::trapezium(t, num) / util::trapezium(t, den);
 }
 
-template <typename T, typename E>
-double Patch<T,E>::net_reproduction_ratio_for_species(
-    size_t species_index, std::vector<double> const& scalars,
-    bool birth_scaled) const {
-  return odelia::util::to_passive(fitness_integral(
-      species_index, std::vector<value_type>(scalars.begin(), scalars.end()),
-      birth_scaled));
-}
-
 // Offspring production, equal to overall fitness scaled by the birth rate.
 template <typename T, typename E>
 typename Patch<T,E>::value_type
@@ -1369,7 +1366,7 @@ template <typename T, typename E>
 void Patch<T,E>::collect_competition_errors(const std::vector<size_t>& added) {
   for (size_t idx : added) {
     std::vector<double> v =
-        r_compute_competition_effect_error_by_node_for_species_i(idx);
+        competition_effect_error_by_node(idx);
     std::vector<double>& acc = competition_error_by_node[idx];
     if (acc.size() < v.size()) {
       acc.resize(v.size(), -std::numeric_limits<double>::infinity());

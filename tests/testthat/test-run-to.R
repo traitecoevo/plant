@@ -16,7 +16,7 @@ test_that("a sequence of run_to() calls is a run, leg for leg", {
   expect_true(b$complete)
   expect_identical(b$patch$ode_state, a$patch$ode_state)
   expect_identical(b$ode_times, a$ode_times)
-  expect_identical(b$net_reproduction_ratios, a$net_reproduction_ratios)
+  expect_identical(b$patch$net_reproduction_ratios, a$patch$net_reproduction_ratios)
   ## It stops at the first leg boundary at or past the time asked for, and the
   ## patch it exposes is the live one.
   c <- new_scm(p)
@@ -67,7 +67,7 @@ test_that("snapshots thin the record and keep every node's lifetime output", {
 
 test_that("run_until_converged stops when the block means settle", {
   p <- ff16_parameters(400)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 400, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
   scm <- new_scm(p, ctrl)
@@ -127,13 +127,13 @@ test_that("an export where run_to() stopped keeps the action due there", {
   expect_true("harvest" %in% state$events$type)
   resumed <- run(set_initial_state(p, state), events = state$events)$solver
   expect_equal(resumed$event_log$type, "harvest")
-  expect_equal(resumed$net_reproduction_ratios, straight$net_reproduction_ratios,
+  expect_equal(resumed$patch$net_reproduction_ratios, straight$patch$net_reproduction_ratios,
                tolerance = 1e-3)
 })
 
 test_that("run_until_converged() refuses what it cannot judge", {
   p <- ff16_parameters(100)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
   expect_error(run_until_converged(run(p, control = ctrl)$solver), "already finished")
@@ -157,7 +157,7 @@ test_that("a statistic that is undefined in a block cannot settle, and says so",
   ## A strategy whose seedlings make no net carbon never establishes, so no
   ## cohort is alive and the tallest living cohort is undefined in every block.
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 60
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$strategies[[1]]$pars$r_l <- 1e6
@@ -176,7 +176,7 @@ test_that("a statistic is judged on its own scale, however small", {
   ## blocks in, while its density was still rising by 15 % a block.
   converge <- function(b, ...) {
     p <- ff16_parameters(200)
-    p$patch_type <- "fixed"
+    p$fitness_weighting <- "none"
     p$strategies[[1]]$birth_rate_y <- b
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 200, 1))
     s <- run(p, control = Control(node_density_coordinate = "birth_date"), until = 0)$solver
@@ -199,7 +199,7 @@ test_that("a statistic is judged on its own scale, however small", {
 test_that("statistics that settle by construction are not judged by default", {
   ## The top layer pins the tallest cohort: asked for, it warns.
   p <- ff16_parameters(100)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
   expect_warning(run_until_converged(run(p, control = ctrl, until = 0)$solver,
@@ -211,7 +211,7 @@ test_that("statistics that settle by construction are not judged by default", {
   ## TF24's cumulative flux accumulators grow without bound: by default only the
   ## soil water is judged.
   p <- testing_parameters("TF24")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 4
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)

@@ -7,8 +7,8 @@ default_baseline_cases <- function() {
   outputs <- function(scm) {
     list(ode_state = scm$patch$ode_state,
          ode_times = scm$ode_times,
-         net_reproduction_ratios = scm$net_reproduction_ratios,
-         offspring_production = scm$offspring_production)
+         net_reproduction_ratios = scm$patch$net_reproduction_ratios,
+         offspring_production = scm$patch$offspring_production)
   }
   ff16 <- function(lifetime) {
     p <- testing_parameters("FF16")
@@ -26,7 +26,7 @@ default_baseline_cases <- function() {
 
   ## FF16 on the birth-date coordinate with a harvest, no disturbance regime.
   p <- ff16(40)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   ev <- events(node_introductions(p), harvest(time = 20, fraction = 0.3))
   out$ff16_birth_date_harvest <-
     outputs(run(p, events = ev,
@@ -42,7 +42,7 @@ default_baseline_cases <- function() {
   ## the Weibull moves with the lifetime.
   fixed <- function(lifetime) {
     p <- ff16(lifetime)
-    p$patch_type <- "fixed"
+    p$fitness_weighting <- "none"
     p
   }
   first <- run(fixed(10))$solver

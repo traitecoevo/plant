@@ -6,7 +6,7 @@
 
 ff16 <- function(lifetime) {
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, lifetime, 1))
@@ -81,7 +81,7 @@ test_that("a stand with a top layer reaches a fixed point close to the unbounded
   ## And the stand it settles to is the unbounded stand's to a few parts per
   ## million, its seed output included.
   expect_equal(stand_census(s), stand_census(free), tolerance = 1e-5)
-  expect_equal(s$net_reproduction_ratios, free$net_reproduction_ratios, tolerance = 1e-5)
+  expect_equal(s$patch$net_reproduction_ratios, free$patch$net_reproduction_ratios, tolerance = 1e-5)
 })
 
 test_that("a cohort is absorbed only at the absorbing height, and frozen there", {
@@ -116,11 +116,11 @@ test_that("a run starts without the last run's top layer", {
   s <- new_scm(ff16(150), ctrl(absorb = 0.05))
   s$snapshot_interval <- 50
   s$run()
-  a <- s$net_reproduction_ratios
+  a <- s$patch$net_reproduction_ratios
   y <- s$patch$ode_state
   expect_gt(s$patch$species[[1]]$top_layer$density, 0)
   s$run()
-  expect_identical(s$net_reproduction_ratios, a)
+  expect_identical(s$patch$net_reproduction_ratios, a)
   expect_identical(s$patch$ode_state, y)
   ## The rerun's first snapshot is the empty patch, with no layer pinning its top.
   first <- s$snapshots[[1]]$species[[1]]
@@ -184,7 +184,7 @@ test_that("a frozen cohort's height does not move the field", {
   ## that overtook an older one and then froze can put it. The fast field build
   ## once stopped its crossing search at such a cohort.
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(0:4)
@@ -247,7 +247,7 @@ test_that("offspring production scales the layer's seeds by the birth rate", {
   layer <- s$patch$species[[1]]$top_layer
   expect_gt(layer$seeds, 0)
   expect_equal(layer$seeds_birth, 2 * layer$seeds, tolerance = 1e-12)
-  expect_equal(s$offspring_production, 2 * s$net_reproduction_ratios,
+  expect_equal(s$patch$offspring_production, 2 * s$patch$net_reproduction_ratios,
                tolerance = 1e-12)
 })
 
@@ -255,7 +255,7 @@ test_that("each species has its own layer, at its own height", {
   ## Two strategies with different maturation heights, absorbed at their own
   ## heights, each conserving its density as the layer takes it.
   p <- testing_parameters("FF16")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 200
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"), birth_rate = list(1, 1))
   p$strategies[[2]]$pars$hmat <- 10
@@ -273,7 +273,7 @@ test_that("TF24 absorbs at its own asymptotic height", {
   ## TF24 declares an asymptotic height from the same reproductive allocation
   ## curve; a short stand with a low maturation height reaches it.
   p <- testing_parameters("TF24")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 25
   p <- add_strategies(p, trait_matrix(c(0.0825, 2), c("lma", "hmat")),
                       hyperpar = default_hyperpar("TF24"), birth_rate = 1)
@@ -286,7 +286,7 @@ test_that("TF24 absorbs at its own asymptotic height", {
   pars <- p$strategies[[1]]$pars
   expect_gt(layer$density, 0)
   expect_equal(layer$height, pars$hmat * (1 + log(0.95 / 0.05) / pars$a_f2))
-  expect_true(is.finite(s$net_reproduction_ratios))
+  expect_true(is.finite(s$patch$net_reproduction_ratios))
 })
 
 test_that("cohorts an arrival window weights are never absorbed", {
@@ -318,7 +318,7 @@ test_that("a window resumed from a burn-in scores its own cohorts, not the layer
   out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
   k <- which(sp$node_times >= 150 & sp$node_times <= 200)
   expect_gt(sp$top_layer$seeds, 0)
-  expect_equal(s$net_reproduction_ratios,
+  expect_equal(s$patch$net_reproduction_ratios,
                trapezium(sp$node_times[k], out[k]) / 50, tolerance = 1e-12)
 })
 
@@ -339,7 +339,7 @@ test_that("the top layer survives an export and a resume", {
                first$patch$species[[1]]$top_layer$density)
   expect_equal(resumed$patch$species[[1]]$top_layer$density,
                straight$patch$species[[1]]$top_layer$density, tolerance = 1e-3)
-  expect_equal(resumed$net_reproduction_ratios, straight$net_reproduction_ratios,
+  expect_equal(resumed$patch$net_reproduction_ratios, straight$patch$net_reproduction_ratios,
                tolerance = 1e-3)
 })
 

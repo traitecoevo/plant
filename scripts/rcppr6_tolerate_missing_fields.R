@@ -56,6 +56,35 @@ if (!any(grepl("node_density_in_birth_date\"]) ?", lines, fixed = TRUE))) {
   }
   lines <- append(lines, legacy, after = i - 1L)
 }
+## A Parameters saved before fitness_weighting replaced patch_type (#428)
+## carries patch_type. Read alone, it is an old saved object: its value is
+## translated to the weighting it named. Beside a fitness_weighting, it is old
+## code setting a field nothing reads any more, and is refused: tolerated
+## silently, the run would report a fitness under the default weighting. This
+## is the one place every route from R to C++ passes, add_strategies()'s
+## validate() and an invader's parameters included.
+legacy_patch_type <- c(
+  "  // patch_type, renamed fitness_weighting: translated on an old saved",
+  "  // object, refused beside the new field.",
+  "  if (xl.containsElementNamed(\"patch_type\")) {",
+  "    if (xl.containsElementNamed(\"fitness_weighting\")) {",
+  "      Rcpp::stop(\"`p$patch_type` is now `p$fitness_weighting`, with \\\"patch_age\\\", \"",
+  "                 \"\\\"none\\\" and \\\"window\\\" for \\\"meta-population\\\", \\\"fixed\\\" and \"",
+  "                 \"\\\"fitness_window\\\": set that, and remove patch_type\");",
+  "    }",
+  "    const std::string old = Rcpp::as<std::string>(xl[\"patch_type\"]);",
+  "    ret.fitness_weighting = old == \"meta-population\" ? \"patch_age\" :",
+  "      old == \"fixed\" ? \"none\" : old == \"fitness_window\" ? \"window\" : old;",
+  "  }")
+if (!any(grepl("patch_type, renamed fitness_weighting", lines, fixed = TRUE))) {
+  for (s in rev(grep("^template <> inline plant::Parameters<.*> as\\(SEXP x\\) \\{$", lines))) {
+    i <- s
+    while (!grepl("^\\s*ret\\.validate\\(\\);$", lines[i])) {
+      i <- i + 1L
+    }
+    lines <- append(lines, legacy_patch_type, after = i - 1L)
+  }
+}
 writeLines(lines, path)
 message("tolerated missing fields in ", length(starts), " converters (",
         n, " fields)")

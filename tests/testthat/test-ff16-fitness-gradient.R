@@ -40,8 +40,8 @@ test_that("FF16 reports its fitness under the names the gradient uses", {
   expect_equal(names(f), c("1.net_reproduction_ratio", "1.offspring_production",
                            "2.net_reproduction_ratio", "2.offspring_production"))
   # The same numbers the run has always reported, bit for bit.
-  expect_identical(unname(f[c(1, 3)]), scm$net_reproduction_ratios)
-  expect_identical(unname(f[c(2, 4)]), scm$offspring_production)
+  expect_identical(unname(f[c(1, 3)]), scm$patch$net_reproduction_ratios)
+  expect_identical(unname(f[c(2, 4)]), scm$patch$offspring_production)
   # The census keeps its own three, and the gradient defaults to all seven.
   expect_equal(names(stand_census(scm)),
                c("leaf_area", "mass_above_ground", "area_stem"))
@@ -126,7 +126,7 @@ test_that("the fitness gradient over a window is the pinned-step central differe
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_identical(g$value[["1.net_reproduction_ratio"]],
-                   scm$net_reproduction_ratios)
+                   scm$patch$net_reproduction_ratios)
   q <- pinned(scm)
   for (name in c("hmat", "lma", "S_D")) {
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {

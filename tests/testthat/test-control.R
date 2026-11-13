@@ -80,7 +80,7 @@ test_that("a Control or Parameters saved before a field existed still loads", {
   expect_false("fitness_window_start" %in% names(old))
   a <- run(old, control = ctrl)$solver
   b <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
-  expect_identical(a$net_reproduction_ratios, b$net_reproduction_ratios)
+  expect_identical(a$patch$net_reproduction_ratios, b$patch$net_reproduction_ratios)
   expect_equal(a$parameters$fitness_window_start, 0)
 })
 

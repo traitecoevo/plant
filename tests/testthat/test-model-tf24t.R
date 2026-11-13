@@ -253,9 +253,9 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
   p_ref$ode_step_sizes <- thermal$ode_step_sizes
   pinned <- run(p_ref)$solver
 
-  expect_identical(thermal$offspring_production, pinned$offspring_production)
-  expect_identical(thermal$net_reproduction_ratios,
-                   pinned$net_reproduction_ratios)
+  expect_identical(thermal$patch$offspring_production, pinned$patch$offspring_production)
+  expect_identical(thermal$patch$net_reproduction_ratios,
+                   pinned$patch$net_reproduction_ratios)
   expect_identical(thermal$patch$environment$get_soil_water_state(),
                    pinned$patch$environment$get_soil_water_state())
   nodes_t <- thermal$patch$species[[1]]$nodes
@@ -275,8 +275,8 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
   # them apart with margin, which is all this asks.
   default <- run(build("TF24t", identity))$solver
   free_ref <- run(build("TF24", pm))$solver
-  expect_gt(abs(log(default$offspring_production /
-                    free_ref$offspring_production)), 0.2)
+  expect_gt(abs(log(default$patch$offspring_production /
+                    free_ref$patch$offspring_production)), 0.2)
 })
 
 test_that("mean_leaf_temp is a running mean of the operating leaf temperature", {

@@ -9,7 +9,7 @@ tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
                         rainfall_pulses = TRUE, absorb = 0, seed = 1,
                         schedule = seq(0, years - 1, by = 1), lma = 0.0825) {
   p <- testing_parameters(type)
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- years
   p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = default_hyperpar(type),
                       birth_rate = birth_rate)
@@ -105,7 +105,7 @@ test_that("the pooled limit reproduces TF24", {
   er <- ref$patch$environment
   expect_equal(ew$get_soil_water_state(), er$get_soil_water_state(),
                tolerance = 0.03)
-  expect_equal(w$net_reproduction_ratios, ref$net_reproduction_ratios,
+  expect_equal(w$patch$net_reproduction_ratios, ref$patch$net_reproduction_ratios,
                tolerance = 0.03)
   # And the accumulated budget terms, area-weighted over every column in TF24w,
   # agree with the one column of TF24.
@@ -117,7 +117,7 @@ test_that("the pooled limit reproduces TF24", {
 
 test_that("the resident's own copy, introduced as a rare second species, scores exactly 0", {
   p <- testing_parameters("TF24w")
-  p$patch_type <- "fixed"
+  p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 4
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"),
                       hyperpar = default_hyperpar("TF24"), birth_rate = list(5, 5e-6))
@@ -128,7 +128,7 @@ test_that("the resident's own copy, introduced as a rare second species, scores 
   scm <- run(p, env, control(node_density_coordinate = "birth_date",
                              ode_step_size_max = 0.05), until = 0)$solver
   scm$run()
-  R <- scm$net_reproduction_ratios
+  R <- scm$patch$net_reproduction_ratios
   expect_equal(R[[2]], R[[1]], tolerance = 1e-10)
 })
 

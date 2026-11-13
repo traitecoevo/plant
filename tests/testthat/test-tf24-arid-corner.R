@@ -116,7 +116,7 @@ test_that("a dry-start TF24 run completes (#571)", {
   # dropped every node past the first one below the query height -- including the
   # one cohort with appreciable density -- putting a fictitious step in the
   # competition profile that the refiner could not resolve.
-  expect_true(is.finite(tf24_dry_scm()$offspring_production))
+  expect_true(is.finite(tf24_dry_scm()$patch$offspring_production))
 
   # #571 recorded a non-monotone failure set across nine soil moistures, which
   # is what ruled out any single threshold as the cause. With the cause fixed

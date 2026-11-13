@@ -29,7 +29,7 @@ smallest cohort is in the sum.
 differentiable (FF16 and TF24), each species' net reproduction ratio and offspring
 production, named \code{"<species>.net_reproduction_ratio"} and
 \code{"<species>.offspring_production"}. They are the same numbers as
-\code{scm$net_reproduction_ratios} and \code{scm$offspring_production},
+a run's \code{net_reproduction_ratios} and \code{offspring_production},
 reported under the names \code{\link{stand_gradient}} differentiates them
 by.
 }

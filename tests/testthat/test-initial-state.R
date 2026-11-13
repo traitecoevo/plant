@@ -48,13 +48,13 @@ test_that("FF16 single-species round-trip reproduces the run", {
 
   # The resumed run reproduces the original fitness (small residual is solver
   # step-size divergence across the checkpoint, not a state error).
-  expect_equal(r$scm2$net_reproduction_ratios,
-               r$scm$net_reproduction_ratios, tolerance = 1e-3)
+  expect_equal(r$scm2$patch$net_reproduction_ratios,
+               r$scm$patch$net_reproduction_ratios, tolerance = 1e-3)
 
   # Re-importing the same state is deterministic.
   env <- Environment(x); ctrl <- Control()
   scm3 <- SCM(x, e)(r$p2, env, empty_events(), ctrl); scm3$run()
-  expect_identical(scm3$net_reproduction_ratios, r$scm2$net_reproduction_ratios)
+  expect_identical(scm3$patch$net_reproduction_ratios, r$scm2$patch$net_reproduction_ratios)
 })
 
 test_that("Resumed schedule excludes already-imported introductions", {
@@ -90,8 +90,8 @@ test_that("K93 multi-species round-trip reproduces the run", {
   r <- run_and_resume(p2, x, e, frac = 0.5)
 
   expect_equal(length(r$state$n), 3)
-  expect_equal(r$scm2$net_reproduction_ratios,
-               r$scm$net_reproduction_ratios, tolerance = 1e-3)
+  expect_equal(r$scm2$patch$net_reproduction_ratios,
+               r$scm$patch$net_reproduction_ratios, tolerance = 1e-3)
 })
 
 test_that("make_initial_state seeds a patch from a size distribution", {

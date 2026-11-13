@@ -17,11 +17,11 @@ uniform window.}
 }
 \value{
 The modified \code{Parameters} object, with
-  \code{patch_type = "fitness_window"}.
+  \code{fitness_weighting = "window"}.
 }
 \description{
 Weight arrivals by a window of the run: the continuous patch's regime
-(plant issue #519). Where the default \code{"meta-population"} patch type
+(plant issue #519). Where the default \code{fitness_weighting = "patch_age"}
 weights a cohort by the density of patches at its age under a Weibull
 disturbance regime, this weights it by when it arrived in one long run: a
 cohort born inside \code{[start, end]} carries the tabulated weight at its

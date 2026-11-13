@@ -310,7 +310,7 @@ set_initial_state <- function(p, state) {
 
 
 ##' Weight arrivals by a window of the run: the continuous patch's regime
-##' (plant issue #519). Where the default \code{"meta-population"} patch type
+##' (plant issue #519). Where the default \code{fitness_weighting = "patch_age"}
 ##' weights a cohort by the density of patches at its age under a Weibull
 ##' disturbance regime, this weights it by when it arrived in one long run: a
 ##' cohort born inside \code{[start, end]} carries the tabulated weight at its
@@ -343,7 +343,7 @@ set_initial_state <- function(p, state) {
 ##'   \code{weight_x} increasing, \code{weight_y} non-negative. Omit both for a
 ##'   uniform window.
 ##' @return The modified \code{Parameters} object, with
-##'   \code{patch_type = "fitness_window"}.
+##'   \code{fitness_weighting = "window"}.
 ##' @seealso \code{\link{node_schedule_times_periodic}}
 ##' @export
 fitness_window <- function(p, start, end, weight_x = numeric(0),
@@ -355,7 +355,7 @@ fitness_window <- function(p, start, end, weight_x = numeric(0),
   if (length(weight_x) != length(weight_y)) {
     stop("`weight_x` and `weight_y` must have the same length")
   }
-  p$patch_type <- "fitness_window"
+  p$fitness_weighting <- "window"
   p$fitness_window_start <- as.numeric(start)
   p$fitness_window_end <- as.numeric(end)
   p$fitness_window_weight_x <- as.numeric(weight_x)

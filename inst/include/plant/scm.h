@@ -202,12 +202,6 @@ public:
   // Current patch time.
   double time() const;
 
-  // ---- Outputs -----------------------------------------------------------
-  // Total (not per-capita) offspring. These delegate to the patch, which owns
-  // the fitness/offspring computations.
-  std::vector<double> net_reproduction_ratios() const { return patch.net_reproduction_ratios(); }
-  std::vector<double> offspring_production() const { return patch.offspring_production(); }
-
   // Every metric the stand reports at the end of a run, in the order
   // stand_metrics() lists them. The codomain is the list's length.
   std::vector<double> census() const;
@@ -579,18 +573,6 @@ public:
   void clear_boundary_condition_evaluations() { solver.clear_recorded_rates(); }
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
-  // Fitness / reproduction
-  double r_net_reproduction_ratio_for_species(util::index species_index) const;
-  std::vector<std::vector<double>> r_net_reproduction_ratio_errors() const;
-
-  // Schedule-refinement error signals.
-  // Per-node refinement error: element-wise max of the competition error
-  // (sampled during the run) and the reproduction error (computed at the end).
-  // This is the signal that drives refine_schedule().
-  std::vector<std::vector<double>> refinement_error_by_node() const;
-  std::vector<double>
-  r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const;
-
   // The schedule of events
   Schedule r_schedule() const { return schedule; }
   // The schedule read back out in the R-facing wire format, so that a run
@@ -728,7 +710,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
 
 template <typename T, typename E>
 void SCM<T, E>::check_fitness_window() const {
-  if (parameters.patch_type != "fitness_window") {
+  if (parameters.fitness_weighting != "window") {
     return;
   }
   const double start = parameters.fitness_window_start;
@@ -1222,7 +1204,7 @@ void SCM<T, E>::refine_schedule() {
   for (size_t step = 0; step < control.schedule_nsteps; ++step) {
     run(); // resets, then runs with collect_refinement_errors set
 
-    std::vector<std::vector<double>> node_error = refinement_error_by_node();
+    std::vector<std::vector<double>> node_error = patch.refinement_error_by_node();
 
     // Flag nodes whose refinement error exceeds the threshold.
     std::vector<std::vector<bool>> split(node_error.size());
@@ -1305,56 +1287,8 @@ template <typename T, typename E> double SCM<T, E>::time() const {
 
 // ---- R interface ---------------------------------------------------------
 //
-// The fitness/offspring and per-node error computations live on the patch
-// (patch.h); the SCM methods below are thin facades that preserve the R API.
-//
-// Several of these are diagnostic/inspection hooks rather than part of the
-// production run path: outside the C++ refinement loop they are only called
-// from the test suite and the node_spacing vignette (noted per method below).
-
-// Per-species fitness: the net reproduction ratio (expected offspring per seed)
-// for one species. A genuine biological quantity, not just a diagnostic.
-template <typename T, typename E>
-double SCM<T, E>::r_net_reproduction_ratio_for_species(
-    util::index species_index) const {
-  const size_t idx = species_index.check_bounds(patch.size());
-  auto scalars = std::vector<double>(patch.at_species(idx).size(), 1.0);
-  return patch.net_reproduction_ratio_for_species(idx, scalars);
-}
-
-// Diagnostic: per-node discretisation error in the reproduction integral. One
-// of the two components of refinement_error_by_node; exposed for inspection
-// and validation (tests / vignette).
-template <typename T, typename E>
-std::vector<std::vector<double>>
-SCM<T, E>::r_net_reproduction_ratio_errors() const {
-  return patch.net_reproduction_ratio_errors();
-}
-
-// The combined per-node refinement error. Used internally by refine_schedule();
-// also exposed to R so tests / the vignette can inspect the signal that drives
-// schedule refinement.
-template <typename T, typename E>
-std::vector<std::vector<double>> SCM<T, E>::refinement_error_by_node() const {
-  return patch.refinement_error_by_node();
-}
-
-// Diagnostic probe: the per-node competition (light) error for one species --
-// the per-step sample that collect_competition_errors() accumulates. Exposed
-// mainly so tests / the vignette can reconstruct the error signal by hand.
-template <typename T, typename E>
-std::vector<double>
-SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
-  // The per-node error is scaled by the total competition effect inside the
-  // patch-level call below: it computes compute_competition(0.0) -- which
-  // already divides by patch area -- and passes it through as the scaling
-  // argument. The live schedule-refinement collector
-  // (Patch::collect_competition_errors) reconstructs the signal via this same
-  // path, so no extra area scaling is needed here to keep them consistent
-  // (resolves the scaling question in #478).
-  const size_t idx = species_index.check_bounds(patch.size());
-  return patch.r_compute_competition_effect_error_by_node_for_species_i(idx);
-}
+// The fitness values and the per-node error signals are read from the patch,
+// which computes them (patch.h).
 
 template <typename T, typename E>
 void SCM<T, E>::r_set_schedule(Schedule x) {
