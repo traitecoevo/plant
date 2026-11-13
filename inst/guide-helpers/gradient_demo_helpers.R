@@ -81,7 +81,13 @@ gd_param_values <- function(scm, cols) {
   vapply(cols, function(cn) {
     sp <- as.integer(sub("\\..*$", "", cn))
     nm <- sub("^[0-9]+\\.", "", cn)
-    as.numeric(strategies[[sp]]$pars[[nm]])
+    s <- strategies[[sp]]
+    ## A constant birth rate is the strategy's birth_rate_y, not a parameter.
+    x <- if (nm == "birth_rate") s$birth_rate_y else s$pars[[nm]]
+    if (length(x) != 1L) {
+      stop("No single value for gradient column ", cn, call. = FALSE)
+    }
+    as.numeric(x)
   }, numeric(1))
 }
 
