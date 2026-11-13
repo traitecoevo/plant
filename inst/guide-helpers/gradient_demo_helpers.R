@@ -2,11 +2,8 @@
 ##
 ## Kept out of the .qmd so the same code serves both documents. No plotting here.
 ##
-## ⚠️ NOTHING EXERCISES THIS FILE. It had a smoke test, tests/testthat/
-## test-gradient-demo.R, and that test was dropped from the pull request rather
-## than shipped -- so a plant interface change now rots these helpers silently,
-## and the .qmd is where it surfaces. The sibling study keeps its guard
-## (test-pm-leaf-demo.R); this one does not.
+## tests/testthat/test-gradient-demo-helpers.R runs gd_point() on a short
+## stand, so a plant interface change that breaks these helpers fails there.
 ##
 ## Assumes `plant` is loaded (library(plant) or pkgload::load_all()).
 ##

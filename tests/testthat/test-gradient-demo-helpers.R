@@ -8,4 +8,10 @@ test_that("gd_point() reads a value for every gradient column", {
   expect_true(all(is.finite(pt$x)))
   p <- gd_parameters(unlist(gd_traits()), lifetime = 1)
   expect_identical(pt$x[["1.birth_rate"]], p$strategies[[1]]$birth_rate_y)
+  ## Every other column is a parameter, read from the strategy's pars.
+  pars <- p$strategies[[1]]$pars
+  other <- setdiff(names(pt$x), "1.birth_rate")
+  expect_identical(unname(pt$x[other]),
+                   vapply(sub("^1\\.", "", other), function(nm) as.numeric(pars[[nm]]),
+                          numeric(1), USE.NAMES = FALSE))
 })
