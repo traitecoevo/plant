@@ -54,5 +54,3 @@ tests/testthat/_snaps/*.new.md
 notes/scripts/continuous-patch-519/output/
 .DS_Store
 tests/testthat/_problems/
-# The scenario gateway's rainfall fixture is tracked (see scripts/make-scenario-drivers.R).
-!inst/scenarios/scenario_rainfall_drivers.rds

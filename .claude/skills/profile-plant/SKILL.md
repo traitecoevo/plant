@@ -21,7 +21,7 @@ plant is a two-layer package (a templated C++ core under `inst/include/plant/`, 
 2. **Interleave, and compare medians.** Wall-clock on a laptop drifts by 10 to 30% between rounds of the same binary. Alternate base and head invocations for several rounds and compare each arm's median. Never compare against a number measured in another session.
 3. **Read the instruction count beside the time.** `/usr/bin/time -l Rscript ...` reports instructions retired, which repeats to within about 0.3% for a fixed script where the time does not. A change that saves time must also save instructions.
 4. **Know what the compiled code did.** Compare base and head objects function by function (the `compare-compiled-code` skill, with its positive control). A refactor that claims no change shows identical functions; a speed change shows exactly which functions moved.
-5. **The baselines do not move.** A speed change leaves `default_baseline.rds`, `reference-gradient.tsv`, `FF16_reference/` and the scenario gateway's scorecard bit-identical unless a moved number was agreed in advance. Reordering floating-point arithmetic is a moved number.
+5. **The baselines do not move.** A speed change leaves `default_baseline.rds`, `reference-gradient.tsv` and `FF16_reference/` bit-identical unless a moved number was agreed in advance. Reordering floating-point arithmetic is a moved number.
 6. **Native sampling perturbs timing.** Sample to find where time goes, never during an A/B.
 
 ## The benchmark scripts

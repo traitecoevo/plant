@@ -39,17 +39,6 @@ test-installed:
 	cd tests && TESTTHAT_PARALLEL=false NOT_CRAN=true $(RSCRIPT) -e \
 	  'library(testthat); library(plant); cat("plant from", find.package("plant"), "\n"); test_check("plant", reporter = "summary")'
 
-# Run the TF24 hydraulic scenario gateway and write a scorecard RDS.
-scenarios:
-	Rscript scripts/run_scenario_gateway.R
-
-# Re-bless the gateway baseline: regenerate the scorecard the opt-in gateway
-# test (tests/testthat/test-scenario-gateway.R) diffs against. Run only when a
-# changed outcome is intended.
-bless-scenarios:
-	SCENARIO_OUT=tests/testthat/test_data/scenario_baseline.rds \
-		Rscript scripts/run_scenario_gateway.R
-
 install:
 	R CMD INSTALL .
 
@@ -64,4 +53,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-.PHONY: all compile doc clean test test-installed attributes roxygen install build check scenarios bless-scenarios
+.PHONY: all compile doc clean test test-installed attributes roxygen install build check
