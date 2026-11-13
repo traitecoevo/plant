@@ -38,7 +38,7 @@ test_that("a dry TF24f patch no longer aborts on the ci root-find", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
 
   msg <- tryCatch({
-    run_scm(p, env, collect = TRUE)
+    tidy(run(p, env, record = "steps"))
     NA_character_
   }, error = function(e) conditionMessage(e))
 
@@ -127,7 +127,7 @@ test_that("a dry-start TF24 run completes (#571)", {
   # 0.005 is the shared run asserted above.
   for (theta in c(0.0099, 0.010, 0.0101)) {
     y <- tf24_dry_start(theta = theta)
-    expect_no_error(run_scm(y$p, y$env, collect = FALSE))
+    expect_no_error(run(y$p, y$env))
   }
 })
 
@@ -146,7 +146,7 @@ test_that("TF24f survives hydraulic shutdown (#576)", {
   # sweep buys breadth in the wrong dimension at a full SCM run apiece. The
   # measured band is in #576 if it ever needs widening.
   y <- tf24_dry_start("TF24f", rain = 0.04)
-  expect_no_error(run_scm(y$p, y$env, collect = FALSE))
+  expect_no_error(run(y$p, y$env))
 })
 
 ## REMOVED: "a failed light spline reports the patch state that caused it".

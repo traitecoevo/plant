@@ -94,7 +94,7 @@ allometry_self_thinning <- function(a_pl0 = 1.0, mpl = 25, lma = 0.0825,
     env$extrinsic_drivers_set_variable(
       "rainfall", t, pmax(rain * (1 + amplitude * sin(2 * pi * t)), 0))
   }
-  out <- run_scm(p, env, Control(), collect = TRUE)
+  out <- tidy(run(p, env, Control(), record = "steps"))
   d <- out$species
   d <- d[is.finite(d$height) & d$density > 0, ]
   d$canopy_fraction <- exp(d$log_area_leaf_departure)
@@ -124,7 +124,7 @@ allometry_trajectory <- function(a_pl0, soil_history, dt = 0.1, height0 = 4) {
     steps <- max(1L, as.integer(round(span / dt)))
     for (k in seq_len(steps)) {
       y <- ind$ode_state
-      res <- grow_individual_to_time(ind, dt, env)
+      res <- run(ind, times = dt, env = env)
       ind$ode_state <- as.numeric(res$state[1, ])
       t_now <- t_now + dt
     }
@@ -269,10 +269,10 @@ allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
   ## The canopy's lowest point, read at every step: by the end of the recovery
   ## a surviving plant has rebuilt, so the final state would hide the thinning.
   min_canopy <- 1
-  run <- function(theta, years) {
+  run_theta <- function(theta, years) {
     env <- tf24_demo_env(theta)
     for (k in seq_len(as.integer(round(years / dt)))) {
-      res <- try(grow_individual_to_time(ind, dt, env), silent = TRUE)
+      res <- try(run(ind, times = dt, env = env), silent = TRUE)
       if (inherits(res, "try-error")) return(FALSE)
       ind$ode_state <- as.numeric(res$state[1, ])
       min_canopy <<- min(min_canopy,
@@ -280,10 +280,10 @@ allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
     }
     TRUE
   }
-  if (!run(wet, acclimate)) return(NULL)
+  if (!run_theta(wet, acclimate)) return(NULL)
   ind$set_state("mortality", 0)
-  if (!run(theta_dry, years_dry)) return(NULL)
-  if (!run(wet, recover)) return(NULL)
+  if (!run_theta(theta_dry, years_dry)) return(NULL)
+  if (!run_theta(wet, recover)) return(NULL)
   st <- setNames(as.numeric(ind$ode_state), ind$ode_names)
   data.frame(a_pl0 = a_pl0, height = height, theta_dry = theta_dry,
              years_dry = years_dry,
@@ -353,7 +353,7 @@ allometry_drought_course <- function(height = 10, theta_dry = 0.140, years = 2,
   ind <- TF24_Individual(tf24_allometry_strategy(1.0, collect_all_auxiliary = TRUE))
   tf24_seat(ind, tf24_demo_env(wet), height)
   step <- function(env) {
-    r <- grow_individual_to_time(ind, dt, env)
+    r <- run(ind, times = dt, env = env)
     ind$ode_state <- as.numeric(r$state[1, ])
   }
   for (k in seq_len(round(acclimate / dt))) step(tf24_demo_env(wet))

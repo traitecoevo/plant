@@ -18,7 +18,7 @@ test_that("TF24_plot_diagnostics assembles a TF24 stand diagnostic figure", {
   env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
   ctrl <- Control()
 
-  results <- run_scm(p1, env = env, ctrl = ctrl, collect = TRUE)
+  results <- tidy(run(p1, env = env, control = ctrl, record = "steps"))
 
   # Every aux the figure plots must have reached the collected per-node table.
   # ggplot's aes() is lazy, so a missing column would not error until the plot

@@ -88,7 +88,7 @@ test_that("K93 offspring production is unchanged", {
   p1 <- add_strategies(p0, trait_matrix(0.059, "b_0"), birth_rate = 20)
   #p1$birth_rate <- 20
 
-  out <- run_scm(p1, env, ctrl)
+  out <- run(p1, env, ctrl)$solver
   expect_equal(out$offspring_production, 0.0753261, tolerance = 1e-4)
 
   # Three species from paper
@@ -104,7 +104,7 @@ test_that("K93 offspring production is unchanged", {
 
   p2 <- add_strategies(p0, sp, birth_rate = c(20, 20, 20))
   #p2$birth_rate <- c(20, 20, 20)
-  out <- run_scm(p2, env, ctrl)
+  out <- run(p2, env, ctrl)$solver
 
   expect_equal(out$offspring_production, c(0.00253742, 0.23214643, 0.21944157),
                tolerance = 1e-4)

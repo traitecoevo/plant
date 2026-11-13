@@ -266,15 +266,15 @@ test_that("TF24's soil is substepped where that lets a step grow", {
     e$extrinsic_drivers_set_constant("rainfall", 3)
     e
   }
-  run <- function(substep, tol = 1e-5) {
-    run_scm(p, wet(), Control(node_density_coordinate = "birth_date",
-                              ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
-                              ode_soil_substep = substep))
+  run_substep <- function(substep, tol = 1e-5) {
+    run(p, wet(), Control(node_density_coordinate = "birth_date",
+                          ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
+                          ode_soil_substep = substep))$solver
   }
   fitness <- function(scm) sum(scm$offspring_production)
 
-  coupled <- run(FALSE)
-  substepped <- run(TRUE)
+  coupled <- run_substep(FALSE)
+  substepped <- run_substep(TRUE)
   taken <- lengths(substepped$ode_soil_substep_ends) > 0
   expect_false(any(lengths(coupled$ode_soil_substep_ends) > 0))
   expect_gt(mean(taken), 0.3)
@@ -287,14 +287,14 @@ test_that("TF24's soil is substepped where that lets a step grow", {
                          function(e) e[length(e)] == 1, TRUE)))
   ## Its error falls with the tolerance, against a tight run with the soil
   ## coupled.
-  tight <- fitness(run(FALSE, 1e-8))
+  tight <- fitness(run_substep(FALSE, 1e-8))
   error <- function(scm) abs(fitness(scm) / tight - 1)
   ## Within twice the tolerance rather than once: the error control reads the
   ## RMS over every state, and TF24's three flexible-allometry states (#516) are
   ## held at zero error by default, which loosens the effective tolerance: a
   ## cohort carries eleven states where it carried eight (1.1e-5 measured).
   expect_lt(error(substepped), 2e-5)
-  expect_lt(error(run(TRUE, 3e-6)), error(substepped))
+  expect_lt(error(run_substep(TRUE, 3e-6)), error(substepped))
 })
 
 test_that("A run's steps answer to the soil's tolerance scale, and at one to nothing", {
@@ -303,7 +303,7 @@ test_that("A run's steps answer to the soil's tolerance scale, and at one to not
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 1
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
-  run <- function(...) run_scm(p, Environment("TF24"), Control(...))
+  run_with <- function(...) run(p, Environment("TF24"), Control(...))$solver
   same_run <- function(a, b) {
     expect_identical(a$ode_times, b$ode_times)
     expect_identical(a$ode_step_sizes, b$ode_step_sizes)
@@ -311,28 +311,28 @@ test_that("A run's steps answer to the soil's tolerance scale, and at one to not
   }
 
   ## A scale of one is the default exactly.
-  base <- run()
-  same_run(run(ode_tol_scale_soil = 1), base)
+  base <- run_with()
+  same_run(run_with(ode_tol_scale_soil = 1), base)
 
   ## The soil binds steps, so loosening it lengthens them. By a hundredfold:
   ## the error is an RMS over every state, and TF24's three flexible-allometry
   ## states (#516), held at zero error, dilute the soil's share of it, so a
   ## tenfold loosening no longer removes a step on this stand.
-  soil <- run(ode_tol_scale_soil = 100)
+  soil <- run_with(ode_tol_scale_soil = 100)
   expect_lt(length(soil$ode_times), length(base$ode_times))
 
   ## The soil's substeps take their tolerance from the control: at its default
   ## the run is the same, and looser it takes fewer substeps.
   substeps <- function(scm) sum(lengths(scm$ode_soil_substep_ends))
-  substepped <- run(ode_soil_substep = TRUE)
-  same_run(run(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-9), substepped)
-  expect_lt(substeps(run(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-6)),
+  substepped <- run_with(ode_soil_substep = TRUE)
+  same_run(run_with(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-9), substepped)
+  expect_lt(substeps(run_with(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-6)),
             substeps(substepped))
 
   ## A model with no soil gives the scale nothing to loosen.
   ff <- add_strategies(testing_parameters("FF16"), trait_matrix(0.0825, "lma"))
-  same_run(run_scm(ff, ctrl = Control(ode_tol_scale_soil = 100)),
-           run_scm(ff, ctrl = Control()))
+  same_run(run(ff, control = Control(ode_tol_scale_soil = 100))$solver,
+           run(ff, control = Control())$solver)
 })
 
 test_that("The stochastic runner warns that it ignores the soil's tolerance scale", {
@@ -377,8 +377,8 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
                     ode_soil_substep = as.logical(setting[["substep"]]))
     stops <- events(events_default(p),
                     rainfall_pulse(time = knots, depth = rep(0, length(knots))))
-    stopped <- run_scm(p, env(), ctrl, events = stops)
-    free <- run_scm(p, env(), ctrl)
+    stopped <- run(p, env(), ctrl, events = stops)$solver
+    free <- run(p, env(), ctrl)$solver
     expect_lt(abs(sum(free$offspring_production) /
                   sum(stopped$offspring_production) - 1), 2e-5)
     t <- free$ode_times
@@ -417,7 +417,7 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   }
   ctrl <- Control(node_density_coordinate = "birth_date", ode_tol_abs = 1e-8,
                   ode_soil_substep = TRUE)
-  substepped <- run_scm(p, env(), ctrl, keep_states = TRUE)
+  substepped <- run(p, env(), ctrl, record = "states")$solver
   expect_gt(mean(lengths(substepped$ode_soil_substep_ends) > 0), 0.5)
 
   ## A pinned run of the schedule, records and all, repeats the run bit for bit.
@@ -440,12 +440,12 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## their records where a step spans a knot of the rain.
   q <- p
   q$ode_times <- substepped$ode_times
-  expect_error(run_scm(q, env(), ctrl), "step the run's schedule")
+  expect_error(run(q, env(), ctrl), "step the run's schedule")
   q$ode_step_sizes <- substepped$ode_step_sizes
-  expect_error(run_scm(q, env(), ctrl), "carries no substeps")
+  expect_error(run(q, env(), ctrl), "carries no substeps")
   q$ode_soil_input_slopes <- substepped$ode_soil_input_slopes
   q$ode_soil_substep_ends <- substepped$ode_soil_substep_ends
-  carried <- run_scm(q, env(), ctrl)
+  carried <- run(q, env(), ctrl)$solver
   expect_identical(carried$patch$ode_state, substepped$patch$ode_state)
 
   ## The sweep holds each step's substeps and input slopes, as a tangent of the
@@ -530,7 +530,7 @@ test_that("Offspring production & error calculations correct", {
     env <- Environment(x)
     ctrl <- Control()
 
-    scm <- run_scm(p1, env, ctrl)
+    scm <- run(p1, env, ctrl)$solver
     expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {

@@ -14,12 +14,13 @@ state).}
 }
 \value{
 The modified \code{Parameters} object. The state's \code{events}
-  are not carried on it: pass them to \code{\link{run_scm}} as
-  \code{events = state$events}.
+  are not carried on it: pass them to \code{\link{run}} as
+  \code{events = state$events}, or resume with \code{run(p, from = state)},
+  which does both.
 }
 \description{
 Write an exported patch state (from \code{\link{export_patch_state}}) into a
-\code{Parameters} object so that the next \code{\link{run_scm}} starts from
+\code{Parameters} object so that the next \code{\link{run}} starts from
 that state instead of an empty patch. The state is carried on the
 \code{Parameters} object (rather than passed separately) so the run stays
 self-describing and reproducible, and so the initial state survives the reset at
@@ -34,5 +35,5 @@ are the same numbers. The exported \code{patch_density} and
 \code{pr_patch_survival} are checked only for their lengths.
 }
 \seealso{
-\code{\link{export_patch_state}}, \code{\link{run_scm}}
+\code{\link{export_patch_state}}, \code{\link{run}}
 }

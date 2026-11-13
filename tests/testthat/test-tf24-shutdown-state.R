@@ -108,7 +108,7 @@ test_that("a shut-down plant stops depleting the soil", {
   p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-  out <- run_scm(p, env, collect = TRUE)
+  out <- tidy(run(p, env, record = "steps"))
 
   flux <- out$env$soil_moist_cumulative_flux
   expect_equal(max(flux$sum_resource_depletion), 0)

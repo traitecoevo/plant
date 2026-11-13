@@ -44,7 +44,7 @@ the remaining ODE state (mortality, fecundity, accumulated reproduction,
 heartwood, ...) starts at zero, all nodes are introduced at patch age 0, and
 the recruitment schedule continues for \code{t > 0} (the initialised distribution
 replaces the \code{t = 0} recruit). Pathologically large/dense initial
-conditions can produce non-finite densities; \code{run_scm} guards against
+conditions can produce non-finite densities; \code{\link{run}} guards against
 this and errors with a suggestion to use more plausible inputs.
 }
 \seealso{

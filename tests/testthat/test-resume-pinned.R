@@ -6,7 +6,7 @@
 ## A resident run to 10 and exported, then the parameters that resume it to 20.
 resumed_parameters <- function() {
   p1 <- ff16_parameters(10)
-  scm1 <- run_scm(p1)
+  scm1 <- run(p1)$solver
   state <- export_patch_state(scm1)
   p2 <- set_initial_state(ff16_parameters(20), state)
   tt <- ff16_parameters(20)$node_schedule_times[[1]]
@@ -33,28 +33,28 @@ test_that("an empty patch starts at initial_time", {
   p0$initial_time <- 0
   p0$max_patch_lifetime <- 15
   p0$node_schedule_times <- list(tt[tt >= 5] - 5)
-  scm0 <- run_scm(p0)
+  scm0 <- run(p0)$solver
   expect_equal(scm$net_reproduction_ratios, scm0$net_reproduction_ratios,
                tolerance = 1e-6)
 })
 
 test_that("a resumed run reruns its own recorded schedule", {
   r <- resumed_parameters()
-  scm2 <- run_scm(r$p2)
+  scm2 <- run(r$p2)$solver
   p3 <- r$p2
   p3$ode_times <- scm2$ode_times
   p3$ode_step_sizes <- scm2$ode_step_sizes
   ## The first recorded time is the resumed time, not zero, and the pinned run
   ## crosses the gap to the first residual introduction by the schedule.
   expect_equal(p3$ode_times[[1]], r$state$time)
-  scm3 <- run_scm(p3)
+  scm3 <- run(p3)$solver
   expect_identical(scm3$patch$ode_state, scm2$patch$ode_state)
   expect_identical(scm3$net_reproduction_ratios, scm2$net_reproduction_ratios)
 })
 
 test_that("a mutant invades a resumed resident", {
   r <- resumed_parameters()
-  scm2 <- run_scm(r$p2)
+  scm2 <- run(r$p2)$solver
   resident_times <- scm2$patch$species[[1]]$node_times
   resident_nodes <- scm2$patch$species[[1]]$net_reproduction_ratio_by_node
   ## The invader starts where the resident resumed, with no cohorts of its own
@@ -91,10 +91,10 @@ test_that("an exported state carries the events still to come", {
   ## Resumed with its events the run reproduces the original to the solver's
   ## step-size restart; without them the harvest at 15 is lost.
   p2 <- set_initial_state(p, state)
-  with_events <- run_scm(p2, events = state$events)
+  with_events <- run(p2, events = state$events)$solver
   expect_equal(with_events$net_reproduction_ratios, scm$net_reproduction_ratios,
                tolerance = 1e-3)
-  without <- run_scm(p2)
+  without <- run(p2)$solver
   expect_gt(abs(without$net_reproduction_ratios - scm$net_reproduction_ratios),
             1e-2 * scm$net_reproduction_ratios)
 })
@@ -105,13 +105,13 @@ test_that("a resume with no introductions left is refused, not stopped at its st
   r <- resumed_parameters()
   p2 <- r$p2
   p2$node_schedule_times <- list(numeric(0))
-  expect_error(run_scm(p2), "no introductions left")
+  expect_error(run(p2), "no introductions left")
 })
 
 test_that("an action applied at the export time is not exported again", {
   p <- ff16_parameters(15)
   ev <- events(events_default(p), harvest(time = 15, fraction = 0.2))
-  scm <- run_scm(p, events = ev)
+  scm <- run(p, events = ev)$solver
   expect_equal(scm$event_log$time, 15)
   state <- export_patch_state(scm)
   expect_equal(state$time, 15)
@@ -165,11 +165,11 @@ test_that("an invader of a resumed resident starts empty, at the resume time", {
   }
   p <- mk(40)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 40, 1))
-  burn <- run_scm(p, ctrl = ctrl, run = FALSE)
+  burn <- run(p, control = ctrl, until = 0)$solver
   burn$run_to(20)
   state <- export_patch_state(burn)
   p2 <- set_initial_state(mk(40), state)
-  res <- run_scm(p2, ctrl = ctrl)
+  res <- run(p2, control = ctrl)$solver
   seeded <- add_mutant(p2, trait_matrix(0.1, "lma"))
   expect_gt(length(seeded$initial_state), 0)
   expect_error(res$run_mutant(seeded), "initial state")

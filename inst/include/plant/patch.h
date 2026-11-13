@@ -1271,7 +1271,7 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
   if (first == times.size()) {
     // No cohort the window weights: the mean is undefined. NaN rather than a
     // throw, which would fail every accessor after a finished run -- and with
-    // it run_scm()'s history -- for one species set up that way.
+    // it a run's recorded history -- for one species set up that way.
     return value_type(std::numeric_limits<double>::quiet_NaN());
   }
   if (first == last) {

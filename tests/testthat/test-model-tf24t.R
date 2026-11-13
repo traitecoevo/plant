@@ -246,12 +246,12 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
     p
   }
   pm <- function(s) { s$pars$use_energy_balance <- 1; s }
-  thermal <- run_scm(build("TF24t", tf24t_inert))
+  thermal <- run(build("TF24t", tf24t_inert))$solver
   p_ref <- build("TF24", pm)
   expect_identical(p_ref$strategies[[1]]$pars$use_energy_balance, 1)
   p_ref$ode_times <- thermal$ode_times
   p_ref$ode_step_sizes <- thermal$ode_step_sizes
-  pinned <- run_scm(p_ref)
+  pinned <- run(p_ref)$solver
 
   expect_identical(thermal$offspring_production, pinned$offspring_production)
   expect_identical(thermal$net_reproduction_ratios,
@@ -273,8 +273,8 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
   # runs cooler and takes less damage: the two now differ by |log ratio| 0.34
   # (about 1.4x), where they differed by more than e-fold. 0.2 still tells
   # them apart with margin, which is all this asks.
-  default <- run_scm(build("TF24t", identity))
-  free_ref <- run_scm(build("TF24", pm))
+  default <- run(build("TF24t", identity))$solver
+  free_ref <- run(build("TF24", pm))$solver
   expect_gt(abs(log(default$offspring_production /
                     free_ref$offspring_production)), 0.2)
 })
@@ -315,7 +315,7 @@ test_that("TF24t refuses misconfigured kinetics", {
     p
   }
   refuses <- function(mutate, why) {
-    expect_error(run_scm(mk(mutate), collect = FALSE, refine_schedule = FALSE),
+    expect_error(run(mk(mutate)),
                  why)
   }
   refuses(function(s) { s$alpha <- -1; s }, "acclimation kinetics")
@@ -342,7 +342,7 @@ test_that("TF24t refuses deep-crown shading and accepts the other two", {
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   ctrl <- control()
   ctrl$shading_model <- "deep-crown"
-  expect_error(run_scm(p, ctrl = ctrl), "not supported for the TF24t")
+  expect_error(run(p, control = ctrl), "not supported for the TF24t")
 
   for (model in c("mean-light", "crown-centre")) {
     s <- TF24t_Model()
@@ -355,7 +355,7 @@ test_that("TF24t has no stand gradient", {
   p <- testing_parameters("TF24t")
   p$max_patch_lifetime <- 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
-  scm <- run_scm(p)
+  scm <- run(p)$solver
   expect_error(stand_gradient(scm), "thermal-damage layer")
 })
 
@@ -363,7 +363,7 @@ test_that("TF24t runs end-to-end; the fractions are bounded; A stays non-negativ
   p <- testing_parameters("TF24t")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
-  res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)
+  res <- tidy(run(p, record = "steps"))
   sp <- res$species
   expect_true(all(c("acclim_thermostab", "impaired", "damaged",
                     "mean_leaf_temp") %in% names(sp)))
@@ -395,7 +395,7 @@ test_that("with zero gain the acclimation state stays at zero", {
   s <- p$strategies[[1]]
   s$alpha <- 0; s$beta <- 0
   p$strategies[[1]] <- s
-  res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)
+  res <- tidy(run(p, record = "steps"))
   a <- res$species$acclim_thermostab[!is.na(res$species$acclim_thermostab)]
   expect_true(all(abs(a) < 1e-8))
 })

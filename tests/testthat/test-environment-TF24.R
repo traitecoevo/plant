@@ -279,7 +279,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 0.01  
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))
-  out <- run_scm(p1, env)
+  out <- run(p1, env)$solver
   expect_equal(out$patch$environment$n_psi, 4)
   expect_equal(out$patch$environment$b_infil, 5)
   expect_equal(out$patch$environment$f_PAR, 0.45)
@@ -288,7 +288,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   env$set_soil_number_of_depths(1)
   env$set_soil_water_state(0.1)
   p0 <- testing_parameters("TF24")
-  out <- run_scm(p1, env, collect = TRUE)
+  out <- tidy(run(p1, env, record = "steps"))
   expect_equal(length(unique(out$env$soil_depth$soil_depth)), 1)
 
   

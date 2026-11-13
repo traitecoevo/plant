@@ -78,8 +78,8 @@ test_that("a Control or Parameters saved before a field existed still loads", {
   old$strategies[[1]]$control[["absorb_epsilon"]] <- NULL
   expect_false("absorb_epsilon" %in% names(ctrl))
   expect_false("fitness_window_start" %in% names(old))
-  a <- run_scm(old, ctrl = ctrl)
-  b <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
+  a <- run(old, control = ctrl)$solver
+  b <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
   expect_identical(a$net_reproduction_ratios, b$net_reproduction_ratios)
   expect_equal(a$parameters$fitness_window_start, 0)
 })

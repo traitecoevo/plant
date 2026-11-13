@@ -16,13 +16,16 @@ plant's run.}
 \item{...}{Unused.}
 }
 \value{
-For a deterministic run, the tidied patch: \code{steps},
-  \code{n_spp}, \code{species} and \code{env}, as
-  \code{run_scm(collect = TRUE)} gives them. For a stochastic run,
-  \code{time}, \code{species} and \code{env}, as
-  \code{\link{run_stochastic_collect}} gives them. For a single plant, a
-  tibble of its state at each reported time, as
-  \code{\link{tidy_individual}} gives it.
+For a deterministic run, a list: the tidied patch at every step,
+  \code{steps}, \code{n_spp}, \code{species} and \code{env} (as
+  \code{\link{tidy_patch}} gives them); then the run's
+  \code{offspring_production} and \code{net_reproduction_ratios}; \code{p},
+  the solver's parameters (carrying any refined schedule); \code{events},
+  the events it was given; and \code{event_log}, what each event did.
+  For a stochastic run, \code{time}, \code{species} (an array per species,
+  \code{[variable, time, individual]}, with an \code{is_alive} attribute)
+  and \code{env}. For a single plant, a tibble of its state at each
+  reported time, as \code{\link{tidy_individual}} gives it.
 }
 \description{
 Tidy a run's recorded steps

@@ -73,20 +73,24 @@ print.plant_scenario <- function(x, ...) {
 ##' \code{from}, \code{refine_schedule}, \code{record = "states"} and events.
 ##' Seed R's random number generator to repeat one.
 ##'
-##' A single plant is grown by \code{run(individual, times = )} or
-##' \code{run(individual, sizes = )}, which return what
-##' \code{\link{grow_individual_to_time}} and
-##' \code{\link{grow_individual_to_size}} do, for \code{tidy()} to read.
+##' A single plant is grown by \code{run(individual, times = )}, which reports
+##' it at each time, or \code{run(individual, sizes = )}, which grows it to
+##' each size and bisects for the time it is reached. A plant grown on its own
+##' sees the environment it is given, not a patch's shading.
 ##'
 ##' @param x What to run: a scenario, a \code{Parameters} object, a
 ##'   \code{plant_run} to continue, or an \code{Individual}.
-##' @param ... For a \code{Parameters} object, the arguments below; for an
-##'   \code{Individual} grown to \code{sizes}, arguments of
-##'   \code{\link{grow_individual_to_size}}.
+##' @param ... For a \code{Parameters} object, the arguments below. For an
+##'   \code{Individual} grown to \code{sizes}: \code{time_max}, the time to
+##'   stop at if a size is never reached (default \code{Inf}); \code{warn},
+##'   whether to warn when sizes are dropped (default \code{TRUE}); and
+##'   \code{filter}, whether to drop sizes not reached from the result
+##'   (default \code{FALSE}).
 ##' @param until Where to stop: \code{NULL} runs the whole patch lifetime, and a
 ##'   time stops at the first step boundary at or past it. A time at or before
-##'   the start builds the run without taking a step, as
-##'   \code{run_scm(run = FALSE)} does. Continue with \code{run(res)}.
+##'   the start builds the run without taking a step, for a caller that drives
+##'   it: \code{\link{run_until_converged}}, or \code{run(res, until = )}.
+##'   Continue with \code{run(res)}.
 ##' @param from Where to start: \code{NULL} starts the patch empty; a state
 ##'   exported with \code{\link{export_patch_state}}, or a \code{plant_run}
 ##'   (exported where it stands), resumes from it. The resumed run introduces
@@ -109,8 +113,14 @@ print.plant_scenario <- function(x, ...) {
 ##'   the sizes to grow it to (increasing); give one.
 ##' @param size_name The size \code{sizes} are of.
 ##' @param refine_schedule Refine the node-introduction schedule before the
-##'   run, as \code{\link{run_scm}} does. The refined schedule is in the result's
-##'   \code{scenario$p}.
+##'   run, bisecting the intervals whose nodes' error exceeds
+##'   \code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
+##'   The refined schedule is in the result's \code{scenario$p}, with the ODE
+##'   schedule the final run took (\code{ode_times}, \code{ode_step_sizes},
+##'   \code{ode_soil_input_slopes}, \code{ode_soil_substep_ends}), so a later
+##'   run of those parameters takes those steps exactly. With
+##'   \code{record = "states"}, refinement's own runs keep no states and one
+##'   more run keeps them.
 ##' @return A \code{plant_run}: a list with \code{scenario} (what was run, its
 ##'   \code{p} the solver's, carrying any refined schedule), \code{time} and
 ##'   \code{complete} (where the run stands), \code{offspring_production} and
@@ -121,9 +131,11 @@ print.plant_scenario <- function(x, ...) {
 ##'   result's fitness values and \code{event_log} are \code{NULL}, its
 ##'   \code{steps} hold what \code{record = "steps"} kept, and its solver is a
 ##'   \code{StochasticPatchRunner}. An \code{Individual}'s run returns a
-##'   \code{plant_individual_run} instead: the list
-##'   \code{\link{grow_individual_to_time}} or
-##'   \code{\link{grow_individual_to_size}} returns.
+##'   \code{plant_individual_run} instead: a list with \code{time} (the times given, or
+##'   when each size was reached, \code{NA} for one that was not), \code{state} (the ODE
+##'   state at each time, as a matrix), \code{individual} (a list of the plant
+##'   at each) and \code{env}, and when grown to sizes \code{trajectory}, the
+##'   state at every step taken.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
 ##'   continuing it, \code{run_mutant()}, \code{run_until_converged()} --
@@ -170,8 +182,8 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
   scm$collect <- "steps" %in% record
   keep_states <- "states" %in% record
   if (refine_schedule) {
-    ## As run_scm(): refinement's runs keep no states; the run a sweep walks is
-    ## one more, after the schedule settles.
+    ## Refinement's runs are bisected against and discarded, so they keep no
+    ## states; the run a sweep walks is one more, after the schedule settles.
     scm$refine_schedule()
     if (keep_states) {
       scm$keep_states <- TRUE
@@ -322,10 +334,10 @@ run.Individual <- function(x, env = NULL, ..., times = NULL, sizes = NULL,
     env <- Environment(x$strategy_name)
   }
   out <- if (is.null(times)) {
-    grow_individual_to_size(x, sizes, size_name, env, ...)
+    individual_grow_to_sizes(x, sizes, size_name, env, ...)
   } else {
     no_more_arguments(...)
-    grow_individual_to_time(x, times, env)
+    individual_grow_to_times(x, times, env)
   }
   structure(out, class = "plant_individual_run")
 }
@@ -354,13 +366,16 @@ generics::tidy
 ##' @param x A \code{plant_run} run with \code{record = "steps"}, or a single
 ##'   plant's run.
 ##' @param ... Unused.
-##' @return For a deterministic run, the tidied patch: \code{steps},
-##'   \code{n_spp}, \code{species} and \code{env}, as
-##'   \code{run_scm(collect = TRUE)} gives them. For a stochastic run,
-##'   \code{time}, \code{species} and \code{env}, as
-##'   \code{\link{run_stochastic_collect}} gives them. For a single plant, a
-##'   tibble of its state at each reported time, as
-##'   \code{\link{tidy_individual}} gives it.
+##' @return For a deterministic run, a list: the tidied patch at every step,
+##'   \code{steps}, \code{n_spp}, \code{species} and \code{env} (as
+##'   \code{\link{tidy_patch}} gives them); then the run's
+##'   \code{offspring_production} and \code{net_reproduction_ratios}; \code{p},
+##'   the solver's parameters (carrying any refined schedule); \code{events},
+##'   the events it was given; and \code{event_log}, what each event did.
+##'   For a stochastic run, \code{time}, \code{species} (an array per species,
+##'   \code{[variable, time, individual]}, with an \code{is_alive} attribute)
+##'   and \code{env}. For a single plant, a tibble of its state at each
+##'   reported time, as \code{\link{tidy_individual}} gives it.
 ##' @export
 tidy.plant_run <- function(x, ...) {
   ## A deterministic result is checked as current first: its steps are the
@@ -374,7 +389,21 @@ tidy.plant_run <- function(x, ...) {
   if (identical(x$method, "stochastic")) {
     return(tidy_stochastic_steps(x$steps))
   }
-  tidy_patch(lapply(x$solver$history, "[[", "state"))
+  scm <- x$solver
+  if (length(scm$history) == 0L) {
+    stop("This run has taken no step yet: continue it with run(res) first",
+         call. = FALSE)
+  }
+  results <- tidy_patch(lapply(scm$history, "[[", "state"))
+  results[["offspring_production"]] <- scm$offspring_production
+  results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
+  results[["p"]] <- scm$parameters
+  ## Events are given separately from `p`, so `p` alone does not describe the
+  ## run: the schedule asked for and what was applied (including how much of
+  ## each pulse the soil accepted and shed) travel with the tables.
+  results[["events"]] <- scm$events
+  results[["event_log"]] <- scm$event_log
+  results
 }
 
 ##' @rdname tidy.plant_run

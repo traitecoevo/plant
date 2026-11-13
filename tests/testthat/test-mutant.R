@@ -41,7 +41,7 @@ test_that("mutant method works", {
   expect_error(scm$run_mutant(p0), "Run a resident first")
 
   # check mutant fitness against resindet and expected values
-  scm <- run_scm(pr1, e, ctrl)
+  scm <- run(pr1, e, ctrl)$solver
   pr1_rr <- scm$net_reproduction_ratios
   expected <- 2.77316
   expect_equal(pr1_rr, expected, tolerance = tol)
@@ -73,7 +73,7 @@ test_that("mutant method works", {
 
   pr3m10 <- add_strategies(pr3, trait_matrix(seq(lma[1], lma[3], length.out = 10), "lma"), birth_rate = rep(birth_rate, 10))
 
-  scm <- run_scm(pr3, e, ctrl)
+  scm <- run(pr3, e, ctrl)$solver
   pr3_rr <- scm$net_reproduction_ratios
   expected <- c(4.266668e-10, 2.83187, 0.09125858)
   expect_equal(pr3_rr, expected, tolerance = tol)
@@ -128,7 +128,7 @@ test_that("mutant method densities", {
     p1 <- p
     p1$strategies[[1]]$birth_rate_y <- x
 
-    scm <- run_scm(p1, ctrl = ctrl)
+    scm <- run(p1, control = ctrl)$solver
     r_rr <- scm$net_reproduction_ratios
 
     scm$run_mutant(p1)
@@ -161,19 +161,19 @@ test_that("an invasion meets the run's harvests, and introduces only where it di
 
   # An invader with the residents' traits meets both events, as they did, and
   # comes back with their fitness, which the events move.
-  scm <- run_scm(p, events = ev)
+  scm <- run(p, events = ev)$solver
   harvested <- scm$net_reproduction_ratios
   scm$run_mutant(p)
   expect_equal(scm$net_reproduction_ratios, harvested, tolerance = 1e-12)
   expect_equal(scm$event_log$type, c("harvest", "climate_extreme"))
-  expect_gt(abs(log(harvested / run_scm(p)$net_reproduction_ratios)), 0.01)
+  expect_gt(abs(log(harvested / run(p)$net_reproduction_ratios)), 0.01)
 
-  one_species <- run_scm(p, events = events(events_default(p),
-                                            harvest(time = 8, fraction = 0.5,
-                                                    species = 1)))
+  one_species <- run(p, events = events(events_default(p),
+                                        harvest(time = 8, fraction = 0.5,
+                                                species = 1)))$solver
   expect_error(one_species$run_mutant(p), "an invader is none of them")
 
-  scm <- run_scm(p)
+  scm <- run(p)$solver
   expect_no_error(scm$run_mutant(p))
   times <- p$node_schedule_times[[1]]
   off <- p
@@ -186,9 +186,9 @@ test_that("a run after an invasion runs the invaders as a community of their own
   p$max_patch_lifetime <- 20
   q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
-  alone <- run_scm(q)$net_reproduction_ratios
+  alone <- run(q)$net_reproduction_ratios
 
-  scm <- run_scm(p)
+  scm <- run(p)$solver
   scm$run_mutant(q)
   expect_gt(abs(log(scm$net_reproduction_ratios / alone)), 0.01)
   scm$run()
@@ -204,7 +204,7 @@ test_that("an invader's patch reads its run after the SCM has let it go", {
   q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
 
-  scm <- run_scm(p)
+  scm <- run(p)$solver
   scm$run_mutant(q)
   invader <- scm$patch
   invader$compute_environment()
@@ -272,7 +272,7 @@ test_that("mutant method densities, TF24", {
   env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
   env$extrinsic_drivers_set_constant("rainfall", 1)
 
-  scm <- run_scm(p1, env = env, ctrl = ctrl)
+  scm <- run(p1, env = env, control = ctrl)$solver
   resident_rr <- scm$net_reproduction_ratios
 
   # Not assertions about the model, just guards that the pinned run below has
@@ -302,7 +302,7 @@ test_that("an invader replays a step too short to move its stages, TF24", {
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
   ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
-  scm <- run_scm(p, env, ctrl, keep_states = TRUE)
+  scm <- run(p, env, ctrl, record = "states")$solver
   expect_gt(sum(diff(scm$ode_times) < 1e-12), 0)
   resident_rr <- scm$net_reproduction_ratios
   expect_no_error(scm$run_mutant(scm$parameters))
@@ -329,22 +329,22 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
     p$strategies[[1]] <- s
     p
   }
-  run <- function(offset) {
+  run_offset <- function(offset) {
     env <- Environment("TF24")
     env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
     env$extrinsic_drivers_set_constant("rainfall", 1)
-    run_scm(stand(1, offset), env = env,
-            ctrl = Control(node_density_coordinate = "birth_date"))
+    run(stand(1, offset), env = env,
+        control = Control(node_density_coordinate = "birth_date"))$solver
   }
 
   offset <- TF24_Model()$pars$storage_relaxation_offset
-  scm <- run(offset)
+  scm <- run_offset(offset)
   for (m in c(0.7, 2)) {
     scm$run_mutant(stand(m, offset))
     expect_true(is.finite(scm$net_reproduction_ratios))
   }
 
-  scm <- run(0)
+  scm <- run_offset(0)
   scm$run_mutant(stand(0.7, 0))
   expect_true(is.finite(scm$net_reproduction_ratios))
   expect_error(scm$run_mutant(stand(2, 0)), "Non-finite cohort density")

@@ -13,7 +13,9 @@ tidy_env(results)
 tidy_patch(results)
 }
 \arguments{
-\item{results}{output of run_scm(..., collect = TRUE)}
+\item{results}{the patch's state at each step, as
+\code{lapply(res$solver$history, "[[", "state")} gives it for a run with
+\code{record = "steps"}}
 }
 \value{
 a list, containing outputs of plant solver in tidy format

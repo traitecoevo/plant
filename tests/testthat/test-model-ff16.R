@@ -198,14 +198,14 @@ test_that("offspring arrival", {
   # 256 there. Both are supported and neither is an approximation of the other,
   # so the coordinate is asserted rather than assumed.
   expect_identical(ctrl$node_density_coordinate, "birth_date")
-  out <- run_scm(p1, env, ctrl)
+  out <- run(p1, env, ctrl)$solver
   expect_equal(out$offspring_production, 17.1720, tolerance=1e-4)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.227769), tolerance=1e-5)
 
   # two species
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177, 16.51006))
 
-  out <- run_scm(p2, env, ctrl)
+  out <- run(p2, env, ctrl)$solver
   expect_equal(out$offspring_production, c(12.04841, 16.59391), tolerance=1e-5)
   expect_equal(length(out$ode_times), 251)
 
@@ -213,7 +213,7 @@ test_that("offspring arrival", {
   # different answer, or naming this one would be decoration. The magnitude is
   # left unpinned -- one blessed set per function is enough, and pinning two
   # doubles what has to be re-blessed whenever either moves.
-  height <- run_scm(p2, env, Control(node_density_coordinate = "height"))
+  height <- run(p2, env, Control(node_density_coordinate = "height"))$solver
   expect_false(isTRUE(all.equal(height$offspring_production,
                                 out$offspring_production)))
 })
@@ -230,7 +230,7 @@ test_that("Report generation", {
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177, 16.51006))
 
   # test report generation
-  out <- run_scm(p2, env, ctrl, collect = TRUE)
+  out <- tidy(run(p2, env, ctrl, record = "steps"))
 
   unlink("tmp", recursive = TRUE)
   expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = TRUE), "Report for FF16 stand saved at tmp/tmp.html")

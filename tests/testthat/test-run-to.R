@@ -99,10 +99,10 @@ test_that("run_until_converged stops when the block means settle", {
 test_that("run_to() with collect on keeps the same history as run()", {
   p <- ff16_parameters(15)
   ev <- events(node_introductions(p), harvest(time = 7.5, fraction = 0.3))
-  a <- run_scm(p, events = ev, run = FALSE)
+  a <- run(p, events = ev, until = 0)$solver
   a$collect <- TRUE
   a$run()
-  b <- run_scm(p, events = ev, run = FALSE)
+  b <- run(p, events = ev, until = 0)$solver
   b$collect <- TRUE
   for (t in c(3, 7.5, 12, 15)) {
     b$run_to(t)
@@ -118,26 +118,17 @@ test_that("an export where run_to() stopped keeps the action due there", {
   ## so a harvest due at the stop is still to come in the export.
   p <- ff16_parameters(15)
   ev <- events(node_introductions(p), harvest(time = 7.5, fraction = 0.5))
-  straight <- run_scm(p, events = ev)
-  s <- run_scm(p, events = ev, run = FALSE)
+  straight <- run(p, events = ev)$solver
+  s <- run(p, events = ev, until = 0)$solver
   s$run_to(7.2)
   expect_equal(s$time, 7.5)
   expect_length(s$event_log$time, 0)
   state <- export_patch_state(s)
   expect_true("harvest" %in% state$events$type)
-  resumed <- run_scm(set_initial_state(p, state), events = state$events)
+  resumed <- run(set_initial_state(p, state), events = state$events)$solver
   expect_equal(resumed$event_log$type, "harvest")
   expect_equal(resumed$net_reproduction_ratios, straight$net_reproduction_ratios,
                tolerance = 1e-3)
-})
-
-test_that("run_scm(run = FALSE) returns an SCM to drive, and only that", {
-  p <- ff16_parameters(10)
-  s <- run_scm(p, run = FALSE)
-  expect_false(s$complete)
-  expect_equal(s$time, 0)
-  expect_error(run_scm(p, run = FALSE, collect = TRUE), "unrun")
-  expect_error(run_scm(p, run = FALSE, refine_schedule = TRUE), "unrun")
 })
 
 test_that("run_until_converged() refuses what it cannot judge", {
@@ -145,8 +136,8 @@ test_that("run_until_converged() refuses what it cannot judge", {
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
-  expect_error(run_until_converged(run_scm(p, ctrl = ctrl)), "already finished")
-  s <- function() run_scm(p, ctrl = ctrl, run = FALSE)
+  expect_error(run_until_converged(run(p, control = ctrl)$solver), "already finished")
+  s <- function() run(p, control = ctrl, until = 0)$solver
   expect_error(run_until_converged(s(), block = 0), "block")
   expect_error(run_until_converged(s(), tol = -1), "tol")
   expect_error(run_until_converged(s(), t_max = 0), "after")
@@ -171,7 +162,7 @@ test_that("a statistic that is undefined in a block cannot settle, and says so",
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$strategies[[1]]$pars$r_l <- 1e6
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
-  s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"), run = FALSE)
+  s <- run(p, control = Control(node_density_coordinate = "birth_date"), until = 0)$solver
   expect_warning(r <- run_until_converged(s, block = 20, tol = 0.1,
                                           statistics = c("density", "height_max")),
                  "height_max")
@@ -188,7 +179,7 @@ test_that("a statistic is judged on its own scale, however small", {
     p$patch_type <- "fixed"
     p$strategies[[1]]$birth_rate_y <- b
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 200, 1))
-    s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"), run = FALSE)
+    s <- run(p, control = Control(node_density_coordinate = "birth_date"), until = 0)$solver
     run_until_converged(s, block = 20, tol = 0.02, t_max = 120,
                         statistics = "density", ...)
   }
@@ -211,11 +202,11 @@ test_that("statistics that settle by construction are not judged by default", {
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
-  expect_warning(run_until_converged(run_scm(p, ctrl = ctrl, run = FALSE),
+  expect_warning(run_until_converged(run(p, control = ctrl, until = 0)$solver,
                                      block = 20, t_max = 40,
                                      statistics = c("density", "height_max")),
                  "pinned")
-  expect_error(run_until_converged(run_scm(p, ctrl = ctrl, run = FALSE), window = 1),
+  expect_error(run_until_converged(run(p, control = ctrl, until = 0)$solver, window = 1),
                "window")
   ## TF24's cumulative flux accumulators grow without bound: by default only the
   ## soil water is judged.
@@ -225,8 +216,8 @@ test_that("statistics that settle by construction are not judged by default", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   p$node_schedule_times <- list(0:3)
-  s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date",
-                                 ode_step_size_max = 0.05), run = FALSE)
+  s <- run(p, control = Control(node_density_coordinate = "birth_date",
+                             ode_step_size_max = 0.05), until = 0)$solver
   n_env <- s$patch$environment$ode_size
   n_acc <- length(s$patch$state$env$soil_moist_cumulative_flux)
   expect_gt(n_acc, 0)
@@ -236,6 +227,6 @@ test_that("statistics that settle by construction are not judged by default", {
 })
 
 test_that("run_to() refuses a time it cannot compare", {
-  s <- run_scm(ff16_parameters(10), run = FALSE)
+  s <- run(ff16_parameters(10), until = 0)$solver
   expect_error(s$run_to(NaN), "NaN")
 })

@@ -45,127 +45,22 @@ control_tf24 <- function(tol = 1e-5, base = Control()) {
 }
 
 
-##' Basic default settings for a given strategy, environment only really
-##' used for templating initially and will be overloaded later by passing
-##' an environment to the SCM API (suggesting perhaps the template could be
-##' removed).
-##' @title Basic default parameters for a given strategy
+##' A model's bare \code{Parameters}: its defaults, with no strategies and no
+##' trade-offs attached, so a trait given to \code{\link{add_strategies}} is
+##' written straight to \code{pars}. \code{\link{default_parameters}} attaches
+##' plant's testing trade-offs to the same object. The environment named here
+##' only picks the template; a run takes its \code{Environment} separately (see
+##' \code{\link{run}}).
+##' @title A model's bare parameters
 ##' @author Rich FitzJohn
-##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
-##' @param env And environment object
+##' @param type Any model name as a string, e.g.: \code{"FF16"}.
+##' @param env The environment type's name; by default the model's own.
+##' @return A \code{Parameters} object.
 ##' @export
-scm_base_parameters <- function(type = NA, env = environment_type(type)) {
+base_parameters <- function(type = NA, env = environment_type(type)) {
   Parameters(type, env)()
 }
 
-
-##' Run the SCM.
-##'
-##' The node-introduction schedule can be adaptively refined in C++ by setting
-##' \code{refine_schedule = TRUE} (this replaces the former \code{build_schedule}
-##' function). Setting \code{collect = TRUE} returns tidied output collected at
-##' every ODE step (replacing the former \code{run_scm_collect}); otherwise the
-##' \code{SCM} object itself is returned for interrogation.
-##'
-##' @title Run SCM
-##' @param p Parameters object
-##' @param env Environment object (defaults to the strategy's environment)
-##' @param ctrl Control object
-##' @param events An \code{\link{events}} object giving the discrete events to
-##'   apply during the run — rainfall pulses, harvest, and node introductions
-##'   themselves. When \code{NULL} (the default) the schedule is taken from
-##'   \code{p$node_schedule_times}, i.e. introductions only.
-##' @param refine_schedule Should the node-introduction schedule be adaptively
-##'   refined before/while running (using \code{schedule_eps} and
-##'   \code{schedule_nsteps} from \code{ctrl})? Refinement records the ODE
-##'   schedule its final run took into \code{p$ode_times},
-##'   \code{p$ode_step_sizes}, \code{p$ode_soil_input_slopes} and
-##'   \code{p$ode_soil_substep_ends}, so a later run of those parameters takes
-##'   it exactly rather than choosing its own steps again.
-##' @param keep_states Should the run keep the state at every accepted
-##'   step? A gradient sweeps those states and cannot recover them from a
-##'   finished run, so a run that did not keep them is repeated -- one whole
-##'   forward integration. Asked for here because the flag has to be set before
-##'   the run that fills it, and this function is where that run happens. With
-##'   \code{refine_schedule = TRUE} the refinement's own runs do not keep them;
-##'   only the final run does.
-##' @param collect Should tidied results be collected at every step and
-##'   returned (instead of the \code{SCM} object)?
-##' @param run Run the SCM? \code{FALSE} returns it built and unrun, for a
-##'   caller that drives it leg by leg: \code{\link{run_until_converged}} and
-##'   \code{SCM$run_to()}. It cannot be combined with \code{collect} or
-##'   \code{refine_schedule}, which are about the run.
-##' @return When \code{collect = FALSE}, an \code{SCM} object. When
-##'   \code{collect = TRUE}, a list of tidied patch output with
-##'   \code{offspring_production}, \code{net_reproduction_ratios} and the
-##'   (possibly refined) parameters \code{p}.
-##' @author Rich FitzJohn
-##' @rdname run_scm
-##' @export
-run_scm <- function(p, env = NULL,
-                    ctrl = control(),
-                    refine_schedule = FALSE, collect = FALSE,
-                    keep_states = FALSE, events = NULL, run = TRUE) {
-  if (!run && (collect || refine_schedule)) {
-    stop("`run = FALSE` returns an unrun SCM, so `collect` and ",
-         "`refine_schedule`, which are about the run, cannot be asked for")
-  }
-
-  types <- extract_RcppR6_template_types(p, "Parameters")
-
-  if (is.null(env))
-    env <- Environment(types[[1]])
-
-  # An ODE schedule carried by the parameters is taken, because a schedule is
-  # there to be used: p$ode_times with p$ode_step_sizes and the soil's records
-  # takes a recorded run's steps exactly, and p$ode_times alone stops at a grid the
-  # caller chose. To integrate freely, carry neither.
-
-  ## No events supplied: the schedule comes from p$node_schedule_times, as it
-  ## did before events existed. An empty Events object is how that is signalled
-  ## across the boundary.
-  if (is.null(events))
-    events <- empty_events()
-
-  scm <- do.call('SCM', types)(p, env, events, ctrl)
-  if (!run) {
-    scm$keep_states <- keep_states
-    return(scm)
-  }
-  if (collect) {
-    scm$collect <- TRUE
-  }
-
-  if (refine_schedule) {
-    # Refinement's runs are bisected against and discarded, so they keep no
-    # states; the run a sweep walks is one more, after the schedule settles.
-    scm$refine_schedule()
-    if (keep_states) {
-      scm$keep_states <- TRUE
-      scm$run()
-    }
-  } else {
-    scm$keep_states <- keep_states
-    scm$run()
-  }
-
-  if (!collect) {
-    return(scm)
-  }
-
-  results <- lapply(scm$history, "[[", "state") |> tidy_patch()
-  results[["offspring_production"]] <- scm$offspring_production
-  results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
-  results[["p"]] <- scm$parameters
-  ## Events are supplied separately from `p`, so `p` alone does not describe the
-  ## run. Carry both the requested schedule and what was actually applied, or a
-  ## collected result silently loses the whole event record -- including how much
-  ## of each pulse the soil accepted and how much it shed.
-  results[["events"]] <- scm$events
-  results[["event_log"]] <- scm$event_log
-
-  results
-}
 
 ##' Export the full state of a patch from a (run) \code{SCM} so it can be
 ##' re-imported to initialise a new run (see \code{\link{set_initial_state}}). The
@@ -179,9 +74,9 @@ run_scm <- function(p, env = NULL,
 ##' as a record of the run that made them.
 ##'
 ##' @title Export patch state from an SCM
-##' @param scm An \code{SCM} object that has been run, or a \code{plant_run}.
+##' @param scm A \code{plant_run}, or an \code{SCM} object that has been run.
 ##' @param step Optional 1-based index into \code{scm$history} (requires the run
-##'   to have been performed with \code{collect = TRUE}); when \code{NULL}
+##'   to have recorded its steps, \code{record = "steps"}); when \code{NULL}
 ##'   (default) the SCM's current/final patch is used.
 ##' @return A list describing the patch state, suitable for
 ##'   \code{\link{set_initial_state}}: \code{time}, \code{n} (nodes per species),
@@ -191,10 +86,11 @@ run_scm <- function(p, env = NULL,
 ##'   come -- its residual introductions and every action the run had not yet
 ##'   applied when the state was taken (an action at the export time itself is
 ##'   pending in a collected snapshot and in a run that \code{SCM$run_to()}
-##'   stopped there, and applied in a finished run's final patch). Events are a \code{\link{run_scm}} argument rather than a field
-##'   of \code{Parameters}, so pass \code{state$events} to the resumed run's
-##'   \code{events} argument; a resumed run given none re-runs the residual
-##'   introductions alone and silently loses any pulse or harvest still ahead.
+##'   stopped there, and applied in a finished run's final patch). Events are a \code{\link{run}} argument rather than a field
+##'   of \code{Parameters}: \code{run(p, from = state)} applies them, and a
+##'   run of \code{set_initial_state(p, state)} must be given
+##'   \code{events = state$events}, or it re-runs the residual introductions
+##'   alone and silently loses any pulse or harvest still ahead.
 ##'
 ##' With the absorbing top layer on (\code{Control$absorb_epsilon}), each
 ##' species' block of \code{ode_state} ends with the layer: its pinned
@@ -202,7 +98,7 @@ run_scm <- function(p, env = NULL,
 ##' seed totals. A state exported without the layer has no such block, so
 ##' resuming it with the layer on needs that many zeros inserted after each
 ##' species' nodes.
-##' @seealso \code{\link{set_initial_state}}, \code{\link{run_scm}}
+##' @seealso \code{\link{set_initial_state}}, \code{\link{run}}
 ##' @export
 export_patch_state <- function(scm, step = NULL) {
   scm <- as_scm(scm)
@@ -276,7 +172,7 @@ residual_events <- function(scm, time, residual, tol, final) {
 ##' heartwood, ...) starts at zero, all nodes are introduced at patch age 0, and
 ##' the recruitment schedule continues for \code{t > 0} (the initialised distribution
 ##' replaces the \code{t = 0} recruit). Pathologically large/dense initial
-##' conditions can produce non-finite densities; \code{run_scm} guards against
+##' conditions can produce non-finite densities; \code{\link{run}} guards against
 ##' this and errors with a suggestion to use more plausible inputs.
 ##'
 ##' @title Build an initial size distribution
@@ -371,7 +267,7 @@ make_initial_state <- function(p, heights, densities = NULL,
 }
 
 ##' Write an exported patch state (from \code{\link{export_patch_state}}) into a
-##' \code{Parameters} object so that the next \code{\link{run_scm}} starts from
+##' \code{Parameters} object so that the next \code{\link{run}} starts from
 ##' that state instead of an empty patch. The state is carried on the
 ##' \code{Parameters} object (rather than passed separately) so the run stays
 ##' self-describing and reproducible, and so the initial state survives the reset at
@@ -389,9 +285,10 @@ make_initial_state <- function(p, heights, densities = NULL,
 ##'   state).
 ##' @param state An exported state list from \code{\link{export_patch_state}}.
 ##' @return The modified \code{Parameters} object. The state's \code{events}
-##'   are not carried on it: pass them to \code{\link{run_scm}} as
-##'   \code{events = state$events}.
-##' @seealso \code{\link{export_patch_state}}, \code{\link{run_scm}}
+##'   are not carried on it: pass them to \code{\link{run}} as
+##'   \code{events = state$events}, or resume with \code{run(p, from = state)},
+##'   which does both.
+##' @seealso \code{\link{export_patch_state}}, \code{\link{run}}
 ##' @export
 set_initial_state <- function(p, state) {
   n_spp <- length(p$strategies)

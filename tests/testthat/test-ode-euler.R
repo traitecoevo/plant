@@ -19,11 +19,11 @@ test_that("SCM fixed-step Euler converges on the adaptive result", {
   p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
 
-  ref <- run_scm(p, env, control_accurate())$net_reproduction_ratios
+  ref <- run(p, env, control_accurate())$net_reproduction_ratios
 
   dts <- c(0.5, 0.25, 0.125)
   err <- vapply(dts, function(dt) {
-    r0 <- run_scm(p, env, Control(fixed_time_step = dt))$net_reproduction_ratios
+    r0 <- run(p, env, Control(fixed_time_step = dt))$net_reproduction_ratios
     abs(r0 - ref)
   }, numeric(1))
 
@@ -34,7 +34,7 @@ test_that("SCM fixed-step Euler converges on the adaptive result", {
   expect_true(all(ratios > 1.4 & ratios < 3.0))
 
   ## A fine step lands close to the adaptive reference.
-  fine <- run_scm(p, env, Control(fixed_time_step = 0.02))$net_reproduction_ratios
+  fine <- run(p, env, Control(fixed_time_step = 0.02))$net_reproduction_ratios
   expect_equal(fine, ref, tolerance = 0.03)
 })
 
@@ -46,7 +46,7 @@ test_that("SCM fixed-step walks the expected uniform grid", {
   env <- Environment(x)
 
   dt <- 0.25
-  scm <- run_scm(p, env, Control(fixed_time_step = dt))
+  scm <- run(p, env, Control(fixed_time_step = dt))$solver
   ode_times <- scm$ode_times
 
   ## Introductions (schedule event times) are the only points where the grid
@@ -57,7 +57,7 @@ test_that("SCM fixed-step walks the expected uniform grid", {
   expect_true(all(steps <= dt + 1e-8))
 
   ## Finer steps mean strictly more evaluations.
-  scm_fine <- run_scm(p, env, Control(fixed_time_step = dt / 2))
+  scm_fine <- run(p, env, Control(fixed_time_step = dt / 2))$solver
   expect_gt(length(scm_fine$ode_times), length(ode_times))
 })
 
@@ -69,8 +69,8 @@ test_that("fixed_time_step is rejected on the mutant pinned-run paths", {
   env <- Environment(x)
 
   ## A pinned ODE schedule is refused with forward Euler.
-  p$ode_times <- run_scm(p, env, Control())$ode_times
+  p$ode_times <- run(p, env, Control())$solver$ode_times
   expect_error(
-    run_scm(p, env, Control(fixed_time_step = 0.5)),
+    run(p, env, Control(fixed_time_step = 0.5)),
     "not supported for a pinned ODE schedule")
 })

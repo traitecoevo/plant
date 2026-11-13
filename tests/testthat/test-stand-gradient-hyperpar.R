@@ -13,8 +13,8 @@ hyperpar_parameters <- function(lifetime = 3) {
 hyperpar_run <- function(p = hyperpar_parameters()) {
   ctrl <- Control(node_density_coordinate = "birth_date")
   list(p = p, ctrl = ctrl,
-       scm = run_scm(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
-                     keep_states = TRUE))
+       scm = run(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
+                 record = "states")$solver)
 }
 
 # The default run, made once: two tests read it, and neither changes it (a
@@ -64,8 +64,7 @@ test_that("the total agrees with a difference of the trait through add_strategie
     p <- add_strategies(p, trait_matrix(c(lma, 5.13), c("lma", "hmat")),
                         hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
     p$node_schedule_times <- list(sched)
-    stand_census(run_scm(p, Environment("TF24"), run$ctrl,
-                         refine_schedule = FALSE))
+    stand_census(run(p, Environment("TF24"), run$ctrl)$solver)
   }
   h <- 1e-3 * 0.0825
   fd <- (census_at(0.0825 + h) - census_at(0.0825 - h)) / (2 * h)

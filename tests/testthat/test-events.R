@@ -475,10 +475,10 @@ test_that("collected results carry the events and the log", {
   p <- add_strategies(p, trait_matrix(1, "lma"))
   ev <- events(events_default(p), harvest(time = 1, fraction = 0.2))
 
-  out <- run_scm(p, events = ev, collect = TRUE)
+  out <- tidy(run(p, events = ev, record = "steps"))
   expect_true(all(c("events", "event_log") %in% names(out)))
 
-  scm <- run_scm(p, events = ev)
+  scm <- run(p, events = ev)$solver
   expect_identical(out$events$time, scm$events$time)
   expect_identical(out$events$type, scm$events$type)
   expect_identical(out$event_log$time, scm$event_log$time)
@@ -491,12 +491,12 @@ test_that("collected results carry the events and the log", {
   expect_equal(out$event_log$type, "harvest")
 
   ## An event-free run returns a valid empty log rather than dropping the field.
-  bare <- run_scm(p, collect = TRUE)
+  bare <- tidy(run(p, record = "steps"))
   expect_true(all(c("events", "event_log") %in% names(bare)))
   expect_equal(length(bare$event_log$time), 0)
 
   ## Re-running does not accumulate records from the previous run.
-  again <- run_scm(p, events = ev, collect = TRUE)
+  again <- tidy(run(p, events = ev, record = "steps"))
   expect_identical(again$event_log$time, out$event_log$time)
 })
 
@@ -509,22 +509,22 @@ test_that("an event after the horizon is refused before the run starts", {
 
   ## Inside and exactly at the horizon are both fine, and the boundary event is
   ## applied rather than quietly dropped.
-  expect_no_error(run_scm(p, events = at(1.9)))
-  edge <- run_scm(p, events = at(2))
+  expect_no_error(run(p, events = at(1.9)))
+  edge <- run(p, events = at(2))$solver
   expect_equal(edge$event_log$time, 2)
 
   ## Past it, refused at construction -- naming the event, its time and the
   ## horizon. Silently discarding it would hide a units slip or a truncated run.
-  expect_error(run_scm(p, events = at(2.1)), "after max_patch_lifetime = 2")
-  expect_error(run_scm(p, events = at(2.1)), "harvest")
+  expect_error(run(p, events = at(2.1)), "after max_patch_lifetime = 2")
+  expect_error(run(p, events = at(2.1)), "harvest")
 
   ## Every type, and the offending row is identified among many.
-  expect_error(run_scm(p, events = events(events_default(p),
-                                          climate_extreme(time = 5, intensity = 45))),
+  expect_error(run(p, events = events(events_default(p),
+                                      climate_extreme(time = 5, intensity = 45))),
                "climate_extreme")
   many <- events(events_default(p),
                  harvest(time = c(0.5, 1.0, 9.0), fraction = 0.1))
-  expect_error(run_scm(p, events = many), "occurs at time 9")
+  expect_error(run(p, events = many), "occurs at time 9")
 })
 
 test_that("a type refuses a target it cannot act on", {
@@ -587,7 +587,7 @@ test_that("simultaneous events keep their type order and their input order", {
   big <- 0.5   # far more than layer 0 can hold, so the first one takes it all
   pulses <- events(events_default(tf),
                    rainfall_pulse(time = c(2, 2), depth = c(big, big)))
-  scm <- run_scm(tf, env = env, events = pulses)
+  scm <- run(tf, env = env, events = pulses)$solver
   log <- scm$event_log
   expect_equal(length(log$time), 2)
   ## The first-applied pulse is credited with the accepted water; the second

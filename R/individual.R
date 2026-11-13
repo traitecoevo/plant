@@ -1,27 +1,14 @@
-## Support functions for growing an individual to a given size, etc.  Used
-## in dfalster/TraitGrowthTrajectories
+## Support functions for growing an individual to a given size or time, which
+## run() on an Individual calls.
 
-##' Grow an individual up to particular sizes.
-##'
-##' @title Grow individual to given size
-##' @param individual An \code{Individual} object.
-##' @param sizes A vector of sizes to grow the plant to (increasing in
-##' size).
-##' @param size_name The name of the size variable within
-##' \code{individual$rates} (e.g., height).
-##' @param env An \code{Environment} object.
-##' @param time_max Time to run the ODE out for -- only exists to
-##' prevent an infinite loop (say, on an unreachable size).
-##' @param warn Warn if requesting a plant that is too large?
-##' @param filter Filter individuals that are too large?
-##' @return A list with elements \code{time} (the time that a given
-##' size was reached), \code{state} (the \emph{ode state} at these
-##' times, as a matrix) and \code{plant} a list of individuals grown to the
-##' appropriate size.  Note that if only a single size is given,
-##' a list of length 1 is returned.
-##' @export
-grow_individual_to_size <- function(individual, sizes, size_name, env,
-                               time_max=Inf, warn=TRUE, filter=FALSE) {
+## Grows `individual` to each of `sizes` (increasing) of the state `size_name`,
+## bisecting for the time each is reached. Returns time (NA for a size not
+## reached), state (the ODE state at those times), individual (the plant at
+## each), trajectory (every step taken) and env. `time_max` stops an
+## unreachable size from running forever; `warn` warns when sizes are dropped,
+## and `filter` drops them from the result.
+individual_grow_to_sizes <- function(individual, sizes, size_name, env,
+                                     time_max=Inf, warn=TRUE, filter=FALSE) {
   obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
   
   polish <- function(i) {
@@ -58,24 +45,9 @@ vnapply <- function(X, FUN, ...) {
   vapply(X, FUN, numeric(1), ...)
 }
 
-##' @export
-##' @rdname grow_individual_to_size
-##' @param ... Additional parameters passed to
-##' \code{grow_individual_to_size}.
-##' @param heights Heights (when using \code{grow_individual_to_height})
-grow_individual_to_height <- function(individual, heights, env, ...) {
-
-  grow_individual_to_size(individual, heights, "height", env, ...)
-}
-
-##' Grow a plant up for particular time lengths
-##'
-##' @title Grow a plant
-##' @param individual An \code{Individual} object
-##' @param times A vector of times
-##' @param env An \code{Environment} object
-##' @export
-grow_individual_to_time <- function(individual, times, env) {
+## Grows `individual` and reports it at each of `times`: time, state (the ODE
+## state at each) and individual (the plant at each), and env.
+individual_grow_to_times <- function(individual, times, env) {
   if (any(times < 0.0)) {
     stop("Times must be positive")
   }
@@ -316,7 +288,7 @@ optimise_individual_rate_at_size_by_trait <- function(
       res <- indv$ode_rates[indv$ode_names == size_name]
       
     } else{
-      res <- grow_individual_to_size(indv,
+      res <- individual_grow_to_sizes(indv,
                                        sizes = size, size_name = size_name, env,
                                        time_max = 100, warn = TRUE, filter = TRUE) 
       #check if there was positive growth (indicated by the presence of postive numbers of rows in res$stae)

@@ -14,8 +14,8 @@
 #' either is unavailable. The returned plot is neither drawn nor saved — print
 #' it or pass it to [ggplot2::ggsave()] as needed.
 #'
-#' @param results A collected TF24 SCM run, i.e. the output of
-#'   `run_scm(..., collect = TRUE)` for a TF24 strategy/environment. Carries the
+#' @param results A tidied TF24 run, i.e. the output of
+#'   `tidy(run(p, ..., record = "steps"))` for a TF24 strategy/environment. Carries the
 #'   tidied patch state (`results$species`) and the environment series
 #'   (`results$env$soil_moist`, `soil_depth`, `soil_moist_cumulative_flux`).
 #' @param x,y Numeric vectors giving the rainfall time series — time (years) and

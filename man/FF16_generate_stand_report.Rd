@@ -14,7 +14,7 @@ FF16_generate_stand_report(
 )
 }
 \arguments{
-\item{results}{results of running \code{run_scm(..., collect = TRUE)}}
+\item{results}{results of running \code{tidy(run(p, ..., record = "steps"))}}
 
 \item{output_file}{name of output file}
 

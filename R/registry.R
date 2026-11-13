@@ -124,7 +124,7 @@ registry_equation <- function(id, registry = model_registry()) {
 ##' The registry stores no values; this reads each parameter's current default
 ##' off the model, so a table rendered from the registry shows the number the
 ##' model runs with. Parameters held on \code{Parameters} are read from
-##' \code{scm_base_parameters(model)}, and a model's own parameters (those of
+##' \code{base_parameters(model)}, and a model's own parameters (those of
 ##' \code{model} and of any model it extends) from its default strategy's
 ##' \code{pars}, or from the strategy itself for a subclass's traits held
 ##' beside \code{pars}; a \code{literal} gives its own value. Other models'
@@ -137,7 +137,7 @@ registry_equation <- function(id, registry = model_registry()) {
 ##' @export
 registry_values <- function(registry = model_registry(), model = "FF16") {
   pars <- registry$parameters
-  p <- scm_base_parameters(model)
+  p <- base_parameters(model)
   s <- get(paste0(model, "_Model"), mode = "function")()
   field <- ifelse(is.na(pars$field), sub("^.*::", "", pars$code), pars$field)
   on_parameters <- grepl("^plant::Parameters::", pars$code)

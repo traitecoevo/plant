@@ -7,10 +7,10 @@
 export_patch_state(scm, step = NULL)
 }
 \arguments{
-\item{scm}{An \code{SCM} object that has been run, or a \code{plant_run}.}
+\item{scm}{A \code{plant_run}, or an \code{SCM} object that has been run.}
 
 \item{step}{Optional 1-based index into \code{scm$history} (requires the run
-to have been performed with \code{collect = TRUE}); when \code{NULL}
+to have recorded its steps, \code{record = "steps"}); when \code{NULL}
 (default) the SCM's current/final patch is used.}
 }
 \value{
@@ -22,10 +22,11 @@ A list describing the patch state, suitable for
   come -- its residual introductions and every action the run had not yet
   applied when the state was taken (an action at the export time itself is
   pending in a collected snapshot and in a run that \code{SCM$run_to()}
-  stopped there, and applied in a finished run's final patch). Events are a \code{\link{run_scm}} argument rather than a field
-  of \code{Parameters}, so pass \code{state$events} to the resumed run's
-  \code{events} argument; a resumed run given none re-runs the residual
-  introductions alone and silently loses any pulse or harvest still ahead.
+  stopped there, and applied in a finished run's final patch). Events are a \code{\link{run}} argument rather than a field
+  of \code{Parameters}: \code{run(p, from = state)} applies them, and a
+  run of \code{set_initial_state(p, state)} must be given
+  \code{events = state$events}, or it re-runs the residual introductions
+  alone and silently loses any pulse or harvest still ahead.
 
 With the absorbing top layer on (\code{Control$absorb_epsilon}), each
 species' block of \code{ode_state} ends with the layer: its pinned
@@ -47,5 +48,5 @@ from its own regime (see \code{\link{set_initial_state}}); they are exported
 as a record of the run that made them.
 }
 \seealso{
-\code{\link{set_initial_state}}, \code{\link{run_scm}}
+\code{\link{set_initial_state}}, \code{\link{run}}
 }

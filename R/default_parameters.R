@@ -5,7 +5,7 @@
 
 ##' Plant's testing parameter set: today's defaults plus frozen trade-offs
 ##'
-##' \code{default_parameters(model)} is \code{\link{scm_base_parameters}(model)}
+##' \code{default_parameters(model)} is \code{\link{base_parameters}(model)}
 ##' with plant's \emph{testing} trade-off function attached as
 ##' \code{p$hyperpar}. It exists so that every test and golden in plant is
 ##' self-contained: the trade-offs it attaches are the ones plant's defaults
@@ -28,10 +28,10 @@
 ##' hand works through one API; passing \code{hyperpar =} explicitly still
 ##' overrides, and \code{hyperpar = NULL} is the explicit identity. The slot is a
 ##' field of the C++ \code{Parameters}, held opaquely, so it survives
-##' \code{validate()}, \code{\link{run_scm}} (including \code{scm$parameters})
+##' \code{validate()}, \code{\link{run}} (including the result's \code{scenario$p})
 ##' and a saved object.
 ##'
-##' The bare \code{scm_base_parameters(model)} attaches no trade-offs: a trait
+##' The bare \code{base_parameters(model)} attaches no trade-offs: a trait
 ##' named in a trait matrix is written straight to \code{pars}, and
 ##' \code{generate_strategy} says so once per session.
 ##'
@@ -40,19 +40,19 @@
 ##' @param quiet If \code{FALSE} (the default), warn that this is a testing set.
 ##' @return For \code{default_parameters}, a \code{Parameters} object with
 ##'   \code{hyperpar} set.
-##' @seealso \code{\link{scm_base_parameters}}, \code{\link{parameter_table}},
+##' @seealso \code{\link{base_parameters}}, \code{\link{parameter_table}},
 ##'   \code{\link{generate_strategy}}
 ##' @examples
 ##' p <- default_parameters("FF16", quiet = TRUE)
 ##' p <- add_strategies(p, trait_matrix(0.0825, "lma"))
 ##' p$strategies[[1]]$pars$k_l   # derived from lma by the attached trade-off
 ##'
-##' p0 <- scm_base_parameters("FF16")
+##' p0 <- base_parameters("FF16")
 ##' is.null(p0$hyperpar)          # TRUE: nothing attached
 ##' @export
 ##' @rdname default_parameters
 default_parameters <- function(model, quiet = FALSE) {
-  p <- scm_base_parameters(model)
+  p <- base_parameters(model)
   p$hyperpar <- default_hyperpar(model)
   if (!quiet) {
     warning("default_parameters(\"", model, "\") is plant's testing parameter ",
@@ -680,7 +680,7 @@ parameter_table <- function(x, hyperpar = NULL) {
     }
   } else if (is.character(x) && length(x) == 1L) {
     model <- x
-    p <- scm_base_parameters(model)
+    p <- base_parameters(model)
     if (!explicit_hyperpar) {
       hyperpar <- default_hyperpar(model)
     }

@@ -23,10 +23,10 @@ eb_stand_run <- function(p, record = TRUE) {
   env <- Environment("TF24")
   env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  run_scm(p, env,
-          Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
-                  ode_tol_abs = 1e-6),
-          keep_states = record)
+  run(p, env,
+      Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
+              ode_tol_abs = 1e-6),
+      record = if (record) "states" else character(0))$solver
 }
 
 test_that("with the energy balance on, the light field's column is the pinned-step difference", {

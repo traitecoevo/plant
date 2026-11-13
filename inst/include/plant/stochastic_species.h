@@ -339,8 +339,9 @@ Rcpp::NumericMatrix StochasticSpecies<T,E>::r_get_state() const
 
   ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
   // Carry per-individual aliveness alongside the state so that a collected
-  // snapshot (run_stochastic_collect, via StochasticPatch::state) records which
-  // of the (dead-inclusive) columns are still alive. See issue #498.
+  // snapshot (a stochastic run's record = "steps", via StochasticPatch::state)
+  // records which of the (dead-inclusive) columns are still alive. See issue
+  // #498.
   ret.attr("is_alive") = Rcpp::wrap(r_is_alive());
 
   return ret;

@@ -1,7 +1,8 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
-## test-default-baseline.R and scripts/capture-default-baseline.R, which
-## records them from a build that predates the features. Uses only API that
-## predates #661, so the capture can run against such a build.
+## test-default-baseline.R and scripts/capture-default-baseline.R. The runs go
+## through run() (#428), so the capture needs a build that has it; the recorded
+## baseline came from a build before #661, through the SCM entry point run()
+## replaced, which drove the solver the same way.
 default_baseline_cases <- function() {
   outputs <- function(scm) {
     list(ode_state = scm$patch$ode_state,
@@ -18,20 +19,21 @@ default_baseline_cases <- function() {
   out <- list()
 
   ## FF16 and K93 on the defaults: Weibull patch ages, the height coordinate.
-  out$ff16 <- outputs(run_scm(ff16(105.32)))
+  out$ff16 <- outputs(run(ff16(105.32))$solver)
   p <- testing_parameters("K93")
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = 20)
-  out$k93 <- outputs(run_scm(p))
+  out$k93 <- outputs(run(p)$solver)
 
   ## FF16 on the birth-date coordinate with a harvest, no disturbance regime.
   p <- ff16(40)
   p$patch_type <- "fixed"
   ev <- events(node_introductions(p), harvest(time = 20, fraction = 0.3))
   out$ff16_birth_date_harvest <-
-    outputs(run_scm(p, events = ev, ctrl = Control(node_density_coordinate = "birth_date")))
+    outputs(run(p, events = ev,
+                control = Control(node_density_coordinate = "birth_date"))$solver)
 
   ## An invasion of the default FF16 stand.
-  scm <- run_scm(ff16(105.32))
+  scm <- run(ff16(105.32))$solver
   scm$run_mutant(add_mutant(ff16(105.32), trait_matrix(0.1, "lma")))
   out$ff16_invader <- outputs(scm)
 
@@ -43,12 +45,12 @@ default_baseline_cases <- function() {
     p$patch_type <- "fixed"
     p
   }
-  first <- run_scm(fixed(10))
+  first <- run(fixed(10))$solver
   state <- export_patch_state(first)
   p2 <- set_initial_state(fixed(20), state)
   tt <- fixed(20)$node_schedule_times[[1]]
   p2$node_schedule_times <- list(tt[tt > state$time])
-  out$ff16_resumed <- outputs(run_scm(p2))
+  out$ff16_resumed <- outputs(run(p2)$solver)
 
   ## A short TF24 stand under constant rain, on the birth-date coordinate.
   p <- testing_parameters("TF24")
@@ -57,7 +59,7 @@ default_baseline_cases <- function() {
                       birth_rate = 1)
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  out$tf24 <- outputs(run_scm(p, env, Control(node_density_coordinate = "birth_date",
-                                              ode_step_size_max = 0.05)))
+  out$tf24 <- outputs(run(p, env, Control(node_density_coordinate = "birth_date",
+                                          ode_step_size_max = 0.05))$solver)
   out
 }

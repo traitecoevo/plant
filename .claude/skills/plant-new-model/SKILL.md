@@ -87,7 +87,7 @@ Use `make RcppR6` and not RcppR6 directly: its script re-adds the guards a bare 
 ```r
 p <- default_parameters("XX24v", quiet = TRUE) |>
   add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
-res <- run_scm(p, collect = TRUE, refine_schedule = TRUE)
+res <- run(p, refine_schedule = TRUE, record = "steps")
 ```
 
 ## Verification

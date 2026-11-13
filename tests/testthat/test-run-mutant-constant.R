@@ -25,7 +25,7 @@ in_stand_fitness <- function(fp, lma, life = 400) {
                       birth_rate = fp$b * 1e-6)
   p$node_schedule_times[[2]] <- fp$t_eq
   p <- fitness_window(p, fp$t_eq, fp$t_eq + 1)
-  scm <- run_scm(p, ctrl = fp$ctrl)
+  scm <- run(p, control = fp$ctrl)$solver
   sp <- scm$patch$species
   S_D <- p$strategies[[1]]$pars$S_D
   c(resident = sp[[1]]$net_reproduction_ratio_by_node[sp[[1]]$node_times == fp$t_eq] * S_D,
@@ -107,7 +107,7 @@ test_that("a constant field is cleared once the invaders have run", {
   rerun <- fp$scm$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
     fp$p$strategies[[1]]$pars$S_D
   pm <- fp$scm$parameters
-  fresh <- run_scm(pm, ctrl = fp$ctrl)
+  fresh <- run(pm, control = fp$ctrl)$solver
   expect_identical(rerun, fresh$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
                      fp$p$strategies[[1]]$pars$S_D)
   expect_false(isTRUE(all.equal(rerun, in_field)))
@@ -120,7 +120,7 @@ test_that("a field taken inside an interval scores as one taken at its start", {
   at_start <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
   p <- fp$p
   p$max_patch_lifetime <- 150.5
-  mid <- run_scm(p, ctrl = fp$ctrl)
+  mid <- run(p, control = fp$ctrl)$solver
   at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.1, "lma"))
   expect_equal(at_mid, at_start, tolerance = 1e-2)
 })
@@ -206,7 +206,7 @@ test_that("a coarse grid makes the fixed point a periodic orbit", {
     p$max_patch_lifetime <- 150 + by / 2
     tt <- p$node_schedule_times[[1]]
     p$node_schedule_times <- list(tt[tt < p$max_patch_lifetime])
-    mid <- run_scm(p, ctrl = fp$ctrl)
+    mid <- run(p, control = fp$ctrl)$solver
     at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.0825, "lma"))
     abs(at_mid / at_start - 1)
   }

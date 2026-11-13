@@ -21,19 +21,19 @@ test_that("default runs reproduce the baseline recorded before #661", {
 })
 
 test_that("snapshots read the run and do not move it", {
-  run <- function(interval) {
+  snapshot_run <- function(interval) {
     p <- testing_parameters("FF16")
     p$patch_type <- "fixed"
     p$max_patch_lifetime <- 60
     p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
-    s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"), run = FALSE)
+    s <- run(p, control = Control(node_density_coordinate = "birth_date"), until = 0)$solver
     s$snapshot_interval <- interval
     s$run()
     s
   }
-  a <- run(0)
-  b <- run(5)
+  a <- snapshot_run(0)
+  b <- snapshot_run(5)
   expect_gt(length(b$snapshots), 10)
   expect_identical(b$patch$ode_state, a$patch$ode_state)
   expect_identical(b$ode_times, a$ode_times)
@@ -49,8 +49,8 @@ test_that("a fitness window weights the run and does not move it", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
   ctrl <- Control(node_density_coordinate = "birth_date")
-  a <- run_scm(p, ctrl = ctrl)
-  b <- run_scm(fitness_window(p, 10, 30), ctrl = ctrl)
+  a <- run(p, control = ctrl)$solver
+  b <- run(fitness_window(p, 10, 30), control = ctrl)$solver
   expect_identical(b$patch$ode_state, a$patch$ode_state)
   expect_identical(b$ode_times, a$ode_times)
   expect_false(identical(b$net_reproduction_ratios, a$net_reproduction_ratios))

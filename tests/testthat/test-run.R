@@ -1,5 +1,31 @@
-## run(): the one verb (#428). Each path is checked against the run_scm() call
-## that does the same thing, so the new surface adds no numerics of its own.
+## run(): the one verb (#428). Each path is checked against the solver driven
+## by hand, as the entry points run() replaced drove it, so run() adds no
+## numerics of its own.
+
+## The SCM built and run by hand, step for step as the SCM entry point that
+## run() replaced did.
+scm_by_hand <- function(p, env = NULL, ctrl = control(), events = NULL,
+                        refine_schedule = FALSE, collect = FALSE, run = TRUE) {
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  if (is.null(env)) env <- Environment(types[[1]])
+  if (is.null(events)) events <- empty_events()
+  scm <- do.call("SCM", types)(p, env, events, ctrl)
+  if (!run) return(scm)
+  if (collect) scm$collect <- TRUE
+  if (refine_schedule) scm$refine_schedule() else scm$run()
+  scm
+}
+
+## What that entry point returned when asked to collect, from a collected SCM.
+collected_by_hand <- function(scm) {
+  results <- tidy_patch(lapply(scm$history, "[[", "state"))
+  results[["offspring_production"]] <- scm$offspring_production
+  results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
+  results[["p"]] <- scm$parameters
+  results[["events"]] <- scm$events
+  results[["event_log"]] <- scm$event_log
+  results
+}
 
 outputs <- function(x) {
   scm <- if (inherits(x, "plant_run")) x$solver else x
@@ -8,11 +34,11 @@ outputs <- function(x) {
        net_reproduction_ratios = scm$net_reproduction_ratios)
 }
 
-test_that("run(p) is run_scm(p), and reports what it ran", {
+test_that("run(p) is the SCM run by hand, and reports what it ran", {
   p <- ff16_parameters(20)
   res <- run(p)
   expect_s3_class(res, "plant_run")
-  expect_identical(outputs(res), outputs(run_scm(p)))
+  expect_identical(outputs(res), outputs(scm_by_hand(p)))
   expect_true(res$complete)
   expect_identical(res$offspring_production, res$solver$offspring_production)
   expect_s3_class(res$scenario, "plant_scenario")
@@ -27,16 +53,16 @@ test_that("a scenario and its pieces run the same, and a result reruns", {
   a <- run(scenario(p, control = ctrl, events = ev))
   b <- run(p, control = ctrl, events = ev)
   expect_identical(outputs(a), outputs(b))
-  expect_identical(outputs(a), outputs(run_scm(p, ctrl = ctrl, events = ev)))
+  expect_identical(outputs(a), outputs(scm_by_hand(p, ctrl = ctrl, events = ev)))
   expect_identical(outputs(run(a$scenario)), outputs(a))
   expect_equal(a$event_log$type, b$event_log$type)
   expect_true("harvest" %in% a$event_log$type)
 })
 
-test_that("refinement through run() is run_scm()'s, and its schedule is the result's", {
+test_that("refinement through run() is the SCM's, and its schedule is the result's", {
   p <- ff16_parameters(20)
   res <- run(p, refine_schedule = TRUE)
-  scm <- run_scm(p, refine_schedule = TRUE)
+  scm <- scm_by_hand(p, refine_schedule = TRUE)
   expect_identical(outputs(res), outputs(scm))
   expect_identical(res$scenario$p, scm$parameters)
 })
@@ -44,9 +70,22 @@ test_that("refinement through run() is run_scm()'s, and its schedule is the resu
 test_that("record keeps what tidy() and a gradient read", {
   p <- ff16_parameters(10)
   res <- run(p, record = "steps")
-  collected <- run_scm(p, collect = TRUE)
-  expect_identical(tidy(res), collected[c("steps", "n_spp", "species", "env")])
+  ## tidy() of a deterministic run is what the old collected run returned,
+  ## field for field, in the same order.
+  expect_identical(tidy(res), collected_by_hand(scm_by_hand(p, collect = TRUE)))
+  expect_named(tidy(res), c("steps", "n_spp", "species", "env",
+                            "offspring_production", "net_reproduction_ratios",
+                            "p", "events", "event_log"))
+  expect_identical(tidy(res)$p, res$scenario$p)
+  ev <- events(node_introductions(p), harvest(time = 5, fraction = 0.3))
+  harvested <- run(p, control = control(node_density_coordinate = "birth_date"),
+                   events = ev, record = "steps")
+  by_hand <- scm_by_hand(p, ctrl = control(node_density_coordinate = "birth_date"),
+                         events = ev, collect = TRUE)
+  expect_identical(tidy(harvested), collected_by_hand(by_hand))
+  expect_true("harvest" %in% tidy(harvested)$event_log$type)
   expect_error(tidy(run(p)), "record = \"steps\"")
+  expect_error(tidy(run(p, until = 0, record = "steps")), "no step yet")
   expect_true(run(p, record = "states")$solver$keep_states)
   expect_false(run(p)$solver$keep_states)
 })
@@ -70,17 +109,17 @@ test_that("a run stopped at `until` and continued is the run taken whole", {
   z2 <- run(z, until = 0)
   expect_identical(z2$time, 0)
   expect_identical(run_until_converged(z2, block = 5)$trace,
-                   run_until_converged(run_scm(p, run = FALSE), block = 5)$trace)
+                   run_until_converged(scm_by_hand(p, run = FALSE), block = 5)$trace)
 })
 
-test_that("until at the start builds the run unrun, as run_scm(run = FALSE) does", {
+test_that("until at the start builds the run unrun, as the SCM is built", {
   p <- ff16_parameters(20)
   res <- run(p, until = 0)
   expect_identical(res$time, 0)
   expect_false(res$complete)
   ## So a convergence run from it starts with the t = 0 snapshot.
   a <- run_until_converged(res, block = 5)
-  scm <- run_scm(p, run = FALSE)
+  scm <- scm_by_hand(p, run = FALSE)
   b <- run_until_converged(scm, block = 5)
   expect_identical(a$trace, b$trace)
   expect_identical(tidy_snapshots(a$run), tidy_snapshots(scm))
@@ -97,7 +136,7 @@ test_that("a resume is set_initial_state() with the state's pending events", {
   part <- run(p, control = ctrl, events = ev, until = 8)
   st <- export_patch_state(part)
   resumed <- run(p, control = ctrl, from = part)
-  manual <- run_scm(set_initial_state(p, st), ctrl = ctrl, events = st$events)
+  manual <- scm_by_hand(set_initial_state(p, st), ctrl = ctrl, events = st$events)
   expect_identical(outputs(resumed), outputs(manual))
   expect_identical(resumed$scenario$p$initial_time, st$time)
   expect_true("harvest" %in% resumed$event_log$type)
@@ -134,7 +173,7 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   p <- ff16_parameters(20)
   pm <- add_mutant(p, trait_matrix(0.1, "lma"))
 
-  scm <- run_scm(p)
+  scm <- scm_by_hand(p)
   scm$run_mutant(pm)
   res <- run(p)
   inv <- run_mutant(res, pm)
@@ -150,7 +189,7 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   expect_error(tidy(res), "moved on")
   expect_error(run_mutant(inv, pm), "resident")
 
-  scm <- run_scm(p)
+  scm <- scm_by_hand(p)
   scm$run_mutant_constant(pm)
   inv <- run_mutant(run(p), pm, constant = TRUE)
   expect_identical(inv$offspring_production, scm$offspring_production)
@@ -169,11 +208,11 @@ test_that("run() refuses what it cannot do", {
   expect_error(run(run(p, until = 2), record = "steps"), "until")
   expect_error(scenario(list()), "Parameters")
   expect_error(scenario(p, events = list()), "Events")
-  expect_error(run(p, from = run_scm(p)), "export_patch_state")
+  expect_error(run(p, from = scm_by_hand(p)), "export_patch_state")
 })
 
-## The stochastic solver and a single plant under run(). Each is the function
-## run() calls, so each is asserted identical to it.
+## The stochastic solver and a single plant under run(), each asserted
+## identical to its solver driven by hand.
 
 stochastic_stand <- function(lifetime = 20) {
   p <- testing_parameters("FF16")
@@ -181,15 +220,17 @@ stochastic_stand <- function(lifetime = 20) {
   add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 2)
 }
 
-test_that("a stochastic run is run_stochastic_collect()'s, under the same seed", {
+test_that("a stochastic run is the runner's by hand, under the same seed", {
   p <- stochastic_stand()
   set.seed(42)
-  collected <- run_stochastic_collect(p)
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())
+  obj$schedule <- stochastic_schedule(p)
+  collected <- tidy_stochastic_steps(collect_stochastic_steps(obj))
   set.seed(42)
   res <- run(p, method = "stochastic", record = "steps")
   expect_s3_class(res, "plant_run")
   expect_identical(res$method, "stochastic")
-  expect_identical(tidy(res), collected[c("time", "species", "env")])
+  expect_identical(tidy(res), collected)
   expect_true(res$complete)
   expect_null(res$offspring_production)
   ## The scenario records the arrivals drawn, not p's deterministic schedule.
@@ -219,17 +260,18 @@ test_that("a stochastic run refuses what it cannot do", {
   expect_error(run(p, method = "neither"), "should be one of")
 })
 
-test_that("a single plant's run is grow_individual_to_*()'s", {
+test_that("a single plant's run is the individual grower's", {
   ind <- FF16_Individual()
   env <- Environment("FF16")
   at_times <- run(ind, times = c(1, 5, 10))
   expect_s3_class(at_times, "plant_individual_run")
   expect_identical(unclass(at_times)[c("time", "state")],
-                   grow_individual_to_time(ind, c(1, 5, 10), env)[c("time", "state")])
-  expect_identical(tidy(at_times), tidy_individual(grow_individual_to_time(ind, c(1, 5, 10), env)))
+                   individual_grow_to_times(ind, c(1, 5, 10), env)[c("time", "state")])
+  expect_identical(tidy(at_times),
+                   tidy_individual(individual_grow_to_times(ind, c(1, 5, 10), env)))
   at_sizes <- run(ind, sizes = c(1, 5), env = env)
   expect_identical(unclass(at_sizes)[c("time", "state")],
-                   grow_individual_to_size(ind, c(1, 5), "height", env)[c("time", "state")])
+                   individual_grow_to_sizes(ind, c(1, 5), "height", env)[c("time", "state")])
   expect_error(run(ind), "one of")
   expect_error(run(ind, times = 1, sizes = 1), "one of")
   expect_error(run(ind, times = 1, warn = FALSE), "does not take warn")

@@ -5,7 +5,7 @@ description: >-
   Use when a downstream product (analysis scripts, a dependent package, a
   notebook) breaks or needs updating after plant changed — e.g. "update X to the
   latest plant", "plant's interface changed, fix my code", "migrate to the new
-  run_scm/Control API", "bring this repo up to date with plant". Reads plant's
+  run()/Control API", "bring this repo up to date with plant". Reads plant's
   NEWS.md "Breaking changes" as the spec, finds affected call sites, and
   proposes per-site fixes. Does NOT change plant itself or invent API mappings —
   if NEWS lacks a needed mapping, it stops and asks.
@@ -79,9 +79,10 @@ Classify each:
 - **Mechanical rename** — a 1:1 symbol or simple-arg substitution
   (e.g. `fast_control()` -> `control()`). Safe to apply across all matches.
 - **Semantic change** — same symbol, changed meaning/default, or a multi-step
-  replacement (e.g. raw `Control()` now means *fast* not *accurate*; the
-  `run_scm()` argument-order change; `run_scm_error()` -> set a field then read
-  another). These need per-site judgement — never sed blindly.
+  replacement (e.g. raw `Control()` now means *fast* not *accurate*; a removed
+  run entry point whose result is now a `plant_run`, read through its fields,
+  `$solver` or `tidy()`; `run_scm_error()` -> set a field then read another).
+  These need per-site judgement — never sed blindly.
 
 If an entry's mapping is ambiguous or missing, **stop and ask** — do not invent
 one. That gap is a NEWS bug; note it so it can be fixed at the source.
@@ -95,17 +96,18 @@ Grep the product for every affected symbol. Search R sources, scripts, vignettes
 grep -rn --include='*.R' --include='*.r' --include='*.Rmd' --include='*.qmd' \
   -e 'run_scm_collect' -e 'run_scm_error' -e 'build_schedule' -e 'split_times' \
   -e 'fast_control' -e 'scm_base_control' -e '\brun_scm\b' -e '\bControl\b' \
-  -e 'OdeRunner' .
+  -e '\brun_stochastic_collect\b' -e '\bgrow_individual_to_' \
+  -e '\bscm_base_parameters\b' -e 'OdeRunner' .
 ```
 
-**Known affected symbols as of 2026-06** (operational grep list — *reconcile
+**Known affected symbols as of 2026-11** (operational grep list — *reconcile
 against the live NEWS Breaking changes section, which is canonical; add any
 symbol it lists that isn't here, and don't trust this list if NEWS is newer*):
 
 | Symbol to grep | Kind | See NEWS entry |
 |---|---|---|
-| `run_scm_collect`, `run_scm_error`, `build_schedule`, `split_times` | removed → `run_scm()` flags | SCM consolidation (#408/#459/#462) |
-| `run_scm(` (positional args) | arg-order change | SCM consolidation |
+| `run_scm_collect`, `run_scm_error`, `build_schedule`, `split_times` | removed → flags of the SCM run, now `run()`'s `refine_schedule` and `record` (apply both NEWS entries in turn) | SCM consolidation (#408/#459/#462), then #428 |
+| `run_scm()`, `run_stochastic_collect()`, `grow_individual_to_size()`, `grow_individual_to_height()`, `grow_individual_to_time()`, `scm_base_parameters()` | removed → `run()` and `base_parameters()`; results are a `plant_run` | One run verb (#428) |
 | `fast_control`, `scm_base_control` | removed → `control()` / `control_accurate()` | Control defaults (#463) |
 | `Control(` / `control(` used expecting *accurate* tolerances | semantic: now fast | Control defaults (#463) |
 | `OdeRunner`, plant ODE/interpolator C++ headers | moved to odelia | odelia split (#456/#464) |
@@ -122,8 +124,9 @@ Per call site, smallest faithful edit, in the product's own style:
   - A bare `Control()` / `scm_base_control()` that fed a *high-accuracy* run must
     become `control_accurate()`, not `control()` — you cannot tell which was
     intended from the call alone, so ask or flag.
-  - `run_scm(p, env, ctrl, use_ode_times = TRUE)` written positionally may now
-    bind `use_ode_times` to the wrong parameter — rewrite with named arguments.
+  - A removed run entry point whose result is used as an `SCM` (`$patch`,
+    `$run_mutant()`) becomes `run(...)$solver`; one read only for fitness can
+    take the `plant_run`'s own fields instead. Check which the site needs.
   - `run_scm_error()` becomes a two-step (`scm$collect_errors <- TRUE`; read
     `scm$combined_node_errors`) — restructure, don't substitute.
 - Leave a brief `# plant N.N migration: …` comment only where the change is
@@ -160,7 +163,7 @@ anything that couldn't be migrated because NEWS lacked a mapping.
 - Migration mappings came from the **live NEWS**, not memory — and every applied
   change traces to a NEWS "Breaking changes" entry.
 - No removed symbol remains in the product's executable code.
-- Semantic changes (accurate-vs-fast `Control`, `run_scm` arg order) were
+- Semantic changes (accurate-vs-fast `Control`, `$solver` vs a result's fields) were
   surfaced for review, not silently rewritten.
 - The product's own tests / scripts pass after migration.
 - `.plant-interface-version` records the new baseline.

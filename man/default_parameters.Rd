@@ -42,7 +42,7 @@ For \code{param_hyperpar}, the trade-off function \code{parameters}
   carries in \code{$hyperpar}, or the identity when it carries none.
 }
 \description{
-\code{default_parameters(model)} is \code{\link{scm_base_parameters}(model)}
+\code{default_parameters(model)} is \code{\link{base_parameters}(model)}
 with plant's \emph{testing} trade-off function attached as
 \code{p$hyperpar}. It exists so that every test and golden in plant is
 self-contained: the trade-offs it attaches are the ones plant's defaults
@@ -66,10 +66,10 @@ as their default, so a set built by \pkg{fieldtrial}, \pkg{regnans} or by
 hand works through one API; passing \code{hyperpar =} explicitly still
 overrides, and \code{hyperpar = NULL} is the explicit identity. The slot is a
 field of the C++ \code{Parameters}, held opaquely, so it survives
-\code{validate()}, \code{\link{run_scm}} (including \code{scm$parameters})
+\code{validate()}, \code{\link{run}} (including the result's \code{scenario$p})
 and a saved object.
 
-The bare \code{scm_base_parameters(model)} attaches no trade-offs: a trait
+The bare \code{base_parameters(model)} attaches no trade-offs: a trait
 named in a trait matrix is written straight to \code{pars}, and
 \code{generate_strategy} says so once per session.
 }
@@ -78,10 +78,10 @@ p <- default_parameters("FF16", quiet = TRUE)
 p <- add_strategies(p, trait_matrix(0.0825, "lma"))
 p$strategies[[1]]$pars$k_l   # derived from lma by the attached trade-off
 
-p0 <- scm_base_parameters("FF16")
+p0 <- base_parameters("FF16")
 is.null(p0$hyperpar)          # TRUE: nothing attached
 }
 \seealso{
-\code{\link{scm_base_parameters}}, \code{\link{parameter_table}},
+\code{\link{base_parameters}}, \code{\link{parameter_table}},
   \code{\link{generate_strategy}}
 }

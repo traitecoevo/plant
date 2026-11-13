@@ -14,7 +14,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Model),
   f_scm <- function(x) {
     p0 <- default_parameters(x, quiet = TRUE)
     p <- add_strategies(p0, trait_matrix(0.0825, "lma"))
-    run_scm(p)
+    run(p)
     invisible(NULL)
   }
 
@@ -22,7 +22,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Model),
     p <- default_parameters(x, quiet = TRUE)
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
-    run_scm(p, refine_schedule = TRUE)
+    run(p, refine_schedule = TRUE)
     invisible(NULL)
   }
 

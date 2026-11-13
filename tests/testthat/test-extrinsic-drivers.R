@@ -108,7 +108,7 @@ test_that("Variable birth rate is driven through the SCM", {
 
   expect_true(p1$strategies[[1]]$is_variable_birth_rate)
 
-  out <- run_scm(p1)
+  out <- run(p1)$solver
   drv <- out$patch$species[[1]]$extrinsic_drivers
 
   # the spline is active in the run: birth rate varies over time and tracks
@@ -161,7 +161,7 @@ test_that("A lone TF24 individual follows a time-varying SWdown", {
     env <- tf24_env_with_swdown(swdown)
     env$set_fixed_environment(1.0, 150)
     ind <- Individual("TF24", "TF24_Env")(TF24_Model())
-    res <- grow_individual_to_time(ind, c(0.5, 1, 2), env)
+    res <- run(ind, times = c(0.5, 1, 2), env = env)
     res$state[, "height"]
   }
   h_hi <- grow(900)
@@ -189,7 +189,7 @@ test_that("A TF24 patch follows a time-varying SWdown", {
     p <- testing_parameters("TF24")
     p$max_patch_lifetime <- 2
     p <- add_strategies(p, trait_matrix(0.07, "lma"))
-    d <- run_scm(p, env = tf24_env_with_swdown(swdown), collect = TRUE)$species
+    d <- tidy(run(p, env = tf24_env_with_swdown(swdown), record = "steps"))$species
     tapply(d$height, d$time, max, na.rm = TRUE)
   }
   h_hi <- tallest(900)
