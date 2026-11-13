@@ -54,17 +54,19 @@ stand_metric_table <- function(scm) {
 ##' reported under the names \code{\link{stand_gradient}} differentiates them
 ##' by.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector, one entry per metric.
 ##' @export
 stand_census <- function(scm) {
+  scm <- as_scm(scm)
   stand_metrics_of_kind(scm, "census")
 }
 
 ##' @rdname stand_census
 ##' @export
 stand_fitness <- function(scm) {
+  scm <- as_scm(scm)
   stand_metrics_of_kind(scm, "fitness")
 }
 
@@ -91,11 +93,12 @@ stand_metrics_of_kind <- function(scm, kind) {
 ##' integrand only where the height is the coordinate integrated over; on the
 ##' birth-date coordinate the weights are constants.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A numeric matrix, metrics by ODE state entries.
 ##' @export
 stand_census_state_adjoint <- function(scm) {
+  scm <- as_scm(scm)
   b <- census_backend(scm)
   rows <- b$state_adjoint(scm)
   out <- do.call(rbind, rows)
@@ -113,11 +116,14 @@ stand_census_state_adjoint <- function(scm) {
 ##' support. \code{stand_gradient} records them and
 ##' \code{stand_gradient_compare} refuses a pair that disagrees.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector of length five.
 ##' @export
-gradient_control <- function(scm) census_backend(scm)$control(scm)
+gradient_control <- function(scm) {
+  scm <- as_scm(scm)
+  census_backend(scm)$control(scm)
+}
 
 # The parameter a gradient column names, with its species index stripped. An
 # unknown name is matched on this so a missing species prefix is distinguishable
@@ -135,7 +141,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' reading of the traits at that state, which is not a sensitivity of the state
 ##' and so no sweep produces it.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @param metrics Metric names to differentiate; defaults to every metric the
 ##'   model declares: the census metrics (\code{\link{stand_census}}) and, for
@@ -222,6 +228,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' @export
 stand_gradient <- function(scm, metrics = NULL, traits = NULL,
                            hyperpar = param_hyperpar(scm$parameters)) {
+  scm <- as_scm(scm)
   ## The identity (hyperpar = NULL, or Parameters carrying no trade-offs)
   ## derives nothing, so the total is the partial.
   if (!is.null(hyperpar) && !is_identity_hyperpar(hyperpar)) {

@@ -17,7 +17,7 @@ run_until_converged(
 )
 }
 \arguments{
-\item{scm}{An \code{SCM} built and not yet run to the end, as
+\item{scm}{A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or an \code{SCM} built and not yet run to the end, as
 \code{run_scm(p, ..., run = FALSE)} returns one, whose schedule reaches
 \code{t_max}. Its \code{snapshot_interval} is set to
 \code{snapshot_interval} if it is zero.}
@@ -55,7 +55,8 @@ default, judges every statistic relatively.}
 A list: \code{converged}, \code{time} (where the run stands), and
   \code{trace}, a data frame with one row per block of the block means and
   the relative range of each over the window ending there (\code{rel_*},
-  \code{NA} until \code{window} blocks have run).
+  \code{NA} until \code{window} blocks have run). Given a \code{plant_run},
+  also \code{run}, the result where the run now stands.
 }
 \description{
 Run a patch until its stand has settled, judged on block means of its

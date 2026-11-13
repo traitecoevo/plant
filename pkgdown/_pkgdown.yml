@@ -49,6 +49,10 @@ reference:
 
 - title: Running a stand
   contents:
+  - run
+  - scenario
+  - run_mutant
+  - tidy.plant_run
   - run_scm
   - environment_type
   - run_stochastic_collect

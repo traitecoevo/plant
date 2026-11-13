@@ -7,7 +7,7 @@
 export_patch_state(scm, step = NULL)
 }
 \arguments{
-\item{scm}{An \code{SCM} object that has been run.}
+\item{scm}{An \code{SCM} object that has been run, or a \code{plant_run}.}
 
 \item{step}{Optional 1-based index into \code{scm$history} (requires the run
 to have been performed with \code{collect = TRUE}); when \code{NULL}

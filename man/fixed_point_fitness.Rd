@@ -14,7 +14,7 @@ fixed_point_fitness(
 )
 }
 \arguments{
-\item{scm}{The resident's \code{SCM}, run to its fixed point.}
+\item{scm}{The resident's \code{plant_run} or \code{SCM}, run to its fixed point.}
 
 \item{p}{The resident's \code{Parameters}; each invader's strategy is built
 from them as \code{\link{add_mutant}} builds one.}
@@ -58,7 +58,8 @@ instance with \code{\link{run_until_converged}} under constant drivers and
 the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
 together, as one community, since nothing they do moves a constant field.
 \code{scm} is consumed: afterwards it holds the invaders, and the field is
-cleared, so a later run of it builds its own.
+cleared, so a later run of it builds its own. A \code{plant_run} given here
+is refused afterwards, so pass every invader in one call.
 
 The introduction grid has to make the stand a fixed point. Between two
 introductions the field swings, and a grid that is too coarse makes the

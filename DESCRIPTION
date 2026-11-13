@@ -27,6 +27,7 @@ Imports:
     tibble,
     rlang,
     dplyr,
+    generics,
     tidyselect (>= 1.2.0),
     tidyr,
     purrr,

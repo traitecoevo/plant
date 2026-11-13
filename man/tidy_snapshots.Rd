@@ -7,7 +7,7 @@
 tidy_snapshots(scm)
 }
 \arguments{
-\item{scm}{An \code{SCM} that was run with a positive
+\item{scm}{An \code{SCM} or \code{plant_run} that was run with a positive
 \code{snapshot_interval}.}
 }
 \value{
