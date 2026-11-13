@@ -581,7 +581,10 @@ public:
   std::vector<species_type> r_species() const {return species;}
   // The per-node competition (light) error for one species: the per-step
   // sample collect_competition_errors() accumulates. Exposed so a test can
-  // rebuild the refinement signal by hand.
+  // rebuild the refinement signal by hand. It is scaled by the total
+  // competition effect, compute_competition(0.0), which already divides by
+  // the patch area, so no further area scaling is needed; the collector reads
+  // it through this same path.
   std::vector<double> competition_effect_error_by_node(size_t species_index) const;
   std::vector<double> r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
     return competition_effect_error_by_node(species_index.check_bounds(size()));

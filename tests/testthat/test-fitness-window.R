@@ -102,11 +102,36 @@ test_that("a window the run cannot score is refused before the run", {
   p <- fitness_window(ff16_parameters(30), 10, 20)
   p$fitness_weighting <- "fitness-window"
   expect_error(run(p), "Unknown fitness_weighting")
-  ## The old field is refused by name. The C++ side ignores a name it does not
-  ## know, so without this it would run under the default weighting.
+})
+
+test_that("the old patch_type is translated when saved, refused when set", {
+  ## A name the C++ side does not know is otherwise dropped, and the run would
+  ## report a fitness under the default weighting. The converter checks it, so
+  ## every route to C++ is covered: a run, add_strategies()'s validate(), and
+  ## an invader's parameters.
+  refused <- "now `p\\$fitness_weighting`"
   p <- ff16_parameters(30)
   p$patch_type <- "fixed"
-  expect_error(run(p), "now `p\\$fitness_weighting`")
+  expect_error(run(p), refused)
+  q <- testing_parameters("FF16")
+  q$patch_type <- "fixed"
+  expect_error(add_strategies(q, trait_matrix(0.08, "lma")), refused)
+  p <- ff16_parameters(30)
+  res <- run(p)
+  pm <- add_mutant(p, trait_matrix(0.1, "lma"))
+  pm$patch_type <- "fixed"
+  expect_error(run_mutant(res, pm), refused)
+  ## An object saved before the rename carries patch_type alone, and loads as
+  ## the weighting it named.
+  saved <- ff16_parameters(30)
+  saved$fitness_weighting <- NULL
+  saved$patch_type <- "fixed"
+  now <- ff16_parameters(30)
+  now$fitness_weighting <- "none"
+  expect_identical(run(saved)$net_reproduction_ratios,
+                   run(now)$net_reproduction_ratios)
+  saved$patch_type <- "meta-population"
+  expect_identical(run(saved)$net_reproduction_ratios, res$net_reproduction_ratios)
 })
 
 test_that("periodic introduction times stop short of the run's end", {

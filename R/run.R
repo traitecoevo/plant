@@ -36,14 +36,6 @@ scenario <- function(p, env = NULL, control = plant::control(), events = NULL) {
     stop("`events` must be an Events object, as events() returns, or NULL",
          call. = FALSE)
   }
-  ## A Parameters object is a list, and the C++ side ignores a name it does not
-  ## know, so a `p` still carrying the old field would run under the default
-  ## weighting and report a different fitness with nothing said.
-  if (!is.null(p$patch_type)) {
-    stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", ",
-         "\"none\" and \"window\" for \"meta-population\", \"fixed\" and ",
-         "\"fitness_window\"", call. = FALSE)
-  }
   structure(list(p = p, env = env, control = control, events = events),
             class = "plant_scenario")
 }

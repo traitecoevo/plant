@@ -13,7 +13,7 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **`Parameters$patch_type` is `Parameters$fitness_weighting`, and its values are renamed.** The field says how a cohort's fitness is weighted by its birth date. No number moves. ⚠️ A `Parameters` object is a list, and a name the C++ side does not know is dropped without a word, so `p$patch_type <- "fixed"` would now run under the default weighting; `run()` and `scenario()` refuse a `p` that still has a `patch_type`, saved ones included, naming the replacement. The window's own fields, `fitness_window_start`, `fitness_window_end`, `fitness_window_weight_x` and `fitness_window_weight_y`, and `fitness_window()` keep their names (#428). Migration:
+* **`Parameters$patch_type` is `Parameters$fitness_weighting`, and its values are renamed.** The field says how a cohort's fitness is weighted by its birth date. No number moves. ⚠️ A `Parameters` object is a list, and a name the C++ side does not know is dropped without a word, so `p$patch_type <- "fixed"` would run under the default weighting. A `p` carrying both fields, which is old code setting `patch_type` on a new object, is refused wherever it reaches C++ (`run()`, `add_strategies()`, an invader's `run_mutant()`), naming the replacement. A `p` saved before the rename carries `patch_type` alone, and loads with its value translated. An unknown value is refused as "Unknown fitness_weighting", which was "Unknown patch_type". The window's own fields, `fitness_window_start`, `fitness_window_end`, `fitness_window_weight_x` and `fitness_window_weight_y`, and `fitness_window()` keep their names (#428). Migration:
   * `p$patch_type` -> `p$fitness_weighting`
   * `p$patch_type <- "meta-population"` -> `p$fitness_weighting <- "patch_age"` (the default)
   * `p$patch_type <- "fixed"` -> `p$fitness_weighting <- "none"`
@@ -26,9 +26,9 @@ products using plant.
   * `scm$refinement_error_by_node` -> `scm$patch$refinement_error_by_node`
   * `scm$compute_competition_effect_error_by_node_for_species_i(i)` -> `scm$patch$compute_competition_effect_error_by_node_for_species_i(i)`
   * `scm$net_reproduction_ratio_for_species(i)` (removed) -> `scm$patch$net_reproduction_ratios[i]`, the same number
-  * here `scm` is the live solver, `res$solver` on a `plant_run`
+  * here `scm` is the live solver, `res$solver` on a `plant_run`. `scm$patch` is a copy taken when it is read, so read it after the run, not before a `run_to()`
 * **The old run entry points are removed: `run()` is the one verb, and `scm_base_parameters()` is `base_parameters()`.** `run_scm()`, `run_stochastic_collect()`, `grow_individual_to_size()`, `grow_individual_to_height()` and `grow_individual_to_time()` are removed with no deprecation period, and `scm_base_parameters()` is renamed. No number moves: `run()` drives the same solvers the same way. A deterministic `run()` returns a `plant_run`, with the live `SCM` at `$solver`, and `tidy()` of one run with `record = "steps"` returns exactly the list `run_scm(..., collect = TRUE)` returned, in the same order. ⚠️ `run()`'s argument is `control`, not `ctrl`: a positional third argument still binds, but a named `ctrl =` is refused ("run() does not take ctrl here"). `run()` also refuses a `control` that is not a `Control` and `events` that are not an `Events` or `NULL`, which `run_scm()` passed on (#428). Migration:
-  * `run_scm(p, env, ctrl)` -> `run(p, env, ctrl)$solver`, the `SCM` as before; `run(p, env, ctrl)` alone is the `plant_run`, whose `$offspring_production`, `$net_reproduction_ratios` and `$event_log` are the solver's
+  * `run_scm(p, env, ctrl)` -> `run(p, env, ctrl)$solver`, the `SCM` as before, except that its fitness values are now read from `$patch` (see the entry on #460 above); `run(p, env, ctrl)` alone is the `plant_run`, whose `$offspring_production`, `$net_reproduction_ratios` and `$event_log` are the solver's
   * `run_scm(p, ctrl = ctrl)` -> `run(p, control = ctrl)$solver`
   * `run_scm()`'s signature changed: it was `run_scm(p, env, ctrl, refine_schedule, collect, keep_states, events, run)`, and `run()` on a `Parameters` object is `run(x, env, control, events, ...)`, so a fourth positional argument now binds to `events` and is refused as not an `Events` object. Name every argument after the third. The same holds for `run_stochastic_collect(p, env, ctrl, random_schedule)`
   * `run_scm(p, ..., keep_states = flag)`, with `flag` a variable -> `run(p, ..., record = if (flag) "states" else character(0))$solver`
@@ -43,7 +43,7 @@ products using plant.
   * `run_scm(..., collect = TRUE)$p` -> `tidy(res)$p`, or `res$scenario$p`
   * `run_scm(..., collect = TRUE)$events` -> `tidy(res)$events`, or `res$solver$events`
   * `run_scm(..., collect = TRUE)$event_log` -> `tidy(res)$event_log`, or `res$event_log`
-  * `scm$<method>()` and `scm$<field>` on a `run_scm()` result (`$run_mutant()`, `$run_mutant_constant()`, `$run_to()`, `$patch`, `$history`, `$ode_times`, `$parameters`, ...) -> `res$solver$<method>()` and `res$solver$<field>`, unchanged; `run_mutant(res, p)` and `run(res, until = t)` are the result-level forms, and `stand_gradient()`, `export_patch_state()`, `fixed_point_fitness()` and `run_until_converged()` take the `plant_run` itself
+  * `scm$<method>()` and `scm$<field>` on a `run_scm()` result (`$run_mutant()`, `$run_mutant_constant()`, `$run_to()`, `$patch`, `$history`, `$ode_times`, `$parameters`, ...) -> `res$solver$<method>()` and `res$solver$<field>`, unchanged except for the fitness values and error signals, which are `res$solver$patch$<field>` (#460 above); `run_mutant(res, p)` and `run(res, until = t)` are the result-level forms, and `stand_gradient()`, `export_patch_state()`, `fixed_point_fitness()` and `run_until_converged()` take the `plant_run` itself
   * `run_scm(..., run = FALSE, collect = TRUE)` and `run_scm(..., run = FALSE, refine_schedule = TRUE)` (refused) -> `run(..., until = 0, record = "steps")` builds the run unrun and records as it is continued; `run(..., refine_schedule = TRUE, until = t)` is refused
   * `run_stochastic_collect(p, env, ctrl)` -> `tidy(run(p, env, ctrl, method = "stochastic", record = "steps"))`, the same draws under the same seed
   * `run_stochastic_collect(...)$time`, `$species`, `$env` -> `tidy(res)$time`, `$species`, `$env` (unchanged)
@@ -256,7 +256,7 @@ products using plant.
 
 * **Each FF16 species' net reproduction ratio and offspring production are differentiable stand metrics.** `stand_gradient()` names them `"<species>.net_reproduction_ratio"` and `"<species>.offspring_production"`, differentiates them by every column the census has, and now defaults to every metric the model declares (the three census metrics and, for FF16, the two fitness metrics per species); each metric costs one sweep, so name the ones wanted. New `stand_fitness(scm)` reports their values, the same numbers as `scm$net_reproduction_ratios` and `scm$offspring_production` bit for bit. `S_D` is an FF16 column now, since the fitness reads it directly (`census_undifferentiable_ff16()` lists `eta` alone). TF24's metrics are unchanged: its fitness is offered once its fecundity channel is refereed. `stand_census_state_adjoint()` returns the same rows, so it gains two per FF16 species after the census's three, and `stand_fitness()` refuses a model that declares no fitness. A species with fewer than two cohorts has an undefined (`NaN`) fitness rather than an error. Migration: index `stand_census_state_adjoint()` rows by name; `census_metric_names_tf24()` and `census_metric_names_ff16()` (internal) take the run (`census_metric_names_tf24(scm)`), because the fitness metrics are one pair per species, and return the names with each one's kind (`"census"` or `"fitness"`) as the R names (#658).
 
-* **An unknown `patch_type` is refused.** Anything but `"meta-population"`, `"fixed"` or `"fitness_window"` used to run as `"fixed"`, with no weighting, so a misspelt `"fitness-window"` reported a fitness for no window. Migration: use `"fixed"` for a patch with no disturbance.
+* **An unknown `patch_type` is refused.** Anything but `"meta-population"`, `"fixed"` or `"fitness_window"` used to run as `"fixed"`, with no weighting, so a misspelt `"fitness-window"` reported a fitness for no window. Migration: use `"fixed"` (now `fitness_weighting = "none"`, above) for a patch with no disturbance.
 
 * **Four runs that returned a wrong number are refused before they start.** With the top layer on (`Control$absorb_epsilon > 0`), a species with birth rate zero, whose cohorts would be frozen at birth and score zero per seed: give it a small positive birth rate. A resume with no introductions left, which stopped at its start time: keep an introduction ahead of the export. A `fitness_window()` ending at or after `max_patch_lifetime`, or holding no cohort of any species, which read `NaN` after the run. And `SCM$run_to(NaN)`.
 
@@ -772,7 +772,7 @@ products using plant.
   * `build_schedule(p, …)` -> `scm <- run_scm(p, …, refine_schedule = TRUE)`,
     then read the refined parameters as `scm$parameters`. The former
     `attr(p_new, "offspring_production")` side-channel is now
-    `scm$offspring_production`.
+    `scm$offspring_production` (since #460, `scm$patch$offspring_production`).
   * `run_scm_collect(p, …)` -> `run_scm(p, …, collect = TRUE)`
   * `run_scm_error(p, …)` -> set `scm$collect_errors <- TRUE` then read
     `scm$combined_node_errors`

@@ -860,6 +860,18 @@ template <> inline plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Envi
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -947,6 +959,18 @@ template <> inline plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Envi
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1034,6 +1058,18 @@ template <> inline plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1121,6 +1157,18 @@ template <> inline plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1208,6 +1256,18 @@ template <> inline plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
@@ -1295,6 +1355,18 @@ template <> inline plant::Parameters<plant::K93_Model,plant::K93_Environment> as
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
+  // patch_type, renamed fitness_weighting: translated on an old saved
+  // object, refused beside the new field.
+  if (xl.containsElementNamed("patch_type")) {
+    if (xl.containsElementNamed("fitness_weighting")) {
+      Rcpp::stop("`p$patch_type` is now `p$fitness_weighting`, with \"patch_age\", "
+                 "\"none\" and \"window\" for \"meta-population\", \"fixed\" and "
+                 "\"fitness_window\": set that, and remove patch_type");
+    }
+    const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
+    ret.fitness_weighting = old == "meta-population" ? "patch_age" :
+      old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
   ret.validate();
   return ret;
 }
