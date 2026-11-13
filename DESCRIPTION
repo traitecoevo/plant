@@ -31,13 +31,13 @@ Imports:
     tidyr,
     purrr,
     odelia (>= 0.11.1),
-    tools,
     yaml
 Suggests:
     phylloptim,
     testthat,
     withr,
     parallel,
+    tools,
     rprojroot,
     pkgdown,
     here,
