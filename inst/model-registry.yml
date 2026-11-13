@@ -705,7 +705,7 @@ parameters:
     units: 'yr⁻¹'
     class: trait
     meaning: 'growth intercept: relative diameter growth rate of an unsuppressed tree of diameter 1 cm'
-    source: 'K93_Pars default; the constructor attributes the defaults to Table 1 of Kohyama-1993, not yet checked against the paper'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island)'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::b_0
@@ -716,7 +716,7 @@ parameters:
     units: 'yr⁻¹ (ln cm)⁻¹'
     class: trait
     meaning: 'decline of relative growth rate with log diameter (sets the asymptotic size)'
-    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island)'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::b_1
@@ -727,7 +727,7 @@ parameters:
     units: 'm² cm⁻² yr⁻¹'
     class: trait
     meaning: 'growth suppression per unit basal area of larger trees'
-    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island)'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::b_2
@@ -738,7 +738,7 @@ parameters:
     units: 'cm⁻² yr⁻¹'
     class: trait
     meaning: 'recruitment (offspring production) per unit basal area of the parent'
-    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper. The header comment gives the units as cm² yr⁻¹; $d_0 B_0$ is a rate per tree, so $d_0$ is per cm² of basal area'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island). The table prints its units as cm² yr⁻¹, but the paper gives recruitment $R = d B_0 \exp(-d_1 B)$ in m⁻² yr⁻¹ and $B_0$ in cm² m⁻², so $d$ is in cm⁻² yr⁻¹; here $d_0 B_0$ is a rate per tree, per cm² of the tree''s basal area'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::d_0
@@ -749,7 +749,7 @@ parameters:
     units: 'm² cm⁻²'
     class: trait
     meaning: 'reduction of recruitment per unit basal area of larger trees'
-    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper. The header comment gives the units as m² cm⁻² yr⁻¹; $d_1 B$ is an exponent, so $d_1$ carries no yr⁻¹'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island), which gives its units as m² cm⁻²: $d_1 B$ is an exponent, so it carries no yr⁻¹'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::d_1
@@ -760,7 +760,7 @@ parameters:
     units: 'yr⁻¹'
     class: trait
     meaning: 'mortality intercept, subtracted: individual mortality is zero until $c_1 B$ exceeds it'
-    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island)'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::c_0
@@ -771,7 +771,7 @@ parameters:
     units: 'm² cm⁻² yr⁻¹'
     class: trait
     meaning: 'mortality per unit basal area of larger trees'
-    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    source: 'K93_Pars default: Kohyama-1993 Table 1, the all-plot-trees column (1.066 ha of warm-temperate rain forest on Yakushima Island)'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::c_1
@@ -804,8 +804,9 @@ parameters:
     units: 'cm'
     class: hyperparameter
     meaning: 'diameter at breast height at birth, seated on the generic height state; read through initial_height()'
-    source: 'K93_Pars default'
-    placeholder: true
+    source: 'K93_Pars default: the minimum d.b.h. of Kohyama-1993''s recruitment boundary, 2 cm'
+    cite: Kohyama-1993
+    placeholder: false
     code: plant::K93_Pars::height_0
     fills: H_0
   K93.S_D:
