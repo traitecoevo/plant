@@ -76,7 +76,7 @@ public:
   // component tracks TF24_Model::scientific_version, so a TF24 change also
   // invalidates TF24t (the safe direction). Bump thermal_revision for a change
   // to the thermal layer alone. See src/strategy_version.cpp.
-  static constexpr int thermal_revision = 5;
+  static constexpr int thermal_revision = 6;
 
   // TF24's states and the four thermal states, appended last. Static, and
   // resolved on the concrete type by Individual<TF24t, ...>.
@@ -379,14 +379,19 @@ void TF24t_Model<S>::compute_rates(const TF24_Environment<S>& environment,
   vars.set_rate(state_idx_impaired, r[1]);
 
   // Damaged leaf is cleared only by dilution with new, undamaged leaf: leaf
-  // turnover plus the fractional rate of canopy expansion, both per year. The
-  // expansion is recovered from the height rate the base just set.
+  // turnover plus the relative growth of the carried leaf area, both per year.
+  // The carried area is A*(h) exp(departure), so its relative growth is the
+  // allometric expansion, recovered from the height rate the base just set,
+  // plus the leaf departure's rate. Turnover the plant withholds lowers that
+  // rate, so a thinning canopy is diluted more slowly: its dying leaves still
+  // take their damage with them, but fewer new ones replace them.
   const double height = vars.state(HEIGHT_INDEX);
   const double area_leaf_ = this->area_leaf(height);
   const double area_leaf_dt =
     vars.rate(HEIGHT_INDEX) / this->dheight_darea_leaf(area_leaf_);
   const double dilution =
-    this->pars.k_l + std::max(0.0, area_leaf_dt) / area_leaf_;
+    this->pars.k_l + std::max(0.0, area_leaf_dt) / area_leaf_ +
+    vars.rate(this->state_idx_log_area_leaf_departure);
   vars.set_rate(state_idx_damaged, r[2] - dilution * D);
 
   // Relaxes toward the leaf's own temperature at the operating point, which is
