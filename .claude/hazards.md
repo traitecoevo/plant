@@ -122,6 +122,10 @@ Each species has one top cohort pinned at the height where its strategy allocate
 - The tracked return is seeded at birth only when `a_pl0 > 0`; it reaches no rate otherwise, and seeding costs a leaf solve per birth.
 - `set_initial_states` seats a newborn (it rewrites the seed's height), so it cannot seed reserves at an arbitrary size. Tests use `tf24_seat()` in `tests/testthat/helper-tf24-seat.R`.
 
+### 17b. TF24w's cached column potentials
+
+- The strategy object is shared by every cohort, and it caches the soil potentials of one column (`psi_soil_own_`) for the leaf solve to read through `soil_water_potential_for_leaf`. Every call that reaches a leaf solve must fill them first from the column it means: `compute_rates` from the cohort's water states, and `establishment_probability` and `set_initial_states` from the newborn's column. A new path to a leaf solve that skips this reads whichever column was filled last, with no error unless the cache is still empty.
+
 ## Adding a state
 
 ### 18. A state held at zero error loosens every run's tolerance

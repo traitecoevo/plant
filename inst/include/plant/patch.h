@@ -1736,12 +1736,12 @@ void Patch<T,E>::private_water_aggregates() {
 // and -- once the ground is covered -- as every other crown does the same:
 //   cover <= 1:  share' = share * g,  bare' = -sum(share')
 //   cover >  1:  share' = share * (g - cover'/cover),  bare' = 0
-// with g = A'/A - mu + w'/w: the crown's relative growth rate from the height
-// rate through the leaf-area allometry (crown area is leaf area over L_crown,
-// so the two have one relative rate), less the mortality rate, plus the growth
-// of the quadrature weight the youngest cohort and the boundary node carry
-// (Species::for_each_water_column). The two rates are what the species loop
-// just wrote. Land a shrinking share releases carries its water, and land a
+// with g = A'/A - mu + w'/w: the crown's relative growth rate (crown area is
+// the carried leaf area over L_crown, so the two have one relative rate: the
+// height's rate through the allometry plus the leaf departure's rate), less
+// the mortality rate, plus the growth of the quadrature weight the youngest
+// cohort and the boundary node carry (Species::for_each_water_column). The
+// height, departure and mortality rates are what the species loop just wrote. Land a shrinking share releases carries its water, and land a
 // growing share acquires arrives at the released land's mean content, so the
 // patch's water is unchanged by any re-tiling. The kink at cover = 1 is the
 // physics: expansion over bare ground is free, expansion into a neighbour is
@@ -1790,13 +1790,18 @@ void Patch<T,E>::private_water_exchange(const std::vector<value_type>& resource_
         return;
       }
       const value_type& area_leaf_a = ind.aux(st.aux_idx_competition_effect);
-      const double area_leaf = to_passive(area_leaf_a);
       const double share = nw * to_passive(st.crown_area(area_leaf_a)) * scale;
       // A share's relative rate: the crown's growth, less mortality, plus the
-      // growth of the ground the quadrature assigns the cohort.
+      // growth of the ground the quadrature assigns the cohort. The crown is
+      // the carried leaf area A*(h) exp(departure), so its relative growth is
+      // the allometry's slope at A*(h) times dh/dt over A*(h), plus the
+      // departure's own rate.
+      const value_type area_leaf_star = st.area_leaf(ind.state(HEIGHT_INDEX));
       const double growth =
-        to_passive(ind.rate(HEIGHT_INDEX)) * to_passive(st.darea_leaf_dheight(area_leaf_a)) /
-          area_leaf -
+        to_passive(ind.rate(HEIGHT_INDEX)) *
+          to_passive(st.darea_leaf_dheight(area_leaf_star)) /
+          to_passive(area_leaf_star) +
+        to_passive(ind.rate(st.state_idx_log_area_leaf_departure)) -
         to_passive(ind.rate(MORTALITY_INDEX)) + weight_growth;
       cols.push_back({&ind, st.state_idx_water_first, share, growth, 0.0});
       cover_dt += share * growth;

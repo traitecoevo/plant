@@ -510,14 +510,15 @@ void TF24_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
   // value written is the same one either way.
   const SeedGeometry seed = seed_geometry();
   vars.set_state(HEIGHT_INDEX, seed.height);
+  // A seed is on its allometry by definition, so both departures rest at zero.
+  // Set before the aux below, which reads the leaf departure.
+  vars.set_state(state_idx_log_area_leaf_departure, S(0.0));
+  vars.set_state(state_idx_log_area_sapwood_departure, S(0.0));
   // A height written into vars leaves the slots it determines holding what the
   // constructor's plain height derived, which is the same number carrying no
   // derivative. Re-deriving them costs one allometry and is the only thing that
   // puts the seed's row into the leaf area every rate at birth size is scaled by.
   update_dependent_aux(HEIGHT_INDEX, vars);
-  // A seed is on its allometry by definition, so both departures rest at zero.
-  vars.set_state(state_idx_log_area_leaf_departure, S(0.0));
-  vars.set_state(state_idx_log_area_sapwood_departure, S(0.0));
   vars.set_state(state_idx_storage,
                  pars.a_st3 * storage_capacity(seed.area_leaf, seed.height,
                                                S(0.0)));
