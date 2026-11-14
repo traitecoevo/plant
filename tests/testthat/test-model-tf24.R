@@ -681,16 +681,25 @@ test_that("the relaxation offset divides the pool's rate by 1 + its own rate tim
 
 test_that("a_pl0 outside [0, 1] is refused", {
   # Past 1 replacement goes negative: a plant would shed tissue faster than it
-  # dies. Both ends are allowed.
-  for (bad in c(-0.1, 1.5, NaN)) {
+  # dies. Both ends are allowed; a value just past one is named as above it.
+  for (x in list(list(-0.1, "below 0"), list(1 + 1e-12, "above 1"),
+                 list(NaN, "not a number"))) {
     s <- TF24_Model()
-    s$pars$a_pl0 <- bad
-    expect_error(TF24_Individual(s), "a_pl0 must be in \\[0, 1\\]", info = bad)
+    s$pars$a_pl0 <- x[[1]]
+    expect_error(TF24_Individual(s), "a_pl0 must be in \\[0, 1\\]", info = x[[2]])
+    expect_error(TF24_Individual(s), x[[2]], fixed = TRUE)
   }
   for (ok in c(0, 1)) {
     s <- TF24_Model()
     s$pars$a_pl0 <- ok
     expect_s3_class(TF24_Individual(s), "Individual")
+  }
+  # The subclasses prepare through TF24's prepare_strategy, and so does a run.
+  for (model in c("TF24f", "TF24t", "TF24w")) {
+    p <- testing_parameters(model)
+    p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
+    p$strategies[[1]]$pars$a_pl0 <- 1.5
+    expect_error(run(p), "a_pl0 must be in \\[0, 1\\]", info = model)
   }
 })
 
