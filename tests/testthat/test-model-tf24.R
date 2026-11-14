@@ -679,6 +679,21 @@ test_that("the relaxation offset divides the pool's rate by 1 + its own rate tim
                "storage_relaxation_offset must be >= 0")
 })
 
+test_that("a_pl0 outside [0, 1] is refused", {
+  # Past 1 replacement goes negative: a plant would shed tissue faster than it
+  # dies. Both ends are allowed.
+  for (bad in c(-0.1, 1.5, NaN)) {
+    s <- TF24_Model()
+    s$pars$a_pl0 <- bad
+    expect_error(TF24_Individual(s), "a_pl0 must be in \\[0, 1\\]", info = bad)
+  }
+  for (ok in c(0, 1)) {
+    s <- TF24_Model()
+    s$pars$a_pl0 <- ok
+    expect_s3_class(TF24_Individual(s), "Individual")
+  }
+})
+
 test_that("a run keeps every storage state inside [0, capacity]", {
   # Asserted on the state rather than on the read, which is the distinction
   # #609 is about: before this the state reached 1.035 of capacity while every
