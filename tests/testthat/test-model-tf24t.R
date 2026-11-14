@@ -154,6 +154,49 @@ test_that("the thermal rates follow their equations at the operating point", {
                tolerance = 1e-12)
 })
 
+test_that("damaged leaf is diluted by the carried leaf area's growth, departure included", {
+  # Under flexible allometry the carried leaf area is A*(h) exp(departure), so
+  # the departure's rate dilutes damaged leaf along with turnover and the
+  # allometric expansion. Both directions: in a dry soil the plant withholds
+  # turnover and the departure's rate is below zero; in a wet one a thinned
+  # canopy rebuilds and it is above zero. Leaving the rate out shows in either.
+  D <- 0.1
+  case <- function(theta, departure) {
+    env <- Environment("TF24t")
+    env$extrinsic_drivers_set_constant("leaf_temp", 30)
+    env$set_soil_number_of_depths(5)
+    env$set_soil_water_state(rep(theta, 5))
+    env$set_fixed_environment(1.0, 40)
+    s <- TF24t_Model()
+    s$pars$a_pl0 <- 1
+    ind <- TF24t_Individual(s)
+    ind$set_initial_states(env)
+    ind$set_state("height", 5)
+    ind$set_state("log_area_leaf_departure", departure)
+    ind$set_state("impaired", 0)  # no damage is produced: the rate is -dilution * D
+    ind$set_state("damaged", D)
+    ind$compute_rates(env)
+    ind$set_state("leaf_marginal_return_tracked", ind$aux("leaf_marginal_return"))
+    ind$compute_rates(env)
+    rt <- tf24t_rates(ind)
+    pars <- s$pars
+    # The allometry's leaf area A*(h), from h = a_l1 * A*^a_l2.
+    A_star <- (5 / pars$a_l1)^(1 / pars$a_l2)
+    dA_star_dt <- rt[["height"]] / (pars$a_l1 * pars$a_l2 * A_star^(pars$a_l2 - 1))
+    departure_dt <- rt[["log_area_leaf_departure"]]
+    list(departure_dt = departure_dt, damaged_dt = rt[["damaged"]],
+         dilution = pars$k_l + max(0, dA_star_dt) / A_star + departure_dt)
+  }
+
+  for (x in list(list(theta = 0.11, departure = 0, sign = -1),
+                 list(theta = 0.30, departure = -0.5, sign = 1))) {
+    r <- case(x$theta, x$departure)
+    expect_gt(x$sign * r$departure_dt, 0.1)
+    # Absolute: in the dry case the dilution nearly cancels to zero.
+    expect_lt(abs(r$damaged_dt + r$dilution * D), 1e-12)
+  }
+})
+
 test_that("the impaired and damaged fractions cut net production by their sum", {
   # Both scale vcmax and jmax by the functional fraction F = 1 - I - D, so equal
   # sums give equal capacity and net production (to rounding in the sum).

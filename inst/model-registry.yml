@@ -3684,13 +3684,13 @@ equations:
     section: tf24t_thermal
     title: Acclimation, impairment and damage
     latex: |
-      \frac{{\rm d}}{{\rm d}t}\big(A, I, D\big) = n_{\rm d} \, \mathbf{r}(T_{\rm leaf}, A, I_{\rm leaf}, D_{\rm leaf}) - \Big(0,\ 0,\ \big(k_{\rm l} + \max(0, \dot A_{\rm l}^{*}) / A_{\rm l}^{*}\big) D_{\rm leaf}\Big), \qquad \dot A_{\rm l}^{*} = g \Big/ \frac{{\rm d}H}{{\rm d}A_{\rm l}}
+      \frac{{\rm d}}{{\rm d}t}\big(A, I, D\big) = n_{\rm d} \, \mathbf{r}(T_{\rm leaf}, A, I_{\rm leaf}, D_{\rm leaf}) - \Big(0,\ 0,\ \big(k_{\rm l} + \max(0, \dot A_{\rm l}^{*}) / A_{\rm l}^{*} + \dot\delta_{\rm l}\big) D_{\rm leaf}\Big), \qquad \dot A_{\rm l}^{*} = g \Big/ \frac{{\rm d}H}{{\rm d}A_{\rm l}}
     code: plant::TF24t_Model::compute_rates
     also: [plant::TF24t_Model::leaf_damage_rates_per_year]
     reads: [TF24t.days_per_year, TF24.k_l, g, 'phylloptim:damage_rates']
     writes: []
     kind: derivative
-    note: '$\mathbf{r}$ is phylloptim''s damage_rates, taken at the clamped states handed to the leaf (TF24t.leaf_damage_state), per day, at the operating point''s leaf temperature; $n_{\rm d}$ puts it on the per-year clock. What plant adds is the dilution of damaged leaf by turnover and canopy growth, per year already, with the growth taken from the height rate at the allometric leaf area $A_{\rm l}^{*}(H)$. States acclim_thermostab, impaired and damaged. No derivative path carries TF24t: its rebind is deleted.'
+    note: '$\mathbf{r}$ is phylloptim''s damage_rates, taken at the clamped states handed to the leaf (TF24t.leaf_damage_state), per day, at the operating point''s leaf temperature; $n_{\rm d}$ puts it on the per-year clock. What plant adds is the dilution of damaged leaf by turnover and the growth of the carried leaf area $A_{\rm l}^{*}(H) \, e^{\delta_{\rm l}}$, per year already: the allometric growth taken from the height rate at $A_{\rm l}^{*}(H)$, plus the leaf departure''s rate $\dot\delta_{\rm l}$, which is zero unless flexible allometry is on. States acclim_thermostab, impaired and damaged. No derivative path carries TF24t: its rebind is deleted.'
   TF24t.mean_leaf_temp:
     model: TF24t
     section: tf24t_thermal
