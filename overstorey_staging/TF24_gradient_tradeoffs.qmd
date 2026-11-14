@@ -23,9 +23,8 @@ library(patchwork)
 library(dplyr)
 library(tidyr)
 
-# Shared driving and interpretation code. Nothing exercises it: the smoke test
-# that did was dropped from this branch, so a plant interface change rots these
-# helpers and this document is where it surfaces.
+# Shared driving and interpretation code, smoke-tested by plant's
+# test-gradient-demo-helpers.R.
 source(system.file("guide-helpers", "gradient_demo_helpers.R", package = "plant", mustWork = TRUE))
 
 theme_set(theme_bw(base_size = 12))
