@@ -3768,11 +3768,11 @@ equations:
     latex: |
       \psi_{{\rm s},i} = \psi^\ast_{\rm soil}(\theta_{j,i})
     code: plant::TF24w_Model::soil_water_potential_for_leaf
-    also: [plant::TF24w_Model::compute_rates, plant::TF24w_Model::establishment_probability]
+    also: [plant::TF24w_Model::compute_rates, plant::TF24w_Model::establishment_probability, plant::TF24w_Model::set_initial_states]
     reads: []
     writes: ['phylloptim:psi_soil']
     kind: closed_form
-    note: 'TF24.retention on the plant''s own column rather than the patch''s; a newborn''s establishment reads the column it would be born with (TF24w.column_initial).'
+    note: 'TF24.retention on the plant''s own column rather than the patch''s; a newborn''s establishment, and under flexible allometry the leaf solve that seeds its tracked balance, read the column it would be born with (TF24w.column_initial).'
   TF24w.land_transfer:
     model: TF24w
     section: tf24w_water

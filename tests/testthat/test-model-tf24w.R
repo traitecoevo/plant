@@ -185,7 +185,9 @@ test_that("the water budget closes over births, growth, death and pulses", {
 
 test_that("the water budget closes with flexible allometry on", {
   # A crown is the carried leaf area, which moves with the leaf departure as
-  # well as the height, so its relative growth rate has a term for each.
+  # well as the height, so its relative growth rate has a term for each. The
+  # stand stays sparse (cover under 1), where the budget closes to 1e-6 at the
+  # default tolerances; above cover 1 it closes only to the ODE tolerance.
   scm <- tf24w_stand("TF24w", mixing = 1, years = 12, birth_rate = 20, a_pl0 = 1)
   start <- sum(scm$patch$environment$get_soil_water_state() * 0.3)
   scm$run()

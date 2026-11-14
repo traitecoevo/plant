@@ -522,6 +522,22 @@ test_that("the capacity a test computes is the capacity the model uses", {
   expect_equal(S0 / s$pars$a_st3, tf24_storage_capacity_r(h0), tolerance = 1e-12)
 })
 
+test_that("a seeded plant carries its seed's leaf area, whatever departure it had", {
+  # set_initial_states rests the departures at zero, so the carried leaf area
+  # it leaves must be the seed's own, not one scaled by an earlier departure.
+  s <- TF24_Model()
+  s$pars$a_pl0 <- 1
+  env <- Environment("TF24")
+  env$set_fixed_environment(1, height_max = 150)
+  env$set_soil_water_state(rep(0.4, env$get_soil_number_of_depths()))
+  fresh <- Individual("TF24", "TF24_Env")(s)
+  fresh$set_initial_states(env)
+  reused <- Individual("TF24", "TF24_Env")(s)
+  reused$set_state("log_area_leaf_departure", -1)
+  reused$set_initial_states(env)
+  expect_identical(reused$aux("competition_effect"), fresh$aux("competition_effect"))
+})
+
 test_that("storage cannot leave [0, S_max] under the exact flow", {
   height <- 5
   cap <- tf24_storage_capacity_r(height)
