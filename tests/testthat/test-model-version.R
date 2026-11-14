@@ -25,7 +25,7 @@ test_that("TF24f and TF24w carry compound versions that track TF24", {
 
 test_that("TF24t carries a compound version that tracks TF24", {
   expect_identical(model_version("TF24t"),
-                   paste0(model_version("TF24"), ".5"))
+                   paste0(model_version("TF24"), ".6"))
 })
 
 test_that("model_id() is 'Model@vN' and agrees with model_version()", {
