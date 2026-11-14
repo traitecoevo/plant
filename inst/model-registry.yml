@@ -1444,7 +1444,7 @@ parameters:
     symbol: '\alpha_{\rm pl0}'
     units: '–'
     class: hyperparameter
-    meaning: 'largest fraction of leaf and sapwood turnover a plant leaves unreplaced; zero is the fixed allometry exactly'
+    meaning: 'largest fraction of leaf and sapwood turnover a plant leaves unreplaced; zero is the fixed allometry exactly; must be in [0, 1]'
     source: 'TF24_Pars default, zero: flexible allometry is off'
     placeholder: false
     code: plant::TF24_Pars::a_pl0

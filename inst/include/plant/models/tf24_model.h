@@ -1300,6 +1300,21 @@ void TF24_Model<S>::refuse_unsupported_traits() const {
     throw std::invalid_argument("storage_relaxation_offset must be >= 0");
   }
 
+  // a_pl0 is the largest fraction of turnover a plant can leave unreplaced.
+  // Above 1 replacement goes negative, destroying tissue faster than it dies;
+  // below 0 a struggling plant replaces more than dies. Written to refuse NaN.
+  // Said in words as well as digits: a value just past 1 prints as "1".
+  const double a_pl0_value = odelia::util::to_passive(pars.a_pl0);
+  if (!(a_pl0_value >= 0.0 && a_pl0_value <= 1.0)) {
+    const char* side = a_pl0_value > 1.0   ? "above 1"
+                       : a_pl0_value < 0.0 ? "below 0"
+                                           : "not a number";
+    throw std::invalid_argument(
+      "a_pl0 must be in [0, 1], the largest fraction of leaf and sapwood "
+      "turnover left unreplaced; a_pl0 = " + util::format_double(a_pl0_value) +
+      " is " + side);
+  }
+
   if (odelia::util::to_passive(stem_path_exponent()) != 0.0) {
     // L_tip is the anchor of both profiles, so it cannot be zero once either is
     // active: k_s(L) = K_s*(L/L_tip)^(2*D_c) diverges everywhere as L_tip -> 0,
