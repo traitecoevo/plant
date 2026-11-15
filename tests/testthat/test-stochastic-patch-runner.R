@@ -328,3 +328,26 @@ test_that("the collected trajectory reports a moving soil state", {
   expect_false(is.unsorted(flux1))
   expect_gt(max(flux1), 0)
 })
+
+test_that("each leg starts where the last one landed", {
+  ## The runner compares its time with the next arrival exactly. It read the
+  ## patch's time, which the solver's final stage can leave one ulp off the
+  ## landing time; this seed stopped at its second arrival with "Start time not
+  ## what was expected".
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 30
+  p$patch_area <- 1
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  set.seed(6)
+  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  arrivals <- obj$schedule$all_times[[1]]
+  landed <- numeric(0)
+  while (!obj$complete) {
+    obj$run_next()
+    landed <- c(landed, obj$time)
+  }
+  ## Every leg but the last ends on the next arrival, bit for bit.
+  expect_identical(head(landed, -1), arrivals[-1])
+  expect_identical(obj$time, p$max_patch_lifetime)
+})

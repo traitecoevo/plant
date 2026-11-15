@@ -35,7 +35,10 @@ public:
   size_t run_next();
   void advance(double time_);
 
-  double time() const { return patch.time(); }
+  // The solver's time, as SCM reads it. The patch's own time is wherever the
+  // solver last evaluated it, which on a leg's final stage can round one ulp
+  // away from the time the leg landed on, and run_next() compares exactly.
+  double time() const { return solver.time(); }
   void reset();
   bool complete() const;
 
