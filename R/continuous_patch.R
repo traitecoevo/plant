@@ -368,16 +368,17 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
       state <- stats::setNames(node$ode_state, node$ode_names)
       ## On the birth-date coordinate the cohort is born per seed that
       ## establishes, and its species integrates establishment minus one over
-      ## the interval after it: the second state after the nodes' blocks. The
-      ## output reads it through the factor its density does, the mean over that
-      ## interval so far; a lone cohort's interval runs to the end of the run.
+      ## the interval after it: the first state after the nodes' blocks. The
+      ## output reads it through the factor its density does, its share of that
+      ## interval so far over its cell; a lone cohort's interval runs to the end
+      ## of the run.
       birth_date <- sp$density_in_birth_date
       list(state = state,
            rates = stats::setNames(node$ode_rates, node$ode_names),
            output = sp$net_reproduction_ratio_by_node[[1]],
            birth_date = birth_date,
            establishment = if (birth_date)
-             1 + sp$ode_rates[[sp$size * length(state) + 2L]] else NA_real_,
+             1 + sp$ode_rates[[sp$size * length(state) + 1L]] else NA_real_,
            factor = if (birth_date)
              exp(node$log_density - state[["log_density"]]) else 1)
     })

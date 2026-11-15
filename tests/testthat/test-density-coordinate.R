@@ -266,15 +266,15 @@ test_that("each coordinate's boundary condition is the one its integral needs", 
     g0 <- nd$growth_rate_at_birth
     expect_gt(g0, 0)
     ## log(birth_rate * pr_estab). The height path carries it divided by g(H_0).
-    ## The birth-date path carries the birth rate times the establishment the
-    ## open interval has integrated over the boundary node's half of it, the
-    ## open interval's second state (E - 1 integrated since the newest node's
-    ## birth) over its width; pr_estab at the instant is that state's rate.
-    ## Compare in log space.
+    ## The birth-date path carries the birth rate times the boundary node's
+    ## share of the establishment the open interval has integrated, over half
+    ## its width: the share is the open interval's second state (E - 1 against
+    ## the time since the newest node's birth) over the width. Compare in log
+    ## space.
     if (birth_date) {
       sp <- scm$patch$species[[1]]
       h <- nd$introduction_time - utils::tail(sp$node_times, 1)
-      undivided <- log(1.0 * (1 + utils::tail(sp$ode_state, 1) / h))
+      undivided <- log(1.0 * (1 + 2 * utils::tail(sp$ode_state, 1) / h^2))
       expect_equal(nd$log_density, undivided, tolerance = 1e-10)
     } else {
       undivided <- log(1.0 * nd$individual$establishment_probability(

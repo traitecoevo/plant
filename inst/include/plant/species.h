@@ -84,16 +84,19 @@ public:
   //
   // Only the interval after the newest node is open, and over it two states
   // integrate E - 1, so that zero is every seed establishing: a model that
-  // establishes every seed (K93) keeps them at zero. open_m1_ is E - 1
-  // integrated since the newest node's birth; open_w0_ is the newest node's
-  // share, the half of the interval before it plus half of open_m1_, and the
-  // boundary node holds the other half. Each interval's E is so split equally
-  // between its two ends, which conserves it; it is not the mean over each half
-  // cell, which would take the interval's first moment. Until the next node
-  // arrives the newest node and the boundary node are read through
-  // Node::set_density_scale(), as their share over the width it covers; when
-  // it arrives, the newest node's is folded into its state and the boundary's
-  // half becomes the new node's share of the interval before it.
+  // establishes every seed (K93) keeps them at zero. With t_i the newest node's
+  // birth date and h the time since, open_m1_ is the first moment, E - 1
+  // integrated against (t - t_i), and the boundary node's share of the open
+  // interval is open_m1_ / h, E integrated against its hat. open_w0_ is the
+  // newest node's share of the interval before it plus E - 1 integrated since
+  // its birth, so its share of the open interval is open_w0_ - open_m1_ / h,
+  // E integrated against its own hat. Each interval's E is so split between
+  // its two ends by the hat functions the trapezium weights them with, which
+  // conserves it. Until the next node arrives the newest node and the boundary
+  // node are read through Node::set_density_scale(), as their share over the
+  // width it covers; when it arrives, the newest node's is folded into its
+  // state and the boundary's share becomes the new node's share of the
+  // interval before it.
   size_t open_ode_size() const { return density_in_birth_date() ? 2 : 0; }
   // The first nodes of a state written by hand (Parameters'
   // initial_established) already carry their establishment, so none of them
@@ -567,9 +570,11 @@ private:
     if (!(half > 0.0)) {
       return value_type(open_establishment_last_);
     }
-    return 1.0 + open_w0_ / half;
+    const value_type share = h > 0.0 ? open_w0_ - open_m1_ / h : open_w0_;
+    return 1.0 + share / half;
   }
-  // The boundary node's: its half of the open interval's E, over half its width.
+  // The boundary node's: its share of the open interval's E, over half its
+  // width.
   value_type open_boundary_establishment(double time) const {
     if (nodes.empty()) {
       return value_type(open_establishment_last_);
@@ -578,7 +583,7 @@ private:
     if (!(h > 0.0)) {
       return value_type(open_establishment_last_);
     }
-    return 1.0 + open_m1_ / h;
+    return 1.0 + 2.0 * open_m1_ / (h * h);
   }
   void set_open_scales(double time) {
     if (open_ode_size() == 0) {
@@ -591,9 +596,10 @@ private:
       nodes.back().clear_density_scale();
     }
   }
-  // The relative rate of the newest node's establishment factor, 1 + w0 / half:
-  // w0 grows at open_w0_dt_ and half at one half a year per year. Read after
-  // compute_rates() has set open_w0_dt_.
+  // The relative rate of the newest node's establishment factor, 1 + share /
+  // half: share = w0 - m1 / h grows at m1 / h^2, which is half the boundary
+  // factor less one, and half at one half a year per year, so the factor moves
+  // towards the boundary's.
   double open_scale_relative_rate() const {
     using odelia::util::to_passive;
     if (open_ode_size() == 0 || !newest_open()) {
@@ -602,10 +608,11 @@ private:
     const double h = new_node.introduction_time() - nodes.back().introduction_time();
     const double half = (open_previous_width() + h) / 2;
     const double scale = to_passive(nodes.back().get_density_scale());
-    if (!(half > 0.0) || !(scale > 0.0)) {
+    if (!(half > 0.0) || !(scale > 0.0) || !(h > 0.0)) {
       return 0.0;
     }
-    return (to_passive(open_w0_dt_) - (scale - 1.0) / 2.0) / (half * scale);
+    const double boundary = to_passive(new_node.get_density_scale());
+    return (boundary - scale) / (2.0 * half * scale);
   }
   // The next node arrives at `time`: the newest node's establishment is final
   // and goes into its state, and the boundary's share of the interval that
@@ -622,7 +629,8 @@ private:
     if (newest_open()) {
       nodes.back().fold_establishment(open_node_establishment(time));
     }
-    open_w0_ = open_m1_ / 2.0;
+    const double h = time - nodes.back().introduction_time();
+    open_w0_ = h > 0.0 ? open_m1_ / h : value_type(0.0);
     open_m1_ = value_type(0.0);
   }
   // The top layer (see top_ode_size()) and its rates.
@@ -1212,8 +1220,10 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
       open_w0_dt_ = value_type(0.0);
       open_m1_dt_ = value_type(0.0);
     } else {
-      open_w0_dt_ = (e - 1.0) / 2.0;
-      open_m1_dt_ = e - 1.0;
+      const double h =
+        new_node.introduction_time() - nodes.back().introduction_time();
+      open_w0_dt_ = e - 1.0;
+      open_m1_dt_ = (e - 1.0) * h;
     }
     set_open_scales(new_node.introduction_time());
   }

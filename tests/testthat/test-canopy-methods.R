@@ -175,7 +175,7 @@ test_that("deep-crown reproduces the baseline SCM result", {
   # The established number is the one on the height coordinate, which is the
   # coordinate it was established on. A stand carried in birth date is a
   # quadrature over a different abscissa, so the same model returns a different
-  # number there -- +1.45% -- and that is a property of the coordinate rather
+  # number there -- +1.52% -- and that is a property of the coordinate rather
   # than of the shading model. Both are pinned, because a change that moved only
   # one of them would be a change to the reduction and not to the coordinate.
   p0 <- testing_parameters("FF16")
@@ -185,7 +185,7 @@ test_that("deep-crown reproduces the baseline SCM result", {
   over_height <- run(p1, env, Control(node_density_coordinate = "height"))$solver
   expect_equal(over_height$patch$offspring_production, 16.8846, tolerance = 1e-4)
   over_birth_date <- run(p1, env, Control(node_density_coordinate = "birth_date"))$solver
-  expect_equal(over_birth_date$patch$offspring_production, 17.1291, tolerance = 1e-4)
+  expect_equal(over_birth_date$patch$offspring_production, 17.1406, tolerance = 1e-4)
 })
 
 test_that("crown-centre runs through the SCM and changes the outcome", {

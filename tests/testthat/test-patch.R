@@ -93,10 +93,11 @@ for (x in names(strategy_types)) {
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
                                    patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0))
      
-    # The open interval starts empty, and grows at establishment minus one: the
-    # newest node's half, and the whole since its birth.
+    # The open interval starts empty, and grows at establishment minus one; its
+    # first moment, against the time since the newest node's birth, starts at
+    # rate zero.
     pr_estab <- cmp$individual$establishment_probability(patch$environment)
-    open_rates <- c((pr_estab - 1) / 2, pr_estab - 1)
+    open_rates <- c(pr_estab - 1, 0)
     ode_state <- c(cmp$ode_state, open, env_state)
     ode_rates <- c(cmp$ode_rates, open_rates, env_rates)
     expect_identical(patch$ode_state, ode_state)
@@ -117,7 +118,7 @@ for (x in names(strategy_types)) {
                    tolerance = 1e-4)
       expect_equal(ode_rates,
                    c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0, -0.01,
-                     -0.0045586, -0.0091172),
+                     -0.0091172, 0),
                    tolerance = 1e-4)
 
       # The density rate is minus the mortality rate and nothing else. On the

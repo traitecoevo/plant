@@ -248,12 +248,15 @@ test_that("the state a segment resumes from is the one the introduction made", {
           # Every node but the newest is untouched.
           keep <- seq_len((n - 1) * stride)
           expect_identical(nodes_post[keep], nodes_pre[keep])
-          # The newest takes the mean establishment over its cell, half the
-          # interval before it and half the one that just closed.
+          # The newest takes its share of establishment over its cell, half the
+          # interval before it and half the one that just closed: its share of
+          # the closed one is E against its hat, the integral less the first
+          # moment over the width.
           last <- births[[i]][[n]]
+          h <- t - last
           before_width <- if (n > 1) last - births[[i]][[n - 1]] else 0
-          half <- (before_width + (t - last)) / 2
-          e <- 1 + open_pre[[1]] / half
+          half <- (before_width + h) / 2
+          e <- 1 + (open_pre[[1]] - open_pre[[2]] / h) / half
           expect_gt(abs(log(e)), 1e-6)
           newest_pre <- stats::setNames(nodes_pre[(n - 1) * stride + seq_len(stride)],
                                         names_node)
@@ -271,7 +274,7 @@ test_that("the state a segment resumes from is the one the introduction made", {
           expect_identical(newest_post[rest], newest_pre[rest])
           # The boundary node's share of the closed interval starts the new
           # node's, and nothing has accrued since its birth.
-          expect_identical(open_post, c(open_pre[[2]] / 2, 0))
+          expect_identical(open_post, c(open_pre[[2]] / h, 0))
           folded <- folded + 1L
         } else {
           expect_identical(open_post, c(0, 0))
@@ -343,7 +346,7 @@ test_that("the newcomer depends on the state it was introduced into", {
     patch
   }
   # On the birth-date coordinate a seed's establishment reaches the state through
-  # the rate its species' open interval integrates, E - 1, the second of the two
+  # the rate its species' open interval integrates, E - 1, the first of the two
   # states that follow each species' nodes.
   newcomer_establishment <- function(state) {
     patch <- founding_patch()
@@ -351,7 +354,7 @@ test_that("the newcomer depends on the state it was introduced into", {
     rates <- patch$ode_rates
     ends <- cumsum(vapply(seq_len(length(patch$species)),
                           function(i) patch$species[[i]]$ode_size, numeric(1)))
-    rates[ends]
+    rates[ends - 1L]
   }
 
   # The soil block begins after every species' nodes, so its offset is read off the

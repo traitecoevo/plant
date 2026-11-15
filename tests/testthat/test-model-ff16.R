@@ -199,8 +199,8 @@ test_that("offspring arrival", {
   # so the coordinate is asserted rather than assumed.
   expect_identical(ctrl$node_density_coordinate, "birth_date")
   out <- run(p1, env, ctrl)$solver
-  expect_equal(out$patch$offspring_production, 17.1291, tolerance=1e-4)
-  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.227945), tolerance=1e-5)
+  expect_equal(out$patch$offspring_production, 17.1406, tolerance=1e-4)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.228007), tolerance=1e-5)
 
   # two species
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177, 16.51006))
