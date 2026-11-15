@@ -268,9 +268,9 @@ test_that("each coordinate's boundary condition is the one its integral needs", 
     ## log(birth_rate * pr_estab). The height path carries it divided by g(H_0).
     ## The birth-date path carries the birth rate times the boundary node's
     ## share of the establishment the open interval has integrated, over half
-    ## its width: the share is the open interval's second state (E - 1 against
-    ## the time since the newest node's birth) over the width. Compare in log
-    ## space.
+    ## its width: the share is the open interval's second state (p_est - 1
+    ## against the time since the newest node's birth) over the width. Compare
+    ## in log space.
     if (birth_date) {
       sp <- scm$patch$species[[1]]
       h <- nd$introduction_time - utils::tail(sp$node_times, 1)

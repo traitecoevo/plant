@@ -250,7 +250,7 @@ test_that("the state a segment resumes from is the one the introduction made", {
           expect_identical(nodes_post[keep], nodes_pre[keep])
           # The newest takes its share of establishment over its cell, half the
           # interval before it and half the one that just closed: its share of
-          # the closed one is E against its hat, the integral less the first
+          # the closed one is p_est against its hat, the integral less the first
           # moment over the width.
           last <- births[[i]][[n]]
           h <- t - last
@@ -346,8 +346,8 @@ test_that("the newcomer depends on the state it was introduced into", {
     patch
   }
   # On the birth-date coordinate a seed's establishment reaches the state through
-  # the rate its species' open interval integrates, E - 1, the first of the two
-  # states that follow each species' nodes.
+  # the rate its species' open interval integrates, p_est - 1, the first of the
+  # two states that follow each species' nodes.
   newcomer_establishment <- function(state) {
     patch <- founding_patch()
     patch$set_ode_state(state, at)
