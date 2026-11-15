@@ -2500,6 +2500,7 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
         }
       }
     }
+    at += sp.open_ode_size();
     // The top layer's block follows the species' nodes. Its individual holds the
     // same bounded states as a node's; it is checked once it carries density.
     if (sp.top_ode_size() > 0) {

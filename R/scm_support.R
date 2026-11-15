@@ -225,7 +225,9 @@ make_initial_state <- function(p, heights, densities = NULL,
     stop("could not locate 'height'/'log_density' in node ODE names")
   }
   node_ode_size <- length(ode_names)
-  env_state <- patch$ode_state # fresh patch has no nodes: environment ODE only
+  ## A fresh patch has no nodes, but on the birth-date coordinate each species
+  ## still carries its open interval's two states ahead of the environment.
+  env_state <- utils::tail(patch$ode_state, patch$environment$ode_size)
   pr_surv0 <- patch$pr_survival(0)
   dens0 <- patch$density(0)
 
@@ -247,7 +249,11 @@ make_initial_state <- function(p, heights, densities = NULL,
     mat <- matrix(0, nrow = node_ode_size, ncol = length(h))
     mat[hi, ] <- h
     mat[ldi, ] <- ld
-    ode_chunks[[i]] <- as.vector(mat) # column-major: node-by-node, matching set_ode_state
+    ## On the birth-date coordinate the species' block ends with the open
+    ## interval's two establishment integrals. Zero is every seed
+    ## establishing, so the densities given are the densities carried.
+    open <- if (patch$species[[i]]$density_in_birth_date) c(0, 0) else numeric(0)
+    ode_chunks[[i]] <- c(as.vector(mat), open) # column-major: node-by-node, matching set_ode_state
     n[i] <- length(h)
     node_times[[i]] <- rep(0, length(h))
     patch_density[[i]] <- rep(dens0, length(h))

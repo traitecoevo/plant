@@ -54,17 +54,16 @@ test_that("a reloaded state carries the boundary node the run carries", {
   patch <- ladder_as_patch(stand)
   both <- ladder_boundary_evaluations(patch, patch$ode_state, patch$ode_time)
 
-  # Non-vacuity, and it is what the check rests on: if the two evaluations agreed
-  # there would be no convention to get wrong and this check would pass on a
-  # model that does not have the hazard.
-  gap <- max(abs(both$in_uptake - both$in_field) / abs(both$in_field))
-  message(sprintf("\n  the two evaluations differ by %.3e relative", gap))
-  expect_gt(gap, 1e-6)
-
-  # And the run carries the second, exactly. Tolerance is zero: this is a property
-  # the implementation either has or does not.
+  # On the birth-date coordinate the boundary node's density is the birth rate
+  # times the establishment its open interval has integrated, which is ODE
+  # state: the field reaches establishment through that state's rate and not
+  # through the density. So both evaluations give the same density, and a
+  # reload that stops at the first cannot carry a different one. A density that
+  # read establishment off the field again would show up here as a gap.
+  expect_identical(both$in_field, both$in_uptake)
+  # And the run carries it, exactly. Tolerance is zero: this is a property the
+  # implementation either has or does not.
   expect_identical(both$in_uptake, left)
-  expect_false(isTRUE(all.equal(both$in_field, left, tolerance = 1e-12)))
 })
 
 test_that("the inflow condition's own parameters carry a row", {
@@ -137,7 +136,12 @@ test_that("the boundary node's row carries the field its own cohorts build", {
       expect_identical(got$dheight, 0)
     }
 
-    parts <- c("log_density", "carbon", if (reaches_birth_size) "height")
+    # The boundary node's density is the birth rate times the establishment its
+    # open interval has integrated, which the field reaches only through that
+    # state's rate. At a fixed state, then, its density has no row in a
+    # parameter the field carries.
+    expect_identical(got$dlog_density, 0)
+    parts <- c("carbon", if (reaches_birth_size) "height")
     for (part in parts) {
       row <- got[[paste0("d", part)]]
       expect_gt(abs(row), 0)
@@ -191,12 +195,14 @@ test_that("the introduction map's whole Jacobian agrees entry by entry", {
 test_that("the state a segment resumes from is the one the introduction made", {
   # The state the segment above an introduction linearises its first step at is
   # rebuilt rather than recorded -- no record holds it -- and the sweep only
-  # length-checks the rebuild. Two things must hold of it and neither was asserted:
-  # the rows an introduction does not touch come through unchanged, and the rows it
-  # writes are the boundary node the patch was carrying.
+  # length-checks the rebuild. Three things must hold of it. The rows an
+  # introduction does not touch come through unchanged. The rows it writes are
+  # the boundary node the patch was carrying. And for each species it introduces
+  # into, the node that was newest takes the establishment of the interval that
+  # just closed into its state, and the open interval starts again.
   #
-  # Tolerance is exactly zero for both: an introduction is a push, not an
-  # arithmetic operation on the rows it does not touch.
+  # Tolerance is exactly zero for the rows the introduction does not touch: an
+  # introduction is a push, not an arithmetic operation on them.
   p <- ladder_parameters(c("fast", "slow"))
   p$node_schedule_times <- list(c(0, 0.29), c(0))
   stand <- ladder_run(p)
@@ -206,34 +212,82 @@ test_that("the state a segment resumes from is the one the introduction made", {
   times <- vapply(trajectory, function(s) s$time, numeric(1))
 
   patch <- Patch("TF24", "TF24_Env")(p, Environment("TF24"), ladder_control())
+  names_node <- patch$species[[1]]$new_node$ode_names
+  stride <- length(names_node)
+  folded <- 0L
   for (k in seq_along(introduction)) {
     b <- introduction[[k]]
     pre <- trajectory[[b]]$state
+    t <- times[[b]]
     who <- if (k == 1L) c(1L, 2L) else 1L
-    patch$set_ode_state(pre, times[[b]])
+    patch$set_ode_state(pre, t)
     invisible(patch$ode_rates)
-    held <- unlist(lapply(who, function(i) patch$species[[i]]$new_node$ode_state))
-    before <- vapply(seq_len(length(patch$species)),
-                     function(i) patch$species[[i]]$ode_size, numeric(1))
-    for (i in who) patch$introduce_new_node(i, times[[b]])
+    held <- lapply(seq_len(length(patch$species)),
+                   function(i) patch$species[[i]]$new_node$ode_state)
+    sizes <- vapply(seq_len(length(patch$species)),
+                    function(i) patch$species[[i]]$size, numeric(1))
+    births <- lapply(seq_len(length(patch$species)),
+                     function(i) patch$species[[i]]$node_times)
+    for (i in who) patch$introduce_new_node(i, t)
     post <- patch$ode_state
 
-    stride <- length(held) / length(who)
-    carried <- integer(0)
-    newcomer <- integer(0)
-    q <- 0L
+    # Each species' block is its nodes then its open interval's two states;
+    # the environment follows the last species.
+    at_pre <- 0L
+    at_post <- 0L
     for (i in seq_len(length(patch$species))) {
-      carried <- c(carried, q + seq_len(before[[i]]))
-      q <- q + before[[i]]
+      n <- sizes[[i]]
+      nodes_pre <- pre[at_pre + seq_len(n * stride)]
+      open_pre <- pre[at_pre + n * stride + 1:2]
       if (i %in% who) {
-        newcomer <- c(newcomer, q + seq_len(stride))
-        q <- q + stride
+        nodes_post <- post[at_post + seq_len(n * stride)]
+        newcomer <- post[at_post + n * stride + seq_len(stride)]
+        open_post <- post[at_post + (n + 1) * stride + 1:2]
+        expect_identical(newcomer, held[[i]])
+        if (n > 0) {
+          # Every node but the newest is untouched.
+          keep <- seq_len((n - 1) * stride)
+          expect_identical(nodes_post[keep], nodes_pre[keep])
+          # The newest takes the mean establishment over its cell, half the
+          # interval before it and half the one that just closed.
+          last <- births[[i]][[n]]
+          before_width <- if (n > 1) last - births[[i]][[n - 1]] else 0
+          half <- (before_width + (t - last)) / 2
+          e <- 1 + open_pre[[1]] / half
+          expect_gt(abs(log(e)), 1e-6)
+          newest_pre <- stats::setNames(nodes_pre[(n - 1) * stride + seq_len(stride)],
+                                        names_node)
+          newest_post <- stats::setNames(nodes_post[(n - 1) * stride + seq_len(stride)],
+                                         names_node)
+          expect_equal(newest_post[["mortality"]],
+                       newest_pre[["mortality"]] - log(e), tolerance = 1e-14)
+          expect_equal(newest_post[["log_density"]],
+                       newest_pre[["log_density"]] + log(e), tolerance = 1e-14)
+          expect_equal(newest_post[["offspring_produced_survival_weighted"]],
+                       newest_pre[["offspring_produced_survival_weighted"]] * e,
+                       tolerance = 1e-14)
+          rest <- setdiff(names_node, c("mortality", "log_density",
+                                        "offspring_produced_survival_weighted"))
+          expect_identical(newest_post[rest], newest_pre[rest])
+          # The boundary node's share of the closed interval starts the new
+          # node's, and nothing has accrued since its birth.
+          expect_identical(open_post, c(open_pre[[2]] / 2, 0))
+          folded <- folded + 1L
+        } else {
+          expect_identical(open_post, c(0, 0))
+        }
+        at_post <- at_post + (n + 1) * stride + 2L
+      } else {
+        expect_identical(post[at_post + seq_len(n * stride + 2)],
+                         pre[at_pre + seq_len(n * stride + 2)])
+        at_post <- at_post + n * stride + 2L
       }
+      at_pre <- at_pre + n * stride + 2L
     }
-    carried <- c(carried, q + seq_len(length(post) - q))
-    expect_identical(post[carried], pre)
-    expect_identical(post[newcomer], held)
+    expect_identical(post[-seq_len(at_post)], pre[-seq_len(at_pre)])
   }
+  # Non-vacuity: at least one introduction closed an interval.
+  expect_gt(folded, 0L)
 })
 
 test_that("the initial reserve channel carries a row", {
@@ -288,11 +342,16 @@ test_that("the newcomer depends on the state it was introduced into", {
     }
     patch
   }
-  newcomer_density <- function(state) {
+  # On the birth-date coordinate a seed's establishment reaches the state through
+  # the rate its species' open interval integrates, E - 1, the second of the two
+  # states that follow each species' nodes.
+  newcomer_establishment <- function(state) {
     patch <- founding_patch()
     patch$set_ode_state(state, at)
-    invisible(patch$ode_rates)
-    ladder_boundary_density(patch)
+    rates <- patch$ode_rates
+    ends <- cumsum(vapply(seq_len(length(patch$species)),
+                          function(i) patch$species[[i]]$ode_size, numeric(1)))
+    rates[ends]
   }
 
   # The soil block begins after every species' nodes, so its offset is read off the
@@ -304,7 +363,7 @@ test_that("the newcomer depends on the state it was introduced into", {
                          function(i) template$species[[i]]$ode_size,
                          numeric(1))) + 1L
 
-  base <- newcomer_density(pre)
+  base <- newcomer_establishment(pre)
   # The top layer, and it has to be the top one: a plant at birth size is
   # shallow-rooted, so the deepest layer of the column does not reach it and a
   # perturbation there moves the newcomer by exactly zero. That is a property of
@@ -312,10 +371,10 @@ test_that("the newcomer depends on the state it was introduced into", {
   # the channel missing.
   bumped <- pre
   bumped[[moisture]] <- bumped[[moisture]] * 1.05
-  moved <- newcomer_density(bumped)
+  moved <- newcomer_establishment(bumped)
 
-  gap <- max(abs(moved - base) / abs(base))
-  message(sprintf("\n  a 5%% perturbation of the top layer moves the boundary node by %.3e",
+  gap <- max(abs(moved - base) / pmax(abs(base), 1e-300))
+  message(sprintf("\n  a 5%% perturbation of the top layer moves establishment by %.3e",
                   gap))
   expect_gt(gap, 1e-9)
 })

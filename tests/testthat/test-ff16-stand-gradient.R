@@ -80,7 +80,10 @@ test_that("the FF16 census is the trapezium of density times the allometry", {
       area_sapwood * height * eta_c * pars$rho +
       st["mass_heartwood", ],
     area_stem = area_bark + area_sapwood + st["area_heartwood", ])
-  density <- exp(st["log_density", ])
+  # The density each node contributes, which for the newest node and the
+  # boundary node includes the establishment of the interval still open.
+  density <- exp(vapply(c(sp$nodes, list(sp$new_node)),
+                        function(n) n$log_density, 0))
   trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1))) / 2
   expected <- vapply(psi, function(v) trapezium(birth_date, density * v), 0)
   expect_equal(stand_census(scm), expected, tolerance = 1e-12)
