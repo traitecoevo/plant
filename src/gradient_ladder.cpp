@@ -571,7 +571,9 @@ Rcpp::List ladder_boundary_density_tangent_tf24(plant::RcppR6::RcppR6<plant::Pat
   active.ode_rates(dydt.begin());
 
   const auto& node = active.at_species(0).r_new_node();
-  const tangent ell = node.get_log_density();
+  // The density the boundary node contributes, as the R reference reads it:
+  // on the birth-date coordinate, through the open interval's establishment.
+  const tangent ell = node.effective_log_density();
   const tangent h = node.height();
   // The birth-size carbon the establishment probability divides by, read where
   // the condition reads it.

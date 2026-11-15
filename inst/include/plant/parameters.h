@@ -73,7 +73,8 @@ struct Parameters {
     max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
     fitness_window_start(0.0),
     fitness_window_end(0.0),
-    initial_time(0.0)
+    initial_time(0.0),
+    initial_established(false)
   {
     validate();
   }
@@ -140,6 +141,12 @@ struct Parameters {
   //   initial_patch_density     per-node patch-age density at birth (flat).
   //   initial_pr_patch_survival per-node pr_patch_survival at birth (flat).
   //   initial_time              patch age to resume at (0 for a fresh start).
+  //   initial_established       on the birth-date coordinate, whether the
+  //                             densities already include every node's
+  //                             establishment, as make_initial_state() writes
+  //                             them. False for a state exported from a run,
+  //                             whose newest node's establishment is still
+  //                             accruing over the interval after it.
   // Length consistency is checked in Patch::set_initial_state(), where the
   // node/ode sizes are known.
   std::vector<double> initial_state;
@@ -148,6 +155,7 @@ struct Parameters {
   std::vector<double> initial_patch_density;
   std::vector<double> initial_pr_patch_survival;
   double initial_time;
+  bool initial_established;
 
   // The trade-off function (an R closure satisfying `f(m, s, filter = TRUE)`,
   // or NULL) the strategies here were built with: R's `param_hyperpar(p)`

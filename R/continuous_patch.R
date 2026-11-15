@@ -355,6 +355,7 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   pm$initial_patch_density <- numeric(0)
   pm$initial_pr_patch_survival <- numeric(0)
   pm$initial_time <- 0
+  pm$initial_established <- FALSE
   pm$ode_times <- numeric(0)
   pm$ode_step_sizes <- numeric(0)
   pm$ode_soil_input_slopes <- list()
@@ -364,22 +365,38 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
     scm$run_mutant_constant(pm)
     lapply(scm$patch$species, function(sp) {
       node <- sp$nodes[[1]]
-      list(state = stats::setNames(node$ode_state, node$ode_names),
+      state <- stats::setNames(node$ode_state, node$ode_names)
+      ## On the birth-date coordinate the cohort is born per seed that
+      ## establishes, and its species integrates establishment minus one over
+      ## the interval after it: the second state after the nodes' blocks. The
+      ## output reads it through the factor its density does, the mean over that
+      ## interval so far; a lone cohort's interval runs to the end of the run.
+      birth_date <- sp$density_in_birth_date
+      list(state = state,
            rates = stats::setNames(node$ode_rates, node$ode_names),
-           output = sp$net_reproduction_ratio_by_node[[1]])
+           output = sp$net_reproduction_ratio_by_node[[1]],
+           birth_date = birth_date,
+           establishment = if (birth_date)
+             1 + sp$ode_rates[[sp$size * length(state) + 2L]] else NA_real_,
+           factor = if (birth_date)
+             exp(node$log_density - state[["log_density"]]) else 1)
     })
   }
-  ## Each invader's hazard an instant after birth: what establishment cost it,
-  ## so survival can be judged from establishment on, and a cohort that has
+  ## Each invader an instant after birth: what establishment cost it, so
+  ## survival can be judged from establishment on, and a cohort that has
   ## barely established is not taken for a dead one.
   born <- run_held(1e-8)
   run <- run_held(lifetime)
   vapply(seq_along(run), function(i) {
     hazard_at_birth <- born[[i]]$state[["mortality"]]
-    ## A cohort that never established starts at the establishment-failure
-    ## hazard, whose survival is exactly zero, and its output is zero however
-    ## long it runs.
-    established <- exp(-hazard_at_birth) > 0
+    ## The fraction of seeds arriving at the birth date that establish. On the
+    ## height coordinate it was paid as hazard at birth; on the birth-date one
+    ## it is the rate the open interval integrates there. A cohort that never
+    ## established has a fraction of zero, and its output is zero however long
+    ## it runs.
+    pr_estab <- if (born[[i]]$birth_date) born[[i]]$establishment else
+      exp(-hazard_at_birth)
+    established <- pr_estab > 0
     survival <- exp(-(run[[i]]$state[["mortality"]] - hazard_at_birth))
     ## Done when none survive, or when the survivors are few and have stopped
     ## growing -- at their asymptote, or stalled in the shade, where a constant
@@ -395,6 +412,15 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
                    i, survival, if (growing) "growing" else "not yet below `survival_tol`",
                    lifetime))
     }
-    run[[i]]$output * pm$strategies[[i]]$pars$S_D
+    ## Per seed arriving at the birth date: on the birth-date coordinate the
+    ## output carries the mean establishment over the whole run, which a field
+    ## that does not hold still (establishment decaying with patch age, say)
+    ## moves away from the fraction at birth.
+    output <- run[[i]]$output
+    if (run[[i]]$birth_date) {
+      output <- if (established && run[[i]]$factor > 0)
+        output / run[[i]]$factor * pr_estab else 0
+    }
+    output * pm$strategies[[i]]$pars$S_D
   }, numeric(1))
 }

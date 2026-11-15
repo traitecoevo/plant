@@ -850,3 +850,31 @@ test_that("a model that establishes every seed leaves the open interval empty", 
   expect_gt(sp$size, 10)
   expect_identical(utils::tail(sp$ode_state, 2), c(0, 0))
 })
+
+## A state written by hand carries the densities it gives. Its cohorts take in
+## no establishment, at the start or when the run introduces its first cohort,
+## so a tall tree is not scaled by how seedlings fare under it; the cohorts the
+## run introduces do.
+test_that("a hand-built state keeps its densities through the first introduction", {
+  p <- size_only_parameters("FF16")
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  state <- make_initial_state(p, heights = list(5), densities = list(0.2),
+                              env = Environment("FF16"), ctrl = ctrl)
+  expect_true(state$established)
+  p2 <- set_initial_state(p, state)
+  expect_true(p2$initial_established)
+  p2$node_schedule_times <- list(c(0.5, 1, 1.5))
+  scm <- SCM("FF16", "FF16_Env")(p2, Environment("FF16"), empty_events(), ctrl)
+  given <- function() scm$patch$species[[1]]$nodes[[1]]
+  survival <- function() exp(-given()$individual$state("mortality"))
+  scm$run_to(0)
+  expect_equal(given()$log_density, log(0.2), tolerance = 1e-12)
+  scm$run_to(1.2)
+  ## Past the first introduction, the hand-built cohort's density has moved
+  ## only through its own mortality.
+  expect_gt(scm$patch$species[[1]]$size, 1)
+  expect_equal(given()$log_density, log(0.2 * survival()), tolerance = 1e-10)
+  ## An exported state is not marked, so a resume goes on taking in the
+  ## newest cohort's establishment.
+  expect_false(isTRUE(export_patch_state(scm)$established))
+})

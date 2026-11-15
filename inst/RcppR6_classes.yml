@@ -670,6 +670,7 @@ Parameters:
     - initial_patch_density: "std::vector<double>"
     - initial_pr_patch_survival: "std::vector<double>"
     - initial_time: double
+    - initial_established: bool
     # The trade-off function the strategies were built with (an R closure or
     # NULL). Opaque to C++; carried so it survives validate() and run().
     - hyperpar: SEXP

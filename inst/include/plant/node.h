@@ -41,12 +41,17 @@ public:
 
   // Birth-date coordinate. The newest node and the boundary node are carried
   // per seed that establishes while the interval after the newest is still
-  // open; their density and offspring are read through this factor, the
-  // establishment probability averaged over the node's cell so far. Species
-  // sets it on every state load; every other node reads its state as is.
+  // open; their density and offspring are read through this factor, their
+  // share of the establishment so far over the width it covers (see Species'
+  // open_ode_size()). Species sets it on every state load; every other node
+  // reads its state as is.
   void set_density_scale(const value_type& e) {
     scaled_ = true;
     density_scale = e;
+  }
+  void clear_density_scale() {
+    scaled_ = false;
+    density_scale = value_type(1.0);
   }
   value_type get_density_scale() const {
     return scaled_ ? density_scale : value_type(1.0);

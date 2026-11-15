@@ -873,6 +873,7 @@ void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
     while (species[i].size() < from.species[i].size()) {
       species[i].introduce_new_node();
     }
+    species[i].set_established_count(from.species[i].established_count());
     // Not in the ODE state, and pr_patch_survival_at_birth divides the
     // fecundity rate: without these the rates differ.
     species[i].set_birth_state(from.species[i].node_times(),
@@ -1027,6 +1028,13 @@ void Patch<T,E>::set_initial_state() {
       t_it += n;
       d_it += n;
       s_it += n;
+    }
+  }
+  // A state written by hand carries the densities it gives: no node of it
+  // takes in establishment, which is accounted from its first introduction on.
+  if (parameters.initial_established) {
+    for (auto& s : species) {
+      s.mark_established();
     }
   }
 
