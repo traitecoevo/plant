@@ -3830,6 +3830,7 @@ not_parameters:
   initial_patch_density: 'Patch-age density at birth of the stored initial state''s nodes.'
   initial_pr_patch_survival: 'Patch survival at birth of the stored initial state''s nodes.'
   initial_time: 'The patch age a resumed run starts at; 0 for a fresh one.'
+  initial_established: 'Whether the stored initial state''s densities already include establishment, as make_initial_state() writes them; false for a state exported from a run.'
   hyperpar: 'The R trade-off function the strategies were built with; opaque to C++.'
   TF24.stem_b: 'Derived from (stem_P50, stem_c), the Weibull scale phylloptim:stem_b; phylloptim derives its own, so this reporting copy reaches nothing.'
   TF24.psi_crit: 'Derived from (stem_P50, stem_c), the critical potential phylloptim:psi_crit; phylloptim derives its own, so this reporting copy reaches nothing.'

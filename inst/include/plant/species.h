@@ -538,12 +538,6 @@ private:
   size_t n_established_{0};
   // Whether the newest node is still taking in establishment.
   bool newest_open() const { return size() > n_established_; }
-  // A mean of E, which a probability bounds to [0, 1]: rounding in the two
-  // integrals, and a trial stage's negative weights, can carry it past either
-  // end. Strict, so that at an end the mean keeps its derivative.
-  static value_type clamp_unit(const value_type& e) {
-    return e < 0.0 ? value_type(0.0) : (e > 1.0 ? value_type(1.0) : e);
-  }
   template <typename It> It open_ode_state(It it) const {
     if (open_ode_size() > 0) {
       util::write_iterator_scalar(it, open_w0_);
@@ -573,7 +567,7 @@ private:
     if (!(half > 0.0)) {
       return value_type(open_establishment_last_);
     }
-    return clamp_unit(1.0 + open_w0_ / half);
+    return 1.0 + open_w0_ / half;
   }
   // The boundary node's: its half of the open interval's E, over half its width.
   value_type open_boundary_establishment(double time) const {
@@ -584,7 +578,7 @@ private:
     if (!(h > 0.0)) {
       return value_type(open_establishment_last_);
     }
-    return clamp_unit(1.0 + open_m1_ / h);
+    return 1.0 + open_m1_ / h;
   }
   void set_open_scales(double time) {
     if (open_ode_size() == 0) {
