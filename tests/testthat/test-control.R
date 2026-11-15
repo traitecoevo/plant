@@ -49,7 +49,9 @@ test_that("Defaults", {
     vulnerability_curve_ncontrol =
       phylloptim::leaf_control()$vulnerability_curve_ncontrol,
     ci_abs_tol = 1e-3,
-    ci_niter = 1000
+    ci_niter = 1000,
+    # The stochastic solver draws deaths every 0.05 yr (#601).
+    stochastic_death_interval = 0.05
   )
 
   keys <- sort(names(expected))

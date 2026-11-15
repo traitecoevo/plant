@@ -223,9 +223,15 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## week's offset gives 45 and 1. The default stem curve moving to
   ## the TF24 trade-off function's (#611) moved both to 48 and 1: the offset no longer
   ## changes this stand's counts.
+  ## Drawing deaths every 0.05 yr instead of at each arrival, and keeping each
+  ## survivor's hazard reset (lost before whenever nobody died in a draw), moved
+  ## every model's survivors: FF16 to 80 established and 3 surviving, TF24 to 47
+  ## and 3 (47 and 1 at a zero offset, so the offset counts again), and K93 to
+  ## 117 and 3. The number of draws changes, so these are a new stream rather
+  ## than the old one corrected (#601).
   baseline <- list(
-    FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 48L, n_alive_final = 1L),
+    FF16 = list(n_total = 80L, n_alive_final = 3L),
+    TF24 = list(n_total = 47L, n_alive_final = 3L),
     K93  = list(n_total = 117L, n_alive_final = 3L)
   )
   for (x in names(strategy_types)) {
@@ -256,7 +262,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   res <- tidy(run(p, Environment("TF24"), stochastic_control("TF24"),
                   method = "stochastic", record = "steps"))
   ia <- attr(res$species, "is_alive")[[1]]
-  expect_equal(dim(res$species[[1]])[3], 48L)
+  expect_equal(dim(res$species[[1]])[3], 47L)
   expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 1L)
 })
 
@@ -350,4 +356,46 @@ test_that("each leg starts where the last one landed", {
   ## Every leg but the last ends on the next arrival, bit for bit.
   expect_identical(head(landed, -1), arrivals[-1])
   expect_identical(obj$time, p$max_patch_lifetime)
+})
+
+test_that("a lone plant's survival does not depend on how often deaths are drawn", {
+  ## Each draw reads the hazard since the last one, so for a plant with nobody
+  ## to shade it the interval cannot matter. When a draw in which nobody died
+  ## left the solver unsynced, the survivor's reset was lost and the next draw
+  ## counted the hazard again: at 0.02 yr no plant lived to ten years, against
+  ## about one in ten drawn once at the end.
+  skip_on_cran()
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 10
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  survival <- function(interval, reps = 200) {
+    ctrl <- Control(stochastic_death_interval = interval)
+    alive <- vapply(seq_len(reps), function(s) {
+      set.seed(s)
+      obj <- stochastic_runner(p, Environment("FF16"), ctrl)
+      sched <- obj$schedule
+      sched$set_times(0.1, 1)
+      obj$schedule <- sched
+      obj$run()
+      sp <- obj$patch$species[[1]]
+      c(sp$size_individuals, sp$size)
+    }, numeric(2))
+    sum(alive[2, ]) / sum(alive[1, ])
+  }
+  fine <- survival(0.02)
+  coarse <- survival(5)
+  expect_gt(fine, 0.05)
+  expect_lt(abs(fine - coarse), 0.06)
+})
+
+test_that("the death-check interval must be positive and finite", {
+  p <- base_parameters("FF16")
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  for (bad in c(0, -1, Inf, NaN)) {
+    expect_error(stochastic_runner(p, Environment("FF16"),
+                                   Control(stochastic_death_interval = bad)),
+                 "stochastic_death_interval must be positive and finite")
+  }
 })

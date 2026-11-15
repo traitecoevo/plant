@@ -34,6 +34,10 @@ public:
 
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
+  // The patch's time is wherever the solver last evaluated it, which on a
+  // leg's final stage can round one ulp away from where the leg landed. The
+  // runner sets it to the landing time, so a re-sync does not move the solver.
+  void set_time(double t) { environment.time = t; }
   double get_area() const { return area;}
 
   value_type height_max() const;
