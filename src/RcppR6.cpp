@@ -2324,7 +2324,7 @@ double Node___FF16__FF16_Env__height__get(plant::RcppR6::RcppR6<plant::Node<plan
 
 // [[Rcpp::export]]
 double Node___FF16__FF16_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->get_log_density();
+  return obj_->effective_log_density();
 }
 
 // [[Rcpp::export]]
@@ -2404,7 +2404,7 @@ double Node___TF24__TF24_Env__height__get(plant::RcppR6::RcppR6<plant::Node<plan
 
 // [[Rcpp::export]]
 double Node___TF24__TF24_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_log_density();
+  return obj_->effective_log_density();
 }
 
 // [[Rcpp::export]]
@@ -2484,7 +2484,7 @@ double Node___TF24f__TF24_Env__height__get(plant::RcppR6::RcppR6<plant::Node<pla
 
 // [[Rcpp::export]]
 double Node___TF24f__TF24_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_log_density();
+  return obj_->effective_log_density();
 }
 
 // [[Rcpp::export]]
@@ -2564,7 +2564,7 @@ double Node___TF24t__TF24_Env__height__get(plant::RcppR6::RcppR6<plant::Node<pla
 
 // [[Rcpp::export]]
 double Node___TF24t__TF24_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_log_density();
+  return obj_->effective_log_density();
 }
 
 // [[Rcpp::export]]
@@ -2644,7 +2644,7 @@ double Node___TF24w__TF24_Env__height__get(plant::RcppR6::RcppR6<plant::Node<pla
 
 // [[Rcpp::export]]
 double Node___TF24w__TF24_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_log_density();
+  return obj_->effective_log_density();
 }
 
 // [[Rcpp::export]]
@@ -2724,7 +2724,7 @@ double Node___K93__K93_Env__height__get(plant::RcppR6::RcppR6<plant::Node<plant:
 
 // [[Rcpp::export]]
 double Node___K93__K93_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Model,plant::K93_Environment> > obj_) {
-  return obj_->get_log_density();
+  return obj_->effective_log_density();
 }
 
 // [[Rcpp::export]]

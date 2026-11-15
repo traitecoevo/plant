@@ -265,12 +265,22 @@ test_that("each coordinate's boundary condition is the one its integral needs", 
     nd <- scm$patch$species[[1]]$new_node
     g0 <- nd$growth_rate_at_birth
     expect_gt(g0, 0)
-    ## log(birth_rate * pr_estab), which is what the birth-date path carries
-    ## directly. Compare in log space.
-    undivided <- log(1.0 * nd$individual$establishment_probability(
-      scm$patch$environment))
-    expect_equal(nd$log_density + if (birth_date) 0 else log(g0), undivided,
-                 tolerance = 1e-10)
+    ## log(birth_rate * pr_estab). The height path carries it divided by g(H_0).
+    ## The birth-date path carries the birth rate times the boundary node's
+    ## share of the establishment the open interval has integrated, over half
+    ## its width: the share is the open interval's second state (p_est - 1
+    ## against the time since the newest node's birth) over the width. Compare
+    ## in log space.
+    if (birth_date) {
+      sp <- scm$patch$species[[1]]
+      h <- nd$introduction_time - utils::tail(sp$node_times, 1)
+      undivided <- log(1.0 * (1 + 2 * utils::tail(sp$ode_state, 1) / h^2))
+      expect_equal(nd$log_density, undivided, tolerance = 1e-10)
+    } else {
+      undivided <- log(1.0 * nd$individual$establishment_probability(
+        scm$patch$environment))
+      expect_equal(nd$log_density + log(g0), undivided, tolerance = 1e-10)
+    }
     ## And the division is doing real work, so the two are not interchangeable.
     expect_gt(abs(log(g0)), 1)
   }
@@ -304,15 +314,21 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   x <- "FF16"; e <- "FF16_Env"
   p <- size_only_parameters(x)
 
-  scm <- SCM(x, e)(p, Environment(x), empty_events(), Control())
-  scm$collect <- TRUE
-  scm$run()
-  state <- export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
-
-  ## A faithful resume carries per-node times, so both coordinates accept it.
-  p_ok <- set_initial_state(p, state)
+  ## Each coordinate's state has its own layout -- the birth-date one carries
+  ## each species' open interval -- so each is exported from a run on it.
+  exported <- function(ctrl) {
+    scm <- SCM(x, e)(p, Environment(x), empty_events(), ctrl)
+    scm$collect <- TRUE
+    scm$run()
+    export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
+  }
   ctrl_bd <- Control()
   ctrl_bd$node_density_coordinate <- "birth_date"
+  ctrl_h <- Control()
+  ctrl_h$node_density_coordinate <- "height"
+
+  ## A faithful resume carries per-node times, so it is accepted.
+  p_ok <- set_initial_state(p, exported(ctrl_bd))
   expect_no_error(Patch(x, e)(p_ok, Environment(x), ctrl_bd))
 
   ## Drop them and every node inherits the boundary node's birth date.
@@ -322,10 +338,10 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
                "sharing an introduction time")
 
   ## The height coordinate never integrates over these, so it is unaffected. Named
-  ## rather than taken from the default, which is the birth-date coordinate.
-  ctrl_h <- Control()
-  ctrl_h$node_density_coordinate <- "height"
-  expect_no_error(Patch(x, e)(p_bad, Environment(x), ctrl_h))
+  ## rather than taken from the default.
+  p_bad_h <- set_initial_state(p, exported(ctrl_h))
+  p_bad_h$initial_node_times <- numeric(0)
+  expect_no_error(Patch(x, e)(p_bad_h, Environment(x), ctrl_h))
 })
 
 ## The coordinate is stored per strategy but cannot differ between the species
@@ -778,4 +794,87 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   # density.
   expect_lt(max(sp$log_densities_state), log(10) + 1)
   expect_true(is.finite(scm$patch$offspring_production))
+})
+
+## Establishment is integrated over each cohort's cell rather than read at its
+## birth date, so under pulsed rain -- where it rises after a storm and falls as
+## the soil dries, within days, while cohorts are months apart -- offspring
+## production does not depend on where the cohorts fall against the storms.
+## Read at the birth date it did: these three schedules spread by 25% that way,
+## and the shifted one gave the highest answer at one spacing and the lowest at
+## half of it. Thirty years, so that output comes from cohorts that grew up
+## rather than from the first few to reach reproductive size, which is not
+## smooth in birth date on either rule.
+test_that("offspring production does not depend on where cohorts fall against the rain", {
+  lifetime <- 30
+  rain <- local({
+    set.seed(11)
+    n <- rpois(1, 20 * (lifetime + 1))
+    data.frame(time = sort(runif(n, 0, lifetime + 1)),
+               amount = rexp(n, 1 / 0.014))
+  })
+  offspring <- function(times) {
+    p <- base_parameters("TF24")
+    p$max_patch_lifetime <- lifetime
+    p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma")))
+    p$node_schedule_times <- list(times)
+    env <- Environment("TF24")
+    env$extrinsic_drivers_set_constant("rainfall", 0)
+    k <- rain$time > 0 & rain$time < lifetime
+    ev <- events(events_default(p),
+                 rainfall_pulse(rain$time[k], rain$amount[k]))
+    ctrl <- control(ode_tol_rel = 1e-4, ode_tol_abs = 1e-4,
+                    ode_step_size_max = 0.05)
+    sum(run(scenario(p, env, ctrl, events = ev))$offspring_production)
+  }
+  dt <- 0.74
+  placed <- seq(0, lifetime - dt, by = dt)
+  shifted <- c(0, placed[-1] - dt / 2, lifetime - dt / 2)
+  r <- c(placed = offspring(placed), shifted = offspring(shifted),
+         twice = offspring(sort(unique(c(placed, shifted)))))
+  message(sprintf("\n  offspring production: %s",
+                  paste(sprintf("%s %.4f", names(r), r), collapse = ", ")))
+  expect_gt(min(r), 10)
+  expect_lt(diff(range(r)) / mean(r), 0.05)
+})
+
+## K93 establishes every seed, so the open interval's two states, which
+## integrate establishment minus one, stay at exactly zero, and the run is the
+## one the trapezium of the birth-rate density gave.
+test_that("a model that establishes every seed leaves the open interval empty", {
+  p <- size_only_parameters("K93")
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  scm <- SCM("K93", "K93_Env")(p, Environment("K93"), empty_events(), ctrl)
+  scm$run()
+  sp <- scm$patch$species[[1]]
+  expect_gt(sp$size, 10)
+  expect_identical(utils::tail(sp$ode_state, 2), c(0, 0))
+})
+
+## A state written by hand carries the densities it gives. Its cohorts take in
+## no establishment, at the start or when the run introduces its first cohort,
+## so a tall tree is not scaled by how seedlings fare under it; the cohorts the
+## run introduces do.
+test_that("a hand-built state keeps its densities through the first introduction", {
+  p <- size_only_parameters("FF16")
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  state <- make_initial_state(p, heights = list(5), densities = list(0.2),
+                              env = Environment("FF16"), ctrl = ctrl)
+  expect_true(state$established)
+  p2 <- set_initial_state(p, state)
+  expect_true(p2$initial_established)
+  p2$node_schedule_times <- list(c(0.5, 1, 1.5))
+  scm <- SCM("FF16", "FF16_Env")(p2, Environment("FF16"), empty_events(), ctrl)
+  given <- function() scm$patch$species[[1]]$nodes[[1]]
+  survival <- function() exp(-given()$individual$state("mortality"))
+  scm$run_to(0)
+  expect_equal(given()$log_density, log(0.2), tolerance = 1e-12)
+  scm$run_to(1.2)
+  ## Past the first introduction, the hand-built cohort's density has moved
+  ## only through its own mortality.
+  expect_gt(scm$patch$species[[1]]$size, 1)
+  expect_equal(given()$log_density, log(0.2 * survival()), tolerance = 1e-10)
+  ## An exported state is not marked, so a resume goes on taking in the
+  ## newest cohort's establishment.
+  expect_false(isTRUE(export_patch_state(scm)$established))
 })

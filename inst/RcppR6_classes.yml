@@ -670,6 +670,7 @@ Parameters:
     - initial_patch_density: "std::vector<double>"
     - initial_pr_patch_survival: "std::vector<double>"
     - initial_time: double
+    - initial_established: bool
     # The trade-off function the strategies were built with (an R closure or
     # NULL). Opaque to C++; carried so it survives validate() and run().
     - hyperpar: SEXP
@@ -691,11 +692,13 @@ Node:
   active:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
-    ## The quantity this node carries: the density in height on the height path,
-    ## the density in birth date on the birth-date one. Unlike
-    ## Species$log_densities this is *not* converted, because forming |dh/dtau|
-    ## needs the neighbouring nodes and a Node does not have them.
-    log_density: {type: double, access: member, name_cpp: get_log_density}
+    ## The density this node contributes: in height on the height path, in
+    ## birth date on the birth-date one. On the birth-date path the newest node
+    ## and the boundary node include the establishment of the interval still
+    ## open, which their ODE state does not yet. Unlike Species$log_densities
+    ## this is *not* converted, because forming |dh/dtau| needs the
+    ## neighbouring nodes and a Node does not have them.
+    log_density: {type: double, access: member, name_cpp: effective_log_density}
     ## The node's birth date. For the not-yet-introduced boundary node this is
     ## the current patch time, refreshed on every environment build.
     introduction_time: {type: double, access: member, readonly: true}

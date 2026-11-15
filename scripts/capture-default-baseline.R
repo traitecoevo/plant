@@ -9,9 +9,11 @@
 ## The cases are built by default_baseline_cases(), defined in the test's
 ## helper, so the test and the capture run the same code. The helper runs
 ## through run(), so the capture needs a build that has it (#428 onwards). The
-## recorded baseline comes from the commit before #661 (9f04309b), captured
-## when the helper still used the API of that commit; to re-capture from a
-## build that old, use the helper as it stood at that commit.
+## recorded height-coordinate cases come from the commit before #661
+## (9f04309b), captured when the helper still used the API of that commit; to
+## re-capture from a build that old, use the helper as it stood at that commit.
+## The birth-date cases were re-captured when establishment came to be averaged
+## over each cohort's cell, which moved them by design.
 
 args <- commandArgs(trailingOnly = TRUE)
 out <- if (length(args) > 0) args[[1]] else

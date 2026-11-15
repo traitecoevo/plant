@@ -801,6 +801,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Model<double> ,
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["initial_established"] = Rcpp::wrap(x.initial_established);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16,FF16_Env>", "Parameters");
   return ret;
@@ -858,6 +859,8 @@ template <> inline plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Envi
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.initial_established = Rcpp::as<decltype(retinitial_established) >(xl["initial_established"]);
+  if (xl.containsElementNamed("initial_established")) ret.initial_established = Rcpp::as<bool >(xl["initial_established"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   // patch_type, renamed fitness_weighting: translated on an old saved
@@ -900,6 +903,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24_Model<double> ,
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["initial_established"] = Rcpp::wrap(x.initial_established);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24,TF24_Env>", "Parameters");
   return ret;
@@ -957,6 +961,8 @@ template <> inline plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Envi
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.initial_established = Rcpp::as<decltype(retinitial_established) >(xl["initial_established"]);
+  if (xl.containsElementNamed("initial_established")) ret.initial_established = Rcpp::as<bool >(xl["initial_established"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   // patch_type, renamed fitness_weighting: translated on an old saved
@@ -999,6 +1005,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24f_Model<double> 
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["initial_established"] = Rcpp::wrap(x.initial_established);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24f,TF24_Env>", "Parameters");
   return ret;
@@ -1056,6 +1063,8 @@ template <> inline plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.initial_established = Rcpp::as<decltype(retinitial_established) >(xl["initial_established"]);
+  if (xl.containsElementNamed("initial_established")) ret.initial_established = Rcpp::as<bool >(xl["initial_established"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   // patch_type, renamed fitness_weighting: translated on an old saved
@@ -1098,6 +1107,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24t_Model<double> 
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["initial_established"] = Rcpp::wrap(x.initial_established);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24t,TF24_Env>", "Parameters");
   return ret;
@@ -1155,6 +1165,8 @@ template <> inline plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.initial_established = Rcpp::as<decltype(retinitial_established) >(xl["initial_established"]);
+  if (xl.containsElementNamed("initial_established")) ret.initial_established = Rcpp::as<bool >(xl["initial_established"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   // patch_type, renamed fitness_weighting: translated on an old saved
@@ -1197,6 +1209,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24w_Model<double> 
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["initial_established"] = Rcpp::wrap(x.initial_established);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24w,TF24_Env>", "Parameters");
   return ret;
@@ -1254,6 +1267,8 @@ template <> inline plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Env
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.initial_established = Rcpp::as<decltype(retinitial_established) >(xl["initial_established"]);
+  if (xl.containsElementNamed("initial_established")) ret.initial_established = Rcpp::as<bool >(xl["initial_established"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   // patch_type, renamed fitness_weighting: translated on an old saved
@@ -1296,6 +1311,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Model,plant::K93
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["initial_established"] = Rcpp::wrap(x.initial_established);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<K93,K93_Env>", "Parameters");
   return ret;
@@ -1353,6 +1369,8 @@ template <> inline plant::Parameters<plant::K93_Model,plant::K93_Environment> as
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.initial_established = Rcpp::as<decltype(retinitial_established) >(xl["initial_established"]);
+  if (xl.containsElementNamed("initial_established")) ret.initial_established = Rcpp::as<bool >(xl["initial_established"]);
   // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
   if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   // patch_type, renamed fitness_weighting: translated on an old saved

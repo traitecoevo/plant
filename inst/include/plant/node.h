@@ -34,7 +34,48 @@ public:
   // weighted by density. The first entry equals compute_competition(z) exactly.
   with_slope<value_type>
   compute_competition_and_slope(const value_type& z) const;
-  value_type fecundity() const {return offspring_produced_survival_weighted;}
+  value_type fecundity() const {
+    return scaled_ ? offspring_produced_survival_weighted * density_scale
+                   : offspring_produced_survival_weighted;
+  }
+
+  // Birth-date coordinate. The newest node and the boundary node are carried
+  // per seed that establishes while the interval after the newest is still
+  // open; their density and offspring are read through this factor, their
+  // share of the establishment so far over the width it covers (see Species'
+  // open_ode_size()). Species sets it on every state load; every other node
+  // reads its state as is.
+  void set_density_scale(const value_type& e) {
+    scaled_ = true;
+    density_scale = e;
+  }
+  void clear_density_scale() {
+    scaled_ = false;
+    density_scale = value_type(1.0);
+  }
+  value_type get_density_scale() const {
+    return scaled_ ? density_scale : value_type(1.0);
+  }
+  // The next node has arrived, so this node's establishment is final: write it
+  // into the state, where it stays. A node that nothing established on is
+  // retired on the sentinels a cohort born with no density used to carry.
+  void fold_establishment(const value_type& e) {
+    scaled_ = false;
+    density_scale = value_type(1.0);
+    if (e > 0) {
+      const value_type log_e = log(e);
+      individual.set_state(MORTALITY_INDEX,
+                           individual.state(MORTALITY_INDEX) - log_e);
+      offspring_produced_survival_weighted *= e;
+      set_log_density(log_density + log_e);
+    } else {
+      individual.set_state(MORTALITY_INDEX,
+                           individual.state(MORTALITY_INDEX) +
+                             establishment_failure_hazard);
+      offspring_produced_survival_weighted = value_type(0.0);
+      retire();
+    }
+  }
 
   // The survival factor offspring_produced_survival_weighted_dt multiplies. It
   // is zero rather than non-finite where the mortality integral has run away:
@@ -82,7 +123,7 @@ public:
   // Lifetime offspring of this node, weighted by the probability of
   // landing in a patch of the node's age and by survival during dispersal.
   value_type weighted_fecundity(const value_type& S_D) const {
-    return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
+    return fecundity() * patch_density_at_birth * S_D;
   }
 
   // A cohort carrying no density: absorbed into the top layer, or at exactly
@@ -101,7 +142,19 @@ public:
   value_type get_log_density() const {return log_density;}
   // exp(log_density); can overflow to +Inf when the SCM density equation runs
   // away (see Patch::check_finite_ode_state).
-  value_type get_density() const {return density;}
+  // What the node contributes: its state, through the open interval's factor
+  // where it has one.
+  value_type get_density() const {
+    return scaled_ ? density * density_scale : density;
+  }
+  // log(get_density()), on the sentinel where that is zero.
+  value_type effective_log_density() const {
+    if (!scaled_) {
+      return log_density;
+    }
+    return density_scale > 0 ? log_density + log(density_scale)
+                             : value_type(-establishment_failure_hazard);
+  }
   void set_log_density(const value_type& x) {
     log_density = x;
     density = exp(log_density);
@@ -133,7 +186,7 @@ public:
   }
 
   value_type consumption_rate(int i) const {
-    return individual.consumption_rate(i) * density;
+    return individual.consumption_rate(i) * get_density();
   }
 
   individual_type individual;
@@ -151,6 +204,7 @@ public:
   template <class F>
   void for_each_active(F&& f) {
     odelia::ode::visit_active(f, log_density, log_density_dt, density,
+                              density_scale,
                               offspring_produced_survival_weighted,
                               offspring_produced_survival_weighted_dt,
                               individual);
@@ -172,6 +226,8 @@ private:
   value_type log_density;
   value_type log_density_dt;
   value_type density;  // exp(log_density), kept beside it for readers
+  value_type density_scale{1.0};  // see set_density_scale()
+  bool scaled_{false};
   value_type offspring_produced_survival_weighted;
   value_type offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
@@ -241,11 +297,14 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   compute_node_rates(environment, pr_patch_survival);
 }
 
-// A new cohort's cumulative mortality starts at -log(establishment_probability),
-// so the hazard of failing to establish is paid at birth, and its log_density
-// at the log of the density it is born with. Where either is zero the state
-// takes a finite sentinel instead: establishment_failure_hazard for the
-// mortality, its negative for log_density.
+// On the height coordinate a new cohort's cumulative mortality starts at
+// -log(establishment_probability), so the hazard of failing to establish is
+// paid at birth, and its log_density at the log of the density it is born
+// with. Where either is zero the state takes a finite sentinel instead:
+// establishment_failure_hazard for the mortality, its negative for
+// log_density. On the birth-date coordinate a cohort is born per seed that
+// establishes, at hazard zero and the birth rate, and its species supplies the
+// establishment over its cell (Species::set_open_scales()).
 template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival,
@@ -255,6 +314,13 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // optimum) before the first rates evaluation, so the birth growth rate uses
   // the initialised operating point rather than a default.
   individual.set_initial_states(environment);
+  // On the birth-date coordinate the newborn's hazard is zero, and it is seated
+  // before the rates so they read it, and not whatever the boundary node held
+  // after the last evaluation -- which, after a retirement, is a hazard past
+  // the gate, and a rate of zero.
+  if (density_in_birth_date()) {
+    individual.set_state(MORTALITY_INDEX, value_type(0.0));
+  }
   // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the initial
   // state below, because both read state it writes -- taken here, the density rate is
   // guarded against the density this node held BEFORE birth, which on one being
@@ -262,8 +328,12 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // the whole of the node's first evaluation.
   individual.compute_rates(environment);
 
-  const value_type pr_estab =
-    individual.establishment_probability_of_newborn(environment);
+  // On the birth-date coordinate a node is born per seed that establishes, and
+  // Species supplies the establishment through set_density_scale() while the
+  // node's interval is open and folds it into the state when it closes.
+  const value_type pr_estab = density_in_birth_date()
+    ? value_type(1.0)
+    : individual.establishment_probability_of_newborn(environment);
   // Held at establishment_failure_hazard on the zero arm rather than at the
   // -log(0) the equation gives; see the constant for what an infinite state
   // costs the reverse pass.
@@ -305,6 +375,19 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                       ? log(density_at_birth)
                       : value_type(-establishment_failure_hazard));
 
+  // A newborn per established seed whose hazard spends the establishment
+  // failure hazard within the solver's shortest step survives no step the
+  // solver can take: its survival is exactly zero in double precision by the
+  // end of one. It is retired at birth, on the hazard a cohort that never
+  // establishes carries, rather than integrated through a rate that steep.
+  if (density_in_birth_date() &&
+      !(individual.rate(MORTALITY_INDEX) * individual.control().ode_step_size_min <
+        establishment_failure_hazard)) {
+    individual.set_state(MORTALITY_INDEX,
+                         value_type(establishment_failure_hazard));
+    retire();
+  }
+
   // Now that the density and the hazard are seated, the node's own rates.
   compute_node_rates(environment, pr_patch_survival);
 }
@@ -330,7 +413,7 @@ Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
 template <typename T, typename E>
 typename Node<T,E>::value_type
 Node<T,E>::compute_competition(const value_type& height_) const {
-  return density * individual.compute_competition(height_);
+  return get_density() * individual.compute_competition(height_);
 }
 
 template <typename T, typename E>
@@ -338,7 +421,8 @@ with_slope<typename Node<T,E>::value_type>
 Node<T,E>::compute_competition_and_slope(const value_type& height_) const {
   const with_slope<value_type> fs =
     individual.compute_competition_and_slope(height_);
-  return {density * fs.value, density * fs.slope};
+  const value_type d = get_density();
+  return {d * fs.value, d * fs.slope};
 }
 
 // ODE interface -- note that the don't care about time in the node;

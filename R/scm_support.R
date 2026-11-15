@@ -185,7 +185,10 @@ residual_events <- function(scm, time, residual, tol, final) {
 ##'   \code{densities}).
 ##' @param env Environment object (defaults to the strategy's environment).
 ##' @param ctrl Control object.
-##' @return A state list suitable for \code{\link{set_initial_state}}.
+##' @return A state list suitable for \code{\link{set_initial_state}}. It is
+##'   marked \code{established}: on the birth-date coordinate the densities
+##'   given are the densities carried, and only the nodes the run introduces
+##'   take in establishment.
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{export_patch_state}}
 ##' @export
 make_initial_state <- function(p, heights, densities = NULL,
@@ -225,7 +228,9 @@ make_initial_state <- function(p, heights, densities = NULL,
     stop("could not locate 'height'/'log_density' in node ODE names")
   }
   node_ode_size <- length(ode_names)
-  env_state <- patch$ode_state # fresh patch has no nodes: environment ODE only
+  ## A fresh patch has no nodes, but on the birth-date coordinate each species
+  ## still carries its open interval's two states ahead of the environment.
+  env_state <- utils::tail(patch$ode_state, patch$environment$ode_size)
   pr_surv0 <- patch$pr_survival(0)
   dens0 <- patch$density(0)
 
@@ -247,7 +252,11 @@ make_initial_state <- function(p, heights, densities = NULL,
     mat <- matrix(0, nrow = node_ode_size, ncol = length(h))
     mat[hi, ] <- h
     mat[ldi, ] <- ld
-    ode_chunks[[i]] <- as.vector(mat) # column-major: node-by-node, matching set_ode_state
+    ## On the birth-date coordinate the species' block ends with the open
+    ## interval's two establishment integrals. Zero is every seed
+    ## establishing, so the densities given are the densities carried.
+    open <- if (patch$species[[i]]$density_in_birth_date) c(0, 0) else numeric(0)
+    ode_chunks[[i]] <- c(as.vector(mat), open) # column-major: node-by-node, matching set_ode_state
     n[i] <- length(h)
     node_times[[i]] <- rep(0, length(h))
     patch_density[[i]] <- rep(dens0, length(h))
@@ -261,6 +270,9 @@ make_initial_state <- function(p, heights, densities = NULL,
     node_times = node_times,
     patch_density = patch_density,
     pr_patch_survival = pr_patch_survival,
+    ## The densities are as given: on the birth-date coordinate no node of
+    ## this state takes in establishment (see set_initial_state()).
+    established = TRUE,
     ## Continue recruitment for t > 0; the initialised distribution replaces the t=0 recruit.
     node_schedule_times = lapply(p$node_schedule_times, function(tt) tt[tt > 1e-8])
   )
@@ -302,6 +314,10 @@ set_initial_state <- function(p, state) {
   p$initial_patch_density <- unlist(state$patch_density, use.names = FALSE)
   p$initial_pr_patch_survival <- unlist(state$pr_patch_survival, use.names = FALSE)
   p$initial_time <- state$time
+  ## On the birth-date coordinate a state written by make_initial_state() carries
+  ## its densities as given; one exported from a run is still taking in its
+  ## newest node's establishment.
+  p$initial_established <- isTRUE(state$established)
   if (!is.null(state$node_schedule_times)) {
     p$node_schedule_times <- state$node_schedule_times
   }

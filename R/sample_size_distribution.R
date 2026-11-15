@@ -15,8 +15,9 @@
 #' requested time the number of individuals is Poisson, with mean the area times
 #' the integral of the density over birth date. The sample is exact apart from
 #' the interpolation between nodes. The set of nodes changes from frame to frame,
-#' so the interpolated density at a birth date can rise slightly; having no
-#' births to add, the sample then follows its running minimum. Individuals of a
+#' so the interpolated density at a birth date can rise slightly, and so can the
+#' newest cohort's, which takes in establishment until the next cohort arrives;
+#' having no births to add, the sample then follows its running minimum. Individuals of a
 #' cohort that leaves the tracked nodes (as a continuous patch retires its oldest
 #' cohorts) drop out of the sample. Every other state variable is interpolated to an individual's
 #' birth date in the same way.

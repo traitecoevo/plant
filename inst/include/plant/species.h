@@ -59,13 +59,57 @@ public:
   // ODE plumbing and the per-element serialisers are inherited from SpeciesBase
   // and iterate all nodes (the deterministic model has no notion of "dead").
   // The nodes' blocks, then the top layer's when it is on (top_ode_size()).
-  size_t ode_size() const { return base_type::ode_size() + top_ode_size(); }
+  // On the birth-date coordinate the open interval's two establishment
+  // integrals sit between them (open_ode_size()).
+  size_t ode_size() const {
+    return base_type::ode_size() + open_ode_size() + top_ode_size();
+  }
   template <typename It> It ode_state(It it) const {
-    return top_ode_state(base_type::ode_state(it));
+    return top_ode_state(open_ode_state(base_type::ode_state(it)));
   }
   template <typename It> It ode_rates(It it) const {
-    return top_ode_rates(base_type::ode_rates(it));
+    return top_ode_rates(open_ode_rates(base_type::ode_rates(it)));
   }
+
+  // * Establishment on the birth-date coordinate
+  //
+  // A node stands for the seeds arriving over its cell, the half interval
+  // either side of its birth date, and its density carries the probability
+  // that a seed establishes, p_est, integrated over the intervals beside it
+  // rather than read at its birth date: p_est can rise after rain and fall as
+  // the soil dries within days, where nodes are weeks apart. The birth rate is
+  // read at the birth date, as before. What happens to a seed after it
+  // establishes changes smoothly with its birth date, so the trapezium every
+  // reduction here takes is kept; only p_est is integrated, on the solver's
+  // own steps.
+  //
+  // Only the interval after the newest node is open, and over it two states
+  // integrate p_est - 1, so that zero is every seed establishing: a model that
+  // establishes every seed (K93) keeps them at zero. With t_i the newest
+  // node's birth date and h the time since, open_m1_ is the first moment,
+  // p_est - 1 integrated against (t - t_i), and the boundary node's share of
+  // the open interval is open_m1_ / h, p_est integrated against its hat.
+  // open_w0_ is the newest node's share of the interval before it plus
+  // p_est - 1 integrated since its birth, so its share of the open interval
+  // is open_w0_ - open_m1_ / h, p_est integrated against its own hat. Each
+  // interval's p_est is so split between its two ends by the hat functions
+  // the trapezium weights them with, which conserves it. Until the next node
+  // arrives the newest node and the boundary node are read through
+  // Node::set_density_scale(), as their share over the width it covers; when
+  // it arrives, the newest node's is folded into its state and the boundary's
+  // share becomes the new node's share of the interval before it.
+  size_t open_ode_size() const { return density_in_birth_date() ? 2 : 0; }
+  // The first nodes of a state written by hand (Parameters'
+  // initial_established) already carry their establishment, so none of them
+  // takes in the open interval's: only a node introduced since does.
+  void mark_established() {
+    n_established_ = size();
+    if (!nodes.empty()) {
+      nodes.back().clear_density_scale();
+    }
+  }
+  size_t established_count() const { return n_established_; }
+  void set_established_count(size_t n) { n_established_ = n; }
   using base_type::get_node_state;
   using base_type::get_node_aux;
   typename std::vector<node_type>::iterator node_begin() { return nodes.begin(); }
@@ -104,8 +148,11 @@ public:
         const double right = x[k + 1] - x[k];
         const double w = (left + right) / 2.0;
         const double w_dt = (k + 1 == m) ? 0.5 : 0.0;
+        // The youngest cohort's ground also grows with the establishment its
+        // open interval integrates, which its density reads.
+        const double open_rate = (k + 1 == m) ? open_scale_relative_rate() : 0.0;
         f(nodes[k].individual, w * to_passive(nodes[k].get_density()),
-          w > 0.0 ? w_dt / w : 0.0, 0);
+          (w > 0.0 ? w_dt / w : 0.0) + open_rate, 0);
       }
       const double w = (x[m] - x[m - 1]) / 2.0;
       f(new_node.individual, w * to_passive(new_node.get_density()), 0.0, 1);
@@ -207,7 +254,8 @@ public:
   // nowhere else, because every node shares it.
   template <class F>
   void for_each_active(F&& f) {
-    odelia::ode::visit_active(f, nodes, new_node, height_scan_cache.h_max,
+    odelia::ode::visit_active(f, nodes, new_node, open_w0_, open_m1_,
+                              open_w0_dt_, open_m1_dt_, height_scan_cache.h_max,
                               top_, top_density_, top_weight_,
                               top_weight_birth_, top_seeds_, top_seeds_birth_,
                               top_density_dt_, top_weight_dt_,
@@ -234,7 +282,13 @@ public:
   // with it. Shadows (rather than uses) the SpeciesBase version for that reason.
   template <typename It> It set_ode_state(It it) {
     invalidate_height_scan();
-    return set_top_ode_state(base_type::set_ode_state(it));
+    it = base_type::set_ode_state(it);
+    if (open_ode_size() > 0) {
+      open_w0_ = *it++;
+      open_m1_ = *it++;
+      set_open_scales(new_node.introduction_time());
+    }
+    return set_top_ode_state(it);
   }
 
   // * The absorbing top layer (Control::absorb_epsilon, #519)
@@ -345,6 +399,7 @@ public:
   // boundary abscissa is the constant initial height.
   void set_new_node_birth_date(double time) {
     new_node.set_introduction_time(time);
+    set_open_scales(time);
   }
 
   // Two nodes sharing a birth date give a zero-width trapezium interval, so the
@@ -477,6 +532,108 @@ private:
   using base_type::strategy;
   using base_type::control;
   node_type new_node;
+  // The open interval's establishment integrals and their rates; see
+  // open_ode_size().
+  value_type open_w0_{0.0}, open_m1_{0.0}, open_w0_dt_{0.0}, open_m1_dt_{0.0};
+  // p_est at the last rates evaluation: what a cell of zero width reads,
+  // where its weight is zero and only a report sees the value.
+  double open_establishment_last_{1.0};
+  // See mark_established().
+  size_t n_established_{0};
+  // Whether the newest node is still taking in establishment.
+  bool newest_open() const { return size() > n_established_; }
+  template <typename It> It open_ode_state(It it) const {
+    if (open_ode_size() > 0) {
+      util::write_iterator_scalar(it, open_w0_);
+      util::write_iterator_scalar(it, open_m1_);
+    }
+    return it;
+  }
+  template <typename It> It open_ode_rates(It it) const {
+    if (open_ode_size() > 0) {
+      util::write_iterator_scalar(it, open_w0_dt_);
+      util::write_iterator_scalar(it, open_m1_dt_);
+    }
+    return it;
+  }
+  // The width of the interval before the newest node; zero for the first.
+  double open_previous_width() const {
+    const size_t n = nodes.size();
+    return n > 1 ? nodes[n - 1].introduction_time() -
+                     nodes[n - 2].introduction_time() : 0.0;
+  }
+  // The newest node's share of p_est over the width it covers, with the open
+  // interval ending at `time`: half the interval before it and half the open
+  // one.
+  value_type open_node_establishment(double time) const {
+    const double h = time - nodes.back().introduction_time();
+    const double half = (open_previous_width() + h) / 2;
+    if (!(half > 0.0)) {
+      return value_type(open_establishment_last_);
+    }
+    const value_type share = h > 0.0 ? open_w0_ - open_m1_ / h : open_w0_;
+    return 1.0 + share / half;
+  }
+  // The boundary node's: its share of the open interval's p_est, over half its
+  // width.
+  value_type open_boundary_establishment(double time) const {
+    if (nodes.empty()) {
+      return value_type(open_establishment_last_);
+    }
+    const double h = time - nodes.back().introduction_time();
+    if (!(h > 0.0)) {
+      return value_type(open_establishment_last_);
+    }
+    return 1.0 + 2.0 * open_m1_ / (h * h);
+  }
+  void set_open_scales(double time) {
+    if (open_ode_size() == 0) {
+      return;
+    }
+    new_node.set_density_scale(open_boundary_establishment(time));
+    if (newest_open()) {
+      nodes.back().set_density_scale(open_node_establishment(time));
+    } else if (!nodes.empty()) {
+      nodes.back().clear_density_scale();
+    }
+  }
+  // The relative rate of the newest node's establishment factor, 1 + share /
+  // half: share = w0 - m1 / h grows at m1 / h^2, which is half the boundary
+  // factor less one, and half at one half a year per year, so the factor moves
+  // towards the boundary's.
+  double open_scale_relative_rate() const {
+    using odelia::util::to_passive;
+    if (open_ode_size() == 0 || !newest_open()) {
+      return 0.0;
+    }
+    const double h = new_node.introduction_time() - nodes.back().introduction_time();
+    const double half = (open_previous_width() + h) / 2;
+    const double scale = to_passive(nodes.back().get_density_scale());
+    if (!(half > 0.0) || !(scale > 0.0) || !(h > 0.0)) {
+      return 0.0;
+    }
+    const double boundary = to_passive(new_node.get_density_scale());
+    return (boundary - scale) / (2.0 * half * scale);
+  }
+  // The next node arrives at `time`: the newest node's establishment is final
+  // and goes into its state, and the boundary's share of the interval that
+  // just closed starts the new node's.
+  void close_open_interval(double time) {
+    if (open_ode_size() == 0) {
+      return;
+    }
+    if (nodes.empty()) {
+      open_w0_ = value_type(0.0);
+      open_m1_ = value_type(0.0);
+      return;
+    }
+    if (newest_open()) {
+      nodes.back().fold_establishment(open_node_establishment(time));
+    }
+    const double h = time - nodes.back().introduction_time();
+    open_w0_ = h > 0.0 ? open_m1_ / h : value_type(0.0);
+    open_m1_ = value_type(0.0);
+  }
   // The top layer (see top_ode_size()) and its rates.
   individual_type top_;
   value_type top_density_{0.0}, top_weight_{0.0}, top_weight_birth_{0.0},
@@ -598,6 +755,9 @@ void Species<T,E>::clear() {
   nodes.clear();
   // Reset the new_node to a blank new_node, too.
   new_node = node_type(strategy);
+  open_w0_ = open_m1_ = open_w0_dt_ = open_m1_dt_ = value_type(0.0);
+  open_establishment_last_ = 1.0;
+  n_established_ = 0;
   // And the top layer: it belongs to a run, so a run that starts again starts
   // without one. A resumed patch loads the exported layer after this.
   top_ = individual_type(strategy);
@@ -617,7 +777,9 @@ void Species<T,E>::introduce_new_node() {
   // Recomputing it here would be redundant, and would (wrongly) recompute against
   // the post-introduction environment rather than the environment at the
   // node's introduction time (resolves the recompute question in #478).
+  close_open_interval(new_node.introduction_time());
   nodes.push_back(new_node);
+  set_open_scales(new_node.introduction_time());
 }
 
 // If a species contains no individuals, we return the height of a
@@ -1049,6 +1211,24 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
   // it -- so the two are the same function at different arguments rather than one
   // computed twice. This value is the one an introduced node inherits.
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
+  if (open_ode_size() > 0) {
+    // p_est for a seed arriving now, from the boundary node just evaluated.
+    // Nothing integrates before the first node: its cell starts at its birth
+    // date.
+    const value_type e =
+      new_node.individual.establishment_probability_of_newborn(environment);
+    open_establishment_last_ = odelia::util::to_passive(e);
+    if (nodes.empty()) {
+      open_w0_dt_ = value_type(0.0);
+      open_m1_dt_ = value_type(0.0);
+    } else {
+      const double h =
+        new_node.introduction_time() - nodes.back().introduction_time();
+      open_w0_dt_ = e - 1.0;
+      open_m1_dt_ = (e - 1.0) * h;
+    }
+    set_open_scales(new_node.introduction_time());
+  }
   if (top_on()) {
     compute_top_rates(environment, pr_patch_survival);
   }
@@ -1167,8 +1347,10 @@ void Species<T,E>::introduce_new_node(double time, double patch_density,
   invalidate_height_scan();
   // Stamp the pushed copy (not new_node) so the member stays pristine for
   // the no-arg introduction paths.
+  close_open_interval(time);
   nodes.push_back(new_node);
   nodes.back().set_birth_state(time, patch_density, pr_patch_survival);
+  set_open_scales(time);
 }
 
 template <typename T, typename E>
@@ -1178,6 +1360,9 @@ void Species<T,E>::remove_newest_node() {
   }
   invalidate_height_scan();
   nodes.pop_back();
+  if (n_established_ > nodes.size()) {
+    n_established_ = nodes.size();
+  }
 }
 
 template <typename T, typename E>
@@ -1371,7 +1556,9 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
     // Jacobian's trailing entry is used here (unlike r_log_densities()).
     const std::vector<double> jac = height_jacobian();
     for (int col = 0; col <= static_cast<int>(n_nodes); ++col) {
-      const double nu = ret(ld, col);
+      const node_type& node =
+        col < static_cast<int>(n_nodes) ? nodes[static_cast<size_t>(col)] : new_node;
+      const double nu = odelia::util::to_passive(node.effective_log_density());
       ret(st, col) = nu;
       ret(ld, col) = util::is_finite(jac[col]) ? nu - std::log(jac[col]) : NA_REAL;
     }
@@ -1488,7 +1675,7 @@ std::vector<double> Species<T,E>::r_log_densities_state() const {
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin();
        it != nodes.end(); ++it) {
-    ret.push_back(odelia::util::to_passive(it->get_log_density()));
+    ret.push_back(odelia::util::to_passive(it->effective_log_density()));
   }
   return ret;
 }

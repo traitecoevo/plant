@@ -18,18 +18,20 @@ tf24_allometry_r <- function(pars, eta) {
   }
 }
 
-# Every cohort's state, boundary node last, from the ODE state the species and
-# its boundary node write. The birth date is not ODE state and is read off the
-# nodes themselves.
+# Every cohort's state, boundary node last, from the ODE state each node writes.
+# The density is the one each node contributes, which on the birth-date
+# coordinate includes, for the newest node and the boundary node, the
+# establishment of the interval still open; the birth date is not ODE state.
+# Both are read off the nodes themselves.
 species_state_r <- function(species) {
+  nodes <- c(species$nodes, list(species$new_node))
   names <- species$new_node$ode_names
-  stride <- length(names)
-  flat <- c(species$ode_state, species$new_node$ode_state)
-  s <- matrix(flat, nrow = stride, dimnames = list(names, NULL))
+  s <- vapply(nodes, function(n) n$ode_state, numeric(length(names)))
+  rownames(s) <- names
   data.frame(height = s["height", ],
              area_heartwood = s["area_heartwood", ],
              mass_heartwood = s["mass_heartwood", ],
-             log_density = s["log_density", ],
+             log_density = vapply(nodes, function(n) n$log_density, 0),
              birth_date = c(vapply(species$nodes,
                                    function(n) n$introduction_time, 0),
                             species$new_node$introduction_time))
@@ -230,11 +232,13 @@ test_that("G3: the state adjoint is the census's derivative on the birth-date gr
   # and 54x at the furthest, so an adjoint built on the wrong one is nowhere a small
   # error.
   expect_gt(min(abs(got - over_height) / abs(over_birth_date)), 0.25)
-  # The boundary node's own response is in the adjoint. It is the one part of the
-  # answer no state column reports, and dropping it leaves every number finite:
-  # scm.h says the contribution goes to exactly zero with nothing thrown. What
-  # separates the two references is 2.5e-07, against the 9.5e-11 above.
-  expect_gt(min(abs(got - boundary_held) / abs(got)), 1e-8)
+  # The boundary node does not respond to these columns. Its density is the
+  # birth rate times the establishment the open interval has integrated, which
+  # is ODE state of its own; the field reaches establishment through that
+  # state's rate, not through the census. So the derivative with the boundary
+  # node pinned is the whole answer here, and a census that read establishment
+  # off the field at the instant would show up as a gap.
+  expect_lt(max(abs(got - boundary_held) / abs(got)), 1e-10)
 })
 
 test_that("G4: the state adjoint reaches every state a metric reads", {

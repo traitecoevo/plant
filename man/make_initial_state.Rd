@@ -30,7 +30,10 @@ Supply this or \code{log_densities}.}
 \item{ctrl}{Control object.}
 }
 \value{
-A state list suitable for \code{\link{set_initial_state}}.
+A state list suitable for \code{\link{set_initial_state}}. It is
+  marked \code{established}: on the birth-date coordinate the densities
+  given are the densities carried, and only the nodes the run introduces
+  take in establishment.
 }
 \description{
 Build an initial patch state from a specified size distribution, for initialising

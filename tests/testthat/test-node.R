@@ -120,12 +120,17 @@ for (x in names(strategy_types)) {
     ## divided by the growth rate, a density in birth date is not -- so read the
     ## coordinate off the node rather than assuming one. TF24 resolves Control's
     ## "auto" to birth date; FF16 and K93 to height.
+    ## On the birth-date coordinate a node is born per seed that establishes, so
+    ## it starts at the birth rate (one here) with no hazard paid; its species
+    ## supplies the establishment over its cell and folds it into the state when
+    ## the next node arrives.
     birth_date <- node$density_in_birth_date
     cmp <- c(plant$internals$states,
              0, # offspring_produced_survival_weighted
-             if (birth_date) log(pr_estab) else log(pr_estab / g) # log density
+             if (birth_date) 0 else log(pr_estab / g) # log density
              )
-    cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
+    cmp[which(plant$ode_names == 'mortality')] <-
+      if (birth_date) 0 else -log(pr_estab)
     expect_equal(node$ode_state, cmp)
 
     expect_identical(node$fecundity, 0.0);
@@ -191,9 +196,11 @@ for (x in names(strategy_types)) {
     node <- Node(x, e)(s)
     node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
 
-    ## No division by the growth rate at the boundary.
-    pr_estab <- node$individual$establishment_probability(env)
-    expect_equal(node$log_density, log(2 * pr_estab))
+    ## No division by the growth rate at the boundary, and no establishment:
+    ## a node is born per seed that establishes, at the birth rate, with no
+    ## hazard paid. Its species supplies the establishment over its cell.
+    expect_equal(node$log_density, log(2))
+    expect_identical(node$individual$state("mortality"), 0)
 
     ## Nothing moves an individual along the birth-date axis, so the only
     ## term left is mortality.
