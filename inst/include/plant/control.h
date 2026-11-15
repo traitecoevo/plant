@@ -136,8 +136,8 @@ struct Control {
   // (years) from the patch's start, and at its end. Each draw reads the hazard
   // accumulated since the last, so the interval sets only how long a plant that
   // has died goes on shading the living. Checking only at arrivals, as before,
-  // left about 8% fewer FF16 survivors at 30 years at one arrival a year
-  // (#601). At 0.05 survival there is within 1.5 standard errors (about 4%)
+  // left about 8% fewer FF16 survivors at 30 years at one arrival a year than
+  // drawing every 0.02 yr (#601). At 0.05 survival there is within 1.5 standard errors (about 4%)
   // of 0.005, and in a dense stand no different. Each draw re-syncs the
   // solver, so cost grows with the number of draws: 0.05 doubles an FF16
   // stand's run time, 0.02 nearly quadruples it. Positive and finite.

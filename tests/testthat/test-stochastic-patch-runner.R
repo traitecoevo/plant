@@ -345,8 +345,12 @@ test_that("each leg starts where the last one landed", {
   p$patch_area <- 1
   p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
                                        birth_rate = 1))
+  ## A death-check interval past the lifetime leaves the legs running arrival
+  ## to arrival, which is where this seed failed; on the default grid most legs
+  ## start at a grid point and land exactly whatever the runner reads.
   set.seed(6)
-  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  obj <- stochastic_runner(p, Environment("FF16"),
+                           Control(stochastic_death_interval = 100))
   arrivals <- obj$schedule$all_times[[1]]
   landed <- numeric(0)
   while (!obj$complete) {

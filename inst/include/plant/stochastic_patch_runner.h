@@ -139,13 +139,20 @@ size_t StochasticPatchRunner<T, E>::run_next() {
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::advance(double time_) {
   double t = solver.time();
-  // The grid points the run has already passed (reset() integrates to the
-  // first arrival without drawing, as nothing is alive before it).
-  while ((death_checks + 1) * death_interval <= t) {
-    ++death_checks;
+  // Skip the grid points the run has already passed (reset() integrates to
+  // the first arrival without drawing, as nothing is alive before it), and any
+  // that rounds onto t.
+  const double passed = std::floor(t / death_interval);
+  if (passed > static_cast<double>(death_checks)) {
+    death_checks = static_cast<size_t>(passed);
   }
+  bool drawn_at_end = false;
   while (t < time_) {
     const double t_check = (death_checks + 1) * death_interval;
+    if (!(t_check > t)) {
+      ++death_checks;
+      continue;
+    }
     const bool check = t_check <= time_;
     const double t_next = check ? t_check : time_;
     solver.advance_adaptive({t, t_next});
@@ -154,9 +161,10 @@ void StochasticPatchRunner<T, E>::advance(double time_) {
       ++death_checks;
       draw_deaths();
     }
+    drawn_at_end = check && t_next == time_;
     t = t_next;
   }
-  if (complete()) {
+  if (complete() && !drawn_at_end) {
     draw_deaths();
   }
 }
