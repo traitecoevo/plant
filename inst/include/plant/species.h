@@ -136,8 +136,11 @@ public:
         const double right = x[k + 1] - x[k];
         const double w = (left + right) / 2.0;
         const double w_dt = (k + 1 == m) ? 0.5 : 0.0;
+        // The youngest cohort's ground also grows with the establishment its
+        // open interval integrates, which its density reads.
+        const double open_rate = (k + 1 == m) ? open_scale_relative_rate() : 0.0;
         f(nodes[k].individual, w * to_passive(nodes[k].get_density()),
-          w > 0.0 ? w_dt / w : 0.0, 0);
+          (w > 0.0 ? w_dt / w : 0.0) + open_rate, 0);
       }
       const double w = (x[m] - x[m - 1]) / 2.0;
       f(new_node.individual, w * to_passive(new_node.get_density()), 0.0, 1);
@@ -571,6 +574,22 @@ private:
     if (!nodes.empty()) {
       nodes.back().set_density_scale(open_node_establishment(time));
     }
+  }
+  // The relative rate of the newest node's establishment factor, 1 + w0 / half:
+  // w0 grows at open_w0_dt_ and half at one half a year per year. Read after
+  // compute_rates() has set open_w0_dt_.
+  double open_scale_relative_rate() const {
+    using odelia::util::to_passive;
+    if (open_ode_size() == 0 || nodes.empty()) {
+      return 0.0;
+    }
+    const double h = new_node.introduction_time() - nodes.back().introduction_time();
+    const double half = (open_previous_width() + h) / 2;
+    const double scale = to_passive(nodes.back().get_density_scale());
+    if (!(half > 0.0) || !(scale > 0.0)) {
+      return 0.0;
+    }
+    return (to_passive(open_w0_dt_) - (scale - 1.0) / 2.0) / (half * scale);
   }
   // The next node arrives at `time`: the newest node's establishment is final
   // and goes into its state, and the boundary's share of the interval that

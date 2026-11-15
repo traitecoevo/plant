@@ -47,27 +47,30 @@ for (x in names(strategy_types)) {
     expect_equal(length(patch$species), 1)
     expect_inherits(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
     
-    # with no nodes, we only expect env vars
+    # With no nodes, the environment's variables and, on the birth-date
+    # coordinate, the species' open interval: two states that integrate
+    # establishment minus one, empty until a node exists.
     env_size <- env$ode_size
-    #fails here
-    env_state <- patch$ode_state
-    env_rates <- patch$ode_rates
-    expect_equal(patch$ode_size, env_size)
-    
+    open <- c(0, 0)
+    state0 <- patch$ode_state
+    rates0 <- patch$ode_rates
+    expect_equal(patch$ode_size, length(open) + env_size)
+    expect_identical(head(state0, 2), open)
+    expect_identical(head(rates0, 2), open)
+    env_state <- state0[-(1:2)]
+    env_rates <- rates0[-(1:2)]
+
     # either 0 or numeric(0)
     if(x %in% c("FF16", "K93")) {
-      expect_equal(patch$ode_state, numeric(0))
-      expect_equal(patch$ode_rates, numeric(0))
+      expect_equal(env_state, numeric(0))
+      expect_equal(env_rates, numeric(0))
     }
     if(x %in% c("TF24")) {
       length_odes <- env$get_soil_number_of_depths()
       soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,5))
-      expect_equal(patch$ode_state, soil_moist_inits)
-      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000, 0.000000000), tolerance = 1e-4)
+      expect_equal(env_state, soil_moist_inits)
+      expect_equal(env_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000, 0.000000000), tolerance = 1e-4)
     }
-    
-    expect_identical(patch$ode_state, env_state)
-    expect_identical(patch$ode_rates, env_rates)
     
     ## Empty environment:
     patch$compute_environment()
@@ -78,20 +81,24 @@ for (x in names(strategy_types)) {
     
     # introduce a node and expect different results
     node_size <- Node(x, e)(s)$ode_size
-    ode_size = node_size + env_size
+    ode_size = node_size + length(open) + env_size
     patch$introduce_new_node(1, 0)
-    expect_equal(patch$node_ode_size, node_size)
+    expect_equal(patch$node_ode_size, node_size + length(open))
     expect_equal(patch$ode_size, ode_size)
     if (x == "FF16") {
-      expect_equal(patch$node_ode_size, 7)
-      expect_equal(patch$ode_size, 7)
+      expect_equal(patch$node_ode_size, 9)
+      expect_equal(patch$ode_size, 9)
     }
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
                                    patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0))
      
-    ode_state <- c(cmp$ode_state, env_state)
-    ode_rates <- c(cmp$ode_rates, env_rates)
+    # The open interval starts empty, and grows at establishment minus one: the
+    # newest node's half, and the whole since its birth.
+    pr_estab <- cmp$individual$establishment_probability(patch$environment)
+    open_rates <- c((pr_estab - 1) / 2, pr_estab - 1)
+    ode_state <- c(cmp$ode_state, open, env_state)
+    ode_rates <- c(cmp$ode_rates, open_rates, env_rates)
     expect_identical(patch$ode_state, ode_state)
     # The patch's boundary node is evaluated by the field build, in a field that
     # excludes the boundary interval; this comparison node is seeded afterwards in
@@ -106,10 +113,11 @@ for (x in names(strategy_types)) {
       # the two literals below are asserted alongside the relations that produce
       # them, which is what says WHICH function this is a reference for.
       expect_identical(ctrl$node_density_coordinate, "birth_date")
-      expect_equal(ode_state, c(0.3441947, 0.009159, 0, 0, 0, 0, -0.009159),
+      expect_equal(ode_state, c(0.3441947, 0, 0, 0, 0, 0, 0, 0, 0),
                    tolerance = 1e-4)
       expect_equal(ode_rates,
-                   c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0, -0.01),
+                   c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0, -0.01,
+                     -0.0045586, -0.0091172),
                    tolerance = 1e-4)
 
       # The density rate is minus the mortality rate and nothing else. On the
@@ -117,13 +125,15 @@ for (x in names(strategy_types)) {
       # made this entry -0.78726 and cost a displaced-height solve to compute.
       expect_equal(ode_rates[[7]], -ode_rates[[2]])
 
-      # And the boundary condition is the seed arrival times the establishment
-      # probability, with no division by the growth rate. At a birth rate of one
-      # that makes the log density exactly minus the cumulative mortality, since
-      # the mortality a node is seeded with is -log(pr_estab). On the height
-      # coordinate the division put this entry -log(g) higher, at 1.08695.
+      # And the boundary condition is the seed arrival, with no division by the
+      # growth rate and no establishment: a node is born per seed that
+      # establishes, so at a birth rate of one its log density and its hazard
+      # both start at zero. On the height coordinate the division put the
+      # density -log(g) higher. Establishment arrives through the open interval,
+      # whose rates are the last two entries before the environment's.
       expect_equal(patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0), 1)
-      expect_equal(ode_state[[7]], -ode_state[[2]])
+      expect_identical(ode_state[[7]], 0)
+      expect_identical(ode_state[[2]], 0)
     }
     y <- patch$ode_state
     patch$set_ode_state(y, 0)
@@ -133,7 +143,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$derivs(y, 0), ode_rates)
 
     patch$reset()
-    expect_equal(patch$ode_size, env_size)
+    expect_equal(patch$ode_size, length(open) + env_size)
     expect_identical(patch$environment$time, 0.0)
   })
 

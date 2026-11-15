@@ -162,8 +162,10 @@ test_that("a layer whose density is spent empties rather than lingering", {
   s$run_to(150)
   state <- export_patch_state(s)
   n <- state$n[[1]]
-  top <- 7 * n + 5 + 1:3
-  seeds <- 7 * n + 5 + 4
+  ## The species' block is its nodes, its open interval's two states, then the
+  ## layer: the individual's five states, density, two weights and two seeds.
+  top <- 7 * n + 2 + 5 + 1:3
+  seeds <- 7 * n + 2 + 5 + 4
   state$ode_state[top] <- 5e-322
   ## And no cohort left to absorb: every exported one dead.
   state$ode_state[7 * seq_len(n)] <- -750
@@ -197,7 +199,7 @@ test_that("a frozen cohort's height does not move the field", {
   heights <- c(0.5, 1.2, 2, 2.5, 3, 3.4, 4)
   field <- function(frozen_at) {
     pa$set_ode_state(c(node(4.39, 0), node(1.5, 0), node(frozen_at, -750),
-                       node(1.07, 0), rep(0, 10)), 3)
+                       node(1.07, 0), c(0, 0), rep(0, 10)), 3)
     vapply(heights, pa$environment$get_environment_at_height, numeric(1))
   }
   out_of_order <- field(3.5)

@@ -265,12 +265,22 @@ test_that("each coordinate's boundary condition is the one its integral needs", 
     nd <- scm$patch$species[[1]]$new_node
     g0 <- nd$growth_rate_at_birth
     expect_gt(g0, 0)
-    ## log(birth_rate * pr_estab), which is what the birth-date path carries
-    ## directly. Compare in log space.
-    undivided <- log(1.0 * nd$individual$establishment_probability(
-      scm$patch$environment))
-    expect_equal(nd$log_density + if (birth_date) 0 else log(g0), undivided,
-                 tolerance = 1e-10)
+    ## log(birth_rate * pr_estab). The height path carries it divided by g(H_0).
+    ## The birth-date path carries the birth rate times the establishment the
+    ## open interval has integrated over the boundary node's half of it, the
+    ## open interval's second state (E - 1 integrated since the newest node's
+    ## birth) over its width; pr_estab at the instant is that state's rate.
+    ## Compare in log space.
+    if (birth_date) {
+      sp <- scm$patch$species[[1]]
+      h <- nd$introduction_time - utils::tail(sp$node_times, 1)
+      undivided <- log(1.0 * (1 + utils::tail(sp$ode_state, 1) / h))
+      expect_equal(nd$log_density, undivided, tolerance = 1e-10)
+    } else {
+      undivided <- log(1.0 * nd$individual$establishment_probability(
+        scm$patch$environment))
+      expect_equal(nd$log_density + log(g0), undivided, tolerance = 1e-10)
+    }
     ## And the division is doing real work, so the two are not interchangeable.
     expect_gt(abs(log(g0)), 1)
   }
@@ -304,15 +314,21 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   x <- "FF16"; e <- "FF16_Env"
   p <- size_only_parameters(x)
 
-  scm <- SCM(x, e)(p, Environment(x), empty_events(), Control())
-  scm$collect <- TRUE
-  scm$run()
-  state <- export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
-
-  ## A faithful resume carries per-node times, so both coordinates accept it.
-  p_ok <- set_initial_state(p, state)
+  ## Each coordinate's state has its own layout -- the birth-date one carries
+  ## each species' open interval -- so each is exported from a run on it.
+  exported <- function(ctrl) {
+    scm <- SCM(x, e)(p, Environment(x), empty_events(), ctrl)
+    scm$collect <- TRUE
+    scm$run()
+    export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
+  }
   ctrl_bd <- Control()
   ctrl_bd$node_density_coordinate <- "birth_date"
+  ctrl_h <- Control()
+  ctrl_h$node_density_coordinate <- "height"
+
+  ## A faithful resume carries per-node times, so it is accepted.
+  p_ok <- set_initial_state(p, exported(ctrl_bd))
   expect_no_error(Patch(x, e)(p_ok, Environment(x), ctrl_bd))
 
   ## Drop them and every node inherits the boundary node's birth date.
@@ -322,10 +338,10 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
                "sharing an introduction time")
 
   ## The height coordinate never integrates over these, so it is unaffected. Named
-  ## rather than taken from the default, which is the birth-date coordinate.
-  ctrl_h <- Control()
-  ctrl_h$node_density_coordinate <- "height"
-  expect_no_error(Patch(x, e)(p_bad, Environment(x), ctrl_h))
+  ## rather than taken from the default.
+  p_bad_h <- set_initial_state(p, exported(ctrl_h))
+  p_bad_h$initial_node_times <- numeric(0)
+  expect_no_error(Patch(x, e)(p_bad_h, Environment(x), ctrl_h))
 })
 
 ## The coordinate is stored per strategy but cannot differ between the species

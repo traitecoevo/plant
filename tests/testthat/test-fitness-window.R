@@ -242,7 +242,13 @@ test_that("cohorts outside the window do not move the ratio", {
   scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
   r <- scm$patch$net_reproduction_ratios
   expect_gt(r[[1]], 1)
-  expect_equal(r[[2]], r[[1]], tolerance = 1e-12)
+  ## Not to rounding. A cohort's output carries the establishment averaged
+  ## over its cell, and the resident's first window cohort has the half
+  ## interval back to its cohort at 9 in its cell while the copy's has none:
+  ## 2e-4 apart here. The interval the old reduction handed that cohort would
+  ## be about spacing over width, 10%, so this still says nothing outside the
+  ## window enters the weight.
+  expect_equal(r[[2]], r[[1]], tolerance = 1e-3)
 })
 
 test_that("a tabulated weight in a full run is the weighted mean of the cohorts", {

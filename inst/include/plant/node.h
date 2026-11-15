@@ -312,6 +312,13 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // guarded against the density this node held BEFORE birth, which on one being
   // born for the first time is zero, and the rate it reports is that zero for
   // the whole of the node's first evaluation.
+  // On the birth-date coordinate the newborn's hazard is zero, and it is seated
+  // before the rates so they read it, and not whatever the boundary node held
+  // after the last evaluation -- which, after a retirement, is a hazard past
+  // the gate, and a rate of zero.
+  if (density_in_birth_date()) {
+    individual.set_state(MORTALITY_INDEX, value_type(0.0));
+  }
   individual.compute_rates(environment);
 
   // On the birth-date coordinate a node is born per seed that establishes, and
@@ -360,6 +367,19 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   set_log_density(density_at_birth > 0
                       ? log(density_at_birth)
                       : value_type(-establishment_failure_hazard));
+
+  // A newborn per established seed whose hazard spends the establishment
+  // failure hazard within the solver's shortest step survives no step the
+  // solver can take: its survival is exactly zero in double precision by the
+  // end of one. It is retired at birth, on the hazard a cohort that never
+  // establishes carries, rather than integrated through a rate that steep.
+  if (density_in_birth_date() &&
+      !(individual.rate(MORTALITY_INDEX) * individual.control().ode_step_size_min <
+        establishment_failure_hazard)) {
+    individual.set_state(MORTALITY_INDEX,
+                         value_type(establishment_failure_hazard));
+    retire();
+  }
 
   // Now that the density and the hazard are seated, the node's own rates.
   compute_node_rates(environment, pr_patch_survival);

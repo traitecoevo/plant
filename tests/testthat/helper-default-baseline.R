@@ -1,8 +1,10 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
 ## test-default-baseline.R and scripts/capture-default-baseline.R. The runs go
 ## through run() (#428), so the capture needs a build that has it; the recorded
-## baseline came from a build before #661, through the SCM entry point run()
-## replaced, which drove the solver the same way.
+## height-coordinate cases came from a build before #661, through the SCM entry
+## point run() replaced, which drove the solver the same way. The birth-date
+## cases were re-captured when establishment came to be averaged over each
+## cohort's cell.
 default_baseline_cases <- function() {
   outputs <- function(scm) {
     list(ode_state = scm$patch$ode_state,
