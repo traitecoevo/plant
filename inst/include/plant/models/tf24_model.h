@@ -145,7 +145,7 @@ public:
   // to (root_P50, root_c) and vulnerability_curve_ncontrol from 100 to 400; and
   // the half of v9 that took the light field's and the census's trapezium widths
   // from the coordinate the density is carried in.
-  static constexpr int scientific_version = 17;
+  static constexpr int scientific_version = 16;
 
   // calculate the amount of water transpired relativised by leaf area index.
 

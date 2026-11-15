@@ -241,7 +241,7 @@ public:
   // performance, interface or serialisation change: a bump invalidates logpile's
   // cache for this model (model_version(), model_id()). Each bump, and what it
   // moved, is in NEWS.md.
-  static constexpr int scientific_version = 4;
+  static constexpr int scientific_version = 3;
 
   // Fixed integer slots for the hot ODE rate path, used instead of
   // state_index.at("...") / aux_index.at("...") string-map lookups (those map
