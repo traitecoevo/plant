@@ -61,7 +61,11 @@ gd_point <- function(traits, lifetime = 40, schedule = NULL, refine = TRUE,
   p <- gd_parameters(traits, lifetime = lifetime, schedule = schedule)
   scm <- run(p, Environment("TF24"), ctrl, refine_schedule = refine,
              record = "states")$solver
-  g <- stand_gradient(scm)
+  ## Partial derivatives: each column holds every other parameter fixed. The
+  ## trade-offs `p` carries are left out here, so gd_trait_gradient() is what
+  ## carries a trait's derived parameters along with it, and the guide can show
+  ## the two side by side.
+  g <- stand_gradient(scm, hyperpar = NULL)
   list(traits = traits,
        value = g$value,
        gradient = g$gradient,
