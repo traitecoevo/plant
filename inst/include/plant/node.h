@@ -42,13 +42,12 @@ public:
   // Birth-date coordinate. The newest node and the boundary node are carried
   // per seed that establishes while the interval after the newest is still
   // open; their density and offspring are read through this factor, the
-  // establishment probability averaged against the node's hat function so far.
-  // Species sets it on every state load; every other node reads its state as is.
+  // establishment probability averaged over the node's cell so far. Species
+  // sets it on every state load; every other node reads its state as is.
   void set_density_scale(const value_type& e) {
     scaled_ = true;
     density_scale = e;
   }
-  bool density_is_scaled() const {return scaled_;}
   value_type get_density_scale() const {
     return scaled_ ? density_scale : value_type(1.0);
   }
@@ -293,11 +292,14 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   compute_node_rates(environment, pr_patch_survival);
 }
 
-// A new cohort's cumulative mortality starts at -log(establishment_probability),
-// so the hazard of failing to establish is paid at birth, and its log_density
-// at the log of the density it is born with. Where either is zero the state
-// takes a finite sentinel instead: establishment_failure_hazard for the
-// mortality, its negative for log_density.
+// On the height coordinate a new cohort's cumulative mortality starts at
+// -log(establishment_probability), so the hazard of failing to establish is
+// paid at birth, and its log_density at the log of the density it is born
+// with. Where either is zero the state takes a finite sentinel instead:
+// establishment_failure_hazard for the mortality, its negative for
+// log_density. On the birth-date coordinate a cohort is born per seed that
+// establishes, at hazard zero and the birth rate, and its species supplies the
+// establishment over its cell (Species::set_open_scales()).
 template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival,
@@ -307,11 +309,6 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // optimum) before the first rates evaluation, so the birth growth rate uses
   // the initialised operating point rather than a default.
   individual.set_initial_states(environment);
-  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the initial
-  // state below, because both read state it writes -- taken here, the density rate is
-  // guarded against the density this node held BEFORE birth, which on one being
-  // born for the first time is zero, and the rate it reports is that zero for
-  // the whole of the node's first evaluation.
   // On the birth-date coordinate the newborn's hazard is zero, and it is seated
   // before the rates so they read it, and not whatever the boundary node held
   // after the last evaluation -- which, after a retirement, is a hazard past
@@ -319,6 +316,11 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   if (density_in_birth_date()) {
     individual.set_state(MORTALITY_INDEX, value_type(0.0));
   }
+  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the initial
+  // state below, because both read state it writes -- taken here, the density rate is
+  // guarded against the density this node held BEFORE birth, which on one being
+  // born for the first time is zero, and the rate it reports is that zero for
+  // the whole of the node's first evaluation.
   individual.compute_rates(environment);
 
   // On the birth-date coordinate a node is born per seed that establishes, and

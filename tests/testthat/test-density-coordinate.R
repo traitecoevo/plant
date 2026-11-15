@@ -795,3 +795,58 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   expect_lt(max(sp$log_densities_state), log(10) + 1)
   expect_true(is.finite(scm$patch$offspring_production))
 })
+
+## Establishment is integrated over each cohort's cell rather than read at its
+## birth date, so under pulsed rain -- where it rises after a storm and falls as
+## the soil dries, within days, while cohorts are months apart -- offspring
+## production does not depend on where the cohorts fall against the storms.
+## Read at the birth date it did: these three schedules spread by 25% that way,
+## and the shifted one gave the highest answer at one spacing and the lowest at
+## half of it. Thirty years, so that output comes from cohorts that grew up
+## rather than from the first few to reach reproductive size, which is not
+## smooth in birth date on either rule.
+test_that("offspring production does not depend on where cohorts fall against the rain", {
+  lifetime <- 30
+  rain <- local({
+    set.seed(11)
+    n <- rpois(1, 20 * (lifetime + 1))
+    data.frame(time = sort(runif(n, 0, lifetime + 1)),
+               amount = rexp(n, 1 / 0.014))
+  })
+  offspring <- function(times) {
+    p <- base_parameters("TF24")
+    p$max_patch_lifetime <- lifetime
+    p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma")))
+    p$node_schedule_times <- list(times)
+    env <- Environment("TF24")
+    env$extrinsic_drivers_set_constant("rainfall", 0)
+    k <- rain$time > 0 & rain$time < lifetime
+    ev <- events(events_default(p),
+                 rainfall_pulse(rain$time[k], rain$amount[k]))
+    ctrl <- control(ode_tol_rel = 1e-4, ode_tol_abs = 1e-4,
+                    ode_step_size_max = 0.05)
+    sum(run(scenario(p, env, ctrl, events = ev))$offspring_production)
+  }
+  dt <- 0.74
+  placed <- seq(0, lifetime - dt, by = dt)
+  shifted <- c(0, placed[-1] - dt / 2, lifetime - dt / 2)
+  r <- c(placed = offspring(placed), shifted = offspring(shifted),
+         twice = offspring(sort(unique(c(placed, shifted)))))
+  message(sprintf("\n  offspring production: %s",
+                  paste(sprintf("%s %.4f", names(r), r), collapse = ", ")))
+  expect_gt(min(r), 10)
+  expect_lt(diff(range(r)) / mean(r), 0.05)
+})
+
+## K93 establishes every seed, so the open interval's two states, which
+## integrate establishment minus one, stay at exactly zero, and the run is the
+## one the trapezium of the birth-rate density gave.
+test_that("a model that establishes every seed leaves the open interval empty", {
+  p <- size_only_parameters("K93")
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  scm <- SCM("K93", "K93_Env")(p, Environment("K93"), empty_events(), ctrl)
+  scm$run()
+  sp <- scm$patch$species[[1]]
+  expect_gt(sp$size, 10)
+  expect_identical(utils::tail(sp$ode_state, 2), c(0, 0))
+})

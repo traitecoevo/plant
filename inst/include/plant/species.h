@@ -71,33 +71,27 @@ public:
     return top_ode_rates(open_ode_rates(base_type::ode_rates(it)));
   }
 
-  // * Establishment on the birth-date coordinate (#683)
+  // * Establishment on the birth-date coordinate
   //
-  // A node stands for the seeds arriving around its birth date: the
-  // establishment probability E integrated against its hat function, which
-  // runs from 0 at the previous node's birth date up to 1 at its own and back
-  // to 0 at the next node's. Every node whose next node has arrived carries
-  // that integral in its density, as the mean E its trapezium weight needs, so
-  // every reduction here stays the trapezium it was.
+  // A node stands for the seeds arriving over its cell, the half interval
+  // either side of its birth date, and its density carries the establishment
+  // probability E averaged over that cell rather than read at its birth date:
+  // E can rise after rain and fall as the soil dries within days, where
+  // nodes are weeks apart. What happens to a seed after it establishes changes
+  // smoothly with its birth date, so the trapezium every reduction here takes
+  // is kept; only E is integrated, on the solver's own steps.
   //
-  // Each interval's establishment is split equally between the nodes at its
-  // two ends, so a node's density takes E averaged over the span between its
-  // two neighbours. Both states integrate E - 1, so zero is every seed
-  // establishing: a model that establishes every seed (K93) keeps them at zero,
-  // and a state written by hand means the densities it gives. open_m1_ is
-  // E - 1 integrated since the newest node's birth; open_w0_ is the newest
-  // node's half of the interval before it plus half of open_m1_, and the
-  // boundary node holds the other half. Until the next node arrives those
-  // two are read through Node::set_density_scale(); when it does, the newest
-  // node's is folded into its state and the boundary's becomes the new node's
-  // share of the interval before it.
+  // Only the interval after the newest node is open, and over it two states
+  // integrate E - 1, so that zero is every seed establishing: a model that
+  // establishes every seed (K93) keeps them at zero, and a state written by
+  // hand means the densities it gives. open_m1_ is E - 1 integrated since the
+  // newest node's birth; open_w0_ is the newest node's share, the half of the
+  // interval before it plus half of open_m1_, and the boundary node holds the
+  // other half. Until the next node arrives the newest node and the boundary
+  // node are read through Node::set_density_scale(); when it arrives, the
+  // newest node's mean is folded into its state and the boundary's half
+  // becomes the new node's share of the interval before it.
   size_t open_ode_size() const { return density_in_birth_date() ? 2 : 0; }
-  std::vector<double> r_open_establishment() const {
-    using odelia::util::to_passive;
-    return {to_passive(open_w0_), to_passive(open_m1_),
-            to_passive(new_node.get_density_scale()),
-            nodes.empty() ? NA_REAL : to_passive(nodes.back().get_density_scale())};
-  }
   using base_type::get_node_state;
   using base_type::get_node_aux;
   typename std::vector<node_type>::iterator node_begin() { return nodes.begin(); }
@@ -522,7 +516,7 @@ private:
   // The open interval's establishment integrals and their rates; see
   // open_ode_size().
   value_type open_w0_{0.0}, open_m1_{0.0}, open_w0_dt_{0.0}, open_m1_dt_{0.0};
-  // E at the last rates evaluation: what a hat of zero width reads, where its
+  // E at the last rates evaluation: what a cell of zero width reads, where its
   // weight is zero and only a report sees the value.
   double open_establishment_last_{1.0};
   template <typename It> It open_ode_state(It it) const {
@@ -545,8 +539,8 @@ private:
     return n > 1 ? nodes[n - 1].introduction_time() -
                      nodes[n - 2].introduction_time() : 0.0;
   }
-  // The newest node's mean E over its trapezium weight, with the interval
-  // after it ending at `time`: its hat's integral over half the two widths.
+  // The newest node's mean E over its cell, with the open interval ending at
+  // `time`: half the interval before it and half the open one.
   value_type open_node_establishment(double time) const {
     const double h = time - nodes.back().introduction_time();
     const double half = (open_previous_width() + h) / 2;
@@ -555,7 +549,7 @@ private:
     }
     return 1.0 + open_w0_ / half;
   }
-  // The boundary node's: its hat's integral, open_m1_ / h, over half of h.
+  // The boundary node's mean E over its half of the open interval.
   value_type open_boundary_establishment(double time) const {
     if (nodes.empty()) {
       return value_type(open_establishment_last_);
@@ -603,7 +597,6 @@ private:
       open_m1_ = value_type(0.0);
       return;
     }
-    const double h = time - nodes.back().introduction_time();
     nodes.back().fold_establishment(open_node_establishment(time));
     open_w0_ = open_m1_ / 2.0;
     open_m1_ = value_type(0.0);
@@ -1186,7 +1179,7 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
   if (open_ode_size() > 0) {
     // E for a seed arriving now, from the boundary node just evaluated. Nothing
-    // integrates before the first node: the hats start at its birth date.
+    // integrates before the first node: its cell starts at its birth date.
     const value_type e =
       new_node.individual.establishment_probability_of_newborn(environment);
     open_establishment_last_ = odelia::util::to_passive(e);
