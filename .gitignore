@@ -24,13 +24,6 @@ Meta
 *.png
 *.RDS
 
-# Overstorey guide preview figures — regenerated when the guide builds in the
-# Overstorey repo; not version-controlled here.
-overstorey-staging/figures/
-
-# ATLS demo file-based cache (expensive SCM runs); regenerated on render.
-overstorey_staging/cache/
-
 # Claude Code personal settings
 .claude/settings.local.json
 

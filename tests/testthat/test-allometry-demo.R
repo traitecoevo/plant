@@ -1,5 +1,5 @@
-# Guards the numbers TF24_flexible_allometry_demo.qmd asserts in prose, and
-# checks that its "The mathematics" appendix IS the model.
+# Guards the numbers Overstorey's guides/tf24-flexible-allometry.qmd asserts in
+# prose, and checks that its "The mathematics" appendix IS the model.
 #
 # The demo's chunks all run, but a chunk that runs is not a chunk that is
 # checked: prose beside a number survives the number being falsified. Two claims

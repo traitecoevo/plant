@@ -2,7 +2,7 @@
 ## the *-call.R files beside it call these helpers. Copied from the tip
 ## (bee0a02a) of feature/tf24-atls-thermal-damage; it uses the pre-#591 Leaf
 ## and TF24t APIs, so it does not run on current code. The ported version is
-## overstorey_staging/atls_demo_helpers.R.
+## inst/guide-helpers/atls_demo_helpers.R.
 ##
 ## Shared leaf-driving helpers for the TF24t ATLS leaf demo (thermal
 ## damage / repair / acclimation / avoidance; issue #566).

@@ -1,6 +1,7 @@
-## Shared driving and interpretation code for the reverse-mode gradient study.
+## Shared driving and interpretation code for Overstorey's guide "TF24: stand
+## gradients from one reverse sweep" (guides/tf24-stand-gradients.qmd).
 ##
-## Kept out of the .qmd so the same code serves both documents. No plotting here.
+## Kept out of the .qmd so a test can exercise it. No plotting here.
 ##
 ## tests/testthat/test-gradient-demo-helpers.R runs gd_point() on a short
 ## stand, so a plant interface change that breaks these helpers fails there.
@@ -14,14 +15,14 @@
 ##                          parameter, so d(mass)/d(omega) and d(mass)/d(lma) are
 ##                          not comparable and the larger one is usually just the
 ##                          one with the smaller units.
-##   gd_hyperpar_jacobian() TF24_hyperpar derives k_l, r_l from lma;
-##                          d_I, TF24_cost_scale, k_s, r_s, r_b from rho; a_f3
-##                          from omega; and stem_P50, stem_c from K_s. The
+##   gd_hyperpar_jacobian() default_hyperpar("TF24") derives k_l, r_l from
+##                          lma; r_s, r_b from rho; a_f3 from omega; stem_P50
+##                          from K_s; and r_l also from vcmax_25, jmax_25. The
 ##                          gradient's `lma` column holds those fixed, so it is
 ##                          the partial and not the trait derivative.
 
 ## The trait point the study varies around. Five of the parameters TF24 carries,
-## chosen because trait_matrix + TF24_hyperpar drive them and a trait database
+## chosen because trait_matrix + TF24's trade-offs drive them and a trait database
 ## reports them.
 gd_traits <- function(...) {
   utils::modifyList(
@@ -61,7 +62,11 @@ gd_point <- function(traits, lifetime = 40, schedule = NULL, refine = TRUE,
   p <- gd_parameters(traits, lifetime = lifetime, schedule = schedule)
   scm <- run(p, Environment("TF24"), ctrl, refine_schedule = refine,
              record = "states")$solver
-  g <- stand_gradient(scm)
+  ## Partial derivatives: each column holds every other parameter fixed. The
+  ## trade-offs `p` carries are left out here, so gd_trait_gradient() is what
+  ## carries a trait's derived parameters along with it, and the guide can show
+  ## the two side by side.
+  g <- stand_gradient(scm, hyperpar = NULL)
   list(traits = traits,
        value = g$value,
        gradient = g$gradient,
@@ -101,7 +106,7 @@ gd_elasticity <- function(gradient, value, x) {
   e
 }
 
-## d(parameter)/d(trait), by differencing TF24_hyperpar itself rather than
+## d(parameter)/d(trait), by differencing default_hyperpar("TF24") itself rather than
 ## restating its algebra here -- the derived forms are its own and a second copy
 ## would drift from it silently.
 ##
