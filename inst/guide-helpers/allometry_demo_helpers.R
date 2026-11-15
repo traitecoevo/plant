@@ -1,4 +1,5 @@
-## Shared computation for TF24_flexible_allometry_demo.qmd (#516).
+## Shared computation for Overstorey's guide "TF24: a canopy that thins"
+## (guides/tf24-flexible-allometry.qmd in traitecoevo/overstorey; #516).
 ##
 ## Kept out of the qmd so it can be exercised by a test rather than only by
 ## rendering: a chunk that runs is not a chunk that is checked, and prose beside
