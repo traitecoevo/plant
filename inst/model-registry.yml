@@ -1785,6 +1785,17 @@ parameters:
     source: 'TF24f_Model default; must be finite and non-negative'
     placeholder: true
     code: plant::TF24f_Model::k_acclim
+  TF24f.bound_curvature:
+    model: TF24f
+    section: tf24f_tracking
+    symbol: '\Lambda'
+    units: 'µmol m⁻² s⁻¹ MPa⁻²'
+    class: constant
+    meaning: 'curvature of profit continued past the collar bracket, which draws a tracked state that has left the bracket back to it at $k_{\rm acclim}\Lambda$ per year'
+    source: 'chosen so the state sits on the bracket: on a stand under dry pulses 1e3, 1e4 and 1e5 give offspring production within 5e-4 of each other, at a cost rising with it'
+    placeholder: false
+    code: plant::TF24f_Model::bound_curvature
+    literal: 1.0e+3
 
   # --- TF24t: thermal damage and acclimation ------------------------------------------
   TF24t.topt_offset:
@@ -3638,26 +3649,26 @@ equations:
     section: tf24f_tracking
     title: The leaf at the tracked collar potential
     latex: |
-      \Pi = A_{\rm kept}\big(\tilde\psi_{\rm r}\big), \qquad \tilde\psi_{\rm r} = \min\!\big(\max(\psi_{\rm r}, \psi_a), \psi_b\big)
+      \Pi = A_{\rm kept}\big(\tilde\psi_{\rm r}\big), \qquad \tilde\psi_{\rm r} = \min\!\big(\max(\psi_{\rm r}, \psi_a), \psi_b^{-}\big), \qquad \psi_b^{-} = \psi_b - 10^{-6}(\psi_b - \psi_a)
     code: plant::TF24f_Model::solve_leaf
     reads: ['phylloptim:carbon', 'phylloptim:collar_bracket', 'phylloptim:cost_TF24_floor', 'phylloptim:leaf_from_collar', 'phylloptim:multilayer_uptake']
     writes: []
     kind: closed_form
     overstorey: theory/models/tf24.qmd
-    note: 'Replaces TF24.leaf_operating_point: the leaf is evaluated at the tracked state $\psi_{\rm r}$, held inside the feasible bracket $[\psi_a, \psi_b]$, instead of at the optimum. Where the bracket is closed (shutdown) the leaf''s own operating point is used. So TF24f does not reproduce TF24 bit for bit; it lags the optimum.'
+    note: 'Replaces TF24.leaf_operating_point: the leaf is evaluated at the tracked state $\psi_{\rm r}$, held inside the feasible bracket $[\psi_a, \psi_b]$, instead of at the optimum. The dry end is read a step inside, as phylloptim's own solve reads it, because the bracket places it only to its tolerance and a leaf read exactly there can fall past the stem curve. Where the bracket is closed (shutdown) the leaf''s own operating point is used. So TF24f does not reproduce TF24 bit for bit; it lags the optimum.'
   TF24f.collar_tracking:
     model: TF24f
     section: tf24f_tracking
     title: Gradient ascent on the collar potential
     latex: |
-      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \, \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}}
+      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \left( \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}} - \Lambda \, (\psi_{\rm r} - \tilde\psi_{\rm r}) \right)
     code: plant::TF24f_Model::compute_rates
     also: [plant::TF24f_Model::solve_leaf]
-    reads: [TF24f.k_acclim, 'phylloptim:foc_collar']
+    reads: [TF24f.k_acclim, TF24f.bound_curvature, 'phylloptim:foc_collar']
     writes: []
     kind: derivative
     overstorey: theory/models/tf24.qmd
-    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$ so a state outside the bracket is pulled back in. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the rate then does not depend on the state. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
+    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$. Past the bracket profit is continued as a quadratic of curvature $\Lambda$, so a state outside it is drawn back to the collar the leaf operates at; inside, $\psi_{\rm r} = \tilde\psi_{\rm r}$ and the term is zero. Without it the state drifted on while the optimum was pinned at the dry end, and lagged behind after rain. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the marginal then does not depend on the state, and $\Lambda$ draws the state to the shut collar. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
   TF24f.collar_initial:
     model: TF24f
     section: tf24f_tracking

@@ -39,7 +39,7 @@ public:
   //     approximation itself.
   // See plant::model_version() / model_id() and src/model_exports.cpp. Bump
   // rules match the other models (output-changing science only, not refactors).
-  static constexpr int approximation_revision = 1;
+  static constexpr int approximation_revision = 2;
 
   // TF24's states + the tracked root-collar psi (appended last so the
   // inherited state indices are unchanged). state_size()/state_names() are
@@ -73,6 +73,13 @@ public:
   // stiffness / accuracy-vs-speed k-sweep (#525) can be driven without a rebuild;
   // large k recovers the quasi-steady-state (TF24) optimum.
   S k_acclim = 1.0;
+
+  // The curvature (profit per MPa^2) of profit continued past the collar
+  // interval, which draws a tracked state that has left it back at
+  // k_acclim * bound_curvature per year. Measured on a stand under dry pulses:
+  // 1e3, 1e4 and 1e5 give offspring production within 5e-4 of each other, so
+  // the state then sits on the interval, and the run's cost grows with it.
+  static constexpr double bound_curvature = 1e3;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_opt_root_psi_state = -1;
@@ -164,10 +171,22 @@ void TF24f_Model<S>::solve_leaf() try {
   double bound_a, bound_b;
   const bool open = this->leaf.template prepare_collar_solve<
       phylloptim::Leaf::CostCurve::TF24_floor>(bound_a, bound_b);
+  // The dry end is the bracket's, placed only to its tolerance, and a leaf
+  // read exactly there can fall past the stem curve's domain; phylloptim's own
+  // solve reads a step inside it, and so does this.
+  const double dry = bound_b - 1e-6 * (bound_b - bound_a);
   const double used =
-      open ? std::min(std::max(tracked_root_psi_, bound_a), bound_b)
+      open ? std::min(std::max(tracked_root_psi_, bound_a), dry)
            : this->leaf.opt_root_psi_;
-  dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used);
+  // Past the interval the leaf stays where `used` puts it, and profit is
+  // continued as a quadratic of curvature `bound_curvature`, so the state is
+  // drawn back to the collar the leaf operates at. With the marginal at the
+  // bound alone, the state went on drifting while the optimum was pinned
+  // there, and lagged far behind once it left: under drought the leaf then
+  // stayed at the dry end after rain. Inside the interval the rate is the
+  // marginal, unchanged.
+  dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used) -
+                  bound_curvature * (tracked_root_psi_ - used);
   // restore operating-point outputs
   if (open) {
     this->leaf.template profit_at_collar_psi<
