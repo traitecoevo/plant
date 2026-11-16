@@ -6693,6 +6693,34 @@ gradient_control_tf24 <- function(obj_) {
     .Call('_plant_gradient_control_tf24', PACKAGE = 'plant', obj_)
 }
 
+census_metric_names_tf24f <- function(obj_) {
+    .Call('_plant_census_metric_names_tf24f', PACKAGE = 'plant', obj_)
+}
+
+census_tf24f <- function(obj_) {
+    .Call('_plant_census_tf24f', PACKAGE = 'plant', obj_)
+}
+
+census_state_adjoint_tf24f <- function(obj_) {
+    .Call('_plant_census_state_adjoint_tf24f', PACKAGE = 'plant', obj_)
+}
+
+census_trait_names_tf24f <- function(obj_) {
+    .Call('_plant_census_trait_names_tf24f', PACKAGE = 'plant', obj_)
+}
+
+census_undifferentiable_tf24f <- function() {
+    .Call('_plant_census_undifferentiable_tf24f', PACKAGE = 'plant')
+}
+
+census_trait_gradient_tf24f <- function(obj_, which_metrics = NULL) {
+    .Call('_plant_census_trait_gradient_tf24f', PACKAGE = 'plant', obj_, which_metrics)
+}
+
+gradient_control_tf24f <- function(obj_) {
+    .Call('_plant_gradient_control_tf24f', PACKAGE = 'plant', obj_)
+}
+
 census_metric_names_ff16 <- function(obj_) {
     .Call('_plant_census_metric_names_ff16', PACKAGE = 'plant', obj_)
 }

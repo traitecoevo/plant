@@ -226,9 +226,7 @@ void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
     // `held` carries the stem potential and ci the interior arm solved on its way
     // to the collar, so billing reads them rather than solving both again.
     Leaf::HeldCoords<S> held;
-    const S collar =
-        leaf.template operating_collar<phylloptim::Leaf::CostCurve::TF24_floor, S>(
-            draw, in, slope, &held);
+    const S collar = collar_on_tape(draw, in, supply, slope, held);
     got = leaf.template billed_outputs_at<phylloptim::Leaf::CostCurve::TF24_floor,
                                           S>(collar, draw, in, &held);
   } catch (const std::runtime_error& e) {
