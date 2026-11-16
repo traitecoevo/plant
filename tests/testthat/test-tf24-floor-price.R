@@ -159,11 +159,9 @@ test_that("TF24f tracks the seated curve rather than TF24", {
   # moves is the OBJECTIVE at that point and its GRADIENT -- i.e. `shadow_cost`
   # and the tracked state's rate. Both are checked.
   #
-  # The tracked state has to be seeded: a freshly constructed individual holds 0,
-  # which is a collar at saturation, so no water moves and every price is worth
-  # nothing times zero.
-  tracked <- tf24_aux()[["opt_root_psi"]]
-  expect_gt(tracked, 0)
+  # The tracked state is the collar's position between the ends of its feasible
+  # interval; a freshly constructed individual holds 0, the middle, where water
+  # moves.
 
   f_aux <- function(lambda_o) {
     s <- TF24f_Model()
@@ -172,7 +170,6 @@ test_that("TF24f tracks the seated curve rather than TF24", {
     s$pars <- p
     ind <- TF24f_Individual(s)
     ind$set_state("height", 5)
-    ind$set_state("opt_root_psi_state", tracked)
     env <- TF24_Environment()
     env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
     env$set_soil_number_of_depths(5)
@@ -180,7 +177,7 @@ test_that("TF24f tracks the seated curve rather than TF24", {
     ind$compute_rates(env)
     vars <- ind$internals
     list(aux  = stats::setNames(vars$auxs, ind$aux_names),
-         rate = vars$rates[which(ind$ode_names == "opt_root_psi_state")])
+         rate = vars$rates[which(ind$ode_names == "collar_position")])
   }
 
   free <- f_aux(0)

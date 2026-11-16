@@ -162,7 +162,7 @@ sections:
   tf24_mortality: 'TF24: mortality and establishment'
   tf24_competition: 'TF24: birth size, competition and census'
   tf24_soil: 'TF24: the soil water column'
-  tf24f_tracking: 'TF24f: the tracked collar potential'
+  tf24f_tracking: 'TF24f: the tracked collar position'
   tf24t_thermal: 'TF24t: thermal damage and acclimation'
   tf24w_water: 'TF24w: private root-zone water'
 
@@ -1774,28 +1774,39 @@ parameters:
     placeholder: true
     code: plant::Environment::extrinsic_drivers
 
-  # --- TF24f: the tracked collar potential --------------------------------------------
+  # --- TF24f: the tracked collar position ---------------------------------------------
   TF24f.k_acclim:
     model: TF24f
     section: tf24f_tracking
     symbol: 'k_{\rm acclim}'
-    units: 'MPa² yr⁻¹ (µmol m⁻² s⁻¹)⁻¹'
+    units: 'yr⁻¹ (µmol m⁻² s⁻¹)⁻¹'
     class: hyperparameter
-    meaning: 'gain of the gradient ascent on the collar potential: how fast the operating point follows its optimum; large values recover TF24''s instantaneous optimum'
+    meaning: 'gain of the gradient ascent on the collar''s position: how fast the operating point follows its optimum; large values recover TF24''s instantaneous optimum'
     source: 'TF24f_Model default; must be finite and non-negative'
     placeholder: true
     code: plant::TF24f_Model::k_acclim
-  TF24f.bound_relaxation_rate:
+  TF24f.barrier_fraction:
     model: TF24f
     section: tf24f_tracking
-    symbol: 'r_{\rm relax}'
-    units: 'yr⁻¹'
+    symbol: '\varepsilon_{\rm b}'
+    units: '–'
     class: constant
-    meaning: 'rate at which a tracked collar potential outside the feasible bracket relaxes to the collar the leaf operates at; independent of $k_{\rm acclim}$, so a high gain adds no stiffness'
-    source: 'measured on a stand under dry pulses at $k_{\rm acclim}$ 1, 10 and 100: offspring production at 1e3 is within 7e-6 of 1e4''s, at no more cost than no relaxation'
+    meaning: 'weight of the log barrier at either end of the feasible bracket, as a fraction of the cost scale $\gamma$; it sets how close to an end a state settles where profit still rises there'
+    source: 'measured on a stand under dry pulses: offspring production at 1e-5 is within 3e-3 of 1e-6''s at $k_{\rm acclim}$ 10 and within 5e-5 at 100, less than the lag at either gain'
     placeholder: false
-    code: plant::TF24f_Model::bound_relaxation_rate
-    literal: 1.0e+3
+    code: plant::TF24f_Model::barrier_fraction
+    literal: 1.0e-5
+  TF24f.seed_margin:
+    model: TF24f
+    section: tf24f_tracking
+    symbol: '\delta_{\rm seed}'
+    units: '–'
+    class: constant
+    meaning: 'how far inside either end of the feasible bracket a newborn is seated, as a fraction of its width, so an optimum on an end has a finite position'
+    source: 'TF24f_Model; a seed on the dry end is then about as close to it as the barrier holds a state'
+    placeholder: false
+    code: plant::TF24f_Model::seed_margin
+    literal: 1.0e-4
 
   # --- TF24t: thermal damage and acclimation ------------------------------------------
   TF24t.topt_offset:
@@ -3643,44 +3654,45 @@ equations:
     kind: closed_form
     note: 'Not on the Overstorey soil-water page. A depth $d$ (m) added to layer $i$ between solver legs, by a scheduled event: layer 0 is rain, a deeper layer irrigation or a rising water table. Capped at what the layer can still hold; the excess is pulse runoff. Adds $d$ to $R_{\rm P}$, the accepted depth to $R_{\rm in}$ and the excess to $R_{\rm pulse}$, whichever layer it enters. It does not pass through TF24.infiltration. $\theta_{\rm sat}$ is layer $i$''s.'
 
-  # --- TF24f: the tracked collar potential --------------------------------------------
+  # --- TF24f: the tracked collar position ---------------------------------------------
   TF24f.leaf_operating_point:
     model: TF24f
     section: tf24f_tracking
-    title: The leaf at the tracked collar potential
+    title: The leaf at the tracked collar position
     latex: |
-      \Pi = A_{\rm kept}\big(\tilde\psi_{\rm r}\big), \qquad \tilde\psi_{\rm r} = \min\!\big(\max(\psi_{\rm r}, \psi_a), \psi_b^{-}\big), \qquad \psi_b^{-} = \psi_b - 10^{-6}(\psi_b - \psi_a)
+      \Pi = A_{\rm kept}\big(\psi_{\rm r}\big), \qquad \psi_{\rm r} = \psi_a + (\psi_b - \psi_a) \, u, \qquad u = \frac{1}{1 + e^{-\zeta}}
     code: plant::TF24f_Model::solve_leaf
+    also: [plant::TF24f_Model::collar_at, plant::TF24f_Model::collar_interval]
     reads: ['phylloptim:carbon', 'phylloptim:collar_bracket', 'phylloptim:cost_TF24_floor', 'phylloptim:leaf_from_collar', 'phylloptim:multilayer_uptake']
     writes: []
     kind: closed_form
     overstorey: theory/models/tf24.qmd
-    note: 'Replaces TF24.leaf_operating_point: the leaf is evaluated at the tracked state $\psi_{\rm r}$, held inside $[\psi_a, \psi_b^{-}]$, the feasible bracket with its dry end read a step inside (as phylloptim''s collar solve takes its first dry probe), because the bracket places it only to its tolerance and a leaf read exactly there can fall past the stem curve. Where the bracket is closed (shutdown) the leaf''s own operating point is used. So TF24f does not reproduce TF24 bit for bit; it lags the optimum.'
+    note: 'Replaces TF24.leaf_operating_point: the leaf is evaluated at the collar the tracked position $\zeta$ names, between the wet end $\psi_a$ and the dry end $\psi_b$ of the feasible bracket. Every $\zeta$ is a feasible collar, so nothing is clamped, and the collar moves with the ends as the soil dries. Both ends are solved to collar precision, because the bracket places them only to its tolerance and the collar is measured between them. Where the bracket is closed (shutdown) the leaf''s own operating point is used, whatever $\zeta$. So TF24f does not reproduce TF24 bit for bit; it lags the optimum.'
   TF24f.collar_tracking:
     model: TF24f
     section: tf24f_tracking
-    title: Gradient ascent on the collar potential
+    title: Gradient ascent on the collar's position
     latex: |
-      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \, \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}} - r_{\rm relax} \, (\psi_{\rm r} - \tilde\psi_{\rm r})
+      \frac{{\rm d}\zeta}{{\rm d}t} = k_{\rm acclim} \left[ (\psi_b - \psi_a) \, \frac{\partial J}{\partial \psi_{\rm r}} - 2 \mu \sinh \zeta \right], \qquad \mu = \varepsilon_{\rm b} \, \gamma
     code: plant::TF24f_Model::compute_rates
     also: [plant::TF24f_Model::solve_leaf]
-    reads: [TF24f.k_acclim, TF24f.bound_relaxation_rate, 'phylloptim:foc_collar']
+    reads: [TF24f.k_acclim, TF24f.barrier_fraction, TF24.TF24_cost_scale, 'phylloptim:foc_collar']
     writes: []
     kind: derivative
     overstorey: theory/models/tf24.qmd
-    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$. A state outside the bracket relaxes to the collar the leaf operates at, at rate $r_{\rm relax}$; inside, $\psi_{\rm r} = \tilde\psi_{\rm r}$ and the term is zero. Without it the state drifted on while the optimum was pinned at the dry end, and lagged behind after rain. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the marginal then does not depend on the state, and $r_{\rm relax}$ draws the state to the shut collar. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
+    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$ for a trait confined to an interval: gradient ascent in the relative position $u$ with a mobility that vanishes at either end, $\frac{{\rm d}u}{{\rm d}t} = k_{\rm acclim} \, u (1 - u) \, \frac{\partial}{\partial u} \big[ J + \mu \ln u (1 - u) \big]$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi). The log barrier holds a state a short step inside an end where profit still rises there, about $\mu / \frac{\partial J}{\partial \psi_{\rm r}}$ in MPa, instead of letting it run on; between the ends it moves nothing that matters. Near the dry end the marginal goes like the log of the distance to it, which is linear in $\zeta$, so the rate is not stiff there. Where the bracket is closed (shutdown) the width is zero and only the barrier acts. The marginal is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State collar_position.'
   TF24f.collar_initial:
     model: TF24f
     section: tf24f_tracking
-    title: The tracked collar potential at birth
+    title: The tracked collar position at birth
     latex: |
-      \psi_{\rm r}(t_0) = \psi_{\rm r}^{*}
+      \zeta(t_0) = \ln \frac{u_0}{1 - u_0}, \qquad u_0 = \delta_{\rm seed} + (1 - 2 \delta_{\rm seed}) \, \frac{\psi_{\rm r}^{*} - \psi_a}{\psi_b - \psi_a}
     code: plant::TF24f_Model::set_initial_states
-    reads: ['phylloptim:foc_collar']
+    reads: [TF24f.seed_margin, 'phylloptim:foc_collar', 'phylloptim:collar_bracket']
     writes: []
     kind: closed_form
     overstorey: theory/models/tf24.qmd
-    note: 'TF24''s optimum at birth, found by one full solve, so there is no adjustment transient at establishment.'
+    note: 'TF24''s optimum at birth, found by one full solve, as its position in the bracket, so there is no adjustment transient at establishment. The margin seats an optimum on an end a short step inside it, where its position is finite. With no bracket (shutdown) the position is 0, the middle.'
 
   # --- TF24t: thermal damage and acclimation ------------------------------------------
   TF24t.leaf_switches:

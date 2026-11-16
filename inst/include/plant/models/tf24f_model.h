@@ -6,22 +6,34 @@
 
 namespace plant {
 
-// TF24f ("f" for fast / forecasting): a variant of TF24 that will let the
-// optimal leaf hydraulic state chase its optimum via an extra ODE state
-// (gradient-ascent), instead of re-solving the nested leaf optimisation /
-// root-collar root-find from scratch at every step (issue #525). It inherits
-// TF24_Model and reuses TF24_Environment + TF24_Pars; only the leaf-solve
-// hook and the extra state are overridden.
+// TF24f: TF24 with a plastic hydraulic operating point. Where TF24 re-solves
+// the leaf's optimal root-collar potential at every rate evaluation, TF24f
+// carries the operating point as one more ODE state that climbs the profit
+// gradient at a finite gain, so it lags its optimum; a large gain recovers
+// TF24. It inherits TF24_Model and reuses TF24_Environment and TF24_Pars; only
+// the leaf-solve hook and the extra state are overridden.
 //
-// Adds one extra ODE state, opt_root_psi_state, holding the tracked optimal
-// root-collar water potential. Instead of TF24's per-step golden-section
-// optimisation, solve_leaf() evaluates the leaf at the tracked state and the
-// state relaxes toward its optimum by gradient ascent on carbon profit
-// (dpsi/dt = k_acclim * d(profit)/d(psi), with a relaxation to the leaf's
-// collar while the state is outside the feasible interval); the state is
-// initialised at its optimum at birth. The states shared with TF24 are computed by the inherited
-// compute_rates, so TF24f does NOT reproduce TF24 bit-for-bit -- it tracks the
-// optimum with a (gain-dependent) lag and is faster.
+// ⚠️ THE STATE IS THE COLLAR'S POSITION, NOT ITS POTENTIAL. A collar potential
+// is feasible only on an interval (a, b): from the wet end a, where the soil
+// delivers just the leaf's residual flux, to the dry end b, where the stem
+// carries all it can. Both ends move with the soil, so a state held in MPa can
+// be left outside the interval and has to be clamped back; and near b the
+// stem's whole tail is crowded into the last micro-MPa of collar, where the
+// marginal profit goes like the log of the distance to the end. So the state
+// is z, the logit of the collar's relative position u in the interval:
+//
+//   psi = a + (b - a) u,      u = 1 / (1 + exp(-z)),
+//   dz/dt = k_acclim [ (b - a) dP/dpsi - 2 mu sinh(z) ].
+//
+// That is gradient ascent on profit in u with a mobility that vanishes at
+// either end, du/dt = k_acclim u (1 - u) dP/du, plus a log barrier
+// mu ln(u (1 - u)). Every z is a feasible collar, so nothing is clamped. The
+// collar moves with the ends as the soil dries. Where profit still rises at an
+// end, the state settles where the barrier balances the marginal, a short
+// step inside that end, instead of running on. And in z the marginal's
+// logarithm is a straight line, so the rate is not stiff there.
+//
+// The states shared with TF24 are computed by the inherited compute_rates.
 template <typename S = double>
 class TF24f_Model : public TF24_Model<S> {
 public:
@@ -31,24 +43,24 @@ public:
   typedef std::shared_ptr<TF24f_Model> ptr;
   TF24f_Model();
 
-  // Scientific version — compound, because TF24f is a fast *approximation* of
+  // Scientific version — compound, because TF24f is an *approximation* of
   // TF24 and inherits its equations/parameters. The version is reported as
   // "<TF24 version>.<approximation_revision>" (e.g. "2.1"), so:
   //   * the major component auto-tracks TF24_Model::scientific_version, so a
   //     TF24 scientific change also invalidates TF24f (the safe direction);
-  //   * bump `approximation_revision` for changes specific to the fast
-  //     approximation itself.
+  //   * bump `approximation_revision` for changes specific to the tracking
+  //     itself.
   // See plant::model_version() / model_id() and src/model_exports.cpp. Bump
   // rules match the other models (output-changing science only, not refactors).
-  static constexpr int approximation_revision = 2;
+  static constexpr int approximation_revision = 3;
 
-  // TF24's states + the tracked root-collar psi (appended last so the
-  // inherited state indices are unchanged). state_size()/state_names() are
-  // static and resolved on the concrete type by Individual<TF24f, ...>.
+  // TF24's states + the collar's position (appended last so the inherited
+  // state indices are unchanged). state_size()/state_names() are static and
+  // resolved on the concrete type by Individual<TF24f, ...>.
   static size_t state_size() { return base_type::state_size() + 1; }
   static std::vector<std::string> state_names() {
     std::vector<std::string> ret = base_type::state_names();
-    ret.push_back("opt_root_psi_state");
+    ret.push_back("collar_position");
     return ret;
   }
 
@@ -59,44 +71,72 @@ public:
 
   void compute_rates(const TF24_Environment<S>& environment, Internals<S>& vars);
 
-  // Override the leaf solve: instead of optimising the root-collar psi, evaluate
-  // the leaf at the tracked state and take the exact profit gradient there
-  // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
-  void solve_leaf();
+  // Override the leaf solve: instead of optimising the root-collar psi,
+  // evaluate the leaf at the collar the tracked position names and take the
+  // exact profit gradient there (left in marginal_ for compute_rates to turn
+  // into the state's rate).
+  void solve_leaf() override;
 
-  // Initialise the tracked state at its optimum for a newly introduced individual, so
-  // gradient ascent starts at the optimum (no birth transient / no climb from 0,
-  // which otherwise lets shaded recruits escape suppression). Runs the base
-  // optimiser once via the initializing_ flag below.
+  // Initialise the position at the optimum for a newly introduced individual,
+  // so tracking starts there (no birth transient, which otherwise lets shaded
+  // recruits escape suppression). Runs the base optimiser once via the
+  // initializing_ flag below.
   void set_initial_states(const TF24_Environment<S>& environment, Internals<S>& vars);
 
-  // Acclimation gain k in  dpsi/dt = k * d(profit)/d(psi). Exposed to R so the
-  // stiffness / accuracy-vs-speed k-sweep (#525) can be driven without a rebuild;
-  // large k recovers the quasi-steady-state (TF24) optimum.
+  // The collar potential at position z between the ends a and b. Written from
+  // the nearer end, so the distance to that end keeps its precision.
+  static double collar_at(double z, double a, double b) {
+    return z > 0.0 ? b - (b - a) / (1.0 + std::exp(z))
+                   : a + (b - a) / (1.0 + std::exp(-z));
+  }
+
+  // The feasible collar interval at the leaf's current inputs, each end
+  // solved to collar precision. False where there is none: the leaf is shut,
+  // and is left at its shut state.
+  //
+  // ⚠️ BOTH ENDS ARE POLISHED, because the collar is measured between them.
+  // phylloptim places a bracket's end to its bracket tolerance, and where that
+  // root-find stops moves in steps as a trait moves; read at that tolerance,
+  // the collar would step with it.
+  bool collar_interval(double& a, double& b);
+
+  // Acclimation gain k in dz/dt = k * [(b - a) dP/dpsi - 2 mu sinh(z)]: how
+  // fast the position climbs the profit gradient. A large k recovers TF24's
+  // instantaneous optimum.
   S k_acclim = 1.0;
 
-  // The rate (yr^-1) at which a tracked state outside the collar interval
-  // relaxes to the collar the leaf operates at. It does not scale with
-  // k_acclim, so the run is no stiffer at a high gain. Measured on a stand under
-  // dry pulses at k_acclim 1, 10 and 100: offspring production at 1e3 is within
-  // 7e-6 of 1e4's, and the run costs no more than with no relaxation.
-  static constexpr double bound_relaxation_rate = 1e3;
+  // The log barrier's weight mu, as a fraction of TF24_cost_scale, the scale
+  // of the profit it is added to. It decides how close to an end a state
+  // settles when profit still rises there: about mu / (dP/dpsi), in MPa. A
+  // state held deeper takes longer to leave, so the weight matters most at a
+  // low gain, and less than that gain's own lag: on a stand under dry pulses,
+  // offspring production differs between this and a tenth of it by 3e-3 at
+  // k_acclim = 10 and 5e-5 at 100.
+  static constexpr double barrier_fraction = 1e-5;
+
+  // How far inside either end a newborn is seated, as a fraction of the
+  // interval: an optimum on an end has no finite logit.
+  static constexpr double seed_margin = 1e-4;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
-  int state_idx_opt_root_psi_state = -1;
+  int state_idx_collar_position = -1;
 
-  // Channel between solve_leaf() (writes) and compute_rates() (reads). Default is
-  // finite so solve_leaf is safe before the first compute_rates (e.g. during
-  // establishment_probability), where the tracked state has not been read yet.
-  S tracked_root_psi_ = 0.0;
-  S dprofit_dpsi_ = 0.0;
-  // The collar the leaf was evaluated at: the tracked state, held inside the
-  // interval, or the shut leaf's own collar.
-  S leaf_collar_ = 0.0;
-  // When true, solve_leaf() runs the base optimiser (Leaf::optimise on the seated
-  // curve) rather than the tracked evaluation; used by set_initial_states to read
-  // the optimum.
+  // Channel between compute_rates() and solve_leaf(): the position going in;
+  // the marginal profit at its collar and the interval's width coming back.
+  // The position's default is finite (the middle of the interval), so
+  // solve_leaf is safe before the first compute_rates (e.g. during
+  // establishment_probability), where the state has not been read yet. With no
+  // interval the width is zero, and the marginal with it.
+  S position_ = 0.0;
+  S marginal_ = 0.0;
+  S width_ = 0.0;
+  // When true, solve_leaf() runs the base optimiser rather than the tracked
+  // evaluation, and keeps the interval the optimum sits in; used by
+  // set_initial_states to seat the newborn.
   bool initializing_ = false;
+  double seed_a_ = 0.0;
+  double seed_b_ = 0.0;
+  bool seed_open_ = false;
 };
 
 template <typename S>
@@ -117,109 +157,125 @@ template <typename S>
 void TF24f_Model<S>::refresh_indices() {
   base_type::refresh_indices();
   const int idx = static_cast<int>(base_type::state_size());
-  this->state_index["opt_root_psi_state"] = idx;
-  state_idx_opt_root_psi_state = idx;
+  this->state_index["collar_position"] = idx;
+  state_idx_collar_position = idx;
   // Again on the concrete model: the base checked its own names against its
   // own count, and the slot appended above is outside both.
   check_state_layout(this->state_index, state_size(), "TF24f");
 }
 
-// Reuse TF24's rates for the shared states; the tracked-state value is fed
-// to solve_leaf() (called from the reused net_mass_production_dt) via
-// tracked_root_psi_, and the resulting profit gradient comes back in
-// dprofit_dpsi_, which becomes the tracked state's rate (gradient ascent).
+// Reuse TF24's rates for the shared states; the position is fed to
+// solve_leaf() (called from the reused net_mass_production_dt) via position_,
+// and the marginal profit and the interval's width come back for its rate.
 template <typename S>
 void TF24f_Model<S>::compute_rates(const TF24_Environment<S>& environment,
                                    Internals<S>& vars) {
   // k_acclim is a user-settable gain; a negative value would silently turn the
   // gradient ascent into descent (away from the optimum) and a non-finite value
   // would poison the state rate, so fail fast on misconfiguration.
-  if (!util::is_finite(k_acclim) || k_acclim < 0.0) {
+  const double k = odelia::util::to_passive(k_acclim);
+  if (!util::is_finite(k) || k < 0.0) {
     util::stop("TF24f: k_acclim must be finite and >= 0 (got " +
-               util::to_string(k_acclim) + ")");
+               util::to_string(k) + ")");
   }
-  tracked_root_psi_ = vars.state(state_idx_opt_root_psi_state);
+  position_ = vars.state(state_idx_collar_position);
   base_type::compute_rates(environment, vars);
-  // Gradient ascent, and outside the interval a relaxation to the collar the
-  // leaf operates at, which is zero inside it. With the marginal alone, the
-  // state went on drifting while the optimum was pinned at the dry end, and
-  // lagged far behind once it left: under drought the leaf then stayed at the
-  // dry end after rain.
-  vars.set_rate(state_idx_opt_root_psi_state,
-                k_acclim * dprofit_dpsi_ -
-                    bound_relaxation_rate * (tracked_root_psi_ - leaf_collar_));
+  // Gradient ascent on profit in the relative position, less the barrier's
+  // pull from either end. A shut leaf has no interval to climb, so only the
+  // barrier acts, drawing the position slowly to the middle.
+  using std::sinh;
+  const S barrier = barrier_fraction * this->pars.TF24_cost_scale;
+  vars.set_rate(state_idx_collar_position,
+                k_acclim * (width_ * marginal_ - 2.0 * barrier * sinh(position_)));
 }
 
-// Track instead of optimise: evaluate the leaf at the tracked collar psi and
-// supply d(profit)/d(psi) for the gradient-ascent rate. The tracked state is
-// clamped into the feasible interval here (phylloptim refuses a collar outside
-// it), and the gradient is formed about the clamped value `used`. The marginal
-// there does not by itself bring a state outside back (compute_rates adds the
-// relaxation that does), and the final evaluate leaves the leaf outputs at the
-// operating point that compute_rates' aux reads expect. The gradient is exact: forward-mode AD over the leaf's
-// algebra, the implicit-function theorem at the ci root-find, and analytic
-// spline derivatives for the transport.
+template <typename S>
+bool TF24f_Model<S>::collar_interval(double& a, double& b) {
+  Leaf& leaf = this->leaf;
+  if (!leaf.template prepare_collar_solve<
+          phylloptim::Leaf::CostCurve::TF24_floor>(a, b)) {
+    return false;
+  }
+  a = leaf.polish_bracket_bound(a, leaf.supply_psi_soil(), 0);
+  b = leaf.polish_bracket_bound(b, leaf.supply_psi_soil(), 1);
+  if (!(b > a)) {
+    odelia::util::stop_domain(
+        "TF24f: the collar interval closed when its ends were solved to "
+        "collar precision: wet end " + util::format_double(a) +
+        " MPa, dry end " + util::format_double(b) + " MPa");
+  }
+  return true;
+}
+
+// Track instead of optimise: evaluate the leaf at the collar the position
+// names and supply d(profit)/d(psi) there for the position's rate. The final
+// evaluation leaves the leaf outputs at that operating point, which
+// compute_rates' aux reads expect. The gradient is exact: forward-mode AD over
+// the leaf's algebra, the implicit-function theorem at the ci root-find, and
+// analytic spline derivatives for the transport.
+//
+// The leaf solves in double at every scalar, on the position's value.
+//
 // A function-try-block, so every exit of the body is covered: phylloptim's
 // infeasible_error becomes odelia's DomainError, a rejected step rather than a
 // dead run, for the reason TF24_Model::solve_leaf gives. Only that error is
 // translated; anything else still propagates.
 template <typename S>
 void TF24f_Model<S>::solve_leaf() try {
+  constexpr auto curve = phylloptim::Leaf::CostCurve::TF24_floor;
+  Leaf& leaf = this->leaf;
   if (initializing_) {
-    // Birth initialisation: run the full optimiser so set_initial_states can
-    // read the optimum collar psi.
-    // The curve-typed form, for the reason TF24_Model::solve_leaf gives.
-    this->leaf.template find_root_collar_psi_for<
-        phylloptim::Leaf::CostCurve::TF24_floor>();
+    // Birth: the interval first, because the optimiser prepares its own and
+    // leaves the leaf at the optimum set_initial_states reads. The
+    // curve-typed form, for the reason TF24_Model::solve_leaf gives.
+    seed_open_ = collar_interval(seed_a_, seed_b_);
+    leaf.template find_root_collar_psi_for<curve>();
     return;
   }
-  // Establish the operating point (and the clamped collar psi `used`) and leave
-  // the leaf outputs there for compute_rates' aux reads. Where feasibility
-  // handling fixes the operating point (shutdown / closed interval) `used` is
-  // the collar it chose.
-  double bound_a, bound_b;
-  const bool open = this->leaf.template prepare_collar_solve<
-      phylloptim::Leaf::CostCurve::TF24_floor>(bound_a, bound_b);
-  // The dry end is the bracket's, placed only to its tolerance, and a leaf
-  // read exactly there can fall past the stem curve's domain; phylloptim's
-  // collar solve takes its first dry probe a step inside it, and so does this.
-  const double dry = bound_b - 1e-6 * (bound_b - bound_a);
-  const double used =
-      open ? std::min(std::max(tracked_root_psi_, bound_a), dry)
-           : this->leaf.opt_root_psi_;
-  dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used);
-  // Inside the interval the collar IS the state, so the relaxation in
-  // compute_rates is an exact zero in its derivative as well as its value.
-  leaf_collar_ = (open && used == odelia::util::to_passive(tracked_root_psi_))
-                     ? tracked_root_psi_
-                     : S(used);
-  // restore operating-point outputs
-  if (open) {
-    this->leaf.template profit_at_collar_psi<
-        phylloptim::Leaf::CostCurve::TF24_floor>(used, bound_a, bound_b);
-  } else {
-    this->leaf.template prepare_collar_solve<
-        phylloptim::Leaf::CostCurve::TF24_floor>(bound_a, bound_b);
+  double a, b;
+  if (!collar_interval(a, b)) {
+    // Shut: the leaf is at its own operating point, whatever the position.
+    marginal_ = 0.0;
+    width_ = 0.0;
+    return;
   }
+  const double collar =
+      collar_at(odelia::util::to_passive(position_), a, b);
+  marginal_ = leaf.dprofit_droot_collar_psi(collar);
+  width_ = b - a;
+  // The marginal moved the leaf; put its outputs back at the collar.
+  leaf.template profit_at_collar_psi<curve>(collar, a, b);
 } catch (const phylloptim::util::infeasible_error& e) {
   odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
 }
 
-// Initialise the tracked state at its optimum: run the base optimiser once (via the
+// Seat a newborn at its optimum: run the base optimiser once (via the
 // initializing_ flag, which makes solve_leaf optimise rather than track) and
-// store the resulting collar psi as the initial state. Both are the positive
-// magnitude of the potential, in MPa.
+// store the optimum's position in the interval it was found in.
 template <typename S>
 void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                         Internals<S>& vars) {
-  // Initialise the shared TF24 states first (notably the NSC storage pool, #517) --
+  // Initialise the shared TF24 states first (notably the NSC storage pool) --
   // set_initial_states is non-virtual, so without this call TF24f seedlings
   // would be born with empty reserves and die immediately.
   base_type::set_initial_states(environment, vars);
   initializing_ = true;
   this->net_mass_production_dt(environment, vars);
   initializing_ = false;
-  vars.set_state(state_idx_opt_root_psi_state, this->leaf.opt_root_psi_);
+  // With no interval the leaf is shut wherever the position is: the middle.
+  double z = 0.0;
+  if (seed_open_) {
+    // An optimum the solve left on a bracket end it did not polish can sit a
+    // bracket tolerance outside the polished interval, so the position is
+    // held to [0, 1] before the margin seats it inside.
+    const double u = std::min(
+        std::max((this->leaf.opt_root_psi_ - seed_a_) / (seed_b_ - seed_a_),
+                 0.0),
+        1.0);
+    const double seated = seed_margin + (1.0 - 2.0 * seed_margin) * u;
+    z = std::log(seated / (1.0 - seated));
+  }
+  vars.set_state(state_idx_collar_position, z);
 }
 
 template <typename S>
