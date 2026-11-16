@@ -75,7 +75,12 @@ print.plant_scenario <- function(x, ...) {
 ##' \code{from}, \code{refine_schedule} and \code{record = "states"}. It takes
 ##' \code{events}' harvests, resource pulses and climate extremes, drawing each
 ##' individual's removal by chance. Its deaths are drawn every
-##' \code{control$stochastic_death_interval} years.
+##' \code{control$stochastic_death_interval} years, 0.01 by default; set it
+##' with \code{control = control(stochastic_death_interval = 0.05)}. Survival
+##' is exact at any interval, but a plant that has died shades the living
+##' until the next draw, so where shade kills a longer interval leaves fewer
+##' plants (in a closing FF16 canopy about 2\% at 0.05, 0.5\% at 0.01) and
+##' runs faster.
 ##' Seed R's random number generator to repeat one.
 ##'
 ##' A single plant is grown by \code{run(individual, times = )}, which reports

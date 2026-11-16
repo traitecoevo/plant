@@ -303,10 +303,13 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## arrivals, FF16 84 established and 1 surviving, TF24 53 and 1 (52 and 1 at
   ## a zero offset), K93 101 and 3. A new stream again, not the old draws
   ## corrected.
+  ## Drawing deaths every 0.01 yr by default instead of every 0.05 changes the
+  ## number of draws, so the stream again: FF16 76 established and 11
+  ## surviving, TF24 52 and 1 (51 and 1 at a zero offset), K93 101 and 4.
   baseline <- list(
-    FF16 = list(n_total = 84L, n_alive_final = 1L),
-    TF24 = list(n_total = 53L, n_alive_final = 1L),
-    K93  = list(n_total = 101L, n_alive_final = 3L)
+    FF16 = list(n_total = 76L, n_alive_final = 11L),
+    TF24 = list(n_total = 52L, n_alive_final = 1L),
+    K93  = list(n_total = 101L, n_alive_final = 4L)
   )
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
@@ -336,7 +339,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   res <- tidy(run(p, Environment("TF24"), stochastic_control("TF24"),
                   method = "stochastic", record = "steps"))
   ia <- attr(res$species, "is_alive")[[1]]
-  expect_equal(dim(res$species[[1]])[3], 52L)
+  expect_equal(dim(res$species[[1]])[3], 51L)
   expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 1L)
 })
 

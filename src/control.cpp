@@ -88,7 +88,7 @@ Control::Control() {
   ci_abs_tol = 1e-3;
   ci_niter = 1e3;
   // See control.h.
-  stochastic_death_interval = 0.05;
+  stochastic_death_interval = 0.01;
 }
 
 // Written so that a NaN fails it.
