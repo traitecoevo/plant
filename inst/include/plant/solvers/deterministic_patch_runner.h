@@ -2,12 +2,12 @@
 #ifndef PLANT_PLANT_DETERMINISTIC_PATCH_RUNNER_H_
 #define PLANT_PLANT_DETERMINISTIC_PATCH_RUNNER_H_
 
-#include <plant/schedule.h>
-#include <plant/census_gradient.h>
+#include <plant/solvers/schedule.h>
+#include <plant/gradients/census_gradient.h>
 #include <odelia/ode_solver.hpp>
-#include <plant/patch.h>
-#include <plant/patch_runner.h>
-#include <plant/schedule_utils.h>
+#include <plant/community/patch.h>
+#include <plant/solvers/patch_runner.h>
+#include <plant/solvers/schedule_utils.h>
 
 #include <odelia/sweep.hpp>
 

@@ -3,10 +3,10 @@
 #define PLANT_PLANT_STOCHASTIC_PATCH_H_
 
 #include <plant/parameters.h>
-#include <plant/patch_system.h>
-#include <plant/stochastic_species.h>
+#include <plant/community/patch_system.h>
+#include <plant/community/stochastic_species.h>
 #include <plant/util.h>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 
 namespace plant {
 

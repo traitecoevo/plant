@@ -4,9 +4,9 @@
 
 #include <cmath>
 #include <odelia/ode_solver.hpp>
-#include <plant/patch_runner.h>
-#include <plant/stochastic_patch.h>
-#include <plant/stochastic_utils.h>
+#include <plant/solvers/patch_runner.h>
+#include <plant/community/stochastic_patch.h>
+#include <plant/solvers/stochastic_utils.h>
 
 namespace plant {
 

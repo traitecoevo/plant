@@ -3,7 +3,7 @@
 #define PLANT_PLANT_WEIBULL_DISTURBANCE_REGIME_H_
 
 #include <vector>
-#include <plant/disturbance_regime.h>
+#include <plant/disturbances/disturbance_regime.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;

@@ -3,7 +3,7 @@
 #define PLANT_PLANT_SPECIES_BASE_H_
 
 #include <vector>
-#include <plant/individual.h>
+#include <plant/community/individual.h>
 #include <odelia/ode_interface.hpp>
 
 namespace plant {

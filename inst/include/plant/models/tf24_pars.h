@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_TF24_PARS_H_
 #define PLANT_PLANT_TF24_PARS_H_
 
-#include <plant/pars_table.h>
+#include <plant/models/pars_table.h>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -256,7 +256,7 @@ struct TF24_Pars {
   // * Stem hydraulic path
   // Within-plant anatomical profiles along the flow path, parameterised by
   // distance from the apex L and anchored at the terminal segment. See
-  // plant/stem_hydraulics.h for the closed form and what it assumes.
+  // plant/models/stem_hydraulics.h for the closed form and what it assumes.
   //
   // Setting all three to zero collapses the path integral to a resistance
   // linear in height -- the model before this existed -- bit for bit, which is
@@ -494,7 +494,7 @@ struct TF24_Pars {
 
   // Every entry of the table, which is the whole parameter set: a rebind carries
   // it across a scalar change. ad_parameters() is the subset with a column.
-  // Read off the two lists by plant/pars_table.h; see there for what each is.
+  // Read off the two lists by plant/models/pars_table.h; see there for what each is.
   std::vector<S*> field_ptrs() {
     return pars_table::field_ptrs(*this, ad_parameter_fields);
   }

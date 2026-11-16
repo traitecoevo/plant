@@ -2,8 +2,8 @@
 #ifndef PLANT_RUNNER
 #define PLANT_RUNNER
 
-#include <plant/individual.h>
-#include <plant/environment.h>
+#include <plant/community/individual.h>
+#include <plant/models/environment.h>
 #include <odelia/ode_solver.hpp>
 
 namespace plant {

@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <vector>
 #include <odelia/ode_util.hpp>
-#include <plant/qk.h>
+#include <plant/numerics/qk.h>
 
 namespace plant {
 

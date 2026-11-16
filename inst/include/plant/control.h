@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_CONTROL_H_
 #define PLANT_PLANT_CONTROL_H_
 
-#include <plant/qag.h>
+#include <plant/numerics/qag.h>
 #include <odelia/ode_control.hpp>
 #include <string>
 

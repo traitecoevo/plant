@@ -2,9 +2,9 @@
 #ifndef PLANT_PLANT_FF16_ENVIRONMENT_H_
 #define PLANT_PLANT_FF16_ENVIRONMENT_H_
 
-#include <plant/environment.h>
-#include <plant/resource_spline.h>
-#include <plant/canopy_shape.h> // ShadingModel, shading_model_from_string
+#include <plant/models/environment.h>
+#include <plant/models/resource_spline.h>
+#include <plant/models/canopy_shape.h> // ShadingModel, shading_model_from_string
 #include <odelia/ode_util.hpp>
 #include <cmath>                // std::log, std::exp, std::floor (PPA stepping)
 #include <type_traits>

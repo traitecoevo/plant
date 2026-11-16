@@ -6,11 +6,11 @@
 #include <vector>
 #include <boost/iterator/filter_iterator.hpp>
 #include <plant/util.h>
-#include <plant/environment.h>
-#include <plant/species_base.h>
-#include <plant/stochastic_node.h>
+#include <plant/models/environment.h>
+#include <plant/community/species_base.h>
+#include <plant/community/stochastic_node.h>
 #include <odelia/ode_interface.hpp>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 
 namespace plant {
 

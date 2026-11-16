@@ -2,13 +2,13 @@
 #ifndef PLANT_PLANT_FF16_MODEL_H_
 #define PLANT_PLANT_FF16_MODEL_H_
 
-#include <plant/census.h>
-#include <plant/model.h>
+#include <plant/gradients/census.h>
+#include <plant/models/model.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/qag.h>
-#include <plant/canopy_shape.h>
+#include <plant/numerics/qag.h>
+#include <plant/models/canopy_shape.h>
 #include <plant/models/ff16_production_kernel.h>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 #include <odelia/ode_util.hpp>
 #include <odelia/implicit_node.hpp>
 #include <array>
@@ -196,7 +196,7 @@ struct FF16_Pars {
 
   // Every entry of the table, which is the whole parameter set: a rebind carries
   // it across a scalar change. ad_parameters() is the subset with a column.
-  // Read off the two lists by plant/pars_table.h; see there for what each is.
+  // Read off the two lists by plant/models/pars_table.h; see there for what each is.
   std::vector<S*> field_ptrs() {
     return pars_table::field_ptrs(*this, ad_parameter_fields);
   }

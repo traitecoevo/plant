@@ -3,16 +3,16 @@
 #define PLANT_PLANT_PATCH_H_
 
 #include <plant/parameters.h>
-#include <plant/patch_system.h>
-#include <plant/species.h>
+#include <plant/community/patch_system.h>
+#include <plant/community/species.h>
 #include <plant/util.h>
-#include <plant/clamp_sites.h>
+#include <plant/gradients/clamp_sites.h>
 #include <odelia/ode_interface.hpp>
 #include <odelia/sweep.hpp>
 #include <odelia/ode_util.hpp> // odelia::util::stop_domain
 
-#include <plant/disturbance_regime.h>
-#include <plant/with_slope.h>
+#include <plant/disturbances/disturbance_regime.h>
+#include <plant/numerics/with_slope.h>
 
 #include <algorithm>
 #include <cmath>

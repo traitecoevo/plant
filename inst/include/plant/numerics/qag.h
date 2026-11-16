@@ -14,8 +14,8 @@
 #ifndef PLANT_PLANT_QAG_H_
 #define PLANT_PLANT_QAG_H_
 
-#include <plant/qk.h>
-#include <plant/qag_internals.h>
+#include <plant/numerics/qk.h>
+#include <plant/numerics/qag_internals.h>
 #include <plant/util.h> // util::stop
 #include <RcppCommon.h> // SEXP
 

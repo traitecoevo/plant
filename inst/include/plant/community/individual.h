@@ -6,12 +6,12 @@
 #include <odelia/ode_interface.hpp>
 #include <vector>
 #include <odelia/ode_util.hpp>
-#include <plant/census.h>
-#include <plant/internals.h>
-#include <plant/gradient.h>
+#include <plant/gradients/census.h>
+#include <plant/community/internals.h>
+#include <plant/gradients/gradient.h>
 #include <plant/util.h>
-#include <plant/uniroot.h>
-#include <plant/with_slope.h>
+#include <plant/numerics/uniroot.h>
+#include <plant/numerics/with_slope.h>
 #include <utility> // std::pair
 
 

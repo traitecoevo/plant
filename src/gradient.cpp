@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/gradient.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/gradients/gradient.h>
 #include <plant/util.h>
 #include <plant/util_post_rcpp.h>
 #include <Rcpp.h>

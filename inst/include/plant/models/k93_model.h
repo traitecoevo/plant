@@ -2,10 +2,10 @@
 #ifndef PLANT_PLANT_K93_MODEL_H_
 #define PLANT_PLANT_K93_MODEL_H_
 
-#include <plant/model.h>
+#include <plant/models/model.h>
 #include <plant/models/k93_environment.h>
-#include <plant/canopy_shape.h>
-#include <plant/with_slope.h>
+#include <plant/models/canopy_shape.h>
+#include <plant/numerics/with_slope.h>
 
 namespace plant {
 

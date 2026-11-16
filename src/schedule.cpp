@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/schedule.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/solvers/schedule.h>
 #include <plant/parameters.h>
 #include <plant/util.h>
 #include <Rcpp.h>

@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/schedule_utils.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/solvers/schedule_utils.h>
 #include <plant.h>
 
 namespace plant {

@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_EVENTS_H_
 #define PLANT_PLANT_EVENTS_H_
 
-#include <plant/schedule.h>
+#include <plant/solvers/schedule.h>
 #include <plant/util.h>
 
 #include <string>

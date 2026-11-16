@@ -2,8 +2,8 @@
 #ifndef PLANT_PLANT_STOCHASTIC_UTILS_H_
 #define PLANT_PLANT_STOCHASTIC_UTILS_H_
 
-#include <plant/schedule.h>
-#include <plant/schedule_utils.h>
+#include <plant/solvers/schedule.h>
+#include <plant/solvers/schedule_utils.h>
 
 namespace plant {
 

@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/qk_rules.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/numerics/qk_rules.h>
 
 namespace plant {
 namespace quadrature {

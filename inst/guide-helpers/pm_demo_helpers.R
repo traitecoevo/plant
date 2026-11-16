@@ -6,7 +6,7 @@
 ##
 ## Assumes the `plant` package is loaded (library(plant) or devtools::load_all()).
 
-## PM leaf-energy-balance physical constants (mirror inst/include/plant/leaf_model.h),
+## PM leaf-energy-balance physical constants (mirror inst/include/plant/models/leaf_model.h),
 ## used only to recover the operating-point leaf temperature Tleaf in R.
 pm_lambda <- 2.45e6   # latent heat of vaporisation, J kg^-1
 pm_rho_cp <- 1200.0   # volumetric heat capacity of air, J m^-3 K^-1
