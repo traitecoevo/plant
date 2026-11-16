@@ -2333,12 +2333,15 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   if (bounded.empty()) {
     return true;
   }
+  // Asked as "is it inside", so a NaN fails: NaN < 0.0 is false, and a test
+  // for being outside lets it through.
+  const auto inside = [](double v) { return v >= 0.0 && util::is_finite(v); };
   const size_t stride = node_type::ode_size();
   size_t at = 0;
   for (const auto& sp : species) {
     for (size_t k = 0; k < sp.size(); ++k, at += stride) {
       for (const size_t i : bounded) {
-        if (y[at + i] < 0.0) {
+        if (!inside(y[at + i])) {
           return false;
         }
       }
@@ -2350,7 +2353,7 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
       const size_t density_at = at + individual_type::ode_size();
       if (y[density_at] > 0.0) {
         for (const size_t i : bounded) {
-          if (y[at + i] < 0.0) {
+          if (!inside(y[at + i])) {
             return false;
           }
         }
