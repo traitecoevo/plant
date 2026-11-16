@@ -53,8 +53,8 @@ Suggests:
     kableExtra
 Remotes:
     richfitz/RcppR6,
-    traitecoevo/odelia@c3235a9,
-    traitecoevo/phylloptim@c6590a5
+    traitecoevo/odelia@v0.11.2,
+    traitecoevo/phylloptim@e0f2109
 URL: https://traitecoevo.github.io/plant/, https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
