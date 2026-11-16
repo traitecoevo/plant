@@ -264,3 +264,29 @@ test_that("a TF24 recruit is born with reserves in its storage pool", {
   expect_gt(storage, 0)
   expect_equal(storage, node$individual$state("storage"))
 })
+
+## The profile orders the individuals by height once and reads that order at
+## every knot. With a younger individual the tallest, it must still reach the
+## top of the canopy, shade below it, and agree with the patch's own sum.
+test_that("the light profile counts a younger individual that is taller", {
+  for (x in names(strategy_types)) {
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
+    patch <- StochasticPatch(x, e)(p, Environment(x), Control())
+    for (i in 1:3) {
+      patch$introduce_new_node_and_update(1)
+    }
+    s <- patch$ode_state
+    n_ode <- patch$species[[1]]$individual_at(1)$ode_size
+    s[(0:2) * n_ode + 1] <- c(2, 5, 3)
+    patch$set_ode_state(s, patch$ode_time)
+
+    expect_equal(patch$height_max, 5, info = x)
+    light <- patch$environment$light_availability$state
+    h <- light[, "height"]
+    expect_equal(max(h), 5, info = x)
+    expect_lt(light[which.min(abs(h - 4)), "light_availability"], 1)
+    expected <- exp(-vapply(h, patch$compute_competition, numeric(1)))
+    expect_lt(max(abs(light[, "light_availability"] - expected)), 1e-14)
+  }
+})

@@ -98,6 +98,9 @@ private:
   // evaluation. A member reserved once in reset() and cleared (not freed) after
   // use, so the RHS does not allocate.
   std::vector<double> resource_depletion;
+  // Scratch for compute_environment(): each species' living individuals,
+  // tallest first, taken once per profile and read at every height on it.
+  std::vector<std::vector<const typename species_type::node_type*>> tallest_first;
 };
 
 template <typename T, typename E>
@@ -128,16 +131,31 @@ void StochasticPatch<T,E>::compute_environment() {
     //
     // Individuals rather than nodes here, so there is no trapezium over a grid and
     // nothing to accumulate across knots: the per-knot sum IS the reduction, and
-    // this walks the knots itself.
+    // this walks the knots itself. The sum is the patch's
+    // compute_competition_and_slope(), with each species ordered once.
+    tallest_first.resize(species.size());
+    for (size_t i = 0; i < species.size(); ++i) {
+      species[i].order_by_height(tallest_first[i]);
+    }
     auto f = [&] (const std::vector<double>& x, std::vector<value_type>& y,
                   std::vector<value_type>& m) -> void {
       for (size_t k = 0; k < x.size(); ++k) {
-        const with_slope<value_type> fs = this->compute_competition_and_slope(x[k]);
-        y[k] = fs.value;
-        m[k] = fs.slope;
+        with_slope<value_type> sum{0.0, 0.0};
+        for (size_t i = 0; i < species.size(); ++i) {
+          const with_slope<value_type> fs =
+            species[i].compute_competition_and_slope(x[k], tallest_first[i]);
+          sum.value += fs.value / area;
+          sum.slope += fs.slope / area;
+        }
+        y[k] = sum.value;
+        m[k] = sum.slope;
       }
     };
     environment.compute_environment(f, this->height_max());
+    // Kept for its capacity; the pointers would outlive a change to the plants.
+    for (auto& order : tallest_first) {
+      order.clear();
+    }
   } else {
     environment.clear_environment();
   }

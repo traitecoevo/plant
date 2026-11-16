@@ -80,7 +80,6 @@ test_that("Multiple individuals", {
     expect_equal(sp$is_alive, rep(TRUE, n))
 
     hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
-    expect_error(sp$heights <- rev(hh), "must be decreasing")
     sp$heights <- hh
     expect_equal(sp$heights, hh)
 
@@ -124,6 +123,34 @@ test_that("Multiple individuals", {
     m2 <- matrix(sp$ode_state, n_ode)
     expect_equal(ncol(m2), n - 1)
     expect_identical(m2, m[, -i])
+  }
+})
+
+## Individuals are held in order of arrival, and a younger one can be the
+## taller; the competition above a height must count it all the same.
+test_that("competition counts every taller individual, in any order", {
+  for (x in names(strategy_types)) {
+    env <- Environment(x)
+    s <- strategy_types[[x]]()
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
+    for (i in 1:3) {
+      sp$introduce_new_node()
+    }
+    hh <- c(2, 5, 3)
+    sp$heights <- hh
+    sp$compute_rates(env)
+    expect_equal(sp$height_max, 5, info = x)
+
+    ind <- sp$individuals
+    for (z in c(0.5, 2.5, 4)) {
+      expected <- sum(vapply(ind[hh > z], function(p) p$compute_competition(z),
+                             numeric(1)))
+      expect_gt(expected, 0)
+      expect_equal(sp$compute_competition(z), expected, tolerance = 1e-14,
+                   info = paste(x, z))
+    }
+    expect_equal(sp$compute_competition(5), 0, info = x)
   }
 })
 

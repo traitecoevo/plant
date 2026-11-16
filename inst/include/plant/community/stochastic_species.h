@@ -64,10 +64,20 @@ public:
 
   value_type height_max() const;
   value_type compute_competition(double height) const;
-  // The same sum and its vertical derivative, from one pass over the living
-  // individuals. `value` equals compute_competition(height) bit for bit.
+  // The same sum and its vertical derivative, the living individuals ordered
+  // for this one height.
   with_slope<value_type>
   compute_competition_and_slope(double height) const;
+  // The living individuals, tallest first, those of equal height in order of
+  // arrival, into `out`. Plants seldom overtake older ones, so this is an
+  // insertion sort, linear while they do not.
+  void order_by_height(std::vector<const node_type*>& out) const;
+  // The pair above, summed over `tallest_first` as order_by_height() gives it
+  // and stopped at the first individual not taller than `height`. A profile
+  // takes the order once and reads it at every height.
+  with_slope<value_type>
+  compute_competition_and_slope(double height,
+                                const std::vector<const node_type*>& tallest_first) const;
   void compute_rates(const E& environment);
   double consumption_rate(int i) const;
   std::vector<double> net_reproduction_ratio_by_node() const;
@@ -177,62 +187,64 @@ void StochasticSpecies<T,E>::introduce_new_node(const E& environment) {
 }
 
 
-// If a species contains no individuals, we return zero
-// (c.f. Species).  Otherwise we return the height of the largest
-// individual (always the first in the list).
+// The height of the tallest living individual, or zero if there is none (c.f.
+// Species). Individuals are kept in order of arrival, which is not an order of
+// height in a model whose plants can overtake older ones, so every one is read.
 template <typename T, typename E>
 typename StochasticSpecies<T,E>::value_type
 StochasticSpecies<T,E>::height_max() const {
+  value_type ret = 0.0;
   for (auto& n : nodes) {
-    if (n.alive) {
-      return n.height();
+    if (n.alive && n.height() > ret) {
+      ret = n.height();
     }
   }
-  return value_type(0.0);
+  return ret;
 }
 
-// Leaf area above `height`: the sum over living individuals taller than it.
-// Individuals are kept in order of arrival, oldest first, and the sum stops at
-// the first living one that is not taller than `height`. That is exact while
-// older individuals are taller, which a model whose cohorts can cross does not
-// guarantee. Zero for an empty species.
+// Leaf area above `height`: the sum over every living individual taller than
+// it, tallest first. Zero for an empty species.
 template <typename T, typename E>
 typename StochasticSpecies<T,E>::value_type
 StochasticSpecies<T,E>::compute_competition(double height) const {
-  if (size() == 0 || height_max() < height) {
-    return value_type(0.0);
-  }
-  value_type tot = 0.0;
-  for (auto& n : nodes) {
-    if (n.alive) {
-      if (n.height() > height) {
-        tot += n.compute_competition(height);
-      } else {
-        break;
-      }
-    }
-  }
-  return tot;
+  return compute_competition_and_slope(height).value;
 }
 
 template <typename T, typename E>
 with_slope<typename StochasticSpecies<T,E>::value_type>
 StochasticSpecies<T,E>::compute_competition_and_slope(double height) const {
-  if (size() == 0 || height_max() < height) {
-    return {value_type(0.0), value_type(0.0)};
-  }
-  with_slope<value_type> sum{0.0, 0.0};
-  for (auto& n : nodes) {
-    if (n.alive) {
-      if (n.height() > height) {
-        const with_slope<value_type> fs =
-          n.compute_competition_and_slope(height);
-        sum.value += fs.value;
-        sum.slope += fs.slope;
-      } else {
-        break;
-      }
+  std::vector<const node_type*> tallest_first;
+  order_by_height(tallest_first);
+  return compute_competition_and_slope(height, tallest_first);
+}
+
+template <typename T, typename E>
+void StochasticSpecies<T,E>::order_by_height(
+    std::vector<const node_type*>& out) const {
+  out.clear();
+  for (const auto& n : nodes) {
+    if (!n.alive) {
+      continue;
     }
+    out.push_back(&n);
+    for (size_t i = out.size() - 1; i > 0 && out[i - 1]->height() < n.height(); --i) {
+      std::swap(out[i - 1], out[i]);
+    }
+  }
+}
+
+template <typename T, typename E>
+with_slope<typename StochasticSpecies<T,E>::value_type>
+StochasticSpecies<T,E>::compute_competition_and_slope(
+    double height, const std::vector<const node_type*>& tallest_first) const {
+  with_slope<value_type> sum{0.0, 0.0};
+  for (const node_type* n : tallest_first) {
+    if (!(n->height() > height)) {
+      break;
+    }
+    const with_slope<value_type> fs = n->compute_competition_and_slope(height);
+    sum.value += fs.value;
+    sum.slope += fs.slope;
   }
   return sum;
 }
@@ -442,9 +454,6 @@ std::vector<double> StochasticSpecies<T,E>::r_heights() const {
 template <typename T, typename E>
 void StochasticSpecies<T,E>::r_set_heights(std::vector<double> heights) {
   util::check_length(heights.size(), size());
-  if (!util::is_decreasing(heights.begin(), heights.end())) {
-    util::stop("height must be decreasing (ties allowed)");
-  }
   size_t i = 0;
   for (auto& n : nodes) {
     if (n.alive) {
