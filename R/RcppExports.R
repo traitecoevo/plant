@@ -6669,22 +6669,6 @@ gradient_control_ff16 <- function(obj_) {
     .Call('_plant_gradient_control_ff16', PACKAGE = 'plant', obj_)
 }
 
-schedule_default__Parameters___FF16__FF16_Env <- function(p) {
-    .Call('_plant_schedule_default__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
-}
-
-make_schedule__Parameters___FF16__FF16_Env <- function(p) {
-    .Call('_plant_make_schedule__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
-}
-
-test_gradient_fd1 <- function(f, x, dx, direction, fx = NA_real_) {
-    .Call('_plant_test_gradient_fd1', PACKAGE = 'plant', f, x, dx, direction, fx)
-}
-
-test_gradient_richardson <- function(f, x, d, r) {
-    .Call('_plant_test_gradient_richardson', PACKAGE = 'plant', f, x, d, r)
-}
-
 ladder_block_jacobian_forward_tf24 <- function(obj_, node) {
     .Call('_plant_ladder_block_jacobian_forward_tf24', PACKAGE = 'plant', obj_, node)
 }
@@ -6797,28 +6781,12 @@ census_curvature_margin_tf24 <- function(obj_) {
     .Call('_plant_census_curvature_margin_tf24', PACKAGE = 'plant', obj_)
 }
 
-FF16_oderunner_individual_internals <- function(obj) {
-    .Call('_plant_FF16_oderunner_individual_internals', PACKAGE = 'plant', obj)
+schedule_default__Parameters___FF16__FF16_Env <- function(p) {
+    .Call('_plant_schedule_default__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
 }
 
-K93_oderunner_individual_internals <- function(obj) {
-    .Call('_plant_K93_oderunner_individual_internals', PACKAGE = 'plant', obj)
-}
-
-TF24_oderunner_individual_internals <- function(obj) {
-    .Call('_plant_TF24_oderunner_individual_internals', PACKAGE = 'plant', obj)
-}
-
-TF24f_oderunner_individual_internals <- function(obj) {
-    .Call('_plant_TF24f_oderunner_individual_internals', PACKAGE = 'plant', obj)
-}
-
-TF24t_oderunner_individual_internals <- function(obj) {
-    .Call('_plant_TF24t_oderunner_individual_internals', PACKAGE = 'plant', obj)
-}
-
-TF24w_oderunner_individual_internals <- function(obj) {
-    .Call('_plant_TF24w_oderunner_individual_internals', PACKAGE = 'plant', obj)
+make_schedule__Parameters___FF16__FF16_Env <- function(p) {
+    .Call('_plant_make_schedule__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
 }
 
 schedule_default__Parameters___K93__K93_Env <- function(p) {
@@ -6827,61 +6795,6 @@ schedule_default__Parameters___K93__K93_Env <- function(p) {
 
 make_schedule__Parameters___K93__K93_Env <- function(p) {
     .Call('_plant_make_schedule__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
-}
-
-#' Generate a suitable set of default node introduction times,
-#' biased so that introductions are more closely packed at the
-#' beginning of time, become increasingly spread out.
-#'
-#' The reason for the stepped distribution is to keep step sizes as
-#' series of doublings.  Doing this limits the range of possible
-#' introduction times from an infinite set of possible values to a
-#' very limited subset of values (based on combinations of 1, 0.5,
-#' 0.25, 0.125 etc).  The reason for doing this is to minimise the
-#' number of unique introduction times across all species. The ODE
-#' stepper needs to stop at each point where a node is introduced.
-#' If each species was selecting a bunch of points that was
-#' essentially unique (compared to those selected for all other
-#' species), the number of unique node introductions times could
-#' get very large, requiring more ODE steps.
-#'
-#' @title Generate Default Node Introduction Times
-#' @param max_time Time to generate introduction times up to (the
-#' last introduction time will be at least \code{max_time}).
-#' @return Vector of introduction times.
-#' @export
-#' @author Rich FitzJohn, adapted from original C++ code by Daniel
-#' S. Falster.
-node_schedule_times_default <- function(max_time) {
-    .Call('_plant_node_schedule_times_default', PACKAGE = 'plant', max_time)
-}
-
-test_stem_effective_path_length <- function(L_top, L_tip, beta) {
-    .Call('_plant_test_stem_effective_path_length', PACKAGE = 'plant', L_top, L_tip, beta)
-}
-
-FF16_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
-    .Call('_plant_FF16_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
-}
-
-TF24_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
-    .Call('_plant_TF24_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
-}
-
-TF24f_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
-    .Call('_plant_TF24f_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
-}
-
-TF24t_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
-    .Call('_plant_TF24t_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
-}
-
-TF24w_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
-    .Call('_plant_TF24w_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
-}
-
-strategy_scientific_version <- function(type) {
-    .Call('_plant_strategy_scientific_version', PACKAGE = 'plant', type)
 }
 
 schedule_default__Parameters___TF24__TF24_Env <- function(p) {
@@ -6914,6 +6827,93 @@ schedule_default__Parameters___TF24w__TF24_Env <- function(p) {
 
 make_schedule__Parameters___TF24w__TF24_Env <- function(p) {
     .Call('_plant_make_schedule__Parameters___TF24w__TF24_Env', PACKAGE = 'plant', p)
+}
+
+FF16_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_FF16_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+K93_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_K93_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+TF24_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_TF24_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+TF24f_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_TF24f_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+TF24t_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_TF24t_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+TF24w_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_TF24w_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+strategy_scientific_version <- function(type) {
+    .Call('_plant_strategy_scientific_version', PACKAGE = 'plant', type)
+}
+
+#' Generate a suitable set of default node introduction times,
+#' biased so that introductions are more closely packed at the
+#' beginning of time, become increasingly spread out.
+#'
+#' The reason for the stepped distribution is to keep step sizes as
+#' series of doublings.  Doing this limits the range of possible
+#' introduction times from an infinite set of possible values to a
+#' very limited subset of values (based on combinations of 1, 0.5,
+#' 0.25, 0.125 etc).  The reason for doing this is to minimise the
+#' number of unique introduction times across all species. The ODE
+#' stepper needs to stop at each point where a node is introduced.
+#' If each species was selecting a bunch of points that was
+#' essentially unique (compared to those selected for all other
+#' species), the number of unique node introductions times could
+#' get very large, requiring more ODE steps.
+#'
+#' @title Generate Default Node Introduction Times
+#' @param max_time Time to generate introduction times up to (the
+#' last introduction time will be at least \code{max_time}).
+#' @return Vector of introduction times.
+#' @export
+#' @author Rich FitzJohn, adapted from original C++ code by Daniel
+#' S. Falster.
+node_schedule_times_default <- function(max_time) {
+    .Call('_plant_node_schedule_times_default', PACKAGE = 'plant', max_time)
+}
+
+FF16_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_FF16_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
+TF24_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_TF24_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
+TF24f_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_TF24f_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
+TF24t_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_TF24t_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
+TF24w_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_TF24w_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
+test_gradient_fd1 <- function(f, x, dx, direction, fx = NA_real_) {
+    .Call('_plant_test_gradient_fd1', PACKAGE = 'plant', f, x, dx, direction, fx)
+}
+
+test_gradient_richardson <- function(f, x, d, r) {
+    .Call('_plant_test_gradient_richardson', PACKAGE = 'plant', f, x, d, r)
+}
+
+test_stem_effective_path_length <- function(L_top, L_tip, beta) {
+    .Call('_plant_test_stem_effective_path_length', PACKAGE = 'plant', L_top, L_tip, beta)
 }
 
 test_uniroot <- function(f, min, max) {

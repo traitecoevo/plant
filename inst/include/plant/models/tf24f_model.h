@@ -37,7 +37,7 @@ public:
   //     TF24 scientific change also invalidates TF24f (the safe direction);
   //   * bump `approximation_revision` for changes specific to the fast
   //     approximation itself.
-  // See plant::model_version() / model_id() and src/strategy_version.cpp. Bump
+  // See plant::model_version() / model_id() and src/model_exports.cpp. Bump
   // rules match the other models (output-changing science only, not refactors).
   static constexpr int approximation_revision = 1;
 

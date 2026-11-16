@@ -1,5 +1,6 @@
 #include <plant/numerics/fp_contract.h>
 #include <plant/util.h>
+#include <plant/util_post_rcpp.h>
 #include <Rcpp.h>
 #include <iomanip>
 #include <sstream>
@@ -149,4 +150,24 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal) {
   return plant::util::local_error_integration(x, y, scal);
+}
+
+namespace plant {
+namespace util {
+
+Rcpp::List matrix_to_list(Rcpp::NumericMatrix x) {
+  Rcpp::List ret;
+  const size_t nr = static_cast<size_t>(x.nrow());
+  for (size_t i = 0; i < nr; ++i) {
+    ret.push_back(x(i, Rcpp::_));
+  }
+  return ret;
+}
+
+}
+}
+
+// [[Rcpp::export]]
+Rcpp::List matrix_to_list(Rcpp::NumericMatrix x) {
+  return plant::util::matrix_to_list(x);
 }

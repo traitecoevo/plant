@@ -26,6 +26,35 @@
 # state is whatever the trajectory reached and the constructed conditions are not
 # available. The block-level checks take a patch; only the checks that need a
 # trajectory take a stand.
+#
+# The claim under test is that the reverse sweep is the exact transpose of the
+# forward run. A finite difference cannot check that, because differencing is
+# what the sweep replaces, and near a coincidence a difference fails to
+# converge. So the checks use references that share no code with the sweep:
+#
+#   R1  a forward tangent
+#   R2  the whole Jacobian at one cohort
+#   R3  a difference of whole runs
+#   R4  the model rebuilt from its parameters
+#
+# The test-gradient-ladder-*.R files form a progression, the "ladder" the
+# filenames name: from the smallest stand whose Jacobian can be formed whole,
+# through accumulation across cohorts and species, to a stand whose state vector
+# changes width. Each step adds one mechanism and uses the strongest reference
+# its size still permits:
+#
+#   no reference needed   model-invariants, identity
+#   R2                    one-cohort, switches
+#   R1                    two-species, columns, introductions, first-segment,
+#                         recruit
+#   R4                    factorisation
+#   R3                    whole-run-difference, declared-zero
+#   whether they bite     sweep, injection
+#
+# A margin is not a pass: a check passing at three-quarters of its budget is
+# about to stop working. Nor is a skip: no check here has a skip gate, so a skip
+# is a check that has stopped asking its question. Run them all with
+# testthat::test_dir("tests/testthat", filter = "gradient-ladder").
 
 # Chosen so that no two of the per-species reduction parameters are equal or in a
 # small-integer ratio between the species. A reduction sum that collapses the

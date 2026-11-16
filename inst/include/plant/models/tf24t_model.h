@@ -75,7 +75,7 @@ public:
   // Compound scientific version, "<TF24 version>.<thermal_revision>": the major
   // component tracks TF24_Model::scientific_version, so a TF24 change also
   // invalidates TF24t (the safe direction). Bump thermal_revision for a change
-  // to the thermal layer alone. See src/strategy_version.cpp.
+  // to the thermal layer alone. See src/model_exports.cpp.
   static constexpr int thermal_revision = 6;
 
   // TF24's states and the four thermal states, appended last. Static, and

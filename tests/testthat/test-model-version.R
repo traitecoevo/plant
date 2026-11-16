@@ -1,4 +1,4 @@
-# Scientific model versioning (see R/strategy_support.R, src/strategy_version.cpp,
+# Scientific model versioning (see R/strategy_support.R, src/model_exports.cpp,
 # and the `scientific_version` constant in inst/include/plant/models/*_model.h).
 
 models <- all_models
