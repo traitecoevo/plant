@@ -13,6 +13,10 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **A newborn's height is found to a root tolerance of 1e-12, where it was 1e-8 (`Control$offspring_production_tol`).** The seed-height root-find's error moves in steps as a trait moves, and fitness magnifies it: in FF16 a seed-height error of 4e-9 m moved log R0 by 4e-5. So a difference of fitness at a relative step of 1e-4 jumped by about 0.2, often enough to put false sign changes into a selection gradient (#653). Results move by at most 7e-9 relative in offspring production (K93 not at all), runs take no measurable longer, and no `scientific_version` changes. Migration:
+  * a result pinned or cached before this change differs in about the eighth figure -> re-run, or pass `offspring_production_tol = 1e-8` to `control()` to reproduce it
+  * code that set `offspring_production_tol = 1e-12` to referee a gradient can drop it
+
 * **`TF24_K_s_from_whole_stem()` is removed.** It converted a whole-stem conductivity to the terminal-segment `K_s` that gives the same resistance at `TF24_H_ANCHOR`. Its one use was to derive TF24's default `K_s`, which `TF24_Pars` holds as a literal, and a test checks that literal against the stem path integral directly; nothing in the plant family called it. No number moves. Migration:
   * `TF24_K_s_from_whole_stem(1)` -> `TF24_Model()$pars$K_s`, the default it derived (0.3357738)
   * `TF24_K_s_from_whole_stem(K_s, ...)` for another value (removed) -> no equivalent; recover it from git history before its removal
