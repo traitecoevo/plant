@@ -609,8 +609,16 @@ private:
 
   // PatchRunner's hooks: the run starts where its parameters say, which a
   // schedule built in R does not know; and a new schedule waits for the next
-  // run, which resets.
+  // run, which resets. A stochastic runner's schedule carries its death checks,
+  // which this solver has nothing to draw from, so it is refused here rather
+  // than at the first check part-way through a run.
   void prepare_schedule(Schedule& x) const {
+    for (const auto& e : x.get_events()) {
+      if (e.type == EventType::DeathCheck) {
+        util::stop("This schedule holds the stochastic runner's death checks, "
+                   "which the deterministic solver does not take");
+      }
+    }
     x.set_start_time(parameters.initial_time);
   }
   void schedule_changed() {}

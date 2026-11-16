@@ -1978,6 +1978,14 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     util::stop("Node introductions are applied via introduce_new_nodes()");
     break;
 
+  case EventType::DeathCheck:
+    // Its expectation here is nothing, since density already carries the
+    // hazard continuously; but a check is also a leg boundary, which moves the
+    // step sequence, so it is refused rather than passed over.
+    util::stop("A death check is the stochastic solver's; the deterministic "
+               "solver carries mortality on density");
+    break;
+
   case EventType::ResourcePulse: {
     // The environment only: no individual changes, so the competition profile
     // is untouched and the nodes keep their state. The rates are stale

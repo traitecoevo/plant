@@ -58,9 +58,11 @@ test_that("empty", {
     sched2 <- stochastic_schedule(p)
     expect_gt(sched2$size, 0)
 
-    ## Does this need to happen twice?
+    ## The runner keeps the arrivals and adds its death checks, which are
+    ## instants of their own.
     obj$schedule <- sched2
-    expect_equal(obj$schedule$size, sched2$size)
+    expect_identical(obj$schedule$all_times, sched2$all_times)
+    expect_gt(obj$schedule$size, sched2$size)
 
     ## Importantly, this moves time forward to where the first
     ## introduction will be!
@@ -403,12 +405,134 @@ test_that("the death-check interval must be positive and finite", {
                                    Control(stochastic_death_interval = bad)),
                  "stochastic_death_interval must be positive and finite")
   }
+  ## Every check is held on the schedule, so one far below the lifetime is
+  ## refused rather than allocated.
+  expect_error(stochastic_runner(p, Environment("FF16"),
+                                 Control(stochastic_death_interval = 1e-300)),
+               "too small for this patch's lifetime")
+})
+
+test_that("the runner places its death checks on its schedule", {
+  ## A check at every multiple of the interval after the first arrival and
+  ## before the end, and one at the end. With arrivals at 0.1 and 0.33, an
+  ## interval of 0.25 and a lifetime of 1, the checks fall at 0.25, 0.5, 0.75
+  ## and 1: six instants in all. None falls before the first arrival, where
+  ## nobody is alive to draw.
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 1
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  set.seed(1)
+  obj <- stochastic_runner(p, Environment("FF16"),
+                           Control(stochastic_death_interval = 0.25))
+  obj$set_node_schedule_times(list(c(0.1, 0.33)))
+  expect_equal(obj$schedule$size, 6)
+  ## Setting the schedule again replaces the checks rather than adding to them.
+  obj$schedule <- obj$schedule
+  expect_equal(obj$schedule$size, 6)
+  expect_identical(obj$schedule$all_times, list(c(0.1, 0.33)))
+
+  ## Lowering a copy's max_time drops the checks past it, and the runner
+  ## places its own again: checks at 0.25 and 0.5 around the two arrivals.
+  s <- obj$schedule
+  s$max_time <- 0.5
+  obj$schedule <- s
+  expect_equal(obj$schedule$size, 4)
+
+  ## An arrival on a grid point shares its instant with the check there.
+  obj$schedule <- stochastic_schedule(p)
+  obj$set_node_schedule_times(list(c(0.1, 0.5)))
+  expect_equal(obj$schedule$size, 5)
+  ## run_next() still steps from one arrival to the next, drawing the checks
+  ## in between. The row at the shared instant is taken before its check is
+  ## drawn, so the first plant still carries the hazard it built up since the
+  ## check at 0.25.
+  obj$run_next()
+  expect_identical(obj$time, 0.5)
+  sp <- obj$patch$state$species[[1]]
+  expect_identical(attr(sp, "is_alive")[[1]], TRUE)
+  expect_gt(sp["mortality", 1], 0)
+  ## The last arrival carries on to the end of the patch's life.
+  obj$run_next()
+  expect_true(obj$complete)
+  expect_identical(obj$time, 1)
+})
+
+test_that("a schedule the stochastic runner cannot take leaves it as it was", {
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 1
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  set.seed(1)
+  obj <- stochastic_runner(p, Environment("FF16"),
+                           Control(stochastic_death_interval = 0.25))
+  obj$set_node_schedule_times(list(c(0.1, 0.33)))
+  size <- obj$schedule$size
+  unchanged <- function() {
+    expect_equal(obj$schedule$size, size)
+    expect_identical(obj$schedule$all_times, list(c(0.1, 0.33)))
+    expect_identical(obj$parameters$node_schedule_times, list(c(0.1, 0.33)))
+  }
+  ## Arrivals before the start or after the end of the patch's life.
+  expect_error(obj$set_node_schedule_times(list(c(-1, 0.5))), "outside")
+  unchanged()
+  expect_error(obj$set_node_schedule_times(list(c(0.5, 2))), "outside")
+  unchanged()
+  ## A schedule with no end has nowhere for its last check.
+  expect_error(obj$schedule <- {
+    s <- Schedule(1)
+    s$set_times(0.1, 1)
+    s
+  }, "finite max_time")
+  unchanged()
+})
+
+test_that("an event between arrivals is refused where it falls, every time", {
+  ## The walk from one arrival to the next stops before an entry it cannot
+  ## apply, so the run stands at the harvest and each call is refused there.
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p$fitness_weighting <- "none"
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
+  p$node_schedule_times <- list(c(0, 1, 2))
+  ev <- events(node_introductions(p), harvest(time = 1.5, fraction = 0.3))
+  schedule <- run(p, events = ev, until = 0)$solver$schedule
+
+  set.seed(1)
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())
+  obj$schedule <- schedule
+  obj$run_next()
+  obj$run_next()
+  expect_identical(obj$time, 1.5)
+  expect_identical(obj$patch$state$time, 1.5)
+  remaining <- obj$schedule$remaining
+  msg <- "does not yet apply scheduled events"
+  expect_error(obj$run_next(), msg)
+  expect_identical(obj$schedule$remaining, remaining)
+  expect_error(obj$run_next(), msg)
+})
+
+test_that("the deterministic runner refuses a stochastic runner's schedule", {
+  ## A death check has nothing to draw in a solver that carries mortality on
+  ## density, and would still split the leg it falls in.
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p$fitness_weighting <- "none"
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
+  p$node_schedule_times <- list(c(0, 1, 2))
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
+                                                   Control())
+  obj$set_node_schedule_times(p$node_schedule_times)
+  det <- DeterministicPatchRunner("FF16", "FF16_Env")(
+    p, Environment("FF16"), empty_events(), Control())
+  expect_error(det$schedule <- obj$schedule, "death checks")
 })
 
 test_that("a refused event leaves the stochastic schedule where it was", {
-  ## The stochastic runner applies node introductions only. Refusing anything
-  ## else must not take the entry, or a caller that catches the error and
-  ## steps again would skip it rather than be refused again.
+  ## The stochastic runner applies node introductions and its own death
+  ## checks only. Refusing anything else must not take the entry, or a caller
+  ## that catches the error and steps again would skip it rather than be
+  ## refused again.
   p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 5
   p$fitness_weighting <- "none"

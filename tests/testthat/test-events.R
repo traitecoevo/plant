@@ -60,6 +60,14 @@ test_that("a target is validated against what the type can accept", {
   expect_equal(harvest(time = 1, fraction = 0.5, species = 2)$target_index, 2L)
 })
 
+test_that("a death check cannot be asked for", {
+  ## The stochastic runner places its own, every
+  ## Control$stochastic_death_interval.
+  expect_error(Events(time = 1, type = "death_check", target = "patch",
+                      target_index = 1L, params = list(numeric(0))),
+               "cannot be scheduled")
+})
+
 test_that("Events validation rejects malformed input", {
   expect_error(Events(time = 1, type = "not_a_type", target = "environment", target_index = 1L,
                       params = list(numeric(0))),

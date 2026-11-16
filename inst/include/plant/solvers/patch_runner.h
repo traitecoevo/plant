@@ -28,7 +28,8 @@ namespace plant {
 // The hooks each derived class declares, which the base calls on the derived
 // type. There are no defaults, so a hook misspelt or left out is a compile
 // error rather than a silent no-op:
-//   * prepare_schedule(x)  -- adjusts a schedule set from R before it is taken.
+//   * prepare_schedule(x)  -- adjusts a schedule set from R before it is taken,
+//                             or refuses it.
 //   * schedule_changed()   -- what follows setting the schedule from R.
 template <typename Derived, typename P>
 class PatchRunner {
@@ -60,9 +61,14 @@ public:
     parameters.node_schedule_times = schedule.get_times();
     d().schedule_changed();
   }
+  // On a copy, through the same hook as a whole schedule, so a refusal leaves
+  // the runner as it was.
   void r_set_node_schedule_times(std::vector<std::vector<double>> x) {
     refuse_if_started();
-    schedule.set_times(x);
+    Schedule s = schedule;
+    s.set_times(x);
+    d().prepare_schedule(s);
+    schedule = s;
     parameters.node_schedule_times = x;
     d().schedule_changed();
   }
