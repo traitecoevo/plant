@@ -1,13 +1,13 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_SCM_H_
-#define PLANT_PLANT_SCM_H_
+#ifndef PLANT_PLANT_DETERMINISTIC_PATCH_RUNNER_H_
+#define PLANT_PLANT_DETERMINISTIC_PATCH_RUNNER_H_
 
 #include <plant/schedule.h>
 #include <plant/census_gradient.h>
 #include <odelia/ode_solver.hpp>
 #include <plant/patch.h>
 #include <plant/patch_runner.h>
-#include <plant/scm_utils.h>
+#include <plant/schedule_utils.h>
 
 #include <odelia/sweep.hpp>
 
@@ -68,7 +68,8 @@ void clear_recorded_refusal(Patch& patch) {
   }
 }
 
-// SCM: plant's deterministic solver, which integrates the size-density PDE by
+// DeterministicPatchRunner: plant's deterministic solver, which integrates the
+// size-density PDE by
 // the method of characteristics.
 //
 // Owns a Patch (the population being integrated), a Schedule (when each
@@ -77,11 +78,12 @@ void clear_recorded_refusal(Patch& patch) {
 // integrating the patch ODE system up to the next introduction time.
 //
 // The patch owns all of the ecology (fitness, offspring, competition, error
-// computations); the SCM is the time-stepping/scheduling layer on top of it.
+// computations); the deterministic runner is the time-stepping/scheduling layer
+// on top of it.
 // Most r_* members are thin facades that expose the C++ API to R via RcppR6.
 template <typename T, typename E>
-class SCM : public PatchRunner<SCM<T, E>, Patch<T, E>> {
-  typedef PatchRunner<SCM<T, E>, Patch<T, E>> base_type;
+class DeterministicPatchRunner : public PatchRunner<DeterministicPatchRunner<T, E>, Patch<T, E>> {
+  typedef PatchRunner<DeterministicPatchRunner<T, E>, Patch<T, E>> base_type;
   friend base_type;
 public:
   // ---- Type aliases ------------------------------------------------------
@@ -96,7 +98,7 @@ public:
   // ---- Construction ------------------------------------------------------
   // An empty `ev` means "no events supplied": the schedule then comes from
   // p.node_schedule_times exactly as it always has (#522).
-  SCM(parameters_type p, environment_type e, plant::Events ev, plant::Control c);
+  DeterministicPatchRunner(parameters_type p, environment_type e, plant::Events ev, plant::Control c);
 
   // ---- Simulation lifecycle ----------------------------------------------
 
@@ -139,10 +141,10 @@ public:
   };
   Rcpp::List r_snapshots() const;
 
-  // Integrate `p`'s strategies as invaders of this SCM's last run: they take its
+  // Integrate `p`'s strategies as invaders of this runner's last run: they take its
   // steps, meet its harvests and extremes, and read the field it made at each
   // rate evaluation, which none of them moves. Destructive -- `p` becomes this
-  // SCM's parameters, and its outputs are `p`'s.
+  // runner's parameters, and its outputs are `p`'s.
   void run_mutant(parameters_type p);
   // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
   // one of them stands in ONE field, the resident's as it stands now, constant for
@@ -151,7 +153,7 @@ public:
   // is recorded and nothing read back, and an invader takes its own steps. The
   // field is taken at the first call, from the state the resident has reached
   // -- run it to its fixed point first -- and every later call stands in the
-  // same one. Destructive, as run_mutant() is: `p` becomes this SCM's
+  // same one. Destructive, as run_mutant() is: `p` becomes this runner's
   // parameters, and its outputs are `p`'s.
   void run_mutant_constant(parameters_type p);
 
@@ -535,7 +537,7 @@ public:
     return ret;
   }
 
-  // Every diagnostic this SCM reports, back to where a run starts from: the
+  // Every diagnostic this runner reports, back to where a run starts from: the
   // operating-point tally, the strategy's clamp counts on both paths, the leaf's
   // and its root model's, the curvature margin, and the environment's clamps.
   //
@@ -685,7 +687,7 @@ private:
 // ---- Construction --------------------------------------------------------
 
 template <typename T, typename E>
-SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
+DeterministicPatchRunner<T, E>::DeterministicPatchRunner(parameters_type p, environment_type e, Events ev, Control c)
     : base_type(p, e, c,
                 [&ev](const parameters_type& q) { return make_schedule(q, ev); }),
       control(c) {
@@ -698,13 +700,13 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
   solver.set_collect(false);
 
   if (!util::identical(parameters.patch_area, 1.0)) {
-    util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
+    util::warning("We recommened keeping patch_area = 1 for the deterministic solver, as need to check units for all other sizes");
   }
 
 }
 
 template <typename T, typename E>
-void SCM<T, E>::check_fitness_window() const {
+void DeterministicPatchRunner<T, E>::check_fitness_window() const {
   if (parameters.fitness_weighting != "window") {
     return;
   }
@@ -739,7 +741,7 @@ void SCM<T, E>::check_fitness_window() const {
 // at t0 and ending exactly at t1 (the final interval may be shorter than dt).
 // Used to drive forward-Euler integration between schedule events.
 template <typename T, typename E>
-std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
+std::vector<double> DeterministicPatchRunner<T, E>::uniform_euler_times(double t0, double t1,
                                                    double dt) {
   std::vector<double> times;
   times.push_back(t0);
@@ -759,7 +761,7 @@ std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
 
 // ---- Simulation lifecycle ------------------------------------------------
 
-template <typename T, typename E> void SCM<T, E>::run() {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::run() {
   if (invaded_run) {
     patch.read_fields_of(nullptr);
     invaded_run.reset();
@@ -769,7 +771,7 @@ template <typename T, typename E> void SCM<T, E>::run() {
   run_schedule();
 }
 
-template <typename T, typename E> void SCM<T, E>::run_schedule() {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::run_schedule() {
   begin();
   try {
     while (!complete()) {
@@ -784,7 +786,7 @@ template <typename T, typename E> void SCM<T, E>::run_schedule() {
   patch = solver.get_system_ref();
 }
 
-template <typename T, typename E> void SCM<T, E>::run_to(double t) {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::run_to(double t) {
   // NaN compares false with every time, so it would silently do nothing.
   if (std::isnan(t)) {
     util::stop("run_to: the target time is NaN");
@@ -805,7 +807,7 @@ template <typename T, typename E> void SCM<T, E>::run_to(double t) {
   patch = solver.get_system_ref();
 }
 
-template <typename T, typename E> void SCM<T, E>::begin() {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::begin() {
   // Set before reset(), which records the state the run starts from. One flag, and
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
@@ -840,7 +842,7 @@ template <typename T, typename E> void SCM<T, E>::begin() {
   begun = true;
 }
 
-template <typename T, typename E> void SCM<T, E>::step_leg() {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::step_leg() {
   std::vector<size_t> added = run_next();
   if (collect_refinement_errors) {
     solver.get_system_ref().collect_competition_errors(added);
@@ -853,7 +855,7 @@ template <typename T, typename E> void SCM<T, E>::step_leg() {
   }
 }
 
-template <typename T, typename E> void SCM<T, E>::take_snapshot() {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::take_snapshot() {
   const patch_type& live = solver.get_system_ref();
   snapshot s;
   s.time = time();
@@ -899,7 +901,7 @@ template <typename T, typename E> void SCM<T, E>::take_snapshot() {
   next_snapshot = (std::floor(time() / snapshot_interval) + 1.0) * snapshot_interval;
 }
 
-template <typename T, typename E> Rcpp::List SCM<T, E>::r_snapshots() const {
+template <typename T, typename E> Rcpp::List DeterministicPatchRunner<T, E>::r_snapshots() const {
   Rcpp::List ret(snapshots.size());
   for (size_t k = 0; k < snapshots.size(); ++k) {
     const snapshot& s = snapshots[k];
@@ -923,7 +925,7 @@ template <typename T, typename E> Rcpp::List SCM<T, E>::r_snapshots() const {
 }
 
 template <typename T, typename E>
-std::vector<size_t> SCM<T, E>::run_next() {
+std::vector<size_t> DeterministicPatchRunner<T, E>::run_next() {
   std::vector<size_t> ret;
   const double t0 = time();
   // The live patch system is owned by the solver; mutate it in place.
@@ -984,7 +986,7 @@ std::vector<size_t> SCM<T, E>::run_next() {
 //    sub-grid between this instant and the next;
 //  - otherwise: adaptive, error-controlled RKCK to the next instant.
 template <typename T, typename E>
-void SCM<T, E>::integrate_to(double t0, double t_end) {
+void DeterministicPatchRunner<T, E>::integrate_to(double t0, double t_end) {
   if (schedule.using_ode_steps()) {
     if (control.fixed_time_step > 0.0) {
       // A recorded field is kept per rate evaluation, and forward Euler makes
@@ -1026,7 +1028,7 @@ void SCM<T, E>::integrate_to(double t0, double t_end) {
 //
 // A run that kept no field is run again on its own steps to keep one.
 template <typename T, typename E>
-void SCM<T, E>::run_mutant(parameters_type p) {
+void DeterministicPatchRunner<T, E>::run_mutant(parameters_type p) {
   require_invader_starts_empty(p, "run_mutant");
   if (!invaded_run) {
     if (solver.steps_taken().size() < 2) {
@@ -1106,7 +1108,7 @@ void SCM<T, E>::run_mutant(parameters_type p) {
 }
 
 template <typename T, typename E>
-void SCM<T, E>::run_mutant_constant(parameters_type p) {
+void DeterministicPatchRunner<T, E>::run_mutant_constant(parameters_type p) {
   require_invader_starts_empty(p, "run_mutant_constant");
   if (!constant_field.kept) {
     if (!begun) {
@@ -1128,8 +1130,9 @@ void SCM<T, E>::run_mutant_constant(parameters_type p) {
   // rate evaluation of the run.
   patch.use_constant_field(constant_field);
   // Cleared once the invaders have run, or failed to: their outputs are in
-  // `patch`, and a later run of this SCM -- a resident's, a pinned run, a recording
-  // -- must build its own field. The next call uses SCM::constant_field again.
+  // `patch`, and a later run of this runner -- a resident's, a pinned run, a recording
+  // -- must build its own field. The next call uses
+  // DeterministicPatchRunner::constant_field again.
   try {
     run();
   } catch (...) {
@@ -1145,7 +1148,7 @@ void SCM<T, E>::run_mutant_constant(parameters_type p) {
 }
 
 template <typename T, typename E>
-typename SCM<T, E>::recording SCM<T, E>::store_recording() {
+typename DeterministicPatchRunner<T, E>::recording DeterministicPatchRunner<T, E>::store_recording() {
   // Run only if this run kept no states to read. Reading does not consume them,
   // and a walk puts the patch back on the last recorded step when it is done, so
   // a second consumer reads the same record rather than repeating the run.
@@ -1168,7 +1171,7 @@ typename SCM<T, E>::recording SCM<T, E>::store_recording() {
 // first and last nodes are never flagged), insert the midpoint of the interval
 // (t[j-1], t[j]). Equivalent to sort(c(times, times[i] - dt[i-1]/2)) in R.
 template <typename T, typename E>
-std::vector<double> SCM<T, E>::bisect_flagged_intervals(const std::vector<double>& times,
+std::vector<double> DeterministicPatchRunner<T, E>::bisect_flagged_intervals(const std::vector<double>& times,
                                                         const std::vector<bool>& split) {
   std::vector<double> ret = times;
   for (size_t j = 1; j < split.size(); ++j) {
@@ -1181,7 +1184,7 @@ std::vector<double> SCM<T, E>::bisect_flagged_intervals(const std::vector<double
 }
 
 template <typename T, typename E>
-void SCM<T, E>::refine_schedule() {
+void DeterministicPatchRunner<T, E>::refine_schedule() {
   // Refinement pairs each node's error with a schedule time, and a frozen cohort
   // has no error to pair; the top layer would also make each iteration depend on
   // which cohorts the last one absorbed.
@@ -1245,7 +1248,7 @@ void SCM<T, E>::refine_schedule() {
     substep_field(taken, &odelia::ode::subsystem_substeps::ends);
 }
 
-template <typename T, typename E> void SCM<T, E>::reset() {
+template <typename T, typename E> void DeterministicPatchRunner<T, E>::reset() {
   // The schedule may have been changed since the patch was built, and a
   // reconciliation during the sweep reads it to work out the shape at a step.
   // Refreshed where the run that uses it begins, which is the one place both
@@ -1268,29 +1271,29 @@ template <typename T, typename E> void SCM<T, E>::reset() {
 // which computes them (patch.h).
 
 template <typename T, typename E>
-std::vector<double> SCM<T, E>::r_ode_times() const {
+std::vector<double> DeterministicPatchRunner<T, E>::r_ode_times() const {
   return solver.times();
 }
 
 template <typename T, typename E>
-std::vector<double> SCM<T, E>::r_ode_step_sizes() const {
+std::vector<double> DeterministicPatchRunner<T, E>::r_ode_step_sizes() const {
   return solver.step_sizes();
 }
 
 template <typename T, typename E>
-std::vector<std::vector<double> > SCM<T, E>::r_ode_soil_input_slopes() const {
+std::vector<std::vector<double> > DeterministicPatchRunner<T, E>::r_ode_soil_input_slopes() const {
   return substep_field(solver.steps_taken(),
                        &odelia::ode::subsystem_substeps::input_slope);
 }
 
 template <typename T, typename E>
-std::vector<std::vector<double> > SCM<T, E>::r_ode_soil_substep_ends() const {
+std::vector<std::vector<double> > DeterministicPatchRunner<T, E>::r_ode_soil_substep_ends() const {
   return substep_field(solver.steps_taken(),
                        &odelia::ode::subsystem_substeps::ends);
 }
 
 template <typename T, typename E>
-Rcpp::List SCM<T, E>::r_store_recording() {
+Rcpp::List DeterministicPatchRunner<T, E>::r_store_recording() {
   const recording rec = store_recording();
   Rcpp::List ret(rec.size());
   for (size_t i = 0; i < rec.size(); ++i) {
@@ -1307,7 +1310,7 @@ Rcpp::List SCM<T, E>::r_store_recording() {
 }
 
 template <typename T, typename E>
-std::vector<double> SCM<T, E>::census() const {
+std::vector<double> DeterministicPatchRunner<T, E>::census() const {
   const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<double> ret;
   ret.reserve(metrics.size());
@@ -1345,7 +1348,7 @@ std::vector<double> SCM<T, E>::census() const {
 // wrong, with nothing raised, while the first is right. Sweeping a batch keeps
 // to this: between sweeps only the derivative slots are returned to zero.
 template <typename T, typename E>
-census_rows SCM<T, E>::census_state_and_trait_rows() const {
+census_rows DeterministicPatchRunner<T, E>::census_state_and_trait_rows() const {
   require_birth_date_coordinate("census_state_and_trait_rows");
   using scalar = odelia::ode::adjoint_scalar<double>;
 
@@ -1379,7 +1382,7 @@ census_rows SCM<T, E>::census_state_and_trait_rows() const {
 // See the declaration for why it perturbs rather than rebuilds.
 template <typename T, typename E>
 std::vector<std::vector<double>>
-SCM<T, E>::census_trait_difference(double rel) {
+DeterministicPatchRunner<T, E>::census_trait_difference(double rel) {
   require_birth_date_coordinate("census_trait_difference");
   const std::vector<stand_metric> metrics = stand_metrics();
   const size_t n_metric = metrics.size();
@@ -1431,7 +1434,7 @@ SCM<T, E>::census_trait_difference(double rel) {
 // a snapshot the run copies out, and reading its accumulator gives zeros.
 template <typename T, typename E>
 census_gradient
-SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
+DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
                                  const std::vector<std::string>& which_metrics) {
   require_birth_date_coordinate("census_trait_gradient");
   // Which rows to sweep, resolved against the strategy's own list before
@@ -1581,7 +1584,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
 // since fl(fl(t + h) - t) != h.
 template <typename T, typename E>
 std::vector<double>
-SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
+DeterministicPatchRunner<T, E>::census_trait_tangent(const std::vector<double>& direction,
                                 std::vector<double>& value) {
   require_birth_date_coordinate("census_trait_tangent");
 
@@ -1639,7 +1642,7 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
 
 template <typename T, typename E>
 template <class Scalar, class Fill>
-std::vector<Scalar> SCM<T, E>::pinned_run_from(size_t from_segment,
+std::vector<Scalar> DeterministicPatchRunner<T, E>::pinned_run_from(size_t from_segment,
                                                     Fill fill) {
   const recording rec = store_recording();
   patch_type& live = solver.get_system_ref();
@@ -1680,7 +1683,7 @@ std::vector<Scalar> SCM<T, E>::pinned_run_from(size_t from_segment,
 
 template <typename T, typename E>
 std::vector<double>
-SCM<T, E>::census_initial_state_tangent(const std::vector<double>& direction,
+DeterministicPatchRunner<T, E>::census_initial_state_tangent(const std::vector<double>& direction,
                                         std::vector<double>& value,
                                         size_t segment) {
   require_birth_date_coordinate("census_initial_state_tangent");
@@ -1709,7 +1712,7 @@ SCM<T, E>::census_initial_state_tangent(const std::vector<double>& direction,
 
 template <typename T, typename E>
 std::vector<double>
-SCM<T, E>::census_initial_state_pinned(const std::vector<double>& state0,
+DeterministicPatchRunner<T, E>::census_initial_state_pinned(const std::vector<double>& state0,
                                        size_t segment) {
   require_birth_date_coordinate("census_initial_state_pinned");
   return pinned_run_from<double>(segment,

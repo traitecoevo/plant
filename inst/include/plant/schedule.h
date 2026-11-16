@@ -17,7 +17,7 @@ namespace plant {
 //
 // Every event in the schedule used to be a node introduction; the tag is what
 // lets resource pulses, harvests and the rest share one queue, so that
-// SCM::run_next_impl's stop/apply/resume loop serves all of them.
+// DeterministicPatchRunner::run_next's stop/apply/resume loop serves all of them.
 //
 // These names are deliberately taxa- and model-agnostic. This layer is shared
 // by every strategy and environment, and nothing about it is specific to

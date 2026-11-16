@@ -1,8 +1,8 @@
-# The model's census entry points, chosen off the SCM's own class. Every
+# The model's census entry points, chosen off the deterministic runner's own class. Every
 # exported function below reads them from here, so a model that declares no
 # census is refused once, by name, instead of failing on a C++ type check.
-census_backend <- function(scm) {
-  type <- extract_RcppR6_template_types(scm, "SCM")[[1]]
+census_backend <- function(solver) {
+  type <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
   switch(type,
     TF24 = list(metric_names = census_metric_names_tf24,
                 census = census_tf24,
@@ -31,9 +31,9 @@ census_backend <- function(scm) {
 # Every metric the run reports, named, with each one's kind ("census" or
 # "fitness") beside it. The C++ side lists them in one order for the value, the
 # tangent and the sweep, and this is the one place R reads that list.
-stand_metric_table <- function(scm) {
-  b <- census_backend(scm)
-  named <- b$metric_names(scm)
+stand_metric_table <- function(solver) {
+  b <- census_backend(solver)
+  named <- b$metric_names(solver)
   list(name = unname(named), kind = names(named))
 }
 
@@ -54,31 +54,31 @@ stand_metric_table <- function(scm) {
 ##' reported under the names \code{\link{stand_gradient}} differentiates them
 ##' by.
 ##'
-##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector, one entry per metric.
 ##' @export
-stand_census <- function(scm) {
-  scm <- as_scm(scm)
-  stand_metrics_of_kind(scm, "census")
+stand_census <- function(x) {
+  x <- as_solver(x)
+  stand_metrics_of_kind(x, "census")
 }
 
 ##' @rdname stand_census
 ##' @export
-stand_fitness <- function(scm) {
-  scm <- as_scm(scm)
-  stand_metrics_of_kind(scm, "fitness")
+stand_fitness <- function(x) {
+  x <- as_solver(x)
+  stand_metrics_of_kind(x, "fitness")
 }
 
-stand_metrics_of_kind <- function(scm, kind) {
-  b <- census_backend(scm)
-  table <- stand_metric_table(scm)
+stand_metrics_of_kind <- function(solver, kind) {
+  b <- census_backend(solver)
+  table <- stand_metric_table(solver)
   # An empty vector reads as a stand with no species, and indexing it by name
   # fails far from the cause; say instead that the model declares none.
   if (!any(table$kind == kind)) {
     stop("This model declares no differentiable ", kind, " metric")
   }
-  values <- stats::setNames(b$census(scm), table$name)
+  values <- stats::setNames(b$census(solver), table$name)
   values[table$kind == kind]
 }
 
@@ -88,21 +88,21 @@ stand_metrics_of_kind <- function(scm, kind) {
 ##' its fitness differentiable each species' net reproduction ratio and offspring
 ##' production, named as \code{\link{stand_gradient}} names them -- and one
 ##' column per ODE state entry, in the order
-##' \code{scm$patch$ode_state} writes. This is what the reverse pass starts
+##' \code{x$patch$ode_state} writes. This is what the reverse pass starts
 ##' with. The cohort-height columns carry the trapezium weights as well as the
 ##' integrand only where the height is the coordinate integrated over; on the
 ##' birth-date coordinate the weights are constants.
 ##'
-##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A numeric matrix, metrics by ODE state entries.
 ##' @export
-stand_census_state_adjoint <- function(scm) {
-  scm <- as_scm(scm)
-  b <- census_backend(scm)
-  rows <- b$state_adjoint(scm)
+stand_census_state_adjoint <- function(x) {
+  x <- as_solver(x)
+  b <- census_backend(x)
+  rows <- b$state_adjoint(x)
   out <- do.call(rbind, rows)
-  rownames(out) <- stand_metric_table(scm)$name
+  rownames(out) <- stand_metric_table(x)$name
   out
 }
 
@@ -116,13 +116,13 @@ stand_census_state_adjoint <- function(scm) {
 ##' support. \code{stand_gradient} records them and
 ##' \code{stand_gradient_compare} refuses a pair that disagrees.
 ##'
-##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector of length five.
 ##' @export
-gradient_control <- function(scm) {
-  scm <- as_scm(scm)
-  census_backend(scm)$control(scm)
+gradient_control <- function(x) {
+  x <- as_solver(x)
+  census_backend(x)$control(x)
 }
 
 # The parameter a gradient column names, with its species index stripped. An
@@ -141,7 +141,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' reading of the traits at that state, which is not a sensitivity of the state
 ##' and so no sweep produces it.
 ##'
-##' @param scm A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @param metrics Metric names to differentiate; defaults to every metric the
 ##'   model declares: the census metrics (\code{\link{stand_census}}) and, for
@@ -194,12 +194,12 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   and asking for its gradient errors rather than returning a zero.
 ##'
 ##' @section An invader against a recorded resident:
-##' After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
+##' After \code{x$run_mutant(p)}, a gradient is of the invaders' metrics in
 ##' the residents' recorded field, which the invaders read at each rate
 ##' evaluation and do not move, so it carries no derivative: the rare-mutant
-##' derivative. A run of \code{scm$run_mutant_constant()} is refused.
+##' derivative. A run of \code{x$run_mutant_constant()} is refused.
 ##' An invasion that kept no states is run again, as an invasion, to keep them;
-##' set \code{scm$keep_states <- TRUE} before it to save that run.
+##' set \code{x$keep_states <- TRUE} before it to save that run.
 ##' Several invaders in \code{p} share one run and each has its own columns,
 ##' but each metric is still one sweep, so a set of invaders costs about what
 ##' running them one at a time does. An invader of a resumed resident starts at
@@ -226,21 +226,21 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' take the answer that is stable, or resolve the event by forcing a step at the
 ##' crossing.
 ##' @export
-stand_gradient <- function(scm, metrics = NULL, traits = NULL,
-                           hyperpar = param_hyperpar(scm$parameters)) {
-  scm <- as_scm(scm)
+stand_gradient <- function(x, metrics = NULL, traits = NULL,
+                           hyperpar = param_hyperpar(x$parameters)) {
+  x <- as_solver(x)
   ## The identity (hyperpar = NULL, or Parameters carrying no trade-offs)
   ## derives nothing, so the total is the partial.
   if (!is.null(hyperpar) && !is_identity_hyperpar(hyperpar)) {
-    return(stand_gradient_through(scm, metrics, traits, hyperpar))
+    return(stand_gradient_through(x, metrics, traits, hyperpar))
   }
-  b <- census_backend(scm)
-  all_metrics <- stand_metric_table(scm)$name
+  b <- census_backend(x)
+  all_metrics <- stand_metric_table(x)$name
   # Every parameter the strategy carries has a column, bar the few the model
   # states it cannot differentiate. So the width does not depend on what the
   # sweep can currently answer, and a caller indexing by position sees the same
   # shape from run to run.
-  all_traits <- b$trait_names(scm)
+  all_traits <- b$trait_names(x)
   if (is.null(metrics)) {
     metrics <- all_metrics
   }
@@ -276,30 +276,30 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL,
     stop("Unknown trait: ", paste(unknown, collapse = ", "), hint)
   }
 
-  value <- stats::setNames(b$census(scm), all_metrics)[metrics]
+  value <- stats::setNames(b$census(x), all_metrics)[metrics]
   # Only the metrics asked for are swept. A metric costs a sweep of the whole
   # trajectory, so computing all three and subsetting the answer charged a
   # caller who wanted one for three. Named, not positioned: C++ resolves the
   # names against the same list it reports them from.
-  swept <- b$trait_gradient(scm, as.character(metrics))
+  swept <- b$trait_gradient(x, as.character(metrics))
   gradient <- do.call(rbind, swept$gradient)
   dimnames(gradient) <- list(metrics, all_traits)
 
   list(value = value,
        gradient = gradient[metrics, traits, drop = FALSE],
        refusal = stats::setNames(swept$refusal, metrics),
-       control = gradient_control(scm))
+       control = gradient_control(x))
 }
 
 # The chain rule through a hyperparameter function: a trait's total is its partial
 # plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the sweep.
-stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
+stand_gradient_through <- function(solver, metrics, traits, hyperpar) {
   if (!is.function(hyperpar)) {
     stop("`hyperpar` must be a trade-off function f(m, s, filter = TRUE), as ",
          "param_hyperpar(p) or default_hyperpar(\"TF24\") give, or NULL for ",
          "partial derivatives")
   }
-  strategies <- scm$parameters$strategies
+  strategies <- solver$parameters$strategies
   species <- seq_along(strategies)
   if (!is.null(traits)) {
     species <- species[species %in% sub("^([0-9]+)\\..*", "\\1", traits)]
@@ -307,7 +307,7 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   trade_offs <- Map(trade_off, strategies[species], species,
                     MoreArgs = list(hyperpar = hyperpar))
   derived <- unlist(lapply(trade_offs, rownames))
-  columns <- census_backend(scm)$trait_names(scm)
+  columns <- census_backend(solver)$trait_names(solver)
   if (is.null(traits)) {
     traits <- setdiff(columns, derived)
   }
@@ -320,7 +320,7 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   # A derived parameter without a column adds nothing only where the model states
   # no equation reads it; any other leaves the sum incomplete.
   read <- intersect(derived, columns)
-  unread <- names(census_backend(scm)$undifferentiable())
+  unread <- names(census_backend(solver)$undifferentiable())
   lost <- setdiff(derived, read)
   lost <- lost[!trait_without_species(lost) %in% unread]
   if (length(lost) > 0L) {
@@ -328,7 +328,7 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
          "species' traits, which has no gradient column, so the chain rule ",
          "cannot be completed")
   }
-  partial <- stand_gradient(scm, metrics, union(traits, read), hyperpar = NULL)
+  partial <- stand_gradient(solver, metrics, union(traits, read), hyperpar = NULL)
   G <- partial$gradient
   total <- G[, traits, drop = FALSE]
   for (J in trade_offs) {

@@ -11,11 +11,11 @@
 # environment by the Patch constructor -- so it costs no per-call string
 # comparison on the hot path.
 #
-# Most SCM-level tests here run on a shortened patch horizon
+# Most stand-level tests here run on a shortened patch horizon
 # (max_patch_lifetime = 40 vs the FF16 default ~105) for speed: their assertions
 # are relational (one model > another, or two models differ/agree at the same
 # horizon), which the shorter patch preserves. The single exception is the
-# "deep-crown reproduces the baseline SCM result" test, kept at the full default
+# "deep-crown reproduces the baseline stand result" test, kept at the full default
 # horizon so it still anchors the canonical full-lifetime FF16 number.
 
 # A prepared FF16 individual under a given shading model. Constructing the
@@ -119,7 +119,8 @@ test_that("flat-top-soft-box has a continuous competition profile and runs", {
 
 test_that("flat-top-box cannot build a light environment (discontinuous competition)", {
   # The step competition makes the patch light profile discontinuous, so the
-  # adaptive light-environment spline cannot represent it and the SCM fails.
+  # adaptive light-environment spline cannot represent it and the deterministic
+  # runner fails.
   # This is the point of the model: the competition profile must be continuous.
   p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
@@ -166,9 +167,9 @@ test_that("mean-light assimilation >= deep-crown (Jensen, concave photosynthesis
   expect_gt(op_avg, op_deep)
 })
 
-test_that("deep-crown reproduces the baseline SCM result", {
+test_that("deep-crown reproduces the baseline stand result", {
   # The default model must be the established FF16 behaviour. This is the one
-  # SCM test kept at the full default horizon: it is the canonical anchor, so it
+  # stand-level test kept at the full default horizon: it is the canonical anchor, so it
   # pins the established full-lifetime FF16 number rather than a shortened-horizon
   # value.
   #
@@ -188,7 +189,7 @@ test_that("deep-crown reproduces the baseline SCM result", {
   expect_equal(over_birth_date$patch$offspring_production, 17.1406, tolerance = 1e-4)
 })
 
-test_that("crown-centre runs through the SCM and changes the outcome", {
+test_that("crown-centre runs through the deterministic runner and changes the outcome", {
   p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
@@ -251,7 +252,7 @@ test_that("PPA layer smoothing keeps the profile monotone and bounded", {
   expect_true(all(diff(stepped) >= -1e-9)) # monotone increasing in E
 })
 
-test_that("PPA runs through the SCM (smoothed) and changes the outcome", {
+test_that("PPA runs through the deterministic runner (smoothed) and changes the outcome", {
   # With the default C1 smoothing (ppa_layer_smoothing = 0.3) the stepped profile
   # is differentiable, so the normal adaptive solver integrates PPA without a
   # fixed schedule. The layered light reduces self-shading, so production differs
@@ -342,7 +343,7 @@ test_that("TF24 shading models agree under uniform light", {
 # Lifetime 2 rather than 8: what these blocks need is a canopy of distinct cohort
 # heights, which the first introductions supply. `collect` is on because the first block reads the history.
 #
-# Safe to share because `scm$patch` hands back a COPY -- the blocks below set an
+# Safe to share because `solver$patch` hands back a COPY -- the blocks below set an
 # ODE state on it and rebuild its environment, and neither reaches this stand.
 ## On the height coordinate, named rather than taken from TF24's default:
 ## the light-interpolant block below rebuilds a Patch from the run's state with
@@ -357,18 +358,18 @@ tf24_light_stand <- local({
       p0 <- testing_parameters("TF24")
       p0$max_patch_lifetime <- 2
       p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
-      scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
+      solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
                                      tf24_light_control())
-      scm$collect <- TRUE
-      scm$run()
+      solver$collect <- TRUE
+      solver$run()
       # All three blocks read a light field, and a stand that cast no shade would
       # satisfy them trivially -- Beer's law at every knot is exp(0) against 1.
       # Measured here: 82 history entries, height_max 4.47 m, 65 distinct knot
       # values, shade reaching 0.78.
-      shade <- scm$patch$environment$light_availability$state[, "light_availability"]
-      stopifnot(length(scm$history) > 20, min(shade) < 0.9,
+      shade <- solver$patch$environment$light_availability$state[, "light_availability"]
+      stopifnot(length(solver$history) > 20, min(shade) < 0.9,
                 length(unique(shade)) == 65L)
-      built <<- list(scm = scm, p = p)
+      built <<- list(solver = solver, p = p)
     }
     built
   }
@@ -378,11 +379,11 @@ test_that("the light interpolant's knot positions are run-constant", {
   # The field is tabulated on u = z / height_max at uniform fractions fixed for the
   # run, so every build places its knots at u_k * height_max: the count is the
   # same at every stage and the positions are a function of height_max alone.
-  scm <- tf24_light_stand()$scm
+  solver <- tf24_light_stand()$solver
 
   u <- seq(0, 1, length.out = 65)
-  expect_gt(length(scm$history), 20)
-  for (h in scm$history) {
+  expect_gt(length(solver$history), 20)
+  for (h in solver$history) {
     x <- h$environment$light_availability$state[, "height"]
     expect_identical(x, u * h$height_max)
   }
@@ -392,10 +393,10 @@ test_that("the light interpolant is a function of the state, not of the build be
   # Reaching a state by running to it and by setting it directly must give the
   # same field, bitwise: nothing carries over from the previous build.
   stand <- tf24_light_stand()
-  scm <- stand$scm
+  solver <- stand$solver
   p <- stand$p
 
-  ran <- scm$patch
+  ran <- solver$patch
   n <- vapply(ran$species, function(s) s$size, 0.0)
   y <- ran$ode_state
   t <- ran$ode_time
@@ -413,8 +414,8 @@ test_that("the light field carries Beer's law and its derivative at every knot",
   # E = exp(-A) and dE/dz = -A' exp(-A), with A and A' the competition profile
   # and its vertical derivative, so the slope a consumer reads at a knot is the
   # derivative of the value it reads there.
-  scm <- tf24_light_stand()$scm
-  patch <- scm$patch
+  solver <- tf24_light_stand()$solver
+  patch <- solver$patch
   # Rebuilt at the clock it is read at. On the birth-date coordinate the closing
   # interval runs from the youngest cohort's birth date to now, so the field is a
   # function of the time as well as of the state, and a build left behind by an
@@ -438,10 +439,10 @@ test_that("on the birth-date coordinate the field takes crossed crowns tallest f
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 2
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
-  scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
                                  Control(node_density_coordinate = "birth_date"))
-  scm$run()
-  patch <- scm$patch
+  solver$run()
+  patch <- solver$patch
   heights <- patch$species[[1]]$heights
   node <- patch$species[[1]]$nodes[[1]]
   # The tallest and the shortest cohort swap heights, so a prefix taken in list

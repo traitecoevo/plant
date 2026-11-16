@@ -4,10 +4,10 @@
 \alias{gradient_control}
 \title{The \code{Control} entries a census gradient depends on.}
 \usage{
-gradient_control(scm)
+gradient_control(x)
 }
 \arguments{
-\item{scm}{A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+\item{x}{A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
 }
 \value{

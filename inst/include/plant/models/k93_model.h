@@ -26,7 +26,7 @@ struct K93_Pars {
   // * Reproduction
   double d_0 = 0.00073;  // Recruitment rate (cm-2.yr-1)
   double d_1 = 0.044;    // Reduction from suppression (m2.cm-2)
-  // Probability of survival during dispersal (required by scm.h)
+  // Probability of survival during dispersal (read by species.h)
   double S_D = 1.0;
   // Smoothing / canopy shape parameter
   double eta = 12;
@@ -163,7 +163,7 @@ public:
 
 // Definitions ----------------------------------------------------------
 // Header-only, as FF16_Model is: the model is read in one place and the
-// per-node calls can inline into the SCM loop.
+// per-node calls can inline into the patch's rate loop.
 
 inline K93_Model::K93_Model() {
    // Empirical parameter defaults (Table 1) live in the K93_Pars struct
@@ -191,7 +191,7 @@ inline double K93_Model::establishment_probability(const K93_Environment& enviro
   // establishment is deterministic, so every dispersed seed establishes.
   // Demographic filtering instead happens via growth suppression (size_dt is
   // clamped to >= 0 under competition) and the g > 0 density guard in
-  // Node::compute_initial_conditions. This value is consumed by the SCM
+  // Node::compute_initial_conditions. This value is consumed by the patch
   // (initial mortality / density) and the stochastic germination test.
   // Deliberately not gated on a positive growth rate, unlike FF16 and TF24
   // (#480): gating here would filter twice.

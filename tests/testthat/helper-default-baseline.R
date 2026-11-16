@@ -1,16 +1,16 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
 ## test-default-baseline.R and scripts/capture-default-baseline.R. The runs go
 ## through run() (#428), so the capture needs a build that has it; the recorded
-## height-coordinate cases came from a build before #661, through the SCM entry
+## height-coordinate cases came from a build before #661, through the run_scm() entry
 ## point run() replaced, which drove the solver the same way. The birth-date
 ## cases were re-captured when establishment came to be averaged over each
 ## cohort's cell.
 default_baseline_cases <- function() {
-  outputs <- function(scm) {
-    list(ode_state = scm$patch$ode_state,
-         ode_times = scm$ode_times,
-         net_reproduction_ratios = scm$patch$net_reproduction_ratios,
-         offspring_production = scm$patch$offspring_production)
+  outputs <- function(solver) {
+    list(ode_state = solver$patch$ode_state,
+         ode_times = solver$ode_times,
+         net_reproduction_ratios = solver$patch$net_reproduction_ratios,
+         offspring_production = solver$patch$offspring_production)
   }
   ff16 <- function(lifetime) {
     p <- testing_parameters("FF16")
@@ -35,9 +35,9 @@ default_baseline_cases <- function() {
                 control = Control(node_density_coordinate = "birth_date"))$solver)
 
   ## An invasion of the default FF16 stand.
-  scm <- run(ff16(105.32))$solver
-  scm$run_mutant(add_mutant(ff16(105.32), trait_matrix(0.1, "lma")))
-  out$ff16_invader <- outputs(scm)
+  solver <- run(ff16(105.32))$solver
+  solver$run_mutant(add_mutant(ff16(105.32), trait_matrix(0.1, "lma")))
+  out$ff16_invader <- outputs(solver)
 
   ## A resume of an FF16 stand from its export, under one regime throughout: a
   ## resume re-stamps birth weights from the resuming regime (#661), which under

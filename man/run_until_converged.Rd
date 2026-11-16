@@ -5,10 +5,10 @@
 \title{Run until the stand's block means settle}
 \usage{
 run_until_converged(
-  scm,
+  x,
   block = 20,
   tol = 0.02,
-  t_max = scm$parameters$max_patch_lifetime,
+  t_max = x$parameters$max_patch_lifetime,
   statistics = c("density", "height_max", "environment"),
   snapshot_interval = 1,
   environment_entries = NULL,
@@ -17,7 +17,7 @@ run_until_converged(
 )
 }
 \arguments{
-\item{scm}{A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or an \code{SCM} built and not yet run to the end, as
+\item{x}{A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or a \code{DeterministicPatchRunner} built and not yet run to the end, as
 \code{run(p, ..., until = 0)$solver} is, whose schedule reaches
 \code{t_max}. Its \code{snapshot_interval} is set to
 \code{snapshot_interval} if it is zero.}
@@ -37,7 +37,8 @@ species), \code{"n_live"} (cohorts with density, summed) and
 default leaves out \code{"height_max"} when the absorbing top layer is on,
 since the layer pins it at the absorbing height whatever the stand does.}
 
-\item{snapshot_interval}{Years between snapshots when the SCM has none set.}
+\item{snapshot_interval}{Years between snapshots when the deterministic
+runner has none set.}
 
 \item{environment_entries}{Which entries of the environment's state the
 \code{"environment"} statistic reads. \code{NULL} (the default) reads
@@ -64,7 +65,7 @@ snapshots: the burn-in of a continuous patch (plant issue #519), paid once
 and then exported with \code{\link{export_patch_state}}.
 }
 \details{
-The run advances one block at a time with \code{scm$run_to()}. After each
+The run advances one block at a time with \code{x$run_to()}. After each
 block the mean over that block's snapshots is taken of the chosen
 statistics, and the run is converged once the last \code{window} block
 means of every statistic agree: their range is below \code{tol} times the

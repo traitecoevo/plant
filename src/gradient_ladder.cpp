@@ -522,7 +522,7 @@ Rcpp::List ladder_rhs_adjoint_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF2
 // carries one weight per trait column, so a unit vector gives one Jacobian column
 // and a mixed direction gives the contraction the trajectory rungs compare.
 // [[Rcpp::export]]
-Rcpp::List ladder_trajectory_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_trajectory_tangent_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                           std::vector<double> direction) {
   std::vector<double> value;
   const std::vector<double> tangent =
@@ -621,7 +621,7 @@ Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<
 // coordinate direction gives the census's sensitivity to the value one cohort
 // starts at, with no trait and no derived quantity on the path.
 // [[Rcpp::export]]
-Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
+Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                     std::vector<double> direction,
                                                     int segment) {
   std::vector<double> value;
@@ -636,7 +636,7 @@ Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant:
 // Differencing this is what referees the tangent above: the same steps, the same
 // introductions, one perturbed state.
 // [[Rcpp::export]]
-std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
+std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                                             std::vector<double> state0,
                                                             int segment) {
   return obj_->census_initial_state_pinned(
@@ -656,7 +656,7 @@ std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR
 // count of stage transposes: every one records it and every sweep of one carries
 // its row.
 // [[Rcpp::export]]
-Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   obj_->clear_boundary_condition_evaluations();
   const plant::census_gradient result =
     obj_->census_trait_gradient();
@@ -691,7 +691,8 @@ Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<pla
 //
 // The same one line as `census_trait_names_tf24` at the other concrete type, and
 // the duplication is RcppR6's: a generated wrapper is per type, so a function
-// cannot take both a Patch and an SCM. That one is the shipped path's; this one
+// cannot take both a Patch and a deterministic runner. That one is the shipped
+// path's; this one
 // is what a patch fixture has.
 // [[Rcpp::export]]
 std::vector<std::string> ladder_trait_names_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
@@ -951,14 +952,14 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g);
 // sensitivities has `stand_gradient`. What is left here is a reference half.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-ladder_census_trait_direct_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+ladder_census_trait_direct_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->census_state_and_trait_rows().trait.to_vectors();
 }
 
 // The same quantity differenced in plain double, which is what referees it.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
+ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                              double rel) {
   return obj_->census_trait_difference(rel);
 }
@@ -968,7 +969,7 @@ ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24
 // agree with census_trait_gradient_tf24 bit for bit.
 // [[Rcpp::export]]
 Rcpp::List
-census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
+census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                                  std::vector<int> splits) {
   std::vector<size_t> at;
   at.reserve(splits.size());
@@ -989,7 +990,7 @@ census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Mo
 // what says whether a regime the gradient refuses is rare or is most of the run.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const std::vector<std::vector<size_t>> counts = obj_->operating_point_counts();
   std::vector<std::vector<double>> ret;
   ret.reserve(counts.size());
@@ -1000,7 +1001,7 @@ census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_
 }
 
 // [[Rcpp::export]]
-void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   obj_->clear_diagnostics();
 }
 
@@ -1021,7 +1022,7 @@ std::vector<std::string> census_operating_point_names_tf24() {
 // a true zero are the same number -- so the honest treatment is to count it.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const std::vector<std::vector<size_t>> counts = obj_->clamp_counts();
   std::vector<std::vector<double>> ret;
   ret.reserve(counts.size());
@@ -1036,7 +1037,7 @@ census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<doub
 // a severance -- the forward one says only that the guard is reachable.
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_clamp_counts_differentiated_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+census_clamp_counts_differentiated_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   const std::vector<std::vector<size_t>> counts = obj_->clamp_counts_differentiated();
   std::vector<std::vector<double>> ret;
   ret.reserve(counts.size());
@@ -1064,6 +1065,6 @@ std::vector<std::string> census_clamp_names_tf24() {
 // reached -- so the distance to the floor is reported rather than assumed.
 // [[Rcpp::export]]
 std::vector<double>
-census_curvature_margin_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+census_curvature_margin_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->curvature_margins();
 }

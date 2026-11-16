@@ -87,7 +87,8 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   \code{net_reproduction_ratios} (per species, at \code{time}),
   \code{event_log} (what each event did), \code{mutants} (the invaders'
   \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL}),
-  \code{method}, and \code{solver}, the live \code{SCM}. A stochastic
+  \code{method}, and \code{solver}, the live
+  \code{DeterministicPatchRunner}. A stochastic
   result's fitness values and \code{event_log} are \code{NULL}, its
   \code{steps} hold what \code{record = "steps"} kept, and its solver is a
   \code{StochasticPatchRunner}. An \code{Individual}'s run returns a

@@ -45,7 +45,7 @@ test_that("zeroing the profile parameters recovers the height-linear model", {
   # Invariance criterion I7 survives the reparameterisation as an explicit
   # rather than as the default. expect_identical, not expect_equal: a value that
   # drifted to 1e-16 would still pass expect_equal while silently taking the
-  # beta == 0 branch out of play, and the SCM pins elsewhere sit at tolerance
+  # beta == 0 branch out of play, and the stand-level pins elsewhere sit at tolerance
   # 2e-2, which would absorb the consequence without anyone noticing.
   s <- TF24_Model()
   s$pars$D_c <- 0

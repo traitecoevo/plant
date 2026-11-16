@@ -1,4 +1,4 @@
-##' Discrete events applied during an SCM run.
+##' Discrete events applied during a deterministic run.
 ##'
 ##' An event is a \code{(time, action)} pair applied between solver legs: the
 ##' integrator is stopped at the event time, the action changes the patch, the
@@ -37,7 +37,7 @@
 ##' without, at solver tolerance, even away from the events themselves.
 ##'
 ##' What each event actually did — as against what was asked of it — is
-##' recorded, and readable afterwards as \code{scm$event_log}. The two differ
+##' recorded, and readable afterwards as \code{solver$event_log}. The two differ
 ##' routinely: a pulse is capped at what the pool can hold, and harvesting a
 ##' size class removes whatever was in it.
 ##'
@@ -172,7 +172,7 @@ node_introductions <- function(p) {
 ##'   that case under a name that reads correctly.
 ##' @param amount How much to add, in whatever the environment measures that
 ##'   resource in. What the pool cannot hold is shed rather than forced in;
-##'   \code{scm$event_log} reports how much of each.
+##'   \code{solver$event_log} reports how much of each.
 ##' @rdname events
 ##' @export
 resource_pulse <- function(time, resource, amount) {

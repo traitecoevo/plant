@@ -5,7 +5,7 @@
 #' Given several times, the same individuals are followed through all of them,
 #' so each grows with its cohort and, once dead, stays dead.
 #'
-#' The SCM carries density per unit ground area and per unit birth date.
+#' The deterministic solver carries density per unit ground area and per unit birth date.
 #' Individuals are drawn as a Poisson process over birth date, at the density at
 #' the first requested time they could be seen, interpolated between nodes with
 #' a shape-preserving cubic (PCHIP). Each then carries a fixed hazard budget, drawn from a

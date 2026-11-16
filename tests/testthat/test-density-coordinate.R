@@ -1,4 +1,5 @@
-# Carrying the SCM's size distribution in birth date rather than in height
+# Carrying the deterministic runner's size distribution in birth date rather
+# than in height
 # (Control$node_density_coordinate).
 #
 # The two coordinates describe the same population, so for a strategy whose
@@ -15,7 +16,7 @@
 # expect_failure) that the assertion really does fail when the defect is
 # present. Those cost nothing. The convergence trends that follow are the
 # end-to-end check that the invariants compose, through a full run and a shared
-# competition profile, into two coordinates that agree; they cost SCM runs, so
+# competition profile, into two coordinates that agree; they cost deterministic runs, so
 # each is carried at the cheapest schedule and patch lifetime that still shows
 # its signal.
 
@@ -64,10 +65,10 @@ short_run <- local({
       }
       ctrl <- Control()
       ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
-      scm <- SCM(x, environment_type(x))(p, Environment(x), empty_events(), ctrl)
-      scm$collect <- TRUE
-      scm$run()
-      cache[[key]] <<- scm
+      solver <- DeterministicPatchRunner(x, environment_type(x))(p, Environment(x), empty_events(), ctrl)
+      solver$collect <- TRUE
+      solver$run()
+      cache[[key]] <<- solver
     }
     cache[[key]]
   }
@@ -80,8 +81,8 @@ collected_run <- function(birth_date, lifetime = 20) {
 ## Sample a handful of steps spanning a run: the two coordinates' grids drift
 ## apart as the node list ages, so an invariant that holds only at the end is
 ## not enough.
-sampled_steps <- function(scm, n = 4) {
-  unique(round(seq(2, length(scm$history), length.out = n)))
+sampled_steps <- function(solver, n = 4) {
+  unique(round(seq(2, length(solver$history), length.out = n)))
 }
 
 ## ---------------------------------------------------------------------------
@@ -133,9 +134,9 @@ expect_strictly_increasing <- function(x) {
 test_that("the competition integral runs over the coordinate the density is carried in", {
   for (x in c("FF16", "K93")) {
     for (birth_date in c(FALSE, TRUE)) {
-      scm <- short_run(x, birth_date)
-      for (k in sampled_steps(scm)) {
-        s <- scm$history[[k]]$species[[1]]
+      solver <- short_run(x, birth_date)
+      for (k in sampled_steps(solver)) {
+        s <- solver$history[[k]]$species[[1]]
         expect_identical(s$density_in_birth_date, birth_date)
         for (z in c(0, s$height_max * 0.3, s$height_max * 0.7)) {
           expect_integrates_over(s, quadrature_grid(s), z)
@@ -145,7 +146,7 @@ test_that("the competition integral runs over the coordinate the density is carr
       ## discriminates between the two axes rather than holding for either.
       ## Measured discrepancy at z = 0: >=20% carrying in birth date, >=0.7%
       ## carrying in height -- seven orders above the tolerance above.
-      s <- scm$patch$species[[1]]
+      s <- solver$patch$species[[1]]
       expect_failure(
         expect_integrates_over(s, quadrature_grid(s, !birth_date), 0))
     }
@@ -160,9 +161,9 @@ test_that("the competition integral runs over the coordinate the density is carr
 ## in its own right.
 test_that("the birth-date quadrature grid is strictly increasing", {
   for (x in c("FF16", "K93")) {
-    scm <- short_run(x, TRUE)
-    for (k in sampled_steps(scm)) {
-      s <- scm$history[[k]]$species[[1]]
+    solver <- short_run(x, TRUE)
+    for (k in sampled_steps(solver)) {
+      s <- solver$history[[k]]$species[[1]]
       if (s$size < 2) next
       grid <- quadrature_grid(s)
       ## The introduced nodes: no zero-width interval anywhere.
@@ -235,9 +236,9 @@ test_that("only the height coordinate's density rate carries a compression term"
     i_dens <- which(nm == "log_density")
 
     for (birth_date in c(FALSE, TRUE)) {
-      scm <- short_run(x, birth_date)
-      s <- scm$patch$species[[1]]
-      env <- scm$patch$environment
+      solver <- short_run(x, birth_date)
+      s <- solver$patch$species[[1]]
+      env <- solver$patch$environment
       compression <- 0
       for (j in seq_len(min(s$size, 25L))) {
         nd <- s$node_at(j)
@@ -261,8 +262,8 @@ test_that("only the height coordinate's density rate carries a compression term"
 ## lets each be checked against the other's.
 test_that("each coordinate's boundary condition is the one its integral needs", {
   for (birth_date in c(FALSE, TRUE)) {
-    scm <- collected_run(birth_date)
-    nd <- scm$patch$species[[1]]$new_node
+    solver <- collected_run(birth_date)
+    nd <- solver$patch$species[[1]]$new_node
     g0 <- nd$growth_rate_at_birth
     expect_gt(g0, 0)
     ## log(birth_rate * pr_estab). The height path carries it divided by g(H_0).
@@ -272,13 +273,13 @@ test_that("each coordinate's boundary condition is the one its integral needs", 
     ## against the time since the newest node's birth) over the width. Compare
     ## in log space.
     if (birth_date) {
-      sp <- scm$patch$species[[1]]
+      sp <- solver$patch$species[[1]]
       h <- nd$introduction_time - utils::tail(sp$node_times, 1)
       undivided <- log(1.0 * (1 + 2 * utils::tail(sp$ode_state, 1) / h^2))
       expect_equal(nd$log_density, undivided, tolerance = 1e-10)
     } else {
       undivided <- log(1.0 * nd$individual$establishment_probability(
-        scm$patch$environment))
+        solver$patch$environment))
       expect_equal(nd$log_density + log(g0), undivided, tolerance = 1e-10)
     }
     ## And the division is doing real work, so the two are not interchangeable.
@@ -317,10 +318,10 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   ## Each coordinate's state has its own layout -- the birth-date one carries
   ## each species' open interval -- so each is exported from a run on it.
   exported <- function(ctrl) {
-    scm <- SCM(x, e)(p, Environment(x), empty_events(), ctrl)
-    scm$collect <- TRUE
-    scm$run()
-    export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
+    solver <- DeterministicPatchRunner(x, e)(p, Environment(x), empty_events(), ctrl)
+    solver$collect <- TRUE
+    solver$run()
+    export_patch_state(solver, step = max(2L, length(solver$history) %/% 2L))
   }
   ctrl_bd <- Control()
   ctrl_bd$node_density_coordinate <- "birth_date"
@@ -398,10 +399,10 @@ log_density_gap <- function(refine) {
   one <- function(birth_date) {
     ctrl <- Control()
     ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
-    scm <- SCM("FF16", "FF16_Env")(interleave_schedule(p_of(), refine),
+    solver <- DeterministicPatchRunner("FF16", "FF16_Env")(interleave_schedule(p_of(), refine),
                                    Environment("FF16"), empty_events(), ctrl)
-    scm$run()
-    scm$patch$species[[1]]
+    solver$run()
+    solver$patch$species[[1]]
   }
   sa <- one(FALSE)
   sb <- one(TRUE)
@@ -523,17 +524,17 @@ test_that("resume reads the raw state, so it is unaffected by the conversion", {
   ctrl <- Control()
   ctrl$node_density_coordinate <- "birth_date"
 
-  scm <- collected_run(TRUE)
-  state <- export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
-  p2 <- set_initial_state(scm$parameters, state)
+  solver <- collected_run(TRUE)
+  state <- export_patch_state(solver, step = max(2L, length(solver$history) %/% 2L))
+  p2 <- set_initial_state(solver$parameters, state)
 
-  scm2 <- SCM(x, e)(p2, Environment(x), empty_events(), ctrl)
-  scm2$collect <- TRUE
-  scm2$run()
+  solver2 <- DeterministicPatchRunner(x, e)(p2, Environment(x), empty_events(), ctrl)
+  solver2$collect <- TRUE
+  solver2$run()
 
   ## The seeded patch reproduces the exported ODE state exactly -- which it
   ## could not if the reporting conversion had leaked into the resume path.
-  expect_equal(scm2$history[[1]]$ode_state, state$ode_state)
+  expect_equal(solver2$history[[1]]$ode_state, state$ode_state)
 })
 
 ## ---------------------------------------------------------------------------
@@ -784,16 +785,16 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   p$max_patch_lifetime <- 20
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 10)
   p$node_schedule_times <- list(seq(0, 20, by = 1))
-  scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
-  sp <- scm$patch$species[[1]]
+  solver <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
+  sp <- solver$patch$species[[1]]
   # The run reached its end, and the shaded cohorts did die.
-  expect_equal(scm$time, 20)
+  expect_equal(solver$time, 20)
   expect_true(any(exp(sp$log_densities_state) == 0))
   # A birth-date density only falls: none exceeds the largest at birth, which
   # is log(birth rate) plus at most a few units of establishment and patch
   # density.
   expect_lt(max(sp$log_densities_state), log(10) + 1)
-  expect_true(is.finite(scm$patch$offspring_production))
+  expect_true(is.finite(solver$patch$offspring_production))
 })
 
 ## Establishment is integrated over each cohort's cell rather than read at its
@@ -844,9 +845,9 @@ test_that("offspring production does not depend on where cohorts fall against th
 test_that("a model that establishes every seed leaves the open interval empty", {
   p <- size_only_parameters("K93")
   ctrl <- Control(node_density_coordinate = "birth_date")
-  scm <- SCM("K93", "K93_Env")(p, Environment("K93"), empty_events(), ctrl)
-  scm$run()
-  sp <- scm$patch$species[[1]]
+  solver <- DeterministicPatchRunner("K93", "K93_Env")(p, Environment("K93"), empty_events(), ctrl)
+  solver$run()
+  sp <- solver$patch$species[[1]]
   expect_gt(sp$size, 10)
   expect_identical(utils::tail(sp$ode_state, 2), c(0, 0))
 })
@@ -864,17 +865,17 @@ test_that("a hand-built state keeps its densities through the first introduction
   p2 <- set_initial_state(p, state)
   expect_true(p2$initial_established)
   p2$node_schedule_times <- list(c(0.5, 1, 1.5))
-  scm <- SCM("FF16", "FF16_Env")(p2, Environment("FF16"), empty_events(), ctrl)
-  given <- function() scm$patch$species[[1]]$nodes[[1]]
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p2, Environment("FF16"), empty_events(), ctrl)
+  given <- function() solver$patch$species[[1]]$nodes[[1]]
   survival <- function() exp(-given()$individual$state("mortality"))
-  scm$run_to(0)
+  solver$run_to(0)
   expect_equal(given()$log_density, log(0.2), tolerance = 1e-12)
-  scm$run_to(1.2)
+  solver$run_to(1.2)
   ## Past the first introduction, the hand-built cohort's density has moved
   ## only through its own mortality.
-  expect_gt(scm$patch$species[[1]]$size, 1)
+  expect_gt(solver$patch$species[[1]]$size, 1)
   expect_equal(given()$log_density, log(0.2 * survival()), tolerance = 1e-10)
   ## An exported state is not marked, so a resume goes on taking in the
   ## newest cohort's establishment.
-  expect_false(isTRUE(export_patch_state(scm)$established))
+  expect_false(isTRUE(export_patch_state(solver)$established))
 })

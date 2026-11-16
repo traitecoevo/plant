@@ -186,19 +186,19 @@ for (x in names(strategy_types)) {
     # net reproductive ratio.
     p2$strategies[[1]]$birth_rate_y <- 1
     p10$strategies[[1]]$birth_rate_y <- 1
-    expect_warning(scm2   <- run(p2)$solver)
-    expect_warning(scm10a <- run(p10)$solver)
-    expect_gt(scm10a$patch$net_reproduction_ratios, scm2$patch$net_reproduction_ratios)
+    expect_warning(solver2   <- run(p2)$solver)
+    expect_warning(solver10a <- run(p10)$solver)
+    expect_gt(solver10a$patch$net_reproduction_ratios, solver2$patch$net_reproduction_ratios)
 
     # Birth rate scaled x5 with the x5 patch area gives the same seed input per
     # unit area, hence the same reproductive ratio as the small patch. (p2 is
     # unchanged from above, so it is not re-run.)
     p10b <- p10
     p10b$strategies[[1]]$birth_rate_y <- 5
-    expect_warning(scm10b <- run(p10b)$solver)
-    expect_equal(scm2$patch$net_reproduction_ratios,
-                 scm10b$patch$net_reproduction_ratios, tolerance = 1e-4)
-    expect_gt(scm10a$patch$net_reproduction_ratios, scm10b$patch$net_reproduction_ratios)
+    expect_warning(solver10b <- run(p10b)$solver)
+    expect_equal(solver2$patch$net_reproduction_ratios,
+                 solver10b$patch$net_reproduction_ratios, tolerance = 1e-4)
+    expect_gt(solver10a$patch$net_reproduction_ratios, solver10b$patch$net_reproduction_ratios)
   })
   
   test_that("Weibull Disturbance as default", {

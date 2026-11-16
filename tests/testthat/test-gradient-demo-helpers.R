@@ -32,9 +32,9 @@ test_that("gd_point() gives partials, and chaining them is stand_gradient()'s to
             1e-3 * abs(pt$gradient[metric, "1.lma"]))
   expect_equal(total[metric, "hmat"], pt$gradient[metric, "1.hmat"])
   ## The chained total is what stand_gradient() reports through the trade-offs.
-  scm <- run(gd_parameters(tr, lifetime = 1), Environment("TF24"),
-             Control(node_density_coordinate = "birth_date"),
-             refine_schedule = FALSE, record = "states")$solver
-  through <- stand_gradient(scm, metrics = metric)$gradient
+  solver <- run(gd_parameters(tr, lifetime = 1), Environment("TF24"),
+                Control(node_density_coordinate = "birth_date"),
+                refine_schedule = FALSE, record = "states")$solver
+  through <- stand_gradient(solver, metrics = metric)$gradient
   expect_equal(total[metric, "lma"], through[metric, "1.lma"], tolerance = 1e-5)
 })

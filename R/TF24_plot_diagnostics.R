@@ -1,6 +1,6 @@
 #' Diagnostic panel plot for a TF24 stand
 #'
-#' Assembles a multi-panel diagnostic figure from a collected TF24 SCM run:
+#' Assembles a multi-panel diagnostic figure from a collected TF24 deterministic run:
 #' patch leaf area, the size distribution, soil water potential, leaf and
 #' root-collar water potentials, profit, stomatal conductance, transpiration (total and per
 #' leaf area), the rainfall driver and leaf temperature. Panels are combined

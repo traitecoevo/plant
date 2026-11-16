@@ -95,7 +95,7 @@ test_that("generate_strategy() gives a clear error when birth_rate$x is mis-spec
   )
 })
 
-test_that("Variable birth rate is driven through the SCM", {
+test_that("Variable birth rate is driven through the deterministic runner", {
   # Closes the "scm untested" TODO on the variable extrinsic-driver path:
   # set a time-varying birth rate and confirm it flows through a full run.
   p0 <- testing_parameters("FF16")

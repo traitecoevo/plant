@@ -208,7 +208,7 @@ public:
     // (set_soil_parameters), not a thin layer, and a water table is a
     // bottom boundary condition TF24 does not have -- while it does reach a
     // failure this model cannot absorb. A thin layer under a thick one drives
-    // the SCM size-density equation to overflow: sampled over the basal
+    // the size-density equation to overflow: sampled over the basal
     // thickness, it fails at 5 cm, 3 cm, 2.5 cm, 2 cm and 1.5 cm, where all 18
     // profiles thickening with depth ran clean, including a 5 mm surface layer.
     //

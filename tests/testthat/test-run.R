@@ -2,43 +2,44 @@
 ## by hand, as the entry points run() replaced drove it, so run() adds no
 ## numerics of its own.
 
-## The SCM built and run by hand, step for step as the SCM entry point that
-## run() replaced did.
-scm_by_hand <- function(p, env = NULL, ctrl = control(), events = NULL,
-                        refine_schedule = FALSE, collect = FALSE, run = TRUE) {
+## The deterministic runner built and run by hand, step for step as the
+## run_scm() entry point that run() replaced did.
+solver_by_hand <- function(p, env = NULL, ctrl = control(), events = NULL,
+                           refine_schedule = FALSE, collect = FALSE, run = TRUE) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   if (is.null(env)) env <- Environment(types[[1]])
   if (is.null(events)) events <- empty_events()
-  scm <- do.call("SCM", types)(p, env, events, ctrl)
-  if (!run) return(scm)
-  if (collect) scm$collect <- TRUE
-  if (refine_schedule) scm$refine_schedule() else scm$run()
-  scm
+  solver <- do.call("DeterministicPatchRunner", types)(p, env, events, ctrl)
+  if (!run) return(solver)
+  if (collect) solver$collect <- TRUE
+  if (refine_schedule) solver$refine_schedule() else solver$run()
+  solver
 }
 
-## What that entry point returned when asked to collect, from a collected SCM.
-collected_by_hand <- function(scm) {
-  results <- tidy_patch(lapply(scm$history, "[[", "state"))
-  results[["offspring_production"]] <- scm$patch$offspring_production
-  results[["net_reproduction_ratios"]] <- scm$patch$net_reproduction_ratios
-  results[["p"]] <- scm$parameters
-  results[["events"]] <- scm$events
-  results[["event_log"]] <- scm$event_log
+## What that entry point returned when asked to collect, from a collected
+## deterministic runner.
+collected_by_hand <- function(solver) {
+  results <- tidy_patch(lapply(solver$history, "[[", "state"))
+  results[["offspring_production"]] <- solver$patch$offspring_production
+  results[["net_reproduction_ratios"]] <- solver$patch$net_reproduction_ratios
+  results[["p"]] <- solver$parameters
+  results[["events"]] <- solver$events
+  results[["event_log"]] <- solver$event_log
   results
 }
 
 outputs <- function(x) {
-  scm <- if (inherits(x, "plant_run")) x$solver else x
-  list(ode_state = scm$patch$ode_state,
-       offspring_production = scm$patch$offspring_production,
-       net_reproduction_ratios = scm$patch$net_reproduction_ratios)
+  solver <- if (inherits(x, "plant_run")) x$solver else x
+  list(ode_state = solver$patch$ode_state,
+       offspring_production = solver$patch$offspring_production,
+       net_reproduction_ratios = solver$patch$net_reproduction_ratios)
 }
 
-test_that("run(p) is the SCM run by hand, and reports what it ran", {
+test_that("run(p) is the deterministic run by hand, and reports what it ran", {
   p <- ff16_parameters(20)
   res <- run(p)
   expect_s3_class(res, "plant_run")
-  expect_identical(outputs(res), outputs(scm_by_hand(p)))
+  expect_identical(outputs(res), outputs(solver_by_hand(p)))
   expect_true(res$complete)
   expect_identical(res$offspring_production, res$solver$patch$offspring_production)
   expect_s3_class(res$scenario, "plant_scenario")
@@ -53,18 +54,18 @@ test_that("a scenario and its pieces run the same, and a result reruns", {
   a <- run(scenario(p, control = ctrl, events = ev))
   b <- run(p, control = ctrl, events = ev)
   expect_identical(outputs(a), outputs(b))
-  expect_identical(outputs(a), outputs(scm_by_hand(p, ctrl = ctrl, events = ev)))
+  expect_identical(outputs(a), outputs(solver_by_hand(p, ctrl = ctrl, events = ev)))
   expect_identical(outputs(run(a$scenario)), outputs(a))
   expect_equal(a$event_log$type, b$event_log$type)
   expect_true("harvest" %in% a$event_log$type)
 })
 
-test_that("refinement through run() is the SCM's, and its schedule is the result's", {
+test_that("refinement through run() is the deterministic runner's, and its schedule is the result's", {
   p <- ff16_parameters(20)
   res <- run(p, refine_schedule = TRUE)
-  scm <- scm_by_hand(p, refine_schedule = TRUE)
-  expect_identical(outputs(res), outputs(scm))
-  expect_identical(res$scenario$p, scm$parameters)
+  solver <- solver_by_hand(p, refine_schedule = TRUE)
+  expect_identical(outputs(res), outputs(solver))
+  expect_identical(res$scenario$p, solver$parameters)
 })
 
 test_that("record keeps what tidy() and a gradient read", {
@@ -72,7 +73,7 @@ test_that("record keeps what tidy() and a gradient read", {
   res <- run(p, record = "steps")
   ## tidy() of a deterministic run is what the old collected run returned,
   ## field for field, in the same order.
-  expect_identical(tidy(res), collected_by_hand(scm_by_hand(p, collect = TRUE)))
+  expect_identical(tidy(res), collected_by_hand(solver_by_hand(p, collect = TRUE)))
   expect_named(tidy(res), c("steps", "n_spp", "species", "env",
                             "offspring_production", "net_reproduction_ratios",
                             "p", "events", "event_log"))
@@ -80,8 +81,8 @@ test_that("record keeps what tidy() and a gradient read", {
   ev <- events(node_introductions(p), harvest(time = 5, fraction = 0.3))
   harvested <- run(p, control = control(node_density_coordinate = "birth_date"),
                    events = ev, record = "steps")
-  by_hand <- scm_by_hand(p, ctrl = control(node_density_coordinate = "birth_date"),
-                         events = ev, collect = TRUE)
+  by_hand <- solver_by_hand(p, ctrl = control(node_density_coordinate = "birth_date"),
+                            events = ev, collect = TRUE)
   expect_identical(tidy(harvested), collected_by_hand(by_hand))
   expect_true("harvest" %in% tidy(harvested)$event_log$type)
   expect_error(tidy(run(p)), "record = \"steps\"")
@@ -109,20 +110,20 @@ test_that("a run stopped at `until` and continued is the run taken whole", {
   z2 <- run(z, until = 0)
   expect_identical(z2$time, 0)
   expect_identical(run_until_converged(z2, block = 5)$trace,
-                   run_until_converged(scm_by_hand(p, run = FALSE), block = 5)$trace)
+                   run_until_converged(solver_by_hand(p, run = FALSE), block = 5)$trace)
 })
 
-test_that("until at the start builds the run unrun, as the SCM is built", {
+test_that("until at the start builds the run unrun, as the deterministic runner is built", {
   p <- ff16_parameters(20)
   res <- run(p, until = 0)
   expect_identical(res$time, 0)
   expect_false(res$complete)
   ## So a convergence run from it starts with the t = 0 snapshot.
   a <- run_until_converged(res, block = 5)
-  scm <- scm_by_hand(p, run = FALSE)
-  b <- run_until_converged(scm, block = 5)
+  solver <- solver_by_hand(p, run = FALSE)
+  b <- run_until_converged(solver, block = 5)
   expect_identical(a$trace, b$trace)
-  expect_identical(tidy_snapshots(a$run), tidy_snapshots(scm))
+  expect_identical(tidy_snapshots(a$run), tidy_snapshots(solver))
   expect_s3_class(a$run, "plant_run")
   expect_error(export_patch_state(res), "moved on")
   expect_identical(export_patch_state(a$run), export_patch_state(res$solver))
@@ -136,7 +137,7 @@ test_that("a resume is set_initial_state() with the state's pending events", {
   part <- run(p, control = ctrl, events = ev, until = 8)
   st <- export_patch_state(part)
   resumed <- run(p, control = ctrl, from = part)
-  manual <- scm_by_hand(set_initial_state(p, st), ctrl = ctrl, events = st$events)
+  manual <- solver_by_hand(set_initial_state(p, st), ctrl = ctrl, events = st$events)
   expect_identical(outputs(resumed), outputs(manual))
   expect_identical(resumed$scenario$p$initial_time, st$time)
   expect_true("harvest" %in% resumed$event_log$type)
@@ -163,7 +164,7 @@ test_that("a resume into a longer scenario keeps its introductions", {
   expect_gt(max(made), 20)
 })
 
-test_that("the functions that took an SCM take a result", {
+test_that("the functions that took a deterministic runner take a result", {
   p <- ff16_parameters(20)
   res <- run(p)
   expect_identical(export_patch_state(res), export_patch_state(res$solver))
@@ -173,12 +174,12 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   p <- ff16_parameters(20)
   pm <- add_mutant(p, trait_matrix(0.1, "lma"))
 
-  scm <- scm_by_hand(p)
-  scm$run_mutant(pm)
+  solver <- solver_by_hand(p)
+  solver$run_mutant(pm)
   res <- run(p)
   inv <- run_mutant(res, pm)
   expect_s3_class(inv, "plant_run")
-  expect_identical(inv$offspring_production, scm$patch$offspring_production)
+  expect_identical(inv$offspring_production, solver$patch$offspring_production)
   expect_identical(inv$mutants, pm)
   expect_identical(inv$scenario, res$scenario)
   expect_output(print(inv), "1 species invading")
@@ -189,13 +190,13 @@ test_that("run_mutant() is the solver's own invasion, and retires the resident's
   expect_error(tidy(res), "moved on")
   expect_error(run_mutant(inv, pm), "resident")
 
-  scm <- scm_by_hand(p)
-  scm$run_mutant_constant(pm)
+  solver <- solver_by_hand(p)
+  solver$run_mutant_constant(pm)
   inv <- run_mutant(run(p), pm, constant = TRUE)
-  expect_identical(inv$offspring_production, scm$patch$offspring_production)
+  expect_identical(inv$offspring_production, solver$patch$offspring_production)
 
   expect_error(run_mutant(run(p, until = 5), pm), "not finished")
-  expect_error(run_mutant(scm, pm), "plant_run")
+  expect_error(run_mutant(solver, pm), "plant_run")
 })
 
 test_that("run() refuses what it cannot do", {
@@ -208,7 +209,7 @@ test_that("run() refuses what it cannot do", {
   expect_error(run(run(p, until = 2), record = "steps"), "until")
   expect_error(scenario(list()), "Parameters")
   expect_error(scenario(p, events = list()), "Events")
-  expect_error(run(p, from = scm_by_hand(p)), "export_patch_state")
+  expect_error(run(p, from = solver_by_hand(p)), "export_patch_state")
 })
 
 ## The stochastic solver and a single plant under run(), each asserted

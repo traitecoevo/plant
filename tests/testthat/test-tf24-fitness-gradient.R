@@ -38,13 +38,13 @@ fitness_stand_run <- function(p, record = TRUE) {
 }
 
 test_that("TF24 reports its fitness under the names the gradient uses", {
-  scm <- fitness_stand_run(fitness_stand_parameters(10))
-  f <- stand_fitness(scm)
+  solver <- fitness_stand_run(fitness_stand_parameters(10))
+  f <- stand_fitness(solver)
   expect_equal(names(f), c("1.net_reproduction_ratio", "1.offspring_production"))
-  expect_identical(f[["1.net_reproduction_ratio"]], scm$patch$net_reproduction_ratios)
-  expect_identical(f[["1.offspring_production"]], scm$patch$offspring_production)
+  expect_identical(f[["1.net_reproduction_ratio"]], solver$patch$net_reproduction_ratios)
+  expect_identical(f[["1.offspring_production"]], solver$patch$offspring_production)
   expect_false("S_D" %in% names(census_undifferentiable_tf24()))
-  g <- stand_gradient(scm, metrics = names(f), hyperpar = NULL)
+  g <- stand_gradient(solver, metrics = names(f), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   # The birth rate is the last column of the species' block.
   expect_equal(utils::tail(colnames(g$gradient), 1), "1.birth_rate")
@@ -52,7 +52,7 @@ test_that("TF24 reports its fitness under the names the gradient uses", {
 })
 
 test_that("TF24's fitness gradient is the pinned-step central difference", {
-  scm <- fitness_stand_run(fitness_stand_parameters(10))
+  solver <- fitness_stand_run(fitness_stand_parameters(10))
   metrics <- c("1.net_reproduction_ratio", "1.offspring_production")
   # Every route into the fecundity state: the reproduction schedule (hmat,
   # a_f1, a_f2), the per-seed cost (omega, a_f3), survival during dispersal,
@@ -60,15 +60,15 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
   # (vcmax_25, stem_P50), establishment (a_d0) and the birth rate.
   names <- c("hmat", "a_f1", "a_f2", "omega", "a_f3", "S_D", "lma", "k_I",
              "d_I", "a_dG1", "vcmax_25", "stem_P50", "a_d0")
-  g <- stand_gradient(scm, metrics = metrics,
+  g <- stand_gradient(solver, metrics = metrics,
                       traits = paste0("1.", c(names, "birth_rate")),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_gt(g$value[["1.net_reproduction_ratio"]], 1)
 
-  pinned <- scm$parameters
-  pinned$ode_times <- scm$ode_times
-  pinned$ode_step_sizes <- scm$ode_step_sizes
+  pinned <- solver$parameters
+  pinned$ode_times <- solver$ode_times
+  pinned$ode_step_sizes <- solver$ode_step_sizes
   # lma and omega set the seed height, which is solved to a root tolerance that
   # a difference reads: omega's is off by 2.5e-2 at a step of 1e-5 and 8e-4 at
   # 1e-3. a_d0's difference is flat from 1e-3 to 1e-4 and rounds below it, so

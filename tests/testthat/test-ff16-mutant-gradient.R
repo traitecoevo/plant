@@ -21,8 +21,8 @@ resident_parameters <- function(lma = 0.0825, hmat = 3, lifetime = 8,
 
 # The invaders' parameters: the resident's, with the strategies replaced. They
 # carry the resident's node schedule, which is what the pinned run introduces by.
-mutant_parameters <- function(scm, lma, hmat = 3) {
-  p <- scm$parameters
+mutant_parameters <- function(solver, lma, hmat = 3) {
+  p <- solver$parameters
   m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
   q <- add_strategies(testing_parameters("FF16"), m,
                       birth_rate = as.list(rep(2, length(lma))))
@@ -31,19 +31,19 @@ mutant_parameters <- function(scm, lma, hmat = 3) {
   p
 }
 
-mutant_fitness <- function(scm, lma) {
-  scm$run_mutant(mutant_parameters(scm, lma))
-  stand_fitness(scm)
+mutant_fitness <- function(solver, lma) {
+  solver$run_mutant(mutant_parameters(solver, lma))
+  stand_fitness(solver)
 }
 
 test_that("a mutant's fitness gradient is the difference across pinned runs", {
-  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
-  resident <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  resident <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                              traits = "1.lma", hyperpar = NULL)
 
   # One invader at the resident's own trait, rerun with its states kept.
-  scm$run_mutant(mutant_parameters(scm, 0.0825))
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver$run_mutant(mutant_parameters(solver, 0.0825))
+  g <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                       traits = c("1.lma", "1.omega", "1.a_f1", "1.k_I"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
@@ -54,13 +54,13 @@ test_that("a mutant's fitness gradient is the difference across pinned runs", {
   # Each column against a central difference of the pinned run itself. The
   # recording stands; only the invader's parameter moves.
   for (name in c("lma", "omega", "a_f1", "k_I")) {
-    x <- scm$parameters$strategies[[1]]$pars[[name]]
+    x <- solver$parameters$strategies[[1]]$pars[[name]]
     h <- 1e-5 * abs(x)
     at <- function(v) {
-      p <- mutant_parameters(scm, 0.0825)
+      p <- mutant_parameters(solver, 0.0825)
       p$strategies[[1]]$pars[[name]] <- v
-      scm$run_mutant(p)
-      stand_fitness(scm)[["1.net_reproduction_ratio"]]
+      solver$run_mutant(p)
+      stand_fitness(solver)[["1.net_reproduction_ratio"]]
     }
     fd <- (at(x + h) - at(x - h)) / (2 * h)
     expect_equal(g$gradient["1.net_reproduction_ratio", paste0("1.", name)], fd,
@@ -75,20 +75,20 @@ test_that("a mutant's fitness gradient is the difference across pinned runs", {
 })
 
 test_that("several invaders against one resident each carry their own columns", {
-  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
-  scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
-  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "2.net_reproduction_ratio"),
+  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  solver$run_mutant(mutant_parameters(solver, c(0.07, 0.1)))
+  g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
+                                          "2.net_reproduction_ratio"),
                       traits = c("1.lma", "2.lma"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (i in 1:2) {
-    x <- scm$parameters$strategies[[i]]$pars$lma
+    x <- solver$parameters$strategies[[i]]$pars$lma
     h <- 1e-5 * x
     at <- function(v) {
-      p <- mutant_parameters(scm, c(0.07, 0.1))
+      p <- mutant_parameters(solver, c(0.07, 0.1))
       p$strategies[[i]]$pars$lma <- v
-      scm$run_mutant(p)
-      stand_fitness(scm)[[paste0(i, ".net_reproduction_ratio")]]
+      solver$run_mutant(p)
+      stand_fitness(solver)[[paste0(i, ".net_reproduction_ratio")]]
     }
     fd <- (at(x + h) - at(x - h)) / (2 * h)
     expect_equal(g$gradient[paste0(i, ".net_reproduction_ratio"),
@@ -98,31 +98,31 @@ test_that("several invaders against one resident each carry their own columns", 
 })
 
 test_that("a sweep of an invasion that kept no states runs it again, as an invasion", {
-  scm <- run(resident_parameters(lifetime = 3), NULL, mutant_control())$solver
-  scm$run_mutant(mutant_parameters(scm, 0.0825))
-  again <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver <- run(resident_parameters(lifetime = 3), NULL, mutant_control())$solver
+  solver$run_mutant(mutant_parameters(solver, 0.0825))
+  again <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                           hyperpar = NULL)
-  scm$keep_states <- TRUE
-  scm$run_mutant(mutant_parameters(scm, 0.0825))
-  kept <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver$keep_states <- TRUE
+  solver$run_mutant(mutant_parameters(solver, 0.0825))
+  kept <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                          hyperpar = NULL)
   expect_identical(again$gradient, kept$gradient)
 })
 
-# The invaders' fitness when `p` is run as the mutant set in the resident `scm`,
+# The invaders' fitness when `p` is run as the mutant set in the resident `solver`,
 # which pins each run to the resident's steps.
-mutant_fitness_of <- function(scm) {
+mutant_fitness_of <- function(solver) {
   function(p) {
-    scm$run_mutant(p)
-    stand_fitness(scm)
+    solver$run_mutant(p)
+    stand_fitness(solver)
   }
 }
 
 test_that("invaders do not shade each other, and an invader's birth rate reaches only its output", {
-  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
-  scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
-  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "1.offspring_production"),
+  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  solver$run_mutant(mutant_parameters(solver, c(0.07, 0.1)))
+  g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
+                                          "1.offspring_production"),
                       traits = c("2.lma", "2.k_I", "1.birth_rate"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
@@ -140,17 +140,17 @@ test_that("an invader introduced after the pinned run starts has a gradient", {
   # The invader's patch is empty, and FF16's environment carries no state, so
   # the pinned run steps with no state until its first cohort; the sweep passes
   # those steps over (odelia 0.7.3).
-  scm <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
-  p <- mutant_parameters(scm, 0.09)
+  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  p <- mutant_parameters(solver, 0.09)
   tt <- p$node_schedule_times[[1]]
   p$node_schedule_times <- list(tt[tt >= 1])
-  scm$run_mutant(p)
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver$run_mutant(p)
+  g <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                       traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
     fd <- central_difference(p, 1, name, "1.net_reproduction_ratio",
-                             mutant_fitness_of(scm), rel = 1e-5)
+                             mutant_fitness_of(solver), rel = 1e-5)
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
@@ -167,8 +167,8 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   burn$run_to(6)
   state <- export_patch_state(burn)
   p2 <- set_initial_state(p, state)
-  scm <- run(p2, NULL, mutant_control(), record = "states")$solver
-  pm <- mutant_parameters(scm, 0.09)
+  solver <- run(p2, NULL, mutant_control(), record = "states")$solver
+  pm <- mutant_parameters(solver, 0.09)
   pm$initial_state <- numeric(0)
   pm$n_initial_cohorts <- integer(0)
   pm$initial_node_times <- numeric(0)
@@ -177,13 +177,13 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   pm$initial_time <- state$time
   pm$node_schedule_times <- state$node_schedule_times
   expect_equal(pm$node_schedule_times[[1]][[1]], state$time)
-  scm$run_mutant(pm)
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver$run_mutant(pm)
+  g <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                       traits = c("1.lma", "1.a_d0", "1.omega"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0", "omega")) {
     fd <- central_difference(pm, 1, name, "1.net_reproduction_ratio",
-                             mutant_fitness_of(scm), rel = 1e-5)
+                             mutant_fitness_of(solver), rel = 1e-5)
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
@@ -191,17 +191,17 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
 
 test_that("an invader's gradient through the run's harvest is the difference across invasions", {
   p <- resident_parameters()
-  scm <- run(p, NULL, mutant_control(),
-             events = events(events_default(p),
-                             harvest(time = 4, fraction = 0.5)), record = "states")$solver
-  pm <- mutant_parameters(scm, 0.09)
-  scm$run_mutant(pm)
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+  solver <- run(p, NULL, mutant_control(),
+                events = events(events_default(p),
+                                harvest(time = 4, fraction = 0.5)), record = "states")$solver
+  pm <- mutant_parameters(solver, 0.09)
+  solver$run_mutant(pm)
+  g <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                       traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
     fd <- central_difference(pm, 1, name, "1.net_reproduction_ratio",
-                             mutant_fitness_of(scm), rel = 1e-5)
+                             mutant_fitness_of(solver), rel = 1e-5)
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }

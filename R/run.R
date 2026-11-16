@@ -127,7 +127,8 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{net_reproduction_ratios} (per species, at \code{time}),
 ##'   \code{event_log} (what each event did), \code{mutants} (the invaders'
 ##'   \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL}),
-##'   \code{method}, and \code{solver}, the live \code{SCM}. A stochastic
+##'   \code{method}, and \code{solver}, the live
+##'   \code{DeterministicPatchRunner}. A stochastic
 ##'   result's fitness values and \code{event_log} are \code{NULL}, its
 ##'   \code{steps} hold what \code{record = "steps"} kept, and its solver is a
 ##'   \code{StochasticPatchRunner}. An \code{Individual}'s run returns a
@@ -178,27 +179,28 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
 
   types <- extract_RcppR6_template_types(x$p, "Parameters")
   events <- if (is.null(x$events)) empty_events() else x$events
-  scm <- do.call("SCM", types)(x$p, x$env, events, x$control)
-  scm$collect <- "steps" %in% record
+  solver <- do.call("DeterministicPatchRunner", types)(x$p, x$env, events,
+                                                        x$control)
+  solver$collect <- "steps" %in% record
   keep_states <- "states" %in% record
   if (refine_schedule) {
     ## Refinement's runs are bisected against and discarded, so they keep no
     ## states; the run a sweep walks is one more, after the schedule settles.
-    scm$refine_schedule()
+    solver$refine_schedule()
     if (keep_states) {
-      scm$keep_states <- TRUE
-      scm$run()
+      solver$keep_states <- TRUE
+      solver$run()
     }
   } else {
-    scm$keep_states <- keep_states
+    solver$keep_states <- keep_states
     if (is.null(until)) {
-      scm$run()
+      solver$run()
     } else if (until > x$p$initial_time) {
-      scm$run_to(until)
+      solver$run_to(until)
     }
   }
-  x$p <- scm$parameters
-  new_plant_run(scm, x, record)
+  x$p <- solver$parameters
+  new_plant_run(solver, x, record)
 }
 
 ##' @rdname run
@@ -216,14 +218,14 @@ run.plant_run <- function(x, ..., until = NULL) {
          "run its scenario again", call. = FALSE)
   }
   check_until(until)
-  scm <- as_scm(x)
+  solver <- as_solver(x)
   if (!is.null(until) && until < x$time) {
     stop("This run stands at t = ", format(x$time), ", past `until`", call. = FALSE)
   }
   if (is.null(until) || until > x$time) {
-    scm$run_to(if (is.null(until)) Inf else until)
+    solver$run_to(if (is.null(until)) Inf else until)
   }
-  new_plant_run(scm, x$scenario, x$record, x$mutants)
+  new_plant_run(solver, x$scenario, x$record, x$mutants)
 }
 
 ## The scenario a resume runs: the state on `p`, introductions on the
@@ -309,18 +311,18 @@ run_stochastic <- function(x, until, from, record, refine_schedule) {
             class = "plant_run")
 }
 
-new_plant_run <- function(scm, scenario, record, mutants = NULL) {
-  patch <- scm$patch
+new_plant_run <- function(solver, scenario, record, mutants = NULL) {
+  patch <- solver$patch
   structure(list(scenario = scenario,
-                 time = scm$time,
-                 complete = scm$complete,
+                 time = solver$time,
+                 complete = solver$complete,
                  offspring_production = patch$offspring_production,
                  net_reproduction_ratios = patch$net_reproduction_ratios,
-                 event_log = scm$event_log,
+                 event_log = solver$event_log,
                  record = record,
                  mutants = mutants,
                  method = "deterministic",
-                 solver = scm),
+                 solver = solver),
             class = "plant_run")
 }
 
@@ -382,7 +384,7 @@ tidy.plant_run <- function(x, ...) {
   ## A deterministic result is checked as current first: its steps are the
   ## solver's history, which a later run overwrites.
   if (!identical(x$method, "stochastic")) {
-    as_scm(x)
+    as_solver(x)
   }
   if (!"steps" %in% x$record) {
     stop("This run kept no steps: run it with record = \"steps\"", call. = FALSE)
@@ -390,21 +392,21 @@ tidy.plant_run <- function(x, ...) {
   if (identical(x$method, "stochastic")) {
     return(tidy_stochastic_steps(x$steps))
   }
-  scm <- x$solver
-  if (length(scm$history) == 0L) {
+  solver <- x$solver
+  if (length(solver$history) == 0L) {
     stop("This run has taken no step yet: continue it with run(res) first",
          call. = FALSE)
   }
-  results <- tidy_patch(lapply(scm$history, "[[", "state"))
-  patch <- scm$patch
+  results <- tidy_patch(lapply(solver$history, "[[", "state"))
+  patch <- solver$patch
   results[["offspring_production"]] <- patch$offspring_production
   results[["net_reproduction_ratios"]] <- patch$net_reproduction_ratios
-  results[["p"]] <- scm$parameters
+  results[["p"]] <- solver$parameters
   ## Events are given separately from `p`, so `p` alone does not describe the
   ## run: the schedule asked for and what was applied (including how much of
   ## each pulse the soil accepted and shed) travel with the tables.
-  results[["events"]] <- scm$events
-  results[["event_log"]] <- scm$event_log
+  results[["events"]] <- solver$events
+  results[["event_log"]] <- solver$event_log
   results
 }
 
@@ -434,23 +436,23 @@ run_mutant <- function(resident, p, constant = FALSE) {
   if (!inherits(resident, "plant_run") || !is.null(resident$mutants)) {
     stop("`resident` must be a resident's plant_run, as run() returns", call. = FALSE)
   }
-  scm <- as_scm(resident)
+  solver <- as_solver(resident)
   if (!isTRUE(resident$complete)) {
     stop("The resident has not finished its run; invaders read its whole recording",
          call. = FALSE)
   }
   if (constant) {
-    scm$run_mutant_constant(p)
+    solver$run_mutant_constant(p)
   } else {
-    scm$run_mutant(p)
+    solver$run_mutant(p)
   }
-  new_plant_run(scm, resident$scenario, resident$record, mutants = p)
+  new_plant_run(solver, resident$scenario, resident$record, mutants = p)
 }
 
 ## The solver behind a run, for the functions that take either. A result is
 ## refused once its solver has moved on, since everything read from it would
 ## describe some later run.
-as_scm <- function(x) {
+as_solver <- function(x) {
   if (!inherits(x, "plant_run")) {
     return(x)
   }
@@ -458,15 +460,15 @@ as_scm <- function(x) {
     stop("This is a stochastic run, which has no fitness, gradient, export or continuation: ",
          "that needs the deterministic solver", call. = FALSE)
   }
-  scm <- x$solver
-  time <- tryCatch(scm$time, error = function(e) {
+  solver <- x$solver
+  time <- tryCatch(solver$time, error = function(e) {
     stop("This result's solver is gone (a result read back with readRDS() keeps ",
          "its values only): run its scenario again", call. = FALSE)
   })
   if (!identical(time, x$time) ||
-      !identical(scm$parameters, x$mutants %||% x$scenario$p)) {
+      !identical(solver$parameters, x$mutants %||% x$scenario$p)) {
     stop("This result's solver has moved on since it was returned (continued, ",
          "converged or invaded): use the result of whatever moved it", call. = FALSE)
   }
-  scm
+  solver
 }

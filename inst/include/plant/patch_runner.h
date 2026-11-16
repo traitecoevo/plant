@@ -11,7 +11,7 @@
 namespace plant {
 
 // What the two runners share:
-//   * SCM<T,E>                   -- runs a deterministic Patch; and
+//   * DeterministicPatchRunner<T,E>                   -- runs a deterministic Patch; and
 //   * StochasticPatchRunner<T,E> -- runs a StochasticPatch.
 //
 // Both walk a Schedule of node introductions with an ODE solver that owns the
@@ -21,7 +21,8 @@ namespace plant {
 // identically with them: the time, whether the schedule is spent, the schedule
 // setters, putting the solver back at the start, and taking the next entry.
 // What each does at an entry and how it integrates between entries stay in the
-// derived class (SCM's events, pinned schedules and recordings; the stochastic
+// derived class (DeterministicPatchRunner's events, pinned schedules and
+// recordings; the stochastic
 // runner's draws of establishment and death).
 //
 // The hooks each derived class declares, which the base calls on the derived

@@ -164,7 +164,7 @@ S TF24_Model<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
   // must not pick up the Huber value's excursion. Expressed as a_b1 times the
   // sapwood form at zero departure rather than written out, because floating
   // point multiplication is not associative -- writing the product flat changes
-  // the last bits and moved a whole SCM trajectory when first tried.
+  // the last bits and moved a whole stand trajectory when first tried.
   return pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf, S(0.0));
 }
 

@@ -11,7 +11,7 @@
 
 run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Model),
                                  iterations = 1) {
-  f_scm <- function(x) {
+  f_run <- function(x) {
     p0 <- default_parameters(x, quiet = TRUE)
     p <- add_strategies(p0, trait_matrix(0.0825, "lma"))
     run(p)
@@ -30,7 +30,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Model),
   strategy <- names(strategy_types)
 
   exprs <- list(
-    scm = quote(f_scm(strategy)),
+    run = quote(f_run(strategy)),
     build_schedule = quote(f_build_schedule(strategy))
   )
   

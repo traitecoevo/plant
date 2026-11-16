@@ -45,12 +45,12 @@ parity_range_gap <- character(0)
 # The trajectory is read AFTER the sweep and costs nothing: stand_gradient's own
 # store_recording() has already kept it, where reading it first would run the
 # model twice. Counted rather than carried -- one driver's states are 67 MB.
-parity_of <- function(scm) {
-  g <- stand_gradient(scm, hyperpar = NULL)
+parity_of <- function(solver) {
+  g <- stand_gradient(solver, hyperpar = NULL)
   refused_metric <- stand_gradient_refused(g)
-  counts <- census_operating_point_counts_tf24(scm)[[1]]
+  counts <- census_operating_point_counts_tf24(solver)[[1]]
   names(counts) <- census_operating_point_names_tf24()
-  rec <- scm$store_recording()
+  rec <- solver$store_recording()
   unrowed <- vapply(rec, function(r) sum(!is.finite(r$state)), 0)
   list(refused_metric = refused_metric, gradient = g,
        refused = any(refused_metric),
@@ -59,7 +59,7 @@ parity_of <- function(scm) {
        # Read after the sweep, so it is the sweep's own severances and not the
        # forward run's -- the two differ, and the forward one cannot say whether
        # a gradient carries a declared zero.
-       clamp = census_clamp_counts_differentiated_tf24(scm)[[1]],
+       clamp = census_clamp_counts_differentiated_tf24(solver)[[1]],
        kinds = counts[counts > 0],
        records = length(rec),
        unrowed_records = sum(unrowed > 0),
@@ -123,12 +123,12 @@ parity_key <- function() {
 # regime rather than their sum. Serial where forking is unavailable.
 parity_compute <- function() {
   one <- function(d) {
-    scm <- ladder_driver_stand(
+    solver <- ladder_driver_stand(
       d$rain, d$lifetime,
       k_I = if (is.null(d$k_I)) 0.5 else d$k_I,
       amplitude = if (is.null(d$amplitude)) 0 else d$amplitude,
       introductions = d$introductions)
-    c(list(name = d$name, census = stand_census(scm)), parity_of(scm))
+    c(list(name = d$name, census = stand_census(solver)), parity_of(solver))
   }
   n <- plant_test_cores(length(parity_drivers))
   if (.Platform$OS.type == "unix" && n > 1L) {

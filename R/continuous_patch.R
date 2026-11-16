@@ -1,8 +1,9 @@
 ## Driving a continuous patch from R (plant issue #519): the thinned record a
 ## long run keeps, and a burn-in that stops when the stand's block means settle.
 
-##' Flatten the thinned record of a run. With \code{scm$snapshot_interval} set
-##' before the run, the SCM keeps one summary per interval instead of a copy
+##' Flatten the thinned record of a run. With \code{x$snapshot_interval} set
+##' before the run, the deterministic runner keeps one summary per interval
+##' instead of a copy
 ##' of the whole patch per leg: per species the node counts, the tallest cohort
 ##' carrying density, the trapezium of the carried density over the birth-date
 ##' grid and every node's lifetime offspring output, plus the environment's own
@@ -20,7 +21,8 @@
 ##' species); a coarser interval cuts it.
 ##'
 ##' @title Tidy a run's snapshots
-##' @param scm An \code{SCM} or \code{plant_run} that was run with a positive
+##' @param x A \code{DeterministicPatchRunner} or \code{plant_run} that was run
+##'   with a positive
 ##'   \code{snapshot_interval}.
 ##' @return A list of three: \code{species}, a data frame with one row per
 ##'   snapshot and species (\code{time}, \code{species}, \code{n_nodes},
@@ -33,11 +35,11 @@
 ##'   node's lifetime offspring output.
 ##' @seealso \code{\link{run_until_converged}}
 ##' @export
-tidy_snapshots <- function(scm) {
-  scm <- as_scm(scm)
-  snaps <- scm$snapshots
+tidy_snapshots <- function(x) {
+  x <- as_solver(x)
+  snaps <- x$snapshots
   if (length(snaps) == 0L) {
-    stop("this SCM kept no snapshots: set scm$snapshot_interval before its run")
+    stop("this runner kept no snapshots: set its snapshot_interval before its run")
   }
   species <- do.call(rbind, lapply(snaps, function(s) {
     do.call(rbind, lapply(seq_along(s$species), function(i) {
@@ -62,7 +64,7 @@ tidy_snapshots <- function(scm) {
 ##' snapshots: the burn-in of a continuous patch (plant issue #519), paid once
 ##' and then exported with \code{\link{export_patch_state}}.
 ##'
-##' The run advances one block at a time with \code{scm$run_to()}. After each
+##' The run advances one block at a time with \code{x$run_to()}. After each
 ##' block the mean over that block's snapshots is taken of the chosen
 ##' statistics, and the run is converged once the last \code{window} block
 ##' means of every statistic agree: their range is below \code{tol} times the
@@ -86,7 +88,7 @@ tidy_snapshots <- function(scm) {
 ##' times.
 ##'
 ##' @title Run until the stand's block means settle
-##' @param scm A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or an \code{SCM} built and not yet run to the end, as
+##' @param x A \code{plant_run} stopped before its end (\code{run(p, until = 0)}), or a \code{DeterministicPatchRunner} built and not yet run to the end, as
 ##'   \code{run(p, ..., until = 0)$solver} is, whose schedule reaches
 ##'   \code{t_max}. Its \code{snapshot_interval} is set to
 ##'   \code{snapshot_interval} if it is zero.
@@ -101,7 +103,8 @@ tidy_snapshots <- function(scm) {
 ##'   \code{"environment"} (entries of the environment's state) to judge. The
 ##'   default leaves out \code{"height_max"} when the absorbing top layer is on,
 ##'   since the layer pins it at the absorbing height whatever the stand does.
-##' @param snapshot_interval Years between snapshots when the SCM has none set.
+##' @param snapshot_interval Years between snapshots when the deterministic
+##'   runner has none set.
 ##' @param environment_entries Which entries of the environment's state the
 ##'   \code{"environment"} statistic reads. \code{NULL} (the default) reads
 ##'   every entry but the cumulative flux accumulators (TF24's last five), which
@@ -118,19 +121,19 @@ tidy_snapshots <- function(scm) {
 ##'   also \code{run}, the result where the run now stands.
 ##' @seealso \code{\link{tidy_snapshots}}, \code{\link{export_patch_state}}
 ##' @export
-run_until_converged <- function(scm, block = 20, tol = 0.02,
-                                t_max = scm$parameters$max_patch_lifetime,
+run_until_converged <- function(x, block = 20, tol = 0.02,
+                                t_max = x$parameters$max_patch_lifetime,
                                 statistics = c("density", "height_max", "environment"),
                                 snapshot_interval = 1, environment_entries = NULL,
                                 window = 3, tol_abs = 0) {
-  given <- scm
-  scm <- as_scm(scm)
-  checked <- check_convergence_args(scm, block, tol, t_max, statistics,
+  given <- x
+  x <- as_solver(x)
+  checked <- check_convergence_args(x, block, tol, t_max, statistics,
                                     missing(statistics), snapshot_interval,
                                     environment_entries, window, tol_abs)
   statistic <- convergence_statistic(checked$statistics,
                                      checked$environment_entries)
-  t0 <- scm$time
+  t0 <- x$time
   trace <- list()
   means <- list()
   converged <- FALSE
@@ -142,8 +145,8 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
     if (t_end > t_max + 1e-8) {
       break
     }
-    scm$run_to(t_end)
-    snaps <- scm$snapshots
+    x$run_to(t_end)
+    snaps <- x$snapshots
     times <- vapply(snaps, `[[`, numeric(1), "time")
     in_block <- times > t_end - block & times <= t_end
     if (!any(in_block)) {
@@ -166,18 +169,18 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
       settled <- isTRUE(all(rel < tol | range < tol_abs))
     }
     names(rel) <- paste0("rel_", names(m))
-    trace[[k]] <- c(block = k, time = scm$time, m, rel)
+    trace[[k]] <- c(block = k, time = x$time, m, rel)
     if (settled) {
       converged <- TRUE
       break
     }
-    if (scm$complete) {
+    if (x$complete) {
       break
     }
   }
   # What is left of the run past the last whole block.
-  if (!converged && !isTRUE(scm$complete) && scm$time < t_max) {
-    scm$run_to(t_max)
+  if (!converged && !isTRUE(x$complete) && x$time < t_max) {
+    x$run_to(t_max)
   }
   if (length(undefined) > 0) {
     warning("these statistics were NA in at least one block and could not ",
@@ -185,10 +188,10 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
             " (the tallest cohort of a stand with none alive is undefined)",
             call. = FALSE)
   }
-  out <- list(converged = converged, time = scm$time,
+  out <- list(converged = converged, time = x$time,
               trace = as.data.frame(do.call(rbind, trace)))
   if (inherits(given, "plant_run")) {
-    out$run <- new_plant_run(scm, given$scenario, given$record, given$mutants)
+    out$run <- new_plant_run(x, given$scenario, given$record, given$mutants)
   }
   out
 }
@@ -196,13 +199,13 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
 # The arguments of run_until_converged(), checked; returns the statistics and
 # environment entries it settles on. A defaulted statistic the stand cannot
 # judge is dropped quietly, and an explicitly requested one is refused or warned
-# about. Sets the SCM's snapshot interval when it has none.
-check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted,
+# about. Sets the deterministic runner's snapshot interval when it has none.
+check_convergence_args <- function(solver, block, tol, t_max, statistics, defaulted,
                                    snapshot_interval, environment_entries,
                                    window, tol_abs) {
   statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
                           several.ok = TRUE)
-  layer_on <- any(vapply(scm$patch$species, function(s) isTRUE(s$top_layer$on),
+  layer_on <- any(vapply(solver$patch$species, function(s) isTRUE(s$top_layer$on),
                          logical(1)))
   if (layer_on && "height_max" %in% statistics) {
     if (defaulted) {
@@ -220,7 +223,7 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
   if (!(length(tol_abs) == 1L && is.finite(tol_abs) && tol_abs >= 0)) {
     stop("`tol_abs` must be a non-negative number", call. = FALSE)
   }
-  if (isTRUE(scm$complete)) {
+  if (isTRUE(solver$complete)) {
     stop("this run has already finished; build one with run(p, until = 0) ",
          "and let run_until_converged() run it", call. = FALSE)
   }
@@ -230,10 +233,10 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
   if (!(length(tol) == 1L && is.finite(tol) && tol > 0)) {
     stop("`tol` must be a positive number", call. = FALSE)
   }
-  if (!(length(t_max) == 1L && is.finite(t_max) && t_max > scm$time)) {
-    stop("`t_max` must lie after the run's current time, ", scm$time, call. = FALSE)
+  if (!(length(t_max) == 1L && is.finite(t_max) && t_max > solver$time)) {
+    stop("`t_max` must lie after the run's current time, ", solver$time, call. = FALSE)
   }
-  n_env <- scm$patch$environment$ode_size
+  n_env <- solver$patch$environment$ode_size
   if ("environment" %in% statistics && n_env == 0) {
     # In the default set it is simply not there to judge; asked for, it is a
     # request that cannot be met.
@@ -254,13 +257,13 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
     }
   } else if ("environment" %in% statistics) {
     # The accumulators are the last entries of the environment's state.
-    n_acc <- length(scm$patch$state$env$soil_moist_cumulative_flux)
+    n_acc <- length(solver$patch$state$env$soil_moist_cumulative_flux)
     environment_entries <- seq_len(n_env - n_acc)
   }
-  if (scm$snapshot_interval <= 0) {
-    scm$snapshot_interval <- snapshot_interval
+  if (solver$snapshot_interval <= 0) {
+    solver$snapshot_interval <- snapshot_interval
   }
-  if (scm$snapshot_interval > block) {
+  if (solver$snapshot_interval > block) {
     stop("the snapshot interval must not exceed the block", call. = FALSE)
   }
   list(statistics = statistics, environment_entries = environment_entries)
@@ -298,7 +301,7 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' A resident at a fixed point makes one field, so an invader of it needs no
 ##' recording of the resident and no pinned run: it stands in that one field,
 ##' constant, for its whole life. This runs each strategy in \code{traits} as one cohort
-##' born at time zero into the field \code{scm} stands in now, until the cohort
+##' born at time zero into the field \code{x} stands in now, until the cohort
 ##' is dead, and returns each one's lifetime offspring per seed. Every arrival
 ##' at a fixed point sees the same field, so that one cohort's output is the
 ##' invader's fitness. The resident's own strategy scores a resident cohort's
@@ -307,12 +310,12 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' continuous patch's ever-growing node list does not make a per-cohort
 ##' quantity).
 ##'
-##' The field is taken from the state \code{scm} has reached at the first call,
+##' The field is taken from the state \code{x} has reached at the first call,
 ##' and used for every later one; run the resident to its fixed point first, for
 ##' instance with \code{\link{run_until_converged}} under constant drivers and
 ##' the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
 ##' together, as one community, since nothing they do moves a constant field.
-##' \code{scm} is consumed: afterwards it holds the invaders, and the field is
+##' \code{x} is consumed: afterwards it holds the invaders, and the field is
 ##' cleared, so a later run of it builds its own. A \code{plant_run} given here
 ##' is refused afterwards, so pass every invader in one call.
 ##'
@@ -320,12 +323,13 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' introductions the field swings, and a grid that is too coarse makes the
 ##' stand a periodic orbit whose field, taken at an introduction, is the top of
 ##' the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in
-##' constant-field fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
+##' constant-field fitness at a cohort a year and 0.02 \% at four. \code{DeterministicPatchRunner$run_to()} stops
 ##' only at introduction instants, so to take a field mid-interval, and check
 ##' the grid, end the resident's run there with \code{max_patch_lifetime}.
 ##'
 ##' @title Invader fitness at a fixed point
-##' @param scm The resident's \code{plant_run} or \code{SCM}, run to its fixed point.
+##' @param x The resident's \code{plant_run} or \code{DeterministicPatchRunner},
+##'   run to its fixed point.
 ##' @param p The resident's \code{Parameters}; each invader's strategy is built
 ##'   from them as \code{\link{add_mutant}} builds one.
 ##' @param traits A trait matrix, one row per invader.
@@ -341,9 +345,9 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' @return Lifetime offspring per seed, one per row of \code{traits}.
 ##' @seealso \code{\link{run_until_converged}}
 ##' @export
-fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
+fixed_point_fitness <- function(x, p, traits, hyperpar = param_hyperpar(p),
                                 lifetime = 3000, survival_tol = 1e-8) {
-  scm <- as_scm(scm)
+  x <- as_solver(x)
   pm <- add_mutant(p, traits, hyperpar = hyperpar,
                    birth_rate = as.list(rep(1, nrow(traits))))
   pm$fitness_weighting <- "none"
@@ -362,8 +366,8 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   pm$ode_soil_substep_ends <- list()
   run_held <- function(years) {
     pm$max_patch_lifetime <- years
-    scm$run_mutant_constant(pm)
-    lapply(scm$patch$species, function(sp) {
+    x$run_mutant_constant(pm)
+    lapply(x$patch$species, function(sp) {
       node <- sp$nodes[[1]]
       state <- stats::setNames(node$ode_state, node$ode_names)
       ## On the birth-date coordinate the cohort is born per seed that

@@ -45,7 +45,7 @@
 #include <plant/node.h>
 #include <plant/species.h>
 #include <plant/patch.h>
-#include <plant/scm.h>
+#include <plant/deterministic_patch_runner.h>
 
 // Stochastic model
 #include <plant/stochastic_species.h>

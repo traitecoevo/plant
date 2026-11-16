@@ -58,7 +58,7 @@ Every file below names each model by hand. Search each one for the parent's name
 | File | What to add |
 |---|---|
 | `inst/include/plant.h` | `#include <plant/models/<name>_model.h>` |
-| `inst/RcppR6_classes.yml` | The `<Name>_Model:` block, and the new pair in every `templates:` list that names the parent (eleven for TF24t: `IndividualRunner`, `Individual`, `Parameters`, `Node`, `Species`, `Patch`, `SCM`, `StochasticSpecies`, `StochasticPatch`, `StochasticPatchRunner`, `OdeRunner`). An own environment adds its own block. |
+| `inst/RcppR6_classes.yml` | The `<Name>_Model:` block, and the new pair in every `templates:` list that names the parent (eleven for TF24t: `IndividualRunner`, `Individual`, `Parameters`, `Node`, `Species`, `Patch`, `DeterministicPatchRunner`, `StochasticSpecies`, `StochasticPatch`, `StochasticPatchRunner`, `OdeRunner`). An own environment adds its own block. |
 | `src/<name>_node.cpp` | The `schedule_default` and `make_schedule` exports for `Parameters<<Name>, <Env>>` (copy `src/tf24t_node.cpp`). |
 | `src/individual_runner.cpp` | `<Name>_oderunner_individual_internals`. |
 | `src/strategy_expand.cpp` | `<Name>_strategy_expand_allometry`. |

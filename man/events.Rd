@@ -7,7 +7,7 @@
 \alias{resource_pulse}
 \alias{harvest}
 \alias{climate_extreme}
-\title{Discrete events applied during an SCM run.}
+\title{Discrete events applied during a deterministic run.}
 \usage{
 events(...)
 
@@ -46,7 +46,7 @@ that case under a name that reads correctly.}
 
 \item{amount}{How much to add, in whatever the environment measures that
 resource in. What the pool cannot hold is shed rather than forced in;
-\code{scm$event_log} reports how much of each.}
+\code{solver$event_log} reports how much of each.}
 
 \item{fraction}{Fraction of individuals removed, in \code{[0, 1)}.}
 
@@ -112,7 +112,7 @@ the adaptive step sequence. A run with events legitimately differs from one
 without, at solver tolerance, even away from the events themselves.
 
 What each event actually did — as against what was asked of it — is
-recorded, and readable afterwards as \code{scm$event_log}. The two differ
+recorded, and readable afterwards as \code{solver$event_log}. The two differ
 routinely: a pulse is capped at what the pool can hold, and harvesting a
 size class removes whatever was in it.
 

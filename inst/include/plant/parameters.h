@@ -8,7 +8,7 @@
 #include <plant/control.h>
 #include <plant/models/ff16_model.h>
 #include <plant/schedule.h>
-#include <plant/scm_utils.h> // Unfortunately needed for setup_node_schedule
+#include <plant/schedule_utils.h> // Unfortunately needed for setup_node_schedule
 
 #include <memory>
 #include <plant/disturbance_regime.h>
@@ -133,7 +133,7 @@ struct Parameters {
   // exported patch run or to initialise an arbitrary size distribution.
   // Carried here so a run stays fully self-describing/serialisable (see
   // agents.md), and so the initial state survives the reset() at the start of every
-  // SCM::run()/refine_schedule().
+  // DeterministicPatchRunner::run()/refine_schedule().
   //   initial_state             flat ODE state (all nodes, then environment),
   //                             in the order Patch::set_ode_state expects.
   //   n_initial_cohorts         number of nodes per species.
@@ -211,7 +211,7 @@ void Parameters<T,E>::validate() {
 }
 
 // Separating this out just because it's a bit crap:
-// TODO(#483): Consider adding this to scm_utils.h perhaps?
+// TODO(#483): Consider adding this to schedule_utils.h perhaps?
 template <typename T, typename E>
 void Parameters<T,E>::setup_node_schedule() {
   node_schedule_times_default =

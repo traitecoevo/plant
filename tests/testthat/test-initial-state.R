@@ -7,25 +7,25 @@
 # fitness rather than exact equality.
 
 
-## Run an SCM, export the patch at a mid-history step, and run a fresh SCM
+## Run a stand, export the patch at a mid-history step, and run a fresh one
 ## seeded from that export.
 run_and_resume <- function(p, x, e, frac = 0.5) {
   env <- Environment(x)
   ctrl <- Control()
 
-  scm <- SCM(x, e)(p, env, empty_events(), ctrl)
-  scm$collect <- TRUE
-  scm$run()
+  solver <- DeterministicPatchRunner(x, e)(p, env, empty_events(), ctrl)
+  solver$collect <- TRUE
+  solver$run()
 
-  k <- max(2L, as.integer(floor(length(scm$history) * frac)))
-  state <- export_patch_state(scm, step = k)
+  k <- max(2L, as.integer(floor(length(solver$history) * frac)))
+  state <- export_patch_state(solver, step = k)
 
   p2 <- set_initial_state(p, state)
-  scm2 <- SCM(x, e)(p2, env, empty_events(), ctrl)
-  scm2$collect <- TRUE
-  scm2$run()
+  solver2 <- DeterministicPatchRunner(x, e)(p2, env, empty_events(), ctrl)
+  solver2$collect <- TRUE
+  solver2$run()
 
-  list(scm = scm, scm2 = scm2, state = state, p2 = p2, k = k)
+  list(solver = solver, solver2 = solver2, state = state, p2 = p2, k = k)
 }
 
 test_that("FF16 single-species round-trip reproduces the run", {
@@ -38,7 +38,7 @@ test_that("FF16 single-species round-trip reproduces the run", {
 
   # The seeded patch (first collected snapshot of the resumed run) must equal
   # the exported state exactly.
-  seed <- r$scm2$history[[1]]
+  seed <- r$solver2$history[[1]]
   expect_equal(seed$time, state$time)
   expect_equal(seed$ode_state, state$ode_state)
   expect_equal(lapply(seed$species, function(s) s$node_times), state$node_times)
@@ -48,13 +48,13 @@ test_that("FF16 single-species round-trip reproduces the run", {
 
   # The resumed run reproduces the original fitness (small residual is solver
   # step-size divergence across the checkpoint, not a state error).
-  expect_equal(r$scm2$patch$net_reproduction_ratios,
-               r$scm$patch$net_reproduction_ratios, tolerance = 1e-3)
+  expect_equal(r$solver2$patch$net_reproduction_ratios,
+               r$solver$patch$net_reproduction_ratios, tolerance = 1e-3)
 
   # Re-importing the same state is deterministic.
   env <- Environment(x); ctrl <- Control()
-  scm3 <- SCM(x, e)(r$p2, env, empty_events(), ctrl); scm3$run()
-  expect_identical(scm3$patch$net_reproduction_ratios, r$scm2$patch$net_reproduction_ratios)
+  solver3 <- DeterministicPatchRunner(x, e)(r$p2, env, empty_events(), ctrl); solver3$run()
+  expect_identical(solver3$patch$net_reproduction_ratios, r$solver2$patch$net_reproduction_ratios)
 })
 
 test_that("Resumed schedule excludes already-imported introductions", {
@@ -66,14 +66,14 @@ test_that("Resumed schedule excludes already-imported introductions", {
   # nodes seeded + future introductions == all of the original nodes
   n_seeded <- sum(r$state$n)
   n_future <- sum(vapply(r$state$node_schedule_times, length, integer(1)))
-  n_total_orig <- sum(vapply(r$scm$patch$species, function(s) s$size, numeric(1)))
+  n_total_orig <- sum(vapply(r$solver$patch$species, function(s) s$size, numeric(1)))
   expect_equal(n_seeded + n_future, n_total_orig)
 
   # all residual introductions are at or after the export time (the node due at
   # exactly the export time has not been seeded yet, so it stays in the schedule)
   expect_true(all(unlist(r$state$node_schedule_times) >= r$state$time - 1e-8))
   # ...and none coincides with an already-seeded node's introduction time
-  seeded_times <- unlist(lapply(r$scm2$history[[1]]$species,
+  seeded_times <- unlist(lapply(r$solver2$history[[1]]$species,
                                 function(s) s$node_times))
   expect_true(all(unlist(r$state$node_schedule_times) > max(seeded_times)))
 })
@@ -90,8 +90,8 @@ test_that("K93 multi-species round-trip reproduces the run", {
   r <- run_and_resume(p2, x, e, frac = 0.5)
 
   expect_equal(length(r$state$n), 3)
-  expect_equal(r$scm2$patch$net_reproduction_ratios,
-               r$scm$patch$net_reproduction_ratios, tolerance = 1e-3)
+  expect_equal(r$solver2$patch$net_reproduction_ratios,
+               r$solver$patch$net_reproduction_ratios, tolerance = 1e-3)
 })
 
 test_that("make_initial_state seeds a patch from a size distribution", {
@@ -113,7 +113,7 @@ test_that("make_initial_state seeds a patch from a size distribution", {
   expect_true(all(unlist(state$pr_patch_survival) > 0))
 
   p2 <- set_initial_state(p1, state)
-  seeded <- SCM(x, e)(p2, env, empty_events(), ctrl)
+  seeded <- DeterministicPatchRunner(x, e)(p2, env, empty_events(), ctrl)
   # the seeded patch holds the requested nodes, ordered by decreasing height
   expect_equal(seeded$patch$species[[1]]$size, 10)
   expect_equal(sort(seeded$patch$species[[1]]$heights, decreasing = TRUE),
@@ -133,7 +133,7 @@ test_that("implausibly dense initial conditions are rejected", {
   # many large plants at very high density -> exploding density rates
   state <- make_initial_state(p1, heights = seq(8, 12, length.out = 20),
                               densities = rep(50, 20))
-  expect_error(SCM(x, e)(set_initial_state(p1, state), env, empty_events(), ctrl),
+  expect_error(DeterministicPatchRunner(x, e)(set_initial_state(p1, state), env, empty_events(), ctrl),
                "non-finite densities")
 })
 

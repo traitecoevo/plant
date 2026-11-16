@@ -99,17 +99,17 @@ census_stand <- local({
       state$node_times <- list(c(-0.41, -0.23, -0.07))
       p <- set_initial_state(p, state)
       p$node_schedule_times <- list(c(0, 0.73, 1.41))
-      scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
+      solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
                                      ctrl)
-      scm$run()
-      built <<- scm
+      solver$run()
+      built <<- solver
     }
     built
   }
 })
 
 # The leaf-area census as a function of one entry of the ODE state, for
-# differencing against the adjoint. `scm$patch` is a copy, so the perturbation
+# differencing against the adjoint. `solver$patch` is a copy, so the perturbation
 # cannot reach the stand every other block shares.
 #
 # ⚠️ THE BOUNDARY NODE HAS TO MOVE WITH THE STATE, and a reference that holds it
@@ -119,9 +119,9 @@ census_stand <- local({
 # census integrates. Holding it fixed leaves a gap that grows with the stand --
 # 2.5e-07 here, 8.6e-05 on one grown to a lifetime of 12 -- and G3 below
 # measures it rather than absorbing it in a tolerance.
-census_of_state <- function(scm, column, birth_date = TRUE) {
-  strategy <- scm$parameters$strategies[[1]]
-  patch <- scm$patch
+census_of_state <- function(solver, column, birth_date = TRUE) {
+  strategy <- solver$parameters$strategies[[1]]
+  patch <- solver$patch
   y <- patch$ode_state
   time <- patch$time
   function(value) {
@@ -136,19 +136,19 @@ census_of_state <- function(scm, column, birth_date = TRUE) {
 }
 
 test_that("G1: the census value matches an independent R reduction", {
-  scm <- census_stand()
-  species <- scm$patch$species[[1]]
-  strategy <- scm$parameters$strategies[[1]]
+  solver <- census_stand()
+  species <- solver$patch$species[[1]]
+  strategy <- solver$parameters$strategies[[1]]
   expected <- census_r(species, strategy$pars, strategy$pars$eta)
-  got <- stand_census(scm)
+  got <- stand_census(solver)
   expect_equal(names(got), c("leaf_area", "mass_above_ground", "area_stem"))
   expect_equal(unname(got), unname(expected[names(got)]), tolerance = 1e-12)
 })
 
 test_that("G2: the boundary node is in the reduction", {
-  scm <- census_stand()
-  species <- scm$patch$species[[1]]
-  strategy <- scm$parameters$strategies[[1]]
+  solver <- census_stand()
+  species <- solver$patch$species[[1]]
+  strategy <- solver$parameters$strategies[[1]]
   st <- species_state_r(species)
   # The premise: the closing interval has live density at both ends.
   expect_gt(exp(st$log_density[nrow(st)]), 0)
@@ -158,7 +158,7 @@ test_that("G2: the boundary node is in the reduction", {
   # A reduction that starts at the smallest cohort drops the interval down to
   # the boundary node. Measured, the closing interval is 3.5e-04 of the answer.
   expect_gt(min(abs(with_boundary - without) / abs(with_boundary)), 1e-6)
-  expect_equal(unname(stand_census(scm)), unname(with_boundary),
+  expect_equal(unname(stand_census(solver)), unname(with_boundary),
                tolerance = 1e-12)
 })
 
@@ -175,11 +175,11 @@ test_that("G3: the state adjoint is the census's derivative on the birth-date gr
   # NOT gated on a refusal. This fixture is written rather than reached, so the
   # adjoint being refused here is the model having moved under a fixture that did
   # not -- which is the finding, and a skip would report it as green.
-  scm <- census_stand()
-  species <- scm$patch$species[[1]]
-  strategy <- scm$parameters$strategies[[1]]
+  solver <- census_stand()
+  species <- solver$patch$species[[1]]
+  strategy <- solver$parameters$strategies[[1]]
   st <- species_state_r(species)
-  adjoint <- stand_census_state_adjoint(scm)
+  adjoint <- stand_census_state_adjoint(solver)
   names_i <- species$nodes[[1]]$ode_names
   stride <- length(names_i)
   n_node <- length(species$nodes)
@@ -187,8 +187,8 @@ test_that("G3: the state adjoint is the census's derivative on the birth-date gr
   # The reference is taken on a copy of the patch, so the copy must start where
   # the stand is: a round trip through the state setter that moved anything
   # would put every difference below at a different point from the adjoint.
-  expect_equal(census_of_state(scm, 1L)(scm$patch$ode_state[[1]]),
-               unname(stand_census(scm)[["leaf_area"]]), tolerance = 1e-14)
+  expect_equal(census_of_state(solver, 1L)(solver$patch$ode_state[[1]]),
+               unname(stand_census(solver)[["leaf_area"]]), tolerance = 1e-14)
 
   psi_at <- tf24_allometry_r(strategy$pars, strategy$pars$eta)
   b <- st$birth_date
@@ -207,15 +207,15 @@ test_that("G3: the state adjoint is the census's derivative on the birth-date gr
   for (slot in c("height", "log_density")) {
     for (k in seq_len(n_node)) {
       col <- (k - 1) * stride + match(slot, names_i)
-      at <- scm$patch$ode_state[[col]]
+      at <- solver$patch$ode_state[[col]]
       step <- 1e-2 * max(abs(at), 1)
       over_birth_date <- c(over_birth_date,
-        test_gradient_richardson(census_of_state(scm, col), at, step, 4))
+        test_gradient_richardson(census_of_state(solver, col), at, step, 4))
       # Rows run in storage order with the boundary node last, which ascends in
       # birth date and descends in height; negating the height integral is what
       # takes it up its own axis instead.
       over_height <- c(over_height,
-        -test_gradient_richardson(census_of_state(scm, col, FALSE), at, step, 4))
+        -test_gradient_richardson(census_of_state(solver, col, FALSE), at, step, 4))
       got <- c(got, adjoint["leaf_area", col])
       # The same derivative with the boundary node pinned, which is what a
       # reduction written over a fixed state table gives.
@@ -257,9 +257,9 @@ test_that("G4: the state adjoint reaches every state a metric reads", {
   # heartwood state is not in the light field, so these two columns carry no
   # boundary-node channel and nothing else stands between the weight and the
   # answer.
-  scm <- census_stand()
-  adjoint <- stand_census_state_adjoint(scm)
-  species <- scm$patch$species[[1]]
+  solver <- census_stand()
+  adjoint <- stand_census_state_adjoint(solver)
+  species <- solver$patch$species[[1]]
   names_i <- species$nodes[[1]]$ode_names
   stride <- length(names_i)
 
@@ -303,15 +303,15 @@ test_that("G5: the entry point refuses to compare across two Controls", {
 test_that("G6: no census metric has an all-zero state sensitivity", {
   # A structural claim about the adjoint rather than one about the shape of the
   # distribution, so it reads the stand every other block uses.
-  scm <- census_stand()
+  solver <- census_stand()
   # The census's rows; the fitness rows read the fecundity state.
-  adjoint <- stand_census_state_adjoint(scm)[names(stand_census(scm)), ,
+  adjoint <- stand_census_state_adjoint(solver)[names(stand_census(solver)), ,
                                           drop = FALSE]
   expect_equal(nrow(adjoint), 3L)
   # Every metric is built from height, and every cohort's log density multiplies
   # it, so both state families must move all three metrics.
-  stride <- length(scm$patch$species[[1]]$new_node$ode_names)
-  n_node <- scm$patch$species[[1]]$size
+  stride <- length(solver$patch$species[[1]]$new_node$ode_names)
+  n_node <- solver$patch$species[[1]]$size
   height_cols <- (seq_len(n_node) - 1) * stride + 1
   density_cols <- (seq_len(n_node) - 1) * stride + stride
   for (m in rownames(adjoint)) {
@@ -328,19 +328,22 @@ test_that("the Control a gradient is taken at is the entries that move it", {
   # different reason, and both reasons belong in the same comparison.
   #
   # ⚠️ ASKED BY NAME, WHICH IS WHAT MAKES THIS ABLE TO FAIL. The names came from
-  # R until scm.h carried them, so the first comparison was R's own list against
+  # R until deterministic_patch_runner.h carried them, so the first comparison
+  # was R's own list against
   # itself, and the values were compared POSITIONALLY against a list built in the
   # same order -- self-consistent either way. Measured on the form below: a value
-  # wired to the wrong Control field now FAILS, and a name changed in scm.h FAILS.
+  # wired to the wrong Control field now FAILS, and a name changed in
+  # deterministic_patch_runner.h FAILS.
   #
   # ⚠️ What it still cannot see is a swap among GSS_tol_abs, ci_abs_tol and
   # gradient_curvature_floor, because all three are 1e-3 at the defaults and a swap
   # of equal numbers has nothing to read. That is fine HERE and only here: each
-  # travels from scm.h as name-with-value, so there is no second ordering left to
+  # travels from deterministic_patch_runner.h as name-with-value, so there is no
+  # second ordering left to
   # disagree with and nothing can produce that swap any more. Do not answer it
   # with a test.
-  scm <- census_stand()
-  got <- gradient_control(scm)
+  solver <- census_stand()
+  got <- gradient_control(solver)
   expect_equal(names(got),
                c("GSS_tol_abs", "ci_abs_tol", "node_gradient_eps",
                  "schedule_eps", "gradient_curvature_floor"))
@@ -351,15 +354,15 @@ test_that("the trait gradient entry point is reachable", {
   # The symbol exists, stand_gradient reaches it, and on this stand it answers:
   # a refusal here is the model having moved under a written fixture, which is
   # the finding rather than a state to tolerate.
-  scm <- census_stand()
+  solver <- census_stand()
   expect_true(is.function(census_trait_gradient_tf24))
   # A column is named for its species as well as its parameter: a bare name would
   # resolve to species one's column silently on a multi-species stand.
-  got <- stand_gradient(scm, traits = "1.lma", hyperpar = NULL)
-  expect_equal(rownames(got$gradient), unname(census_metric_names_tf24(scm)))
+  got <- stand_gradient(solver, traits = "1.lma", hyperpar = NULL)
+  expect_equal(rownames(got$gradient), unname(census_metric_names_tf24(solver)))
   expect_equal(colnames(got$gradient), "1.lma")
   expect_false(any(stand_gradient_refused(got)))
   expect_true(all(is.finite(got$gradient)))
   # And the bare name refuses, naming the convention rather than only failing.
-  expect_error(stand_gradient(scm, traits = "lma", hyperpar = NULL), "species index")
+  expect_error(stand_gradient(solver, traits = "lma", hyperpar = NULL), "species index")
 })

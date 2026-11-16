@@ -13,8 +13,8 @@ hyperpar_parameters <- function(lifetime = 3) {
 hyperpar_run <- function(p = hyperpar_parameters()) {
   ctrl <- Control(node_density_coordinate = "birth_date")
   list(p = p, ctrl = ctrl,
-       scm = run(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
-                 record = "states")$solver)
+       solver = run(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
+                    record = "states")$solver)
 }
 
 # The default run, made once: two tests read it, and neither changes it (a
@@ -29,12 +29,12 @@ default_hyperpar_run <- local({
 
 test_that("a trait's column is its partial plus each derived parameter's, chained", {
   run <- default_hyperpar_run()
-  tot <- stand_gradient(run$scm, traits = c("1.lma", "1.hmat"))
-  par <- stand_gradient(run$scm, hyperpar = NULL)
+  tot <- stand_gradient(run$solver, traits = c("1.lma", "1.hmat"))
+  par <- stand_gradient(run$solver, hyperpar = NULL)
 
   # the TF24 trade-off function derives k_l and r_l from lma. Their derivatives,
   # from the function itself.
-  s <- run$scm$parameters$strategies[[1]]
+  s <- run$solver$parameters$strategies[[1]]
   derived <- function(lma) {
     default_hyperpar("TF24")(trait_matrix(lma, "lma"), s, filter = FALSE)[1, c("k_l", "r_l")]
   }
@@ -56,8 +56,8 @@ test_that("a trait's column is its partial plus each derived parameter's, chaine
 test_that("the total agrees with a difference of the trait through add_strategies", {
   skip_on_cran()
   run <- default_hyperpar_run()
-  tot <- stand_gradient(run$scm, traits = "1.lma")
-  sched <- run$scm$schedule$times(1)
+  tot <- stand_gradient(run$solver, traits = "1.lma")
+  sched <- run$solver$schedule$times(1)
   census_at <- function(lma) {
     p <- testing_parameters("TF24")
     p$max_patch_lifetime <- 3
@@ -75,12 +75,12 @@ test_that("the total agrees with a difference of the trait through add_strategie
 
 test_that("a derived parameter is not a column of its own under a trade-off", {
   run <- hyperpar_run(hyperpar_parameters(lifetime = 1))
-  tot <- stand_gradient(run$scm)
-  par <- stand_gradient(run$scm, hyperpar = NULL)
+  tot <- stand_gradient(run$solver)
+  par <- stand_gradient(run$solver, hyperpar = NULL)
   expect_false(any(c("1.k_l", "1.r_l", "1.stem_P50") %in% colnames(tot$gradient)))
   expect_true(all(c("1.lma", "1.K_s", "1.hmat") %in% colnames(tot$gradient)))
   expect_true(all(c("1.k_l", "1.r_l") %in% colnames(par$gradient)))
-  expect_error(stand_gradient(run$scm, traits = "1.k_l"),
+  expect_error(stand_gradient(run$solver, traits = "1.k_l"),
                "1.k_l derived from the species' traits")
 })
 
@@ -90,13 +90,13 @@ test_that("a strategy that is not on the trade-off is refused, not chained", {
                       hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
   p$strategies[[2]]$pars$lma <- 0.09
   run <- hyperpar_run(p)
-  expect_error(stand_gradient(run$scm, traits = "2.lma"),
+  expect_error(stand_gradient(run$solver, traits = "2.lma"),
                "Species 2's k_l, r_l are not what `hyperpar` gives")
-  expect_error(stand_gradient(run$scm), "Species 2's")
+  expect_error(stand_gradient(run$solver), "Species 2's")
   # Only the species asked about is checked.
-  expect_no_error(stand_gradient(run$scm, traits = "1.lma"))
-  expect_no_error(stand_gradient(run$scm, traits = "2.lma", hyperpar = NULL))
-  expect_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = "TF24"),
+  expect_no_error(stand_gradient(run$solver, traits = "1.lma"))
+  expect_no_error(stand_gradient(run$solver, traits = "2.lma", hyperpar = NULL))
+  expect_error(stand_gradient(run$solver, traits = "1.lma", hyperpar = "TF24"),
                "must be a trade-off function")
 })
 

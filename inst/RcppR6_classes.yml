@@ -864,7 +864,7 @@ Patch:
       name_cpp: r_compute_environment
     # Use the field the patch makes now as a constant field at every later rate
     # evaluation, its environment's own state included, as
-    # SCM$run_mutant_constant() does.
+    # DeterministicPatchRunner$run_mutant_constant() does.
     use_current_field:
       return_type: void
       name_cpp: r_use_current_field
@@ -910,8 +910,8 @@ Patch:
       args: [z: double]
       name_cpp: r_compute_competition_and_slope
 
-SCM:
-  name_cpp: "plant::SCM<T,E>"
+DeterministicPatchRunner:
+  name_cpp: "plant::DeterministicPatchRunner<T,E>"
   templates:
     parameters: [T, E]
     concrete:
@@ -927,7 +927,7 @@ SCM:
       - environment: "E"
       - events: "plant::Events"
       - control: "plant::Control"
-  # Order mirrors the public API grouping in inst/include/plant/scm.h.
+  # Order mirrors the public API grouping in inst/include/plant/deterministic_patch_runner.h.
   methods:
     # Simulation lifecycle
     run:
@@ -1158,7 +1158,7 @@ StochasticPatchRunner:
       name_cpp: r_run_next
     reset:
       return_type: void
-    # Named to mirror SCM (set_node_schedule_times); same Schedule concept.
+    # Named to mirror DeterministicPatchRunner (set_node_schedule_times); same Schedule concept.
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void
@@ -1171,7 +1171,7 @@ StochasticPatchRunner:
       type: "plant::StochasticPatch<T,E>"
       access: member
       name_cpp: r_patch
-    # Mirrors SCM's `schedule`; both wrap a Schedule.
+    # Mirrors DeterministicPatchRunner's `schedule`; both wrap a Schedule.
     schedule:
       type: "plant::Schedule"
       access: member

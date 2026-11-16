@@ -162,7 +162,7 @@ test_that("Environment-TF24 refuses an unusable set of layer widths", {
 test_that("Environment-TF24 refuses layers that get thinner with depth", {
   # Refining towards the SURFACE is what a thin layer is for here, and refining
   # at depth reaches a failure this model cannot absorb: a thin layer under a
-  # thicker one drives the SCM size-density equation to overflow. Sampled
+  # thicker one drives the size-density equation to overflow. Sampled
   # over the basal thickness it fails at 5, 3, 2.5, 2 and 1.5 cm, where all 18
   # profiles thickening with depth ran clean, including a 5 mm surface layer.
   env <- Environment("TF24")
@@ -275,7 +275,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   expect_equal(env$b_infil, 5)
   expect_equal(env$f_PAR, 0.45)
 
-  # check values from above are inherited when apssed into scm
+  # check values from above are inherited when apssed into solver
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 0.01  
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))

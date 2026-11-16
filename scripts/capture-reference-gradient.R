@@ -69,10 +69,10 @@ for (rg in regimes) {
   # counter is cleared first: it accumulates over every solve the process has done.
   p <- ladder_parameters(c("fast", "slow"), k_I = rg$k_I)
   p$node_schedule_times <- times
-  scm <- ladder_run(p, env = ladder_environment(rg$rain,
-                                                if (is.null(rg$amplitude)) 0
-                                                else rg$amplitude))
-  counts <- census_operating_point_counts_tf24(scm)
+  solver <- ladder_run(p, env = ladder_environment(rg$rain,
+                                                   if (is.null(rg$amplitude)) 0
+                                                   else rg$amplitude))
+  counts <- census_operating_point_counts_tf24(solver)
   for (s in seq_along(counts)) {
     kinds[[length(kinds) + 1L]] <- data.frame(
       regime = rg$name, species = s,
