@@ -47,26 +47,25 @@ test_that("empty", {
     env <- Environment(x)
     ctrl <- Control()
 
+    ## Built, the runner holds nothing and stands at 0.
     obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
     expect_identical(obj$time, 0.0)
+    expect_equal(obj$schedule$size, 0)
 
+    ## draw_arrivals() draws them: ascending, inside the patch's life, and
+    ## recorded on its parameters. Its death checks are instants of their own.
+    obj$draw_arrivals()
     sched <- obj$schedule
-    expect_equal(sched$size, 0)
     expect_equal(sched$max_time, p$max_patch_lifetime)
+    arrivals <- sched$all_times[[1]]
+    expect_gt(length(arrivals), 0)
+    expect_false(is.unsorted(arrivals))
+    expect_true(all(arrivals > 0 & arrivals < p$max_patch_lifetime))
+    expect_identical(obj$parameters$node_schedule_times, list(arrivals))
+    expect_gt(sched$size, length(arrivals))
 
-    ## Now, create a new set of times:
-    sched2 <- stochastic_schedule(p)
-    expect_gt(sched2$size, 0)
-
-    ## The runner keeps the arrivals and adds its death checks, which are
-    ## instants of their own.
-    obj$schedule <- sched2
-    expect_identical(obj$schedule$all_times, sched2$all_times)
-    expect_gt(obj$schedule$size, sched2$size)
-
-    ## Importantly, this moves time forward to where the first
-    ## introduction will be!
-    expect_identical(obj$time, sched2$next_introduction$time)
+    ## Importantly, it stands at the first arrival.
+    expect_identical(obj$time, arrivals[[1]])
 
     ## We're empty though.... The ODE system still carries the environment's own
     ## states (TF24's soil water and cumulative fluxes; none for FF16 or K93).
@@ -76,7 +75,7 @@ test_that("empty", {
 
     res <- obj$run_next()
     expect_equal(res, 1L)
-    expect_identical(obj$time, sched2$all_times[[1]][[2]])
+    expect_identical(obj$time, arrivals[[2]])
 
     ode_size <- Individual(x, e)(strategy_types[[x]]())$ode_size
     expect_equal(obj$patch$node_ode_size, ode_size)
@@ -89,22 +88,14 @@ test_that("empty", {
 })
 
 test_that("the expected number of arrivals scales with patch area", {
-  ## stochastic_schedule() used to pass patch_area into
-  ## stochastic_arrival_times()'s *third* argument, which is delta_t, leaving
-  ## patch_area at its default 1. Arrivals therefore never scaled with area --
-  ## the expected count came out as lifetime x birth_rate for every patch size --
-  ## and the binning interval was silently set to the area.
-  ##
-  ## Arrivals are Poisson, so this compares realised counts against
+  ## Arrivals are a Poisson process at the birth rate times the area, drawn
+  ## when the runner is built. This compares realised counts against
   ## lifetime x birth_rate x area over a horizon long enough that the relative
-  ## standard error is small. birth_rate 10 over 100 yr is 1000 expected
-  ## arrivals per m^2 for only 100 / delta_t = 1000 draws, so the counts are
-  ## large but the schedule is cheap. sd/mean is 1/sqrt(1000) = 3.2% at the
-  ## smallest count, so the 20% tolerances below are all more than 5 Poisson
-  ## standard deviations wide and cannot flake; the seed is fixed as well.
-  ## Under the defect the 2 and 8 m^2 cases both come in at ~1000, failing by
-  ## 2x and 8x. Only the R-side draw is exercised, which reads nothing from the
-  ## strategy but its birth rate, so one strategy type is enough.
+  ## standard error is small: sd/mean is 1/sqrt(1000) = 3.2% at the smallest
+  ## count, so the 20% tolerances are more than 5 Poisson standard deviations
+  ## wide, and the seed is fixed. Under the old defect, where the area never
+  ## reached the draw, the 2 and 8 m^2 cases came in at ~1000, failing by 2x
+  ## and 8x. Only the draw is exercised, so one strategy type is enough.
   lifetime <- 100
   birth_rate <- 10
   areas <- c(1, 2, 8)
@@ -115,7 +106,10 @@ test_that("the expected number of arrivals scales with patch area", {
                                         patch_area = area,
                                         max_patch_lifetime = lifetime)
     p$strategies[[1]]$birth_rate_y <- birth_rate
-    stochastic_schedule(p)$size
+    obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
+                                                     Control())
+    obj$draw_arrivals()
+    length(obj$schedule$all_times[[1]])
   }, numeric(1))
 
   ## Doubling the area doubles the arrivals; eight times the area, eight times.
@@ -125,6 +119,78 @@ test_that("the expected number of arrivals scales with patch area", {
   ## And the absolute rate is right, not just its scaling.
   for (i in seq_along(areas)) {
     expect_equal(n[[i]], lifetime * birth_rate * areas[[i]], tolerance = 0.2)
+  }
+})
+
+arrivals_for <- function(x, y, lifetime, area = 1, seed = 1) {
+  p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()),
+                                      patch_area = area,
+                                      max_patch_lifetime = lifetime)
+  p$strategies[[1]]$is_variable_birth_rate <- TRUE
+  p$strategies[[1]]$birth_rate_x <- x
+  p$strategies[[1]]$birth_rate_y <- y
+  set.seed(seed)
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
+                                                   Control())
+  obj$draw_arrivals()
+  obj$schedule$all_times[[1]]
+}
+
+test_that("a varying birth rate is the deterministic solver's curve", {
+  ## The monotone spline the deterministic solver's inflow reads: zero until
+  ## t = 1 (a monotone spline through zeros stays at zero), so nobody arrives
+  ## before it, and 50 per year from 1.1.
+  arrivals <- arrivals_for(c(0, 1, 1.1, 21), c(0, 0, 50, 50), 21, seed = 2)
+  expect_gt(min(arrivals), 1)
+  ## About 50 x 19.95 = 998, within four Poisson standard deviations.
+  expect_lt(abs(length(arrivals) - 50 * 19.95), 4 * sqrt(50 * 19.95))
+})
+
+test_that("arrivals under a rising rate are thinned to its shape", {
+  ## A ramp from 0 to 200 per year over 10 years: through two points the
+  ## spline is the line, so 1000 arrivals are expected, at a mean time of two
+  ## thirds of the span. Keeping every candidate would put the mean at half.
+  arrivals <- arrivals_for(c(0, 10), c(0, 200), 10)
+  n <- length(arrivals)
+  expect_lt(abs(n - 1000), 4 * sqrt(1000))
+  ## The arrival times have sd 10 / sqrt(18) = 2.36, so the mean's is 0.075.
+  expect_lt(abs(mean(arrivals) - 20 / 3), 4 * 10 / sqrt(18 * n))
+  expect_false(is.unsorted(arrivals, strictly = TRUE))
+})
+
+test_that("arrivals are drawn exactly where the spline overshoots between knots", {
+  ## odelia's monotone slopes can leave a span that overshoots its data: here
+  ## [1, 2] peaks just above 7. The bound is the cubic's own largest value, so
+  ## the draw neither stops nor clips the overshoot, on any seed.
+  for (seed in 1:20) {
+    arrivals <- arrivals_for(0:4, c(0, 6, 7, 8, 108), 4, seed = seed)
+    expect_false(is.unsorted(arrivals, strictly = TRUE))
+  }
+})
+
+test_that("each species draws its own arrivals", {
+  p <- Parameters("FF16", "FF16_Env")(
+    strategies = list(FF16_Model(), FF16_Model()), max_patch_lifetime = 50)
+  p$strategies[[1]]$birth_rate_y <- 2
+  p$strategies[[2]]$birth_rate_y <- 20
+  set.seed(3)
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
+                                                   Control())
+  obj$draw_arrivals()
+  n <- lengths(obj$schedule$all_times)
+  expect_lt(abs(n[[1]] - 100), 4 * sqrt(100))
+  expect_lt(abs(n[[2]] - 1000), 4 * sqrt(1000))
+  expect_length(intersect(obj$schedule$all_times[[1]],
+                          obj$schedule$all_times[[2]]), 0)
+})
+
+test_that("drawing arrivals needs a positive, finite patch area", {
+  for (area in c(0, -1, Inf)) {
+    p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()),
+                                        patch_area = area)
+    obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
+                                                     Control())
+    expect_error(obj$draw_arrivals(), "patch_area must be positive and finite")
   }
 })
 
@@ -191,10 +257,10 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## FF16 alone. 1 m^2 keeps the stand to ~105 individuals over the full default
   ## 105.32 yr lifetime, which is what every value below was generated at.
   ##
-  ## The seeded schedule holds 117 arrivals (mean 105.32 = lifetime x birth_rate
-  ## x area). n_total is how many of those established: establishment is a
+  ## The seeded run draws 101 arrivals (mean 105.32 = lifetime x birth_rate x
+  ## area). n_total is how many of those established: establishment is a
   ## Bernoulli draw against the birth environment, so it is model-dependent --
-  ## K93 takes all 117, while FF16 and TF24 lose about a third in the shade.
+  ## K93 takes all 101, while FF16 and TF24 lose a share in the shade.
   ## n_alive_final counts survivors at the last step; at this density most of the
   ## stand is thinned out, which is why these are far below the old sparse-stand
   ## values. TF24's survivor count is also sensitive to the environment's own ODE
@@ -232,10 +298,15 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## and 3 (47 and 1 at a zero offset, so the offset counts again), and K93 to
   ## 117 and 3. The number of draws changes, so these are a new stream rather
   ## than the old one corrected (#601).
+  ## Drawing the arrivals in C++, from the model's own birth-rate curve, rather
+  ## than in R (#601, re-blessed by Daniel), moved every model again: 101
+  ## arrivals, FF16 84 established and 1 surviving, TF24 53 and 1 (52 and 1 at
+  ## a zero offset), K93 101 and 3. A new stream again, not the old draws
+  ## corrected.
   baseline <- list(
-    FF16 = list(n_total = 80L, n_alive_final = 3L),
-    TF24 = list(n_total = 47L, n_alive_final = 3L),
-    K93  = list(n_total = 117L, n_alive_final = 3L)
+    FF16 = list(n_total = 84L, n_alive_final = 1L),
+    TF24 = list(n_total = 53L, n_alive_final = 1L),
+    K93  = list(n_total = 101L, n_alive_final = 3L)
   )
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
@@ -265,7 +336,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   res <- tidy(run(p, Environment("TF24"), stochastic_control("TF24"),
                   method = "stochastic", record = "steps"))
   ia <- attr(res$species, "is_alive")[[1]]
-  expect_equal(dim(res$species[[1]])[3], 47L)
+  expect_equal(dim(res$species[[1]])[3], 52L)
   expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 1L)
 })
 
@@ -441,7 +512,9 @@ test_that("the runner places its death checks on its schedule", {
   expect_equal(obj$schedule$size, 4)
 
   ## An arrival on a grid point shares its instant with the check there.
-  obj$schedule <- stochastic_schedule(p)
+  set.seed(1)
+  obj <- stochastic_runner(p, Environment("FF16"),
+                           Control(stochastic_death_interval = 0.25))
   obj$set_node_schedule_times(list(c(0.1, 0.5)))
   expect_equal(obj$schedule$size, 5)
   ## run_next() still steps from one arrival to the next, drawing the checks
@@ -676,9 +749,18 @@ test_that("a pulse into a pool the environment does not have is refused before t
                "does not exist")
 })
 
-test_that("a stochastic run refuses node introductions in its events", {
+test_that("introductions in a stochastic run's events replace the drawn arrivals", {
+  ## As in the deterministic solver: one arrival per time named.
   p <- events_stand()
-  expect_error(run(p, method = "stochastic",
-                   events = events(node_introductions(p))),
-               "leave node_introductions\\(p\\) out")
+  q <- p
+  q$node_schedule_times <- list(c(1, 2))
+  set.seed(9)
+  res <- run(p, method = "stochastic",
+             events = events(node_introductions(q),
+                             harvest(time = 2.5, fraction = 0.5)))
+  expect_identical(res$solver$schedule$all_times, list(c(1, 2)))
+  expect_identical(res$scenario$p$node_schedule_times, list(c(1, 2)))
+  ## The events' harvest is applied beside them.
+  expect_identical(res$event_log$type, "harvest")
+  expect_identical(res$event_log$time, 2.5)
 })

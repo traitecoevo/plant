@@ -227,7 +227,7 @@ test_that("a stochastic run is the runner's by hand, under the same seed", {
   p <- stochastic_stand()
   set.seed(42)
   obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())
-  obj$schedule <- stochastic_schedule(p)
+  obj$draw_arrivals()
   collected <- tidy_stochastic_steps(collect_stochastic_steps(obj))
   set.seed(42)
   res <- run(p, method = "stochastic", record = "steps")
@@ -253,9 +253,6 @@ test_that("a stochastic run refuses what it cannot do", {
   expect_error(run(p, method = "stochastic", until = 2), "until")
   expect_error(run(p, method = "stochastic", refine_schedule = TRUE), "refine_schedule")
   expect_error(run(p, method = "stochastic", record = "states"), "states")
-  expect_error(run(p, method = "stochastic",
-                   events = events(node_introductions(p), harvest(time = 2, fraction = 0.3))),
-               "node introductions")
   expect_error(run(p, method = "stochastic", from = run(p)), "from")
   res <- run(p, method = "stochastic")
   expect_error(export_patch_state(res), "deterministic")

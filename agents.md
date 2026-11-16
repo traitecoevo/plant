@@ -128,7 +128,7 @@ Every Model carries a `Control` and an `ExtrinsicDrivers` object.
 
 1. **Deterministic — the solver by the method of characteristics.** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `DeterministicPatchRunner<T,E>` in C++, [run()](R/run.R) in R. Recording every step for `tidy()` and adaptive schedule refinement are arguments of `run()` (`record = "steps"`, `refine_schedule = TRUE`); the refinement loop itself lives in `DeterministicPatchRunner::refine_schedule()` in C++ (see below).
 
-2. **Stochastic — finite-size population.** Individuals arrive and die as discrete events. `StochasticPatchRunner<T,E>` in C++; in R, `run(p, method = "stochastic")`, which builds the runner with arrivals drawn by `stochastic_schedule()` and steps it with the helpers in [R/stochastic.R](R/stochastic.R).
+2. **Stochastic — finite-size population.** Individuals arrive and die as discrete events. `StochasticPatchRunner<T,E>` in C++; in R, `run(p, method = "stochastic")`, whose runner draws its arrivals in continuous time from each species' birth rate when it is built, and which is stepped with the helpers in [R/stochastic.R](R/stochastic.R).
 
 Both share the same `Model`, `Environment`, `Individual`, and `Parameters`. A single plant grown on its own, `run(individual, times = )` or `run(individual, sizes = )`, is neither: it integrates one `Individual` through `IndividualRunner` in the light it is given, with the growers in [R/individual.R](R/individual.R).
 
