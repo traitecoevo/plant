@@ -794,7 +794,7 @@ test_that("Medlyn stomatal model", {
 # CO2 demand equals supply, i.e. the root of
 #   assim_colimited(ci) * umol_to_mol  -  gc * (ca - ci) / (atm_kpa * kPa_to_Pa) = 0
 # over ci in (gamma*, ca]. phylloptim solves it by a safeguarded Newton solve
-# stopping at ci_root_tol, with TOMS748 (util::uniroot_smooth) as its fallback.
+# stopping at ci_root_tol, with TOMS748 as its fallback.
 # These tests pin the *contract* (what ci must satisfy) independently of the
 # *method*, so they hold however the solve is done.
 test_that("psi_stem_to_ci supply=demand solve", {
