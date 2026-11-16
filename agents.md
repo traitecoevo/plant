@@ -30,7 +30,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
 └───────────────────────────▲─────────────────────────────────┘
                             │   RcppR6 + Rcpp generated bindings
 ┌───────────────────────────▼─────────────────────────────────┐
-│  C++ core  (inst/include/plant/*.h  +  src/*.cpp)            │
+│  C++ core  (inst/include/plant/**/*.h  +  src/*.cpp)         │
 │  - templated class hierarchy: Model, Environment,            │
 │    Individual, Node, Species, Patch,                         │
 │    DeterministicPatchRunner, Stochastic*                     │
@@ -84,7 +84,7 @@ Parameters<T,E>                     model configuration (strategies, schedule, �
 Schedule                            the queue of scheduled events: introductions, pulses, harvests, extremes
 ```
 
-The headers in `inst/include/plant/` are grouped by role: `numerics/` (quadrature, root-finding, the value-and-slope pair), `models/` (the model interface, environments and every concrete model), `community/` (individual, node, species and patch, for both solvers), `solvers/` (the runners, the schedule and events), `disturbances/` and `gradients/` (census and reverse-mode helpers). `util.h`, `control.h` and `parameters.h` stay at the top, beside the generated `RcppR6_*.hpp`, and `inst/include/plant.h` includes them all.
+The headers in `inst/include/plant/` are grouped by role: `numerics/` (quadrature, root-finding, finite differences, the value-and-slope pair, and `fp_contract.h`'s floating-point settings), `models/` (the model interface, environments and every concrete model), `community/` (individual, node, species and patch, for both solvers), `solvers/` (the runners, the schedule and events), `disturbances/` (the patch-age regimes) and `gradients/` (the stand census and its reverse-mode helpers). `util.h`, `util_post_rcpp.h`, `control.h` and `parameters.h` stay at the top, beside the generated `RcppR6_*.hpp`, and `inst/include/plant.h` includes them all.
 
 Key headers to know:
 
@@ -101,7 +101,7 @@ Key headers to know:
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
 | Disturbance | [disturbances/weibull_disturbance.h](inst/include/plant/disturbances/weibull_disturbance.h), `no_disturbance.h` |
 | Leaf-level physiology | [leaf_model.h](inst/include/plant/models/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
-| Numerics | [qag.h](inst/include/plant/numerics/qag.h)/[qk.h](inst/include/plant/numerics/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/numerics/uniroot.h), [gradient.h](inst/include/plant/gradients/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
+| Numerics | [qag.h](inst/include/plant/numerics/qag.h)/[qk.h](inst/include/plant/numerics/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/numerics/uniroot.h), [gradient.h](inst/include/plant/numerics/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
 
 ### The `Model` contract
 

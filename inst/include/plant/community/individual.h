@@ -8,7 +8,7 @@
 #include <odelia/ode_util.hpp>
 #include <plant/gradients/census.h>
 #include <plant/community/internals.h>
-#include <plant/gradients/gradient.h>
+#include <plant/numerics/gradient.h>
 #include <plant/util.h>
 #include <plant/numerics/uniroot.h>
 #include <plant/numerics/with_slope.h>

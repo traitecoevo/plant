@@ -3,7 +3,7 @@
 #define NODE
 
 #include <plant/models/environment.h>
-#include <plant/gradients/gradient.h>
+#include <plant/numerics/gradient.h>
 #include <plant/community/individual.h>
 #include <odelia/ode_interface.hpp>
 #include <plant/numerics/with_slope.h>
