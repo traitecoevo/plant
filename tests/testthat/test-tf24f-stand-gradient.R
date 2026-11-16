@@ -109,6 +109,34 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   expect_lt(max(errors), 1e-4)
 })
 
+test_that("an invader's gradient holds where its collar meets a dry layer's potential", {
+  # Under dry pulses the top layer dries past the collar while the deeper ones
+  # stay wet, so the collar crosses the top layer's potential, where uptake has
+  # a kink. This invader's slope stencil reached one, and the marginal there:
+  # its stem columns were 4% off, and moved with a last-bit change in its lma.
+  # Taken from the side away from the kink, they agree to 2e-4, which is the
+  # leaf's own noise next to the kink.
+  lifetime <- 10
+  p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
+  solver <- run(p, tf24f_dry_pulses(lifetime), Control(), record = "states")$solver
+  pm <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.063)
+  solver$run_mutant(pm)
+  metric <- "1.net_reproduction_ratio"
+  g <- stand_gradient(solver, metrics = metric, traits = "1.stem_P50",
+                      hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  x <- pm$strategies[[1]]$pars$stem_P50
+  h <- 1e-5 * x
+  at <- function(v) {
+    q <- pm
+    q$strategies[[1]]$pars$stem_P50 <- v
+    solver$run_mutant(q)
+    stand_fitness(solver)[[metric]]
+  }
+  fd <- (at(x + h) - at(x - h)) / (2 * h)
+  expect_lt(abs(g$gradient[metric, "1.stem_P50"] - fd), 1e-3 * abs(fd))
+})
+
 test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {
   # The forward counterpart is test-model-tf24f.R's convergence test: a large
   # gain recovers TF24's optimum at every step, so the gradient converges too.
