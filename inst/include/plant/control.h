@@ -136,13 +136,13 @@ struct Control {
 
   // The stochastic solver draws deaths at every multiple of this interval
   // (years) from the patch's start, and at its end. Each draw reads the hazard
-  // accumulated since the last, so the interval sets only how long a plant that
-  // has died goes on shading the living. Checking only at arrivals, as before,
-  // left about 8% fewer FF16 survivors at 30 years at one arrival a year than
-  // drawing every 0.02 yr (#601). At 0.05 survival there is within 1.5 standard errors (about 4%)
-  // of 0.005, and in a dense stand no different. Each draw re-syncs the
-  // solver, so cost grows with the number of draws: 0.05 doubles an FF16
-  // stand's run time, 0.02 nearly quadruples it. Positive and finite.
+  // accumulated since the last, so survival alone is exact at any interval, and
+  // the interval sets only how long a plant that has died goes on shading the
+  // living. That matters while shade is what kills: in an FF16 stand closing
+  // its canopy, density falls short of the limit of continuous checks in
+  // proportion to the interval, by about 2% at 0.05 and 0.5% at 0.01, and
+  // before the canopy closes not at all. Each draw re-syncs the solver, so a
+  // shorter interval costs run time. Positive and finite.
   double stochastic_death_interval;
 };
 

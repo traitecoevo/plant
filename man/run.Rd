@@ -135,7 +135,13 @@ its result's fitness values are \code{NULL}, and it refuses \code{until},
 \code{from}, \code{refine_schedule} and \code{record = "states"}. It takes
 \code{events}' harvests, resource pulses and climate extremes, drawing each
 individual's removal by chance. Its deaths are drawn every
-\code{control$stochastic_death_interval} years.
+\code{control$stochastic_death_interval} years, 0.01 by default, which is
+set in the run's \code{control}, as in
+\code{control = control(stochastic_death_interval = 0.05)}. Survival is
+exact at any interval, but a plant that has died shades the living until
+the next draw. Where shade is what kills, a longer interval runs faster
+and leaves fewer plants than continuous checks would: in a closing FF16
+canopy about 2\% fewer at 0.05 and 0.5\% at 0.01.
 Seed R's random number generator to repeat one.
 
 A single plant is grown by \code{run(individual, times = )}, which reports
