@@ -101,7 +101,7 @@ Key headers to know:
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
 | Disturbance | [disturbances/weibull_disturbance.h](inst/include/plant/disturbances/weibull_disturbance.h), `no_disturbance.h` |
 | Leaf-level physiology | [leaf_model.h](inst/include/plant/models/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
-| Numerics | [qag.h](inst/include/plant/numerics/qag.h)/[qk.h](inst/include/plant/numerics/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/numerics/uniroot.h), [gradient.h](inst/include/plant/numerics/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
+| Numerics | [qag.h](inst/include/plant/numerics/qag.h)/[qk.h](inst/include/plant/numerics/qk.h) (adaptive quadrature), [gradient.h](inst/include/plant/numerics/gradient.h); the ODE solver, interpolators, splines and bracketed root-finding come from `odelia` (`LinkingTo`) |
 
 ### The `Model` contract
 

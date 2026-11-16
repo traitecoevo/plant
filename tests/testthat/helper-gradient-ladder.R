@@ -994,7 +994,7 @@ ladder_boundary_tangent <- function(patch, name, species = 1L) {
 # they agree on the value, and every caller asserts it before reading a row.
 # What a central difference of a bracketed root-find can be worth.
 #
-# height_seed() runs util::uniroot at offspring_height_tol, which is passed as
+# height_seed() runs odelia's TOMS748 at offspring_height_tol, which is passed as
 # BOTH the absolute and the relative tolerance, and returns the midpoint of the
 # final bracket. So the bracket is at most tol * (1 + root) wide, each evaluation
 # is at most half of that from the root, and a central difference of two of them

@@ -1321,7 +1321,7 @@ double FF16_Model<S>::height_seed(void) const {
   };
 
   if constexpr (std::is_same_v<S, double>) {
-    return util::uniroot(target, h0, h1, tol);
+    return odelia::root::toms748(target, h0, h1, {tol, tol});
   } else {
     // Recording the search would differentiate the iterate, whose path through
     // the bracket is not the root's, rather than the height at which mass_live

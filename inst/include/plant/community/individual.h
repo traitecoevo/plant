@@ -10,7 +10,7 @@
 #include <plant/community/internals.h>
 #include <plant/numerics/gradient.h>
 #include <plant/util.h>
-#include <plant/numerics/uniroot.h>
+#include <odelia/root_find.hpp>
 #include <plant/numerics/with_slope.h>
 #include <utility> // std::pair
 
@@ -337,7 +337,8 @@ public:
     if (f1 < 0.0) {
       return NA_REAL;
     } else {
-      return util::uniroot(target, 0.0, 1.0, control().offspring_height_tol);
+      const double tol = control().offspring_height_tol;
+      return odelia::root::toms748(target, 0.0, 1.0, {tol, tol});
     }
   }
 

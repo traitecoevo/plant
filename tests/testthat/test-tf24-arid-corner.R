@@ -43,8 +43,10 @@ test_that("a dry TF24f patch no longer aborts on the ci root-find", {
     NA_character_
   }, error = function(e) conditionMessage(e))
 
-  expect_false(isTRUE(grepl("psi_stem_to_ci failed", msg, fixed = TRUE)))
-  expect_false(isTRUE(grepl("do not bracket the root", msg, fixed = TRUE)))
+  # Neither a failed ci root-find nor a root-find handed a bracket with no sign
+  # change.
+  expect_false(isTRUE(grepl("[phylloptim:infeasible:ci_solve]", msg, fixed = TRUE)))
+  expect_false(isTRUE(grepl("do not bracket", msg, fixed = TRUE)))
 })
 
 # The two blocks that stood here drove an adaptive interpolator through an

@@ -1,7 +1,7 @@
 #include <plant/numerics/fp_contract.h>
 #include <plant/models/stem_hydraulics.h>
 #include <plant/numerics/gradient.h>
-#include <plant/numerics/uniroot.h>
+#include <odelia/root_find.hpp>
 #include <plant/util.h>
 #include <plant/util_post_rcpp.h> // RFunctionWrapper
 #include <Rcpp.h>
@@ -39,7 +39,7 @@ double test_stem_effective_path_length(double L_top, double L_tip, double beta) 
 
 // [[Rcpp::export]]
 double test_uniroot(Rcpp::Function f, double min, double max) {
-  using namespace plant::util;
   const double tol = 1e-6;
-  return uniroot(RFunctionWrapper(f), min, max, tol);
+  return odelia::root::toms748(plant::util::RFunctionWrapper(f), min, max,
+                               {tol, tol});
 }

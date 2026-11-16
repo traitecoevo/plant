@@ -9,7 +9,7 @@
 #include <plant/control.h>
 #include <plant/community/internals.h>
 #include <plant/util.h>
-#include <plant/numerics/uniroot.h>
+#include <odelia/root_find.hpp>
 #include <RcppCommon.h> // NA_REAL
 #include <plant/models/extrinsic_drivers.h>
 #include <plant/models/pars_table.h>
