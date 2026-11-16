@@ -94,6 +94,7 @@ Key headers to know:
 | Cohort / species / patch | [node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h), [patch.h](inst/include/plant/patch.h) |
 | Deterministic solver | [scm.h](inst/include/plant/scm.h), helpers in [scm_utils.h](inst/include/plant/scm_utils.h) |
 | Stochastic solver | [stochastic_patch_runner.h](inst/include/plant/stochastic_patch_runner.h), `stochastic_patch.h`, `stochastic_species.h` |
+| What the two solvers share | [species_base.h](inst/include/plant/species_base.h), [patch_base.h](inst/include/plant/patch_base.h) (the ODE system's layout), [patch_runner_base.h](inst/include/plant/patch_runner_base.h); a change to one solver's ODE interface, competition or schedule handling belongs here, so the other cannot miss it |
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
 | Disturbance | [disturbances/weibull_disturbance.h](inst/include/plant/disturbances/weibull_disturbance.h), `no_disturbance.h` |
 | Leaf-level physiology | [leaf_model.h](inst/include/plant/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
