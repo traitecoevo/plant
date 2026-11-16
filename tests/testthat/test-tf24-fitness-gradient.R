@@ -69,12 +69,12 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
   pinned <- solver$parameters
   pinned$ode_times <- solver$ode_times
   pinned$ode_step_sizes <- solver$ode_step_sizes
-  # lma and omega set the seed height, which is solved to a root tolerance that
-  # a difference reads: omega's is off by 2.5e-2 at a step of 1e-5 and 8e-4 at
-  # 1e-3. a_d0's difference is flat from 1e-3 to 1e-4 and rounds below it, so
-  # it takes 1e-4. Every other column is differenced at 1e-5, where the
-  # truncation error on hmat is 6e-5 against 5e-3 at 1e-4. All are held to 1e-4.
-  birth_size <- c("lma", "omega")
+  # lma and omega set the seed height, a root a difference reads at the root
+  # tolerance: at offspring_height_tol = 1e-8 their columns fail this test,
+  # so it also guards that tolerance. a_d0's difference is flat from 1e-3 to
+  # 1e-4 and rounds below it, so it takes 1e-4. Every other column is
+  # differenced at 1e-5, where the truncation error on hmat is 6e-5 against
+  # 5e-3 at 1e-4. All are held to 1e-4.
   rounding_floor <- "a_d0"
   difference <- function(set, x, rel) {
     h <- rel * abs(x)
@@ -93,17 +93,15 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
     q
   }
   for (name in c(names, "birth_rate")) {
-    rel <- if (name %in% birth_size) 1e-3
-           else if (name %in% rounding_floor) 1e-4 else 1e-5
+    rel <- if (name %in% rounding_floor) 1e-4 else 1e-5
     fd <- if (name == "birth_rate") {
       difference(with_birth_rate, pinned$strategies[[1]]$birth_rate_y, rel)
     } else {
       difference(with_parameter(name), pinned$strategies[[1]]$pars[[name]], rel)
     }
-    tolerance <- if (name %in% birth_size) 5e-3 else 1e-4
     for (metric in metrics) {
       expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd[[metric]]),
-                tolerance * abs(fd[[metric]]), label = paste(metric, name))
+                1e-4 * abs(fd[[metric]]), label = paste(metric, name))
     }
   }
   # S_D multiplies the whole integral, so its column is the value over S_D.

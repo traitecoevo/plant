@@ -246,19 +246,18 @@ double TF24_Model<S>::height_seed(void) const {
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = height_given_mass_leaf(pars.omega);
 
-  const double tol = this->control.offspring_production_tol;
-  const size_t max_iterations = this->control.offspring_production_iterations;
+  const double tol = this->control.offspring_height_tol;
 
   auto target = [&] (double x) mutable -> S {
     return mass_live_given_height(x) - pars.omega;
   };
 
   if constexpr (std::is_same_v<S, double>) {
-    return util::uniroot(target, h0, h1, tol, max_iterations);
+    return util::uniroot(target, h0, h1, tol);
   } else {
-    // Bisection is affine in its bracket and blind to the residual's values, so
-    // recording the search would return d(h1)/d(trait) rather than the height at
-    // which mass_live equals the seed mass. Declare it by the residual instead.
+    // Recording the search would differentiate the iterate, whose path through
+    // the bracket is not the root's, rather than the height at which mass_live
+    // equals the seed mass. Declare it by the residual instead.
     static_assert(std::is_same_v<S, double>,
                   "height_seed() finds its root by iteration; an active scalar must "
                   "declare it through implicit_value on the residual.");

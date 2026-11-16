@@ -992,9 +992,9 @@ ladder_boundary_tangent <- function(patch, name, species = 1L) {
 # differentiated path, and the state is imposed rather than reconditioned, so both
 # sides are partial derivatives at one state. The free check that they are is that
 # they agree on the value, and every caller asserts it before reading a row.
-# What a central difference of a bisected root-find can be worth.
+# What a central difference of a bracketed root-find can be worth.
 #
-# height_seed() runs util::uniroot at offspring_production_tol, which is passed as
+# height_seed() runs util::uniroot at offspring_height_tol, which is passed as
 # BOTH the absolute and the relative tolerance, and returns the midpoint of the
 # final bracket. So the bracket is at most tol * (1 + root) wide, each evaluation
 # is at most half of that from the root, and a central difference of two of them
@@ -1002,8 +1002,8 @@ ladder_boundary_tangent <- function(patch, name, species = 1L) {
 #
 # This error RISES as the step falls, so the gap between two steps reads the
 # opposite of it and a floor taken that way is blind to the whole of it.
-ladder_bisection_bound <- function(patch, species, root, step, row) {
-  tol <- patch$parameters$strategies[[species]]$control$offspring_production_tol
+ladder_root_find_bound <- function(patch, species, root, step, row) {
+  tol <- patch$parameters$strategies[[species]]$control$offspring_height_tol
   tol * (1 + root) / (2 * step * abs(row))
 }
 

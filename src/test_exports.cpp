@@ -41,6 +41,5 @@ double test_stem_effective_path_length(double L_top, double L_tip, double beta) 
 double test_uniroot(Rcpp::Function f, double min, double max) {
   using namespace plant::util;
   const double tol = 1e-6;
-  const size_t max_iterations = 100;
-  return uniroot(RFunctionWrapper(f), min, max, tol, max_iterations);
+  return uniroot(RFunctionWrapper(f), min, max, tol);
 }

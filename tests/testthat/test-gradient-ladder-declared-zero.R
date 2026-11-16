@@ -91,7 +91,7 @@ test_that("the birth-size channel is priced rather than asserted", {
     expect_true(is.finite(ratio))
     # ⚠️ DELIBERATELY THREE ORDERS LOOSER THAN THE READING, and the looseness is
     # what makes it assertable. Every ratio reads 1.000 and 1e-04 would hold with
-    # an order of margin, but the reference differences the same bisected
+    # an order of margin, but the reference differences the same bracketed
     # root-find the row check below bounds, and its floor is measured as a gap
     # between steps -- which reads the opposite of an error that rises as the
     # step falls. So a bound taken off that ladder would be a claim about a
@@ -121,7 +121,7 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
     expect_false(is.na(at))
     # Named rather than defaulted: the bound below is the reference's own error at
     # THIS step, so the two have to be one number.
-    rel <- 1e-4
+    rel <- 1e-5
     got <- ladder_seed_geometry_tangent_tf24(patch, at)
     ref <- ladder_boundary_difference(patch, name, rel = rel)
 
@@ -136,21 +136,22 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
     expect_gt(abs(got$dheight), 0)
 
     # And the row, against a difference of the rebuilt root. What bounds it is
-    # where the root-find stopped, not how fine the step is: the reference
-    # differences a bisection whose answer is quantised at half a bracket, and a
-    # relative step of 1e-4 in the parameter is a step of a few nanometres in the
-    # height, which is smaller than the quantisation it is dividing.
+    # where the root-find stopped: the reference differences a bracketed
+    # root-find whose answer lies anywhere in half its final bracket, and that
+    # error grows as the step falls.
     #
-    # 1e-4 is also where this is the WHOLE bound: the reference's truncation there
-    # is a ten-thousandth of it for every one of the eight. At 1e-3 truncation
-    # returns at a seventh and the bound would need a second term.
+    # The bound shrinks with the root tolerance and truncation does not, so the
+    # step is chosen at the default tolerance (1e-12). There 1e-5 is where this
+    # is the WHOLE bound: every one of the eight uses at most a third of it. At
+    # 1e-4 truncation reaches it (a_l2 exceeds it), and at 1e-3 every one but
+    # a_b1 does, so a coarser step would need a second term.
     #
     # No factor of ten. This is a hard interval, not a scale estimate, so over it
-    # means the row disagrees by more than a bisected root-find can account for.
+    # means the row disagrees by more than a bracketed root-find can account for.
     ladder_report_margin(
       sprintf("the seed height's row, %s", name),
       abs(got$dheight - ref$row[["height"]]) / abs(ref$row[["height"]]),
-      ladder_bisection_bound(
+      ladder_root_find_bound(
         patch, 1L, ref$value[["height"]],
         abs(ladder_strategy_parameter(patch, 1L, name)) * rel,
         ref$row[["height"]]))

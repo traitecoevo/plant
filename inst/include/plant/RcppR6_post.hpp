@@ -529,8 +529,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["shading_model"] = Rcpp::wrap(x.shading_model);
   ret["ppa_layer_optical_depth"] = Rcpp::wrap(x.ppa_layer_optical_depth);
   ret["ppa_layer_smoothing"] = Rcpp::wrap(x.ppa_layer_smoothing);
-  ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
-  ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
+  ret["offspring_height_tol"] = Rcpp::wrap(x.offspring_height_tol);
   ret["node_gradient_eps"] = Rcpp::wrap(x.node_gradient_eps);
   ret["node_gradient_direction"] = Rcpp::wrap(x.node_gradient_direction);
   ret["node_gradient_richardson"] = Rcpp::wrap(x.node_gradient_richardson);
@@ -577,10 +576,8 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("ppa_layer_optical_depth")) ret.ppa_layer_optical_depth = Rcpp::as<double >(xl["ppa_layer_optical_depth"]);
   // ret.ppa_layer_smoothing = Rcpp::as<decltype(retppa_layer_smoothing) >(xl["ppa_layer_smoothing"]);
   if (xl.containsElementNamed("ppa_layer_smoothing")) ret.ppa_layer_smoothing = Rcpp::as<double >(xl["ppa_layer_smoothing"]);
-  // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
-  if (xl.containsElementNamed("offspring_production_tol")) ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
-  // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);
-  if (xl.containsElementNamed("offspring_production_iterations")) ret.offspring_production_iterations = Rcpp::as<int >(xl["offspring_production_iterations"]);
+  // ret.offspring_height_tol = Rcpp::as<decltype(retoffspring_height_tol) >(xl["offspring_height_tol"]);
+  if (xl.containsElementNamed("offspring_height_tol")) ret.offspring_height_tol = Rcpp::as<double >(xl["offspring_height_tol"]);
   // ret.node_gradient_eps = Rcpp::as<decltype(retnode_gradient_eps) >(xl["node_gradient_eps"]);
   if (xl.containsElementNamed("node_gradient_eps")) ret.node_gradient_eps = Rcpp::as<double >(xl["node_gradient_eps"]);
   // ret.node_gradient_direction = Rcpp::as<decltype(retnode_gradient_direction) >(xl["node_gradient_direction"]);

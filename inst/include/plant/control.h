@@ -52,8 +52,9 @@ struct Control {
   // version). They are the same `ppa` shading model, not separate models.
   double ppa_layer_smoothing;
 
-  double offspring_production_tol;
-  size_t offspring_production_iterations;
+  // Tolerance of the root-finds for a newborn's height (the height whose live
+  // mass is the seed mass) and the light compensation point.
+  double offspring_height_tol;
 
   double node_gradient_eps;
   int    node_gradient_direction;

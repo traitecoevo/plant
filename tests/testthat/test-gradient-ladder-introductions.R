@@ -544,7 +544,14 @@ test_that("the census's sensitivity to a segment's starting state is refereed", 
     coarse <- along(1e-5)
     fine <- along(1e-6)
     scale <- max(abs(fine))
-    if (scale == 0) {
+    # What a difference at the fine step can resolve: a few ulps of the census
+    # over the step. Below it the difference returns rounding, an exact zero or
+    # an ulp over the step by chance, and which it returns reshuffles whenever
+    # the census moves in its last bits (as when the seed-height root-find
+    # changed), so a scale taken off it is noise.
+    resolution <- 4 * .Machine$double.eps * max(abs(none$value)) /
+      (max(abs(base[[i]]), 1) * 1e-6)
+    if (scale <= resolution) {
       # ⚠️ NOT A SKIP, AND IT WAS ONE. The difference says this component reaches
       # no census metric, and the tangent has to say the same: a live tangent
       # beside a dead difference is a channel one route has and the other does
@@ -553,14 +560,14 @@ test_that("the census's sensitivity to a segment's starting state is refereed", 
       # count is how it hid: the file went 104 passes to 103 when one more
       # component joined this branch, with a message rather than a failure.
       # ⚠️ THE BOUND IS THE CENSUS'S RESOLUTION, NOT ZERO, and the difference
-      # between the two readings is what this measures. Components 6 to 9 come
-      # back EXACTLY 0.00e+00 -- structurally dead, no channel at all. Component 4
-      # comes back 2.2e-11 of the census: a live channel whose response is below
-      # what a replayed difference can carry, so the difference reads a hard zero
-      # and lands here. Holding it to 1e-12 would report the census's own last
-      # bits as a disagreement between the two routes.
+      # between the two readings is what this measures. Some components come
+      # back EXACTLY 0.00e+00 -- structurally dead, no channel at all. Others
+      # respond at about 1e-11 of the census: live channels whose response is
+      # below what a replayed difference can carry, so the difference reads
+      # rounding and lands here. Holding them to 1e-12 would report the census's
+      # own last bits as a disagreement between the two routes.
       ladder_report_margin(
-        sprintf("d(census)/d(segment 0 state %d) is zero on both routes", i),
+        sprintf("d(census)/d(segment 0 state %d) is below a difference's resolution", i),
         max(abs(tangent)) / max(abs(none$value)), 1e-9)
       next
     }

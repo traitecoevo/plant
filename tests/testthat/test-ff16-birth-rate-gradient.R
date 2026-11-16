@@ -6,7 +6,7 @@
 # birth rate is a driver and has no column.
 
 birth_control <- function(...) {
-  Control(node_density_coordinate = "birth_date", offspring_production_tol = 1e-12,
+  Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
           ...)
 }
 
