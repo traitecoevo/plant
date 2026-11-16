@@ -1,8 +1,8 @@
 #include <plant.h>
 #include <string>
 
-// The R-facing exports that have one entry per model. A new model adds its
-// entry to each section below.
+// R-facing exports with one entry per model. A new model adds its entries to
+// each section below, and its allometry export to src/strategy_expand.cpp.
 
 // --- Node schedules ----------------------------------------------------------
 

@@ -52,9 +52,12 @@
 #   whether they bite     sweep, injection
 #
 # A margin is not a pass: a check passing at three-quarters of its budget is
-# about to stop working. Nor is a skip: no check here has a skip gate, so a skip
-# is a check that has stopped asking its question. Run them all with
-# testthat::test_dir("tests/testthat", filter = "gradient-ladder").
+# about to stop working. Nor is a skip. Only two gates can skip: a trajectory
+# leaving the declared regime (model-invariants) and a missing captured
+# reference (whole-run-difference). Any other skip is a check that has stopped
+# asking its question, so read the skip count beside the failures. Build
+# optimised first (`make`), then run them all from the package root with
+# testthat::test_local(filter = "gradient-ladder").
 
 # Chosen so that no two of the per-species reduction parameters are equal or in a
 # small-integer ratio between the species. A reduction sum that collapses the

@@ -59,7 +59,7 @@ Every file below names each model by hand. Search each one for the parent's name
 |---|---|
 | `inst/include/plant.h` | `#include <plant/models/<name>_model.h>` |
 | `inst/RcppR6_classes.yml` | The `<Name>_Model:` block, and the new pair in every `templates:` list that names the parent (eleven for TF24t: `IndividualRunner`, `Individual`, `Parameters`, `Node`, `Species`, `Patch`, `DeterministicPatchRunner`, `StochasticSpecies`, `StochasticPatch`, `StochasticPatchRunner`, `OdeRunner`). An own environment adds its own block. |
-| `src/model_exports.cpp` | One entry in each section: the `schedule_default` and `make_schedule` exports for `Parameters<<Name>, <Env>>` (copy TF24t's), `<Name>_oderunner_individual_internals`, and the model's arm in `strategy_scientific_version()`, which R's `model_version()` reads. |
+| `src/model_exports.cpp` | The model's entries in each of its three sections: the `schedule_default` and `make_schedule` exports for `Parameters<<Name>, <Env>>` (copy TF24t's), `<Name>_oderunner_individual_internals`, and the model's arm in `strategy_scientific_version()`, which R's `model_version()` reads. |
 | `src/strategy_expand.cpp` | `<Name>_strategy_expand_allometry`. |
 | `R/<name>.R` | `<Name>_Individual()`, `<Name>_Parameters()` and `<Name>_expand_state()` (copy `R/tf24t.R`). |
 | `R/strategy_support.R` | Every `switch()` that has an arm per model: `environment_type()`, `Environment()`, `expand_state`. The node-schedule helpers need no arm: they are found by the names their exports in `src/model_exports.cpp` carry. |

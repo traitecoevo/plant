@@ -27,7 +27,7 @@ double test_gradient_richardson(Rcpp::Function f, double x, double d,
   return gradient_richardson(RFunctionWrapper(f), x, d, r);
 }
 
-// The closed-form stem path integral, so that
+// Exposes the closed-form stem path integral, so that
 // tests/testthat/test-tf24-stem-hydraulics.R can exercise the function directly
 // without constructing a strategy -- which is what makes the bit-identity
 // assertion cheap enough to run over a grid of heights.
