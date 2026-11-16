@@ -463,6 +463,7 @@ test_that("a schedule the stochastic runner cannot take leaves it as it was", {
   p$max_patch_lifetime <- 1
   p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
                                        birth_rate = 1))
+  set.seed(1)
   obj <- stochastic_runner(p, Environment("FF16"),
                            Control(stochastic_death_interval = 0.25))
   obj$set_node_schedule_times(list(c(0.1, 0.33)))
