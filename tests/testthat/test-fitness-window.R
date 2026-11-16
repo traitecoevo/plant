@@ -61,20 +61,20 @@ test_that("a window refuses what it cannot weight by", {
 
 test_that("the net reproduction ratio is the window average of per-node lifetime output", {
   p <- fitness_window(ff16_parameters(30), 10, 20)
-  scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
-  sp <- scm$patch$species[[1]]
+  solver <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
+  sp <- solver$patch$species[[1]]
   t <- sp$node_times
   fec <- sp$net_reproduction_ratio_by_node
   S_D <- p$strategies[[1]]$pars$S_D
   d <- ifelse(t >= 10 & t <= 20, 1 / 10, 0)
   ## The same trapezia the patch takes, over the window's cohorts, with the
   ## window's density at each birth date: output times weight over weight.
-  expect_equal(scm$patch$net_reproduction_ratios, window_mean_of(t, fec * S_D, d),
+  expect_equal(solver$patch$net_reproduction_ratios, window_mean_of(t, fec * S_D, d),
                tolerance = 1e-12)
   ## Which is the weighted mean of the cohorts' output, so it sits inside their range.
   inside <- t >= 10 & t <= 20
-  expect_gte(scm$patch$net_reproduction_ratios, min(fec[inside]) * S_D)
-  expect_lte(scm$patch$net_reproduction_ratios, max(fec[inside]) * S_D)
+  expect_gte(solver$patch$net_reproduction_ratios, min(fec[inside]) * S_D)
+  expect_lte(solver$patch$net_reproduction_ratios, max(fec[inside]) * S_D)
   ## Cohorts born outside the window carry no weight.
   expect_true(all(sp$patch_densities[t < 10 | t > 20] == 0))
   expect_true(all(sp$patch_densities[t >= 10 & t <= 20] == 0.1))
@@ -86,8 +86,8 @@ test_that("the net reproduction ratio is the window average of per-node lifetime
 test_that("offspring production is the window mean of output times birth rate", {
   p <- fitness_window(ff16_parameters(30), 10, 20)
   p$strategies[[1]]$birth_rate_y <- 3
-  scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
-  expect_equal(scm$patch$offspring_production, 3 * scm$patch$net_reproduction_ratios,
+  solver <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
+  expect_equal(solver$patch$offspring_production, 3 * solver$patch$net_reproduction_ratios,
                tolerance = 1e-12)
 })
 
@@ -144,16 +144,16 @@ test_that("periodic introduction times stop short of the run's end", {
   expect_error(node_schedule_times_periodic(10, 0, 1), "exceed")
   p <- ff16_parameters(20)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 20, 1))
-  scm <- run(p)$solver
-  expect_equal(scm$patch$species[[1]]$node_times, 0:19)
+  solver <- run(p)$solver
+  expect_equal(solver$patch$species[[1]]$node_times, 0:19)
 })
 
 test_that("the window survives the rebind a gradient runs on", {
   ## rebind rebuilds the regime from the parameters it copies; a copy
   ## that left the window behind could not build a "window" patch at all.
   p <- fitness_window(ff16_parameters(10), 2, 8)
-  scm <- run(p, control = Control(node_density_coordinate = "birth_date"), record = "states")$solver
-  g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
+  solver <- run(p, control = Control(node_density_coordinate = "birth_date"), record = "states")$solver
+  g <- stand_gradient(solver, metrics = "leaf_area", hyperpar = NULL)
   expect_true(all(is.finite(g$gradient)))
 })
 
@@ -167,8 +167,8 @@ test_that("a converged stand's window average does not depend on the window", {
   p <- ff16_parameters(500)
   p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 500, 1))
-  scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
-  sp <- scm$patch$species[[1]]
+  solver <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
+  sp <- solver$patch$species[[1]]
   t <- sp$node_times
   out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
   window_mean <- function(a, b) {
@@ -185,8 +185,8 @@ test_that("a converged stand's window average does not depend on the window", {
   expect_gt(abs(window_mean(400, 500) / early - 1), 1e-2)
   ## And the regime run with one of these windows agrees with the post-hoc mean.
   q <- fitness_window(p, 200, 300)
-  scm2 <- run(q, control = Control(node_density_coordinate = "birth_date"))$solver
-  expect_equal(scm2$patch$net_reproduction_ratios, late, tolerance = 1e-10)
+  solver2 <- run(q, control = Control(node_density_coordinate = "birth_date"))$solver
+  expect_equal(solver2$patch$net_reproduction_ratios, late, tolerance = 1e-10)
 })
 
 test_that("cohorts seeded from a burn-in weigh nothing before the window", {
@@ -204,21 +204,21 @@ test_that("cohorts seeded from a burn-in weigh nothing before the window", {
   p2 <- fitness_window(ff16_parameters(40), 25, 35)
   p2 <- set_initial_state(p2, state)
   p2$node_schedule_times <- list(node_schedule_times_periodic(20, 40, 1))
-  scm <- run(p2, control = ctrl)$solver
-  sp <- scm$patch$species[[1]]
+  solver <- run(p2, control = ctrl)$solver
+  sp <- solver$patch$species[[1]]
   t <- sp$node_times
   expect_true(all(sp$patch_densities[t < 25] == 0))
   expect_true(all(sp$patch_densities[t >= 25 & t <= 35] == 0.1))
   out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
   d <- ifelse(t >= 25 & t <= 35, 0.1, 0)
-  expect_equal(scm$patch$net_reproduction_ratios, window_mean_of(t, out, d),
+  expect_equal(solver$patch$net_reproduction_ratios, window_mean_of(t, out, d),
                tolerance = 1e-12)
   ## A resume under the regime that stamped the export is unchanged by this.
   p3 <- set_initial_state(ff16_parameters(40), state)
   p3$fitness_weighting <- "none"
   p3$node_schedule_times <- list(node_schedule_times_periodic(20, 40, 1))
-  scm3 <- run(p3, control = ctrl)$solver
-  expect_true(all(scm3$patch$species[[1]]$patch_densities == 1))
+  solver3 <- run(p3, control = ctrl)$solver
+  expect_true(all(solver3$patch$species[[1]]$patch_densities == 1))
 })
 
 test_that("cohorts outside the window do not move the ratio", {
@@ -239,8 +239,8 @@ test_that("cohorts outside the window do not move the ratio", {
   p <- fitness_window(p, 10, 20)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1),
                                 node_schedule_times_periodic(10, 100, 1))
-  scm <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
-  r <- scm$patch$net_reproduction_ratios
+  solver <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
+  r <- solver$patch$net_reproduction_ratios
   expect_gt(r[[1]], 1)
   ## Not to rounding. A cohort's output carries the establishment averaged
   ## over its cell, and the resident's first window cohort has the half

@@ -31,22 +31,22 @@ eb_stand_run <- function(p, record = TRUE) {
 
 test_that("with the energy balance on, the light field's column is the pinned-step difference", {
   p <- eb_stand_parameters()
-  scm <- eb_stand_run(p)
+  solver <- eb_stand_run(p)
   off <- p
   off$strategies[[1]]$pars$use_energy_balance <- 0
   # The balance is live here: it moves fitness by orders of magnitude.
   expect_gt(stand_fitness(eb_stand_run(off, record = FALSE))[[1]],
-            10 * stand_fitness(scm)[[1]])
+            10 * stand_fitness(solver)[[1]])
 
   metrics <- c("1.net_reproduction_ratio", "1.offspring_production")
   names <- c("k_I", "vcmax_25")
-  g <- stand_gradient(scm, metrics = metrics, traits = paste0("1.", names),
+  g <- stand_gradient(solver, metrics = metrics, traits = paste0("1.", names),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
 
-  pinned <- scm$parameters
-  pinned$ode_times <- scm$ode_times
-  pinned$ode_step_sizes <- scm$ode_step_sizes
+  pinned <- solver$parameters
+  pinned$ode_times <- solver$ode_times
+  pinned$ode_step_sizes <- solver$ode_step_sizes
   for (name in names) {
     x <- pinned$strategies[[1]]$pars[[name]]
     h <- 1e-5 * abs(x)

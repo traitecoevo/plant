@@ -42,7 +42,8 @@ std::string event_type_target_list(EventType type);
 // polymorphic actions over the templated Patch would have cost.
 //
 // This is a wire format only -- the schedule is the single source of truth
-// during a run. Events goes in when the SCM is built and comes back out of the
+// during a run. Events goes in when the deterministic runner is built and comes
+// back out of the
 // schedule afterwards, so a schedule refined mid-run round-trips.
 class Events {
 public:

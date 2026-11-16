@@ -94,7 +94,7 @@ models:
     title: 'K93: Kohyama 1993'
     header: inst/include/plant/models/k93_model.h
     unfilled:
-      w: 'K93 declares no census_metrics(), so a census of it is refused at compile time (SCM::metrics_of) and it has no per-individual quantity for a stand total to sum.'
+      w: 'K93 declares no census_metrics(), so a census of it is refused at compile time (DeterministicPatchRunner::metrics_of) and it has no per-individual quantity for a stand total to sum.'
   TF24:
     title: 'TF24: Towers et al. 2024, with storage, flexible allometry and a soil column'
     header: inst/include/plant/models/tf24_model.h
@@ -223,7 +223,7 @@ parameters:
     units: 'm²'
     class: setting
     meaning: 'ground area of the patch; the summed competition contribution is divided by it'
-    source: Parameters default; the SCM warns unless it is 1
+    source: Parameters default; the deterministic runner warns unless it is 1
     placeholder: false
     code: plant::Parameters::patch_area
 
@@ -2337,8 +2337,8 @@ equations:
     title: A stand total within a patch
     latex: |
       W(a) = \sum_{i = 1}^{K} \int_{0}^{\infty} N(H | x_i, a)\, w(x_i, H, E_a) \, {\rm d}H
-    code: plant::SCM::census_sum
-    also: [plant::Species::census_integral, plant::Individual::census_value, plant::SCM::census]
+    code: plant::DeterministicPatchRunner::census_sum
+    also: [plant::Species::census_integral, plant::Individual::census_value, plant::DeterministicPatchRunner::census]
     reads: [w]
     writes: []
     kind: integrator

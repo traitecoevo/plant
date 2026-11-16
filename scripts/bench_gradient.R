@@ -26,8 +26,8 @@ ctrl <- Control(node_density_coordinate = "birth_date")
 
 sweep <- function() {
   t_run <- system.time(
-    scm <- run(p, NULL, ctrl, record = "states")$solver)[["elapsed"]]
-  t_sweep <- system.time(stand_gradient(scm, hyperpar = NULL))[["elapsed"]]
+    solver <- run(p, NULL, ctrl, record = "states")$solver)[["elapsed"]]
+  t_sweep <- system.time(stand_gradient(solver, hyperpar = NULL))[["elapsed"]]
   c(t_run, t_sweep)
 }
 

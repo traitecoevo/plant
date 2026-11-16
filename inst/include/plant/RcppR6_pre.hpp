@@ -160,23 +160,23 @@ template <> plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<dou
 
 template <> SEXP wrap(const plant::Patch<plant::K93_Model,plant::K93_Environment>&);
 template <> plant::Patch<plant::K93_Model,plant::K93_Environment> as(SEXP);
-template <> SEXP wrap(const plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> >&);
-template <> plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP);
+template <> SEXP wrap(const plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> >&);
+template <> plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
+template <> SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> >&);
+template <> plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
+template <> SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >&);
+template <> plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
+template <> SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >&);
+template <> plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
+template <> SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >&);
+template <> plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::K93_Model,plant::K93_Environment>&);
-template <> plant::SCM<plant::K93_Model,plant::K93_Environment> as(SEXP);
+template <> SEXP wrap(const plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment>&);
+template <> plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> >&);
 template <> plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP);
 

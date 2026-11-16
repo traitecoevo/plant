@@ -17,7 +17,7 @@ namespace plant {
 // differently, and the adaptive ODE amplifies that (offspring_production
 // shifts ~0.2%).
 
-// one-shot update of the scm variables
+// one-shot update of the model's ODE variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 template <typename S>
 void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Internals<S>& vars) {
@@ -426,7 +426,7 @@ S TF24_Model<S>::turnover_coarse_root(const S& mass) const {
 // Net production
 //
 // NOTE: Translation of variable names from the Falster 2011.  Everything
-// before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
+// before the minus sign is their N, our `net_mass_production_dt` is their P.
 template <typename S>
 S TF24_Model<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
                                 const S& turnover) const {

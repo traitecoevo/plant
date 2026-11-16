@@ -27,12 +27,12 @@ incidence_key <- function(rain, lifetime, k_I, introductions) {
 incidence_built <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
   key <- incidence_key(rain, lifetime, k_I, introductions)
   if (is.null(incidence_cache[[key]])) {
-    scm <- ladder_driver_stand(rain, lifetime, k_I, introductions = introductions)
+    solver <- ladder_driver_stand(rain, lifetime, k_I, introductions = introductions)
     incidence_cache[[key]] <- list(
-      scm = scm,
-      kinds = stats::setNames(census_operating_point_counts_tf24(scm)[[1]],
+      solver = solver,
+      kinds = stats::setNames(census_operating_point_counts_tf24(solver)[[1]],
                               census_operating_point_names_tf24()),
-      clamps = stats::setNames(census_clamp_counts_tf24(scm)[[1]],
+      clamps = stats::setNames(census_clamp_counts_tf24(solver)[[1]],
                                census_clamp_names_tf24()))
   }
   incidence_cache[[key]]
@@ -44,18 +44,18 @@ incidence_swept <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
   key <- incidence_key(rain, lifetime, k_I, introductions)
   entry <- incidence_built(rain, lifetime, k_I, introductions)
   if (is.null(entry$gradient)) {
-    entry$gradient <- stand_gradient(entry$scm, hyperpar = NULL)
+    entry$gradient <- stand_gradient(entry$solver, hyperpar = NULL)
     entry$swept <-
-      stats::setNames(census_clamp_counts_differentiated_tf24(entry$scm)[[1]],
+      stats::setNames(census_clamp_counts_differentiated_tf24(entry$solver)[[1]],
                       census_clamp_names_tf24())
-    entry$curvature <- census_curvature_margin_tf24(entry$scm)[[1]]
+    entry$curvature <- census_curvature_margin_tf24(entry$solver)[[1]]
     incidence_cache[[key]] <- entry
   }
   entry
 }
 
 incidence_stand <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
-  incidence_built(rain, lifetime, k_I, introductions)$scm
+  incidence_built(rain, lifetime, k_I, introductions)$solver
 }
 
 # The classification tally as the RUN left it, never as a swept object reports it.
@@ -76,11 +76,11 @@ test_that("the classification tally is the route to a regime's incidence", {
   # its own: clearing is destructive and every other block here reads a shared
   # one. A patch lifetime of 1 is the shortest stand that carries cohorts, so
   # this costs a second.
-  scm <- ladder_driver_stand(2.0, 1)
-  counts <- census_operating_point_counts_tf24(scm)[[1]]
+  solver <- ladder_driver_stand(2.0, 1)
+  counts <- census_operating_point_counts_tf24(solver)[[1]]
   expect_gt(sum(counts), 0)
-  census_clear_diagnostics_tf24(scm)
-  expect_equal(sum(census_operating_point_counts_tf24(scm)[[1]]), 0)
+  census_clear_diagnostics_tf24(solver)
+  expect_equal(sum(census_operating_point_counts_tf24(solver)[[1]]), 0)
 })
 
 test_that("a dry stand is interior throughout, and answers", {
@@ -133,7 +133,7 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   # are shares of this stand's own solves. Measured, the two readings differ in
   # nothing this block asserts and the thinned one costs 18 s against 258.
   entry <- incidence_built(2.0, 5, k_I = 40, introductions = 20L)
-  walked <- entry$scm
+  walked <- entry$solver
   fired <- entry$clamps
   solves <- sum(entry$kinds)
   # Counts, not a share of solves: the crown site is counted once per quadrature
@@ -303,8 +303,8 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
   for (d in list(list(rain = 2.00, name = "wet"),
                  list(rain = 0.10, name = "drought"),
                  list(rain = 0.05, name = "very-dry"))) {
-    scm <- incidence_stand(d$rain, 5)
-    e <- scm$patch$environment
+    solver <- incidence_stand(d$rain, 5)
+    e <- solver$patch$environment
     nlayer <- e$get_soil_number_of_depths()
     # ⚠️ THE TRAILING SLOT COUNT IS ASKED FOR, NOT COUNTED. The environment's
     # block is the soil layers followed by its cumulative-flux accumulators, and
@@ -320,7 +320,7 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
     # clamp would bind in. The forward run keeps them, so this costs no sweep:
     # measured, the three drivers contribute 510, 2503 and 3715 records whether
     # or not a gradient has been taken on them.
-    for (r in scm$store_recording()) {
+    for (r in solver$store_recording()) {
       s <- r$state
       n <- length(s)
       theta <- s[(n - nlayer - n_aux + 1):(n - n_aux)]
@@ -347,7 +347,7 @@ test_that("the curvature guard reports how close it came, not only that it held"
   # gradients taken at different values are gradients of different functions.
   wet <- incidence_swept(2.0, 5)
   margin <- wet$curvature
-  floor <- gradient_control(wet$scm)[["gradient_curvature_floor"]]
+  floor <- gradient_control(wet$solver)[["gradient_curvature_floor"]]
   message(sprintf("  smallest curvature met: %.4g, against a floor of %.4g (%.0fx)",
                   margin, floor, margin / floor))
   # Non-vacuity both ways: a margin of -1 means the interior branch was never
@@ -357,5 +357,5 @@ test_that("the curvature guard reports how close it came, not only that it held"
   # And the floor is in the set stand_gradient compares, or two gradients taken
   # at different floors would read as comparable.
   expect_true("gradient_curvature_floor" %in%
-                names(gradient_control(wet$scm)))
+                names(gradient_control(wet$solver)))
 })

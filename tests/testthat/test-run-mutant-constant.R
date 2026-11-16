@@ -1,5 +1,6 @@
 # Invaders of a stand at a fixed point (#519): the resident makes one field, and
-# an invader stands in it, constant, for its whole life (SCM$run_mutant_constant,
+# an invader stands in it, constant, for its whole life
+# (DeterministicPatchRunner$run_mutant_constant,
 # fixed_point_fitness). The referee is the same cohort born into the running
 # stand, which sees the field the stand actually makes.
 
@@ -10,9 +11,9 @@ ff16_fixed_point <- function(b = 1, t_eq = 300, absorb = 0.02, by = 1) {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = b)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, t_eq + 1, by))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = absorb)
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
-  scm$run_to(t_eq)
-  list(scm = scm, p = p, ctrl = ctrl, t_eq = t_eq, b = b)
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
+  solver$run_to(t_eq)
+  list(solver = solver, p = p, ctrl = ctrl, t_eq = t_eq, b = b)
 }
 
 # The cohorts of each strategy born at the reading year, run out `life` years in
@@ -25,8 +26,8 @@ in_stand_fitness <- function(fp, lma, life = 400) {
                       birth_rate = fp$b * 1e-6)
   p$node_schedule_times[[2]] <- fp$t_eq
   p <- fitness_window(p, fp$t_eq, fp$t_eq + 1)
-  scm <- run(p, control = fp$ctrl)$solver
-  sp <- scm$patch$species
+  solver <- run(p, control = fp$ctrl)$solver
+  sp <- solver$patch$species
   S_D <- p$strategies[[1]]$pars$S_D
   c(resident = sp[[1]]$net_reproduction_ratio_by_node[sp[[1]]$node_times == fp$t_eq] * S_D,
     invader = sp[[2]]$net_reproduction_ratio_by_node[[1]] * S_D)
@@ -35,7 +36,7 @@ in_stand_fitness <- function(fp, lma, life = 400) {
 test_that("an invader in the fixed point's constant field scores its cohort in the stand", {
   fp <- ff16_fixed_point()
   lma <- c(0.0825, 0.06, 0.1)
-  in_field <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(lma, "lma"))
+  in_field <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(lma, "lma"))
   expect_true(all(is.finite(in_field)) && all(in_field > 0))
   for (k in seq_along(lma)) {
     ref <- in_stand_fitness(ff16_fixed_point(), lma[k])
@@ -52,12 +53,12 @@ test_that("an invader in the fixed point's constant field scores its cohort in t
 
 test_that("every invader stands in the field taken at the first call", {
   fp <- ff16_fixed_point(t_eq = 150)
-  a <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
+  a <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"))
   # Run again alone, the same strategy takes the same steps in the same field.
-  expect_identical(fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma")), a)
+  expect_identical(fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma")), a)
   # Beside another it shares their step sequence, so it agrees to the solver's
   # tolerance rather than bit for bit.
-  b <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(c(0.06, 0.1), "lma"))
+  b <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(c(0.06, 0.1), "lma"))
   expect_equal(b[[2]], a, tolerance = 1e-3)
 })
 
@@ -73,9 +74,9 @@ test_that("a constant field keeps the environment's own state", {
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
   ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
-  scm <- SCM("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
-  scm$run_to(5)
-  pa <- scm$patch
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
+  solver$run_to(5)
+  pa <- solver$patch
   n_env <- pa$environment$ode_size
   y <- pa$ode_state
   soil <- tail(y, n_env)
@@ -91,22 +92,23 @@ test_that("a constant field keeps the environment's own state", {
   pa$clear_constant_field()
   expect_false(pa$has_constant_field)
   expect_true(any(tail(pa$ode_rates, n_env) != 0))
-  # Through the SCM, the invader runs in it and the SCM clears it afterwards.
-  R <- fixed_point_fitness(scm, p, trait_matrix(0.0825, "lma"), lifetime = 200,
+  # Through the deterministic runner, the invader runs in it and the
+  # deterministic runner clears it afterwards.
+  R <- fixed_point_fitness(solver, p, trait_matrix(0.0825, "lma"), lifetime = 200,
                            survival_tol = 1)
   expect_true(is.finite(R))
-  expect_false(scm$patch$has_constant_field)
+  expect_false(solver$patch$has_constant_field)
 })
 
 test_that("a constant field is cleared once the invaders have run", {
-  # A later run of the SCM builds its own field: a rerun of the invaders'
+  # A later run of the deterministic runner builds its own field: a rerun of the invaders'
   # parameters is a fresh run of them, not another constant-field one.
   fp <- ff16_fixed_point(t_eq = 150)
-  in_field <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
-  fp$scm$run()
-  rerun <- fp$scm$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
+  in_field <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"))
+  fp$solver$run()
+  rerun <- fp$solver$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
     fp$p$strategies[[1]]$pars$S_D
-  pm <- fp$scm$parameters
+  pm <- fp$solver$parameters
   fresh <- run(pm, control = fp$ctrl)$solver
   expect_identical(rerun, fresh$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
                      fp$p$strategies[[1]]$pars$S_D)
@@ -117,7 +119,7 @@ test_that("a field taken inside an interval scores as one taken at its start", {
   # Between two introductions the field swings; on a grid fine enough for a
   # fixed point the swing is small, which is the check a coarse grid fails.
   fp <- ff16_fixed_point(t_eq = 150)
-  at_start <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
+  at_start <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"))
   p <- fp$p
   p$max_patch_lifetime <- 150.5
   mid <- run(p, control = fp$ctrl)$solver
@@ -129,21 +131,21 @@ test_that("a constant field needs a resident to take it from", {
   p <- testing_parameters("FF16")
   p$fitness_weighting <- "none"
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(),
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(),
                                  Control(node_density_coordinate = "birth_date"))
-  expect_error(scm$run_mutant_constant(p), "fixed point")
+  expect_error(solver$run_mutant_constant(p), "fixed point")
 })
 
 test_that("an invader that outlives its run is refused", {
   fp <- ff16_fixed_point(t_eq = 100)
-  expect_error(fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.0825, "lma"),
+  expect_error(fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.0825, "lma"),
                                    lifetime = 20),
                "still alive")
   # Survival since establishment, not since seed: in a dense stand a seedling's
   # establishment is far below any tolerance, and a cohort cut off before it
   # reproduces must still count as alive.
   dense <- ff16_fixed_point(b = 68.867, t_eq = 150)
-  expect_error(fixed_point_fitness(dense$scm, dense$p, trait_matrix(0.06, "lma"),
+  expect_error(fixed_point_fitness(dense$solver, dense$p, trait_matrix(0.06, "lma"),
                                    lifetime = 40),
                "still alive")
 })
@@ -164,16 +166,16 @@ test_that("a gradient refuses a run made in a constant field, after it is cleare
   ## The field is cleared when run_mutant_constant() returns, but the outputs, and
   ## any recording, were made in it.
   fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
-  fp$scm$run_mutant_constant(constant_invader(fp, 0.1))
-  expect_false(fp$scm$patch$has_constant_field)
-  expect_error(stand_gradient(fp$scm, metrics = "leaf_area", hyperpar = NULL), "constant field")
+  fp$solver$run_mutant_constant(constant_invader(fp, 0.1))
+  expect_false(fp$solver$patch$has_constant_field)
+  expect_error(stand_gradient(fp$solver, metrics = "leaf_area", hyperpar = NULL), "constant field")
   fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
-  fp$scm$keep_states <- TRUE
-  fp$scm$run_mutant_constant(constant_invader(fp, 0.1))
-  expect_error(stand_gradient(fp$scm, metrics = "leaf_area", hyperpar = NULL), "constant field")
-  ## A later run of the SCM is its own, and the gradient takes it.
-  fp$scm$run()
-  expect_true(all(is.finite(stand_gradient(fp$scm, metrics = "leaf_area",
+  fp$solver$keep_states <- TRUE
+  fp$solver$run_mutant_constant(constant_invader(fp, 0.1))
+  expect_error(stand_gradient(fp$solver, metrics = "leaf_area", hyperpar = NULL), "constant field")
+  ## A later run of the deterministic runner is its own, and the gradient takes it.
+  fp$solver$run()
+  expect_true(all(is.finite(stand_gradient(fp$solver, metrics = "leaf_area",
                                            hyperpar = NULL)$gradient)))
 })
 
@@ -183,14 +185,14 @@ test_that("a constant field is cleared when the invaders' run fails", {
   ## is inside the invaders' run.
   pm <- constant_invader(fp, 0.1)
   pm$strategies[[1]]$birth_rate_y <- 0
-  expect_error(fp$scm$run_mutant_constant(pm), "birth rate zero")
-  expect_false(fp$scm$patch$has_constant_field)
+  expect_error(fp$solver$run_mutant_constant(pm), "birth rate zero")
+  expect_false(fp$solver$patch$has_constant_field)
   ## And an invader is checked as a resident is: with no asymptote to absorb at,
   ## it is refused before it runs.
   pm <- constant_invader(fp, 0.1)
   pm$strategies[[1]]$pars$a_f2 <- -1
-  expect_error(fp$scm$run_mutant_constant(pm), "a_f2")
-  expect_false(fp$scm$patch$has_constant_field)
+  expect_error(fp$solver$run_mutant_constant(pm), "a_f2")
+  expect_false(fp$solver$patch$has_constant_field)
 })
 
 test_that("a coarse grid makes the fixed point a periodic orbit", {
@@ -201,7 +203,7 @@ test_that("a coarse grid makes the fixed point a periodic orbit", {
   b_star <- 68.867
   swing <- function(by) {
     fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = by)
-    at_start <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.0825, "lma"))
+    at_start <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.0825, "lma"))
     p <- fp$p
     p$max_patch_lifetime <- 150 + by / 2
     tt <- p$node_schedule_times[[1]]

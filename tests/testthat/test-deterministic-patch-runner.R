@@ -2,10 +2,10 @@
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-test_that("Run SCM", {
-  ## TF24 is excluded here: this test covers strategy-agnostic SCM machinery
+test_that("Run the deterministic runner", {
+  ## TF24 is excluded here: this test covers strategy-agnostic runner machinery
   ## (run_next/reset/scheduling/ode_times reproducibility), already exercised
-  ## by FF16 & K93. TF24's full-SCM behaviour is covered in
+  ## by FF16 & K93. TF24's full-run behaviour is covered in
   ## test-model-tf24.R, and a full TF24 run here costs ~4 min (its
   ## hydraulics make each schedule run ~59s, and this test runs four) for no
   ## unique coverage.
@@ -25,19 +25,19 @@ test_that("Run SCM", {
     ## ode_step_size_max of the accurate preset (the fast Control() default
     ## permits steps that overshoot these closely-spaced introductions).
     ctrl <- control_accurate()
-    scm <- SCM(x, e)(p, env, empty_events(), ctrl)
-    expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
+    solver <- DeterministicPatchRunner(x, e)(p, env, empty_events(), ctrl)
+    expect_inherits(solver, sprintf("DeterministicPatchRunner<%s,%s>", x, e))
 
-    expect_equal(scm$parameters, p)
+    expect_equal(solver$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<NodeTop>:
-    expect_inherits(scm$patch, sprintf("Patch<%s,%s>", x, e))
-    expect_equal(length(scm$patch$species), 1)
-    expect_inherits(scm$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
-    expect_inherits(scm$patch$species[[1]]$new_node, sprintf("Node<%s,%s>",x,e))
-    expect_identical(scm$patch$time, 0.0)
+    expect_inherits(solver$patch, sprintf("Patch<%s,%s>", x, e))
+    expect_equal(length(solver$patch$species), 1)
+    expect_inherits(solver$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
+    expect_inherits(solver$patch$species[[1]]$new_node, sprintf("Node<%s,%s>",x,e))
+    expect_identical(solver$patch$time, 0.0)
 
-    sched <- scm$schedule
+    sched <- solver$schedule
     cmp_sched <- make_schedule(p)
     expect_equal(sched$size, cmp_sched$size)
     expect_equal(sched$all_times, cmp_sched$all_times)
@@ -45,37 +45,37 @@ test_that("Run SCM", {
     ## If the schedule is for the wrong number of species, it should cause
     ## an error...
     sched2 <- plant:::Schedule(sched$n_species + 1)
-    expect_error(scm$schedule <- sched2, "Incorrect length input; expected 1, received 2")
+    expect_error(solver$schedule <- sched2, "Incorrect length input; expected 1, received 2")
 
     ## Build a schedule for 14 introductions from t=0 to t=5
     t <- seq(0, 5, length.out=14)
     sched$set_times(t, 1)
     sched$max_time <- max(t) + diff(t)[[1]]
-    scm$schedule <- sched
+    solver$schedule <- sched
 
-    expect_identical(scm$schedule$all_times, sched$all_times)
+    expect_identical(solver$schedule$all_times, sched$all_times)
     ## Parameters has been updated:
-    expect_identical(scm$parameters$node_schedule_times, sched$all_times)
+    expect_identical(solver$parameters$node_schedule_times, sched$all_times)
 
     ## Will be helpful for checking that things worked:
     times <- data.frame(start=t, end=c(t[-1], sched$max_time))
 
-    ## Before starting, check that the SCM is actually empty
-    expect_equal(scm$time, 0.0)
-    expect_equal(scm$patch$node_ode_size, 0)
-    expect_equal(scm$schedule$remaining, length(t))
+    ## Before starting, check that the deterministic runner is actually empty
+    expect_equal(solver$time, 0.0)
+    expect_equal(solver$patch$node_ode_size, 0)
+    expect_equal(solver$schedule$remaining, length(t))
 
     ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
 
     ## Run the whole schedule, collecting a patch snapshot after each
     ## introduction so we can check per-step progression.
-    scm$collect <- TRUE
-    scm$run()
-    expect_equal(scm$schedule$remaining, 0)
+    solver$collect <- TRUE
+    solver$run()
+    expect_equal(solver$schedule$remaining, 0)
 
     ## history[[1]] is the initial (empty) patch; the remaining snapshots are
     ## the state after each of the scheduled introductions.
-    hist <- scm$history
+    hist <- solver$history
     expect_equal(length(hist), length(t) + 1)
     expect_equal(hist[[1]]$time, 0.0)
     expect_equal(hist[[1]]$node_ode_size, 0)
@@ -88,16 +88,16 @@ test_that("Run SCM", {
                  ode_size * seq_along(t))
 
     ## Trying to set a schedule without resetting first fails
-    expect_error(scm$schedule <- sched, "Cannot set schedule without resetting first")
+    expect_error(solver$schedule <- sched, "Cannot set schedule without resetting first")
 
     ## Reset everything
-    ## "SCM reset successful"
-    scm$reset()
-    expect_equal(scm$time, 0.0)
-    expect_equal(scm$patch$node_ode_size, 0)
-    expect_equal(scm$schedule$remaining, length(t))
+    ## "runner reset successful"
+    solver$reset()
+    expect_equal(solver$time, 0.0)
+    expect_equal(solver$patch$node_ode_size, 0)
+    expect_equal(solver$schedule$remaining, length(t))
 
-    ## At this point, and possibly before scm$net_reproduction_ratio is corrupt.
+    ## At this point, and possibly before solver$net_reproduction_ratio is corrupt.
 
     ## This is stalling really badly, but it's not totally clear why.
     ## It's *not* the ODE system thrashing (thankfully) because the
@@ -113,49 +113,49 @@ test_that("Run SCM", {
       n <- max(sapply(x, length))
       t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
     }
-    run_scm_test <- function(scm, t_max=Inf) {
+    run_solver_test <- function(solver, t_max=Inf) {
       species_index <- 1L
-      scm$reset()
-      scm$collect <- TRUE
-      scm$run()
+      solver$reset()
+      solver$collect <- TRUE
+      solver$run()
       ## Drop the initial empty-patch snapshot; keep one per introduction.
-      snaps <- Filter(function(h) h$time < t_max, scm$history[-1])
+      snaps <- Filter(function(h) h$time < t_max, solver$history[-1])
       tt <- sapply(snaps, function(h) h$time)
       hh <- lapply(snaps, function(h) h$species[[species_index]]$height)
       hh <- list_to_matrix(hh)
       list(t=tt, h=hh)
     }
 
-    ## Next, Run the whole schedule using the SCM.
-    res_e_1 <- run_scm_test(scm)
+    ## Next, Run the whole schedule using the deterministic runner.
+    res_e_1 <- run_solver_test(solver)
 
     ## Then, check that resetting the node allows rerunning easily:
-    ## SCM can be rerun successfully:
-    scm$reset()
-    res_e_2 <- run_scm_test(scm)
+    ## The runner can be rerun successfully:
+    solver$reset()
+    res_e_2 <- run_solver_test(solver)
     expect_identical(res_e_2, res_e_1)
 
-    ## Pull the times out of the SCM and set them in the schedule:
-    sched <- scm$schedule
-    sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
-                        scm$ode_soil_input_slopes, scm$ode_soil_substep_ends)
-    scm$reset() # must reset
-    scm$schedule <- sched
+    ## Pull the times out of the deterministic runner and set them in the schedule:
+    sched <- solver$schedule
+    sched$set_ode_steps(solver$ode_times, solver$ode_step_sizes,
+                        solver$ode_soil_input_slopes, solver$ode_soil_substep_ends)
+    solver$reset() # must reset
+    solver$schedule <- sched
 
     ## So; this does not actually produce *exactly* the same output, which
     ## is very surprising.  It's definitely "close enough" but not exactly
     ## the same (and differs to right around the same order as the patch
-    ## vs scm case).  I suspect that this might come from the difference
+    ## vs solver case).  I suspect that this might come from the difference
     ## between stepping to a point (requiring calculating the step size)
     ## and the stepping a particular step size (requiring calculating the
     ## final time).
-    ## SCM with fixed times agrees:
-    res_e_3 <- run_scm_test(scm)
+    ## The runner with fixed times agrees:
+    res_e_3 <- run_solver_test(solver)
     expect_identical(res_e_3, res_e_1)
 
-    ## SCM can be rerun successfully with fixed times:
-    scm$reset()
-    res_e_4 <- run_scm_test(scm)
+    ## The runner can be rerun successfully with fixed times:
+    solver$reset()
+    res_e_4 <- run_solver_test(solver)
     expect_identical(res_e_4, res_e_3)
   }
 })
@@ -171,12 +171,12 @@ test_that("A pinned run on a run's own steps reproduces it", {
     p <- add_strategies(testing_parameters(x), traits[[x]])
     env <- Environment(x)
 
-    free <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
+    free <- DeterministicPatchRunner(x, environment_types[[x]])(p, env, empty_events(), Control())
     free$run()
 
     rerun <- function(with_sizes) {
-      scm <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
-      sched <- scm$schedule
+      solver <- DeterministicPatchRunner(x, environment_types[[x]])(p, env, empty_events(), Control())
+      sched <- solver$schedule
       sched$all_times <- free$schedule$all_times
       if (with_sizes) {
         sched$set_ode_steps(free$ode_times, free$ode_step_sizes,
@@ -184,9 +184,9 @@ test_that("A pinned run on a run's own steps reproduces it", {
       } else {
         sched$set_ode_steps(free$ode_times, numeric(0), list(), list())
       }
-      scm$schedule <- sched
-      scm$run()
-      scm
+      solver$schedule <- sched
+      solver$run()
+      solver
     }
 
     pinned <- rerun(TRUE)
@@ -205,44 +205,44 @@ test_that("A pinned run on a run's own steps reproduces it", {
 test_that("an ODE schedule is installed whole or refused", {
   p <- testing_parameters("FF16")
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), Control())
-  scm$run()
-  sched <- scm$schedule
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), Control())
+  solver$run()
+  sched <- solver$schedule
 
   ## The times and the sizes are two halves of one schedule, so they go in
   ## together: there is no setter that takes one and keeps the other, and so no
   ## way to end up holding a size recorded against a different time.
-  expect_error(sched$ode_step_sizes <- scm$ode_step_sizes, "read-only")
-  expect_error(sched$ode_times <- scm$ode_times, "read-only")
+  expect_error(sched$ode_step_sizes <- solver$ode_step_sizes, "read-only")
+  expect_error(sched$ode_times <- solver$ode_times, "read-only")
 
-  slopes <- scm$ode_soil_input_slopes
-  ends <- scm$ode_soil_substep_ends
-  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes[-1],
+  slopes <- solver$ode_soil_input_slopes
+  ends <- solver$ode_soil_substep_ends
+  expect_error(sched$set_ode_steps(solver$ode_times, solver$ode_step_sizes[-1],
                                    slopes[-1], ends[-1]),
                "same length as ode_times")
-  expect_error(sched$set_ode_steps(scm$ode_times, c(0, scm$ode_step_sizes[-1]),
+  expect_error(sched$set_ode_steps(solver$ode_times, c(0, solver$ode_step_sizes[-1]),
                                    slopes, ends),
                "First step size must be NaN")
   ## Each step's soil record goes with its size, or none is given at all.
-  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
+  expect_error(sched$set_ode_steps(solver$ode_times, solver$ode_step_sizes,
                                    slopes, ends[-1]),
                "as long as ode_step_sizes")
-  expect_error(sched$set_ode_steps(scm$ode_times, numeric(0), slopes, ends),
+  expect_error(sched$set_ode_steps(solver$ode_times, numeric(0), slopes, ends),
                "as long as ode_step_sizes")
-  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
+  expect_error(sched$set_ode_steps(solver$ode_times, solver$ode_step_sizes,
                                    replace(slopes, 2, list(0.5)), ends),
                "step 2 has one")
 
-  sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes, slopes, ends)
+  sched$set_ode_steps(solver$ode_times, solver$ode_step_sizes, slopes, ends)
   expect_true(sched$using_ode_steps)
-  expect_identical(sched$ode_times, scm$ode_times)
-  expect_identical(sched$ode_step_sizes, scm$ode_step_sizes)
+  expect_identical(sched$ode_times, solver$ode_times)
+  expect_identical(sched$ode_step_sizes, solver$ode_step_sizes)
   expect_identical(sched$ode_soil_input_slopes, slopes)
   expect_identical(sched$ode_soil_substep_ends, ends)
 
   ## Times with no sizes is a grid to stop at rather than a run to rerun, and a
   ## schedule holding either uses it.
-  sched$set_ode_steps(scm$ode_times, numeric(0), list(), list())
+  sched$set_ode_steps(solver$ode_times, numeric(0), list(), list())
   expect_true(sched$using_ode_steps)
   expect_true(all(is.na(sched$ode_step_sizes)))
 
@@ -271,7 +271,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
                           ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
                           ode_soil_substep = substep))$solver
   }
-  fitness <- function(scm) sum(scm$patch$offspring_production)
+  fitness <- function(solver) sum(solver$patch$offspring_production)
 
   coupled <- run_substep(FALSE)
   substepped <- run_substep(TRUE)
@@ -288,7 +288,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
   ## Its error falls with the tolerance, against a tight run with the soil
   ## coupled.
   tight <- fitness(run_substep(FALSE, 1e-8))
-  error <- function(scm) abs(fitness(scm) / tight - 1)
+  error <- function(solver) abs(fitness(solver) / tight - 1)
   ## Within twice the tolerance rather than once: the error control reads the
   ## RMS over every state, and TF24's three flexible-allometry states (#516) are
   ## held at zero error by default, which loosens the effective tolerance: a
@@ -323,7 +323,7 @@ test_that("A run's steps answer to the soil's tolerance scale, and at one to not
 
   ## The soil's substeps take their tolerance from the control: at its default
   ## the run is the same, and looser it takes fewer substeps.
-  substeps <- function(scm) sum(lengths(scm$ode_soil_substep_ends))
+  substeps <- function(solver) sum(lengths(solver$ode_soil_substep_ends))
   substepped <- run_with(ode_soil_substep = TRUE)
   same_run(run_with(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-9), substepped)
   expect_lt(substeps(run_with(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-6)),
@@ -422,15 +422,15 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
 
   ## A pinned run of the schedule, records and all, repeats the run bit for bit.
   rerun <- function(q) {
-    scm <- SCM("TF24", "TF24_Env")(q, env(), empty_events(), ctrl)
-    sched <- scm$schedule
+    solver <- DeterministicPatchRunner("TF24", "TF24_Env")(q, env(), empty_events(), ctrl)
+    sched <- solver$schedule
     sched$all_times <- substepped$schedule$all_times
     sched$set_ode_steps(substepped$ode_times, substepped$ode_step_sizes,
                         substepped$ode_soil_input_slopes,
                         substepped$ode_soil_substep_ends)
-    scm$schedule <- sched
-    scm$run()
-    scm
+    solver$schedule <- sched
+    solver$run()
+    solver
   }
   again <- rerun(p)
   expect_identical(again$patch$ode_state, substepped$patch$ode_state)
@@ -455,7 +455,7 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   tangent <- ladder_trajectory_tangent_tf24(substepped,
                                             as.numeric(traits == "1.lma"))
   ## The sweep's rows: the census, then each species' fitness.
-  metrics <- function(scm) c(stand_census(scm), stand_fitness(scm))
+  metrics <- function(solver) c(stand_census(solver), stand_fitness(solver))
   expect_identical(names(metrics(substepped)), rownames(g$gradient))
   ## The tangent is the run at another scalar, not the run, so its value agrees
   ## to the budget test-gradient-ladder-introductions.R explains, not bit for bit
@@ -494,19 +494,19 @@ test_that("schedule setting", {
       max_patch_lifetime=5.0)
     env <- Environment(x)
     ctrl <- Control()
-    scm <- SCM(x, e)(p, env, empty_events(), ctrl)
+    solver <- DeterministicPatchRunner(x, e)(p, env, empty_events(), ctrl)
 
     ## Then set a node schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
-    sched <- scm$schedule
+    sched <- solver$schedule
     t <- seq(0, sched$max_time, length.out=14)
-    scm$set_node_schedule_times(list(t))
+    solver$set_node_schedule_times(list(t))
 
-    ## Did set in the SCM:
-    expect_identical(scm$schedule$all_times, list(t))
+    ## Did set in the deterministic runner:
+    expect_identical(solver$schedule$all_times, list(t))
 
     ## And updated in the parameters:
-    p2 <- scm$parameters
+    p2 <- solver$parameters
     expect_identical(p2$max_patch_lifetime, sched$max_time)
     expect_identical(p2$node_schedule_times, list(t))
 
@@ -515,9 +515,9 @@ test_that("schedule setting", {
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
-    scm2 <- SCM(x, e)(p2, env, empty_events(), ctrl)
-    expect_identical(scm2$schedule$max_time, sched2$max_time)
-    expect_identical(scm2$schedule$all_times, sched2$all_times)
+    solver2 <- DeterministicPatchRunner(x, e)(p2, env, empty_events(), ctrl)
+    expect_identical(solver2$schedule$max_time, sched2$max_time)
+    expect_identical(solver2$schedule$all_times, sched2$all_times)
   }
 })
 
@@ -530,27 +530,27 @@ test_that("Offspring production & error calculations correct", {
     env <- Environment(x)
     ctrl <- Control()
 
-    scm <- run(p1, env, ctrl)$solver
-    expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
+    solver <- run(p1, env, ctrl)$solver
+    expect_inherits(solver, sprintf("DeterministicPatchRunner<%s,%s>", x, e))
 
-    net_reproduction_ratio_R <- function(scm, error=FALSE) {
-      a <- scm$schedule$times(1)
-      density <- purrr::map_dbl(a, ~ scm$patch$density(.x))
+    net_reproduction_ratio_R <- function(solver, error=FALSE) {
+      a <- solver$schedule$times(1)
+      density <- purrr::map_dbl(a, ~ solver$patch$density(.x))
       net_reproduction_ratio_by_node_weighted <- density *
-        scm$patch$species[[1]]$net_reproduction_ratio_by_node *
-        scm$parameters$strategies[[1]]$pars$S_D
+        solver$patch$species[[1]]$net_reproduction_ratio_by_node *
+        solver$parameters$strategies[[1]]$pars$S_D
       total <- trapezium(a, net_reproduction_ratio_by_node_weighted)
       if (error)
         local_error_integration(a, net_reproduction_ratio_by_node_weighted, total)
       else total
     }
 
-    patch <- scm$patch
-    expect_equal(patch$net_reproduction_ratios, net_reproduction_ratio_R(scm))
-    expect_equal(patch$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
+    patch <- solver$patch
+    expect_equal(patch$net_reproduction_ratios, net_reproduction_ratio_R(solver))
+    expect_equal(patch$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(solver, error=TRUE))
 
     lae_cmp <-
-      scm$patch$species[[1]]$compute_competition_effect_by_nodes_error(scm$patch$compute_competition(0))
+      solver$patch$species[[1]]$compute_competition_effect_by_nodes_error(solver$patch$compute_competition(0))
     expect_identical(patch$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)
 
   }
@@ -566,23 +566,24 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     n_spp <- length(p1$strategies)
 
     ## New path: a single run with error collection enabled.
-    scm <- SCM(x, e)(p1, env, empty_events(), ctrl)
-    scm$collect_refinement_errors <- TRUE
-    scm$run()
-    new_total <- scm$patch$refinement_error_by_node
+    solver <- DeterministicPatchRunner(x, e)(p1, env, empty_events(), ctrl)
+    solver$collect_refinement_errors <- TRUE
+    solver$run()
+    new_total <- solver$patch$refinement_error_by_node
 
     ## Reference: sample the competition error per introduction step and take
     ## the column-wise max with the reproduction error (the logic the R-side
-    ## refinement loop used to perform). Rather than stepping the SCM, we run it
+    ## refinement loop used to perform). Rather than stepping the deterministic
+    ## runner, we run it
     ## once collecting a patch snapshot after each introduction, then recompute
     ## each step's competition error from the snapshot. A species counts as
     ## "added" at a step when its node count grew from the previous snapshot.
-    scm_ref <- SCM(x, e)(p1, env, empty_events(), ctrl)
-    scm_ref$collect <- TRUE
-    scm_ref$run()
+    solver_ref <- DeterministicPatchRunner(x, e)(p1, env, empty_events(), ctrl)
+    solver_ref$collect <- TRUE
+    solver_ref$run()
     lai_error <- rep(list(NULL), n_spp)
     sizes_prev <- rep(0, n_spp)
-    for (h in scm_ref$history) {
+    for (h in solver_ref$history) {
       sizes_now <- sapply(seq_len(n_spp), function(i) h$species[[i]]$size)
       for (idx in which(sizes_now > sizes_prev)) {
         lai_error[[idx]] <- c(
@@ -595,7 +596,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     }
     rbind_list <- function(z) do.call("rbind", as.list(z))
     lai_error <- lapply(lai_error, function(z) rbind_list(pad_matrix(z)))
-    repro <- scm_ref$patch$net_reproduction_ratio_errors
+    repro <- solver_ref$patch$net_reproduction_ratio_errors
     f <- function(m) suppressWarnings(apply(m, 2, max, na.rm = TRUE))
     ref_total <- lapply(seq_len(n_spp), function(idx)
       f(rbind(lai_error[[idx]], repro[[idx]])))
@@ -604,17 +605,17 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
   }
 })
 
-test_that("Can create empty SCM", {
+test_that("Can create an empty deterministic runner", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
     env <- Environment(x)
     ctrl <- Control()
-    scm <- SCM(x, e)(p, env, empty_events(), ctrl)
+    solver <- DeterministicPatchRunner(x, e)(p, env, empty_events(), ctrl)
 
     ## Check light environment is empty:
-    env <- scm$patch$environment
-    patch <- scm$patch
+    env <- solver$patch$environment
+    patch <- solver$patch
 
     ## Clearing leaves the flat open field rather than no field: a query reads the
     ## interpolant's bounds, so there has to be a domain to read.
@@ -624,7 +625,7 @@ test_that("Can create empty SCM", {
   }
 })
 
-test_that("A second run on one SCM reproduces the first", {
+test_that("A second run on one deterministic runner reproduces the first", {
   ## TF24 is the only model with environment ODE state (FF16 and K93 report
   ## ode_size 0), so it is the one that can carry state across a reset.
   ##
@@ -640,29 +641,29 @@ test_that("A second run on one SCM reproduces the first", {
   p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 2
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
-  new_scm <- function() SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), Control())
+  new_solver <- function() DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), Control())
 
   ## The environment's states are the tail of the patch ODE state, and before
   ## any introduction and after a reset they are all of it.
-  scm <- new_scm()
-  n_env <- scm$patch$environment$ode_size
-  unrun <- utils::tail(new_scm()$patch$ode_state, n_env)
+  solver <- new_solver()
+  n_env <- solver$patch$environment$ode_size
+  unrun <- utils::tail(new_solver()$patch$ode_state, n_env)
 
-  scm$run()
-  first_offspring <- scm$patch$offspring_production
-  first_state <- scm$patch$ode_state
+  solver$run()
+  first_offspring <- solver$patch$offspring_production
+  first_state <- solver$patch$ode_state
 
   ## The run moved the environment, which is the state the reset has to put
   ## back. Asserted rather than assumed: a fixture too short to move it would
   ## pass the two checks below while guarding nothing.
   expect_false(isTRUE(all.equal(utils::tail(first_state, n_env), unrun)))
 
-  scm$reset()
-  expect_identical(utils::tail(scm$patch$ode_state, n_env), unrun)
+  solver$reset()
+  expect_identical(utils::tail(solver$patch$ode_state, n_env), unrun)
 
-  scm$run()
-  expect_identical(scm$patch$offspring_production, first_offspring)
-  expect_identical(scm$patch$ode_state, first_state)
+  solver$run()
+  expect_identical(solver$patch$offspring_production, first_offspring)
+  expect_identical(solver$patch$ode_state, first_state)
 })
 
 
@@ -672,21 +673,21 @@ test_that("store_recording records one state per schedule_row", {
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
     p <- Parameters(x, e)(strategies = list(s), patch_area = 1)
-    scm <- SCM(x, e)(p, Environment(x), empty_events(), Control())
+    solver <- DeterministicPatchRunner(x, e)(p, Environment(x), empty_events(), Control())
 
     ## A short schedule: eight introductions from t = 0 to t = 2.
-    sched <- scm$schedule
+    sched <- solver$schedule
     t <- seq(0, 2, length.out = 8)
     sched$set_times(t, 1)
     sched$max_time <- max(t) + diff(t)[[1]]
-    scm$schedule <- sched
+    solver$schedule <- sched
 
     ## Recording moves nothing: the state the run ends on is the last recorded.
-    scm$run()
-    forward_state <- scm$patch$ode_state
-    grid <- scm$ode_times
+    solver$run()
+    forward_state <- solver$patch$ode_state
+    grid <- solver$ode_times
 
-    traj <- scm$store_recording()
+    traj <- solver$store_recording()
     expect_identical(traj[[length(traj)]]$state, forward_state)
 
     ## One record per schedule_row, which is a row per accepted step and a row per
@@ -721,10 +722,10 @@ test_that("store_recording records one state per schedule_row", {
     widths <- vapply(traj, function(r) length(r$state), integer(1))
     expect_true(all(diff(widths) >= 0))
     expect_gt(max(widths), min(widths))
-    expect_equal(widths[[length(widths)]], scm$patch$ode_size)
+    expect_equal(widths[[length(widths)]], solver$patch$ode_size)
 
     ## The store is a function of the run: recording it twice gives the same
     ## records, down to the last bit of every state.
-    expect_identical(scm$store_recording(), traj)
+    expect_identical(solver$store_recording(), traj)
   }
 })

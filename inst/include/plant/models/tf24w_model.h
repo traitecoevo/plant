@@ -32,7 +32,7 @@ namespace plant {
 //
 // Limits, enforced where they are first seen: the birth-date size-density
 // coordinate (Patch::check_retirement_coordinate), no gradient path
-// (SCM::require_birth_date_coordinate) and no stochastic patch
+// (DeterministicPatchRunner::require_birth_date_coordinate) and no stochastic patch
 // (StochasticPatch::compute_rates). The regime switches below -- cover above
 // or below one -- are `if`s on passive values, which the no-gradient rule
 // allows because nothing differentiates through them.

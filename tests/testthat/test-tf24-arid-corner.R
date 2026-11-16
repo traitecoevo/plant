@@ -12,7 +12,8 @@
 # Both are diagnostic/robustness fixes: they change behaviour only in states
 # that previously threw.
 #
-# The guard in (1) is tested through the SCM rather than on Leaf directly.
+# The guard in (1) is tested through the deterministic runner rather than on
+# Leaf directly.
 # Reaching the reversed-gradient state on a bare Leaf means driving it to a
 # psi_soil at which the setup calls themselves fail first
 # (find_root_psi throws "invalid f_ri" at psi_soil = 4 MPa, and
@@ -70,22 +71,23 @@ tf24_dry_start <- function(model = "TF24", lifetime = 10, theta = 0.005,
 }
 
 ## The completed dry-start run, computed once and shared. Two tests below need
-## the same finished SCM -- the height ordering and the completion assertion --
+## the same finished DeterministicPatchRunner -- the height ordering and the
+## completion assertion --
 ## and each used to commission its own at ~2.9 s. Memoising is safe because both
 ## only read it; the pattern is the one used by short_run() in
 ## test-density-coordinate.R. Only the default (theta = 0.005) start is shared:
 ## the sweep below deliberately wants a fresh run per soil moisture, and must be
 ## free to throw.
-tf24_dry_scm <- local({
+tf24_dry_solver <- local({
   cache <- list()
   function(model = "TF24", lifetime = 10) {
     key <- paste(model, lifetime, sep = "/")
     if (is.null(cache[[key]])) {
       x <- tf24_dry_start(model, lifetime)
-      scm <- SCM(model, environment_type(model))(x$p, x$env, empty_events(), Control())
-      scm$collect <- TRUE
-      scm$run()
-      cache[[key]] <<- scm
+      solver <- DeterministicPatchRunner(model, environment_type(model))(x$p, x$env, empty_events(), Control())
+      solver$collect <- TRUE
+      solver$run()
+      cache[[key]] <<- solver
     }
     cache[[key]]
   }
@@ -99,7 +101,7 @@ test_that("height_max() is the tallest cohort, not the first node (#571)", {
   # size order. That breaks the decreasing-height ordering that height_max() used
   # to exploit by returning nodes.front(), which then reported a height *below*
   # the tallest and only living cohort and truncated the light spline's domain.
-  sp <- tf24_dry_scm()$patch$species[[1]]
+  sp <- tf24_dry_solver()$patch$species[[1]]
   h <- sp$heights
 
   # The premise of the test: this state really does violate the ordering. If a
@@ -116,7 +118,7 @@ test_that("a dry-start TF24 run completes (#571)", {
   # dropped every node past the first one below the query height -- including the
   # one cohort with appreciable density -- putting a fictitious step in the
   # competition profile that the refiner could not resolve.
-  expect_true(is.finite(tf24_dry_scm()$patch$offspring_production))
+  expect_true(is.finite(tf24_dry_solver()$patch$offspring_production))
 
   # #571 recorded a non-monotone failure set across nine soil moistures, which
   # is what ruled out any single threshold as the cause. With the cause fixed
@@ -143,7 +145,7 @@ test_that("TF24f survives hydraulic shutdown (#576)", {
   #
   # One rainfall value. The original failure was a knife-edge, not a threshold
   # (it failed at 0.01 and 0.03-0.06 but ran at 0, 0.02 and 0.07 upwards), so a
-  # sweep buys breadth in the wrong dimension at a full SCM run apiece. The
+  # sweep buys breadth in the wrong dimension at a full deterministic run apiece. The
   # measured band is in #576 if it ever needs widening.
   y <- tf24_dry_start("TF24f", rain = 0.04)
   expect_no_error(run(y$p, y$env))
@@ -158,7 +160,7 @@ test_that("TF24f survives hydraulic shutdown (#576)", {
 ## crossing.
 ##
 ## Since #574 fixed the cause, the reproducer completes, so its
-## `skip_if(is.na(msg), ...)` fired every run: it paid for a full 2.8 s SCM run
+## `skip_if(is.na(msg), ...)` fired every run: it paid for a full 2.8 s deterministic run
 ## and then asserted nothing. A test that can only ever skip is not a guard, it
 ## is a bill.
 ##

@@ -55,8 +55,8 @@ test_that("TF24w refuses the height coordinate", {
 })
 
 # Each node's water column, as a matrix of layers by node, and the environment's.
-tf24w_columns <- function(scm) {
-  sp <- scm$patch$species[[1]]
+tf24w_columns <- function(solver) {
+  sp <- solver$patch$species[[1]]
   nodes <- sp$nodes
   nm <- nodes[[1]]$ode_names
   first <- which(nm == "water_1")
@@ -64,13 +64,13 @@ tf24w_columns <- function(scm) {
        log_density = sapply(nodes, function(n) n$ode_state[which(nm == "log_density")]),
        height = sapply(nodes, function(n) n$ode_state[which(nm == "height")]),
        departure = sapply(nodes, function(n) n$ode_state[which(nm == "log_area_leaf_departure")]),
-       bare = scm$patch$environment$get_soil_water_state())
+       bare = solver$patch$environment$get_soil_water_state())
 }
 
 test_that("every column holds a water content inside the soil's range", {
-  scm <- tf24w_stand("TF24w", years = 3)
-  scm$run_to(2.5)
-  cols <- tf24w_columns(scm)
+  solver <- tf24w_stand("TF24w", years = 3)
+  solver$run_to(2.5)
+  cols <- tf24w_columns(solver)
   expect_true(all(cols$water >= 0))
   expect_true(all(cols$water <= 0.428))
   expect_equal(nrow(cols$water), 5)
@@ -82,10 +82,10 @@ test_that("with no mixing a cohort dries its own column and leaves the bare grou
   # column is its own, however rare it is. No rain, so the bare column only
   # drains.
   dry <- function(mixing) {
-    scm <- tf24w_stand("TF24w", mixing = mixing, years = 2, birth_rate = 1e-6,
-                       rainfall_pulses = FALSE, schedule = 0)
-    scm$run_to(2)
-    cols <- tf24w_columns(scm)
+    solver <- tf24w_stand("TF24w", mixing = mixing, years = 2, birth_rate = 1e-6,
+                          rainfall_pulses = FALSE, schedule = 0)
+    solver$run_to(2)
+    cols <- tf24w_columns(solver)
     list(own = cols$water[1, 1], bare = cols$bare[1])
   }
   private <- dry(0)
@@ -103,7 +103,7 @@ test_that("the pooled limit reproduces TF24", {
   ref$run()
   w <- tf24w_stand("TF24w", mixing = 200, years = 6)
   w$run()
-  # scm$patch$environment is a copy, so it is read after the run.
+  # solver$patch$environment is a copy, so it is read after the run.
   ew <- w$patch$environment
   er <- ref$patch$environment
   expect_equal(ew$get_soil_water_state(), er$get_soil_water_state(),
@@ -128,10 +128,10 @@ test_that("the resident's own copy, introduced as a rare second species, scores 
   env <- Environment("TF24w")
   env$extrinsic_drivers_set_constant("rainfall", 0.3)
   env$water_mixing_rate <- 1
-  scm <- run(p, env, control(node_density_coordinate = "birth_date",
-                             ode_step_size_max = 0.05), until = 0)$solver
-  scm$run()
-  R <- scm$patch$net_reproduction_ratios
+  solver <- run(p, env, control(node_density_coordinate = "birth_date",
+                                ode_step_size_max = 0.05), until = 0)$solver
+  solver$run()
+  R <- solver$patch$net_reproduction_ratios
   expect_equal(R[[2]], R[[1]], tolerance = 1e-10)
 })
 
@@ -140,13 +140,13 @@ test_that("the resident's own copy, introduced as a rare second species, scores 
 # allometry and L_crown) times its density times its trapezium weight on the
 # birth-date grid, the boundary node closing the grid but owning no ground;
 # shares are scaled where crowns overlap; the bare ground is what crowns leave.
-tf24w_storage <- function(scm, dz = 0.3) {
-  sp <- scm$patch$species[[1]]
-  s <- scm$patch$parameters$strategies[[1]]$pars
+tf24w_storage <- function(solver, dz = 0.3) {
+  sp <- solver$patch$species[[1]]
+  s <- solver$patch$parameters$strategies[[1]]$pars
   # The crown is the carried leaf area, A*(h) exp(departure), over L_crown.
   crown <- function(h, departure) (h / s$a_l1)^(1 / s$a_l2) * exp(departure) / s$L_crown
-  cols <- tf24w_columns(scm)
-  x <- c(sp$node_times, scm$patch$time)
+  cols <- tf24w_columns(solver)
+  x <- c(sp$node_times, solver$patch$time)
   n <- exp(cols$log_density)
   h <- cols$height
   water <- cols$water
@@ -169,13 +169,13 @@ test_that("the water budget closes over births, growth, death and pulses", {
   # Storage change equals infiltration (pulses included) minus drainage minus
   # uptake, all area-weighted over the columns: the land-transfer terms are what
   # make this hold while shares move.
-  scm <- tf24w_stand("TF24w", mixing = 1, years = 12, birth_rate = 20)
-  # Every column starts at the environment's content. scm$patch$environment is
+  solver <- tf24w_stand("TF24w", mixing = 1, years = 12, birth_rate = 20)
+  # Every column starts at the environment's content. solver$patch$environment is
   # a copy, so the fluxes are read from a fresh handle after the run.
-  start <- sum(scm$patch$environment$get_soil_water_state() * 0.3)
-  scm$run()
-  flux <- scm$patch$environment$get_soil_water_state_cumulative_flux()
-  st <- tf24w_storage(scm)
+  start <- sum(solver$patch$environment$get_soil_water_state() * 0.3)
+  solver$run()
+  flux <- solver$patch$environment$get_soil_water_state_cumulative_flux()
+  st <- tf24w_storage(solver)
   # sum_rainfall, sum_infiltration, sum_drainage, sum_resource_depletion, sum_pulse_runoff
   budget <- (st$total - start) - (flux[[2]] - flux[[3]] - flux[[4]])
   expect_gt(flux[[2]], 0)
@@ -188,12 +188,12 @@ test_that("the water budget closes with flexible allometry on", {
   # well as the height, so its relative growth rate has a term for each. The
   # stand stays sparse (cover under 1), where the budget closes to 1e-6 at the
   # default tolerances; above cover 1 it closes only to the ODE tolerance.
-  scm <- tf24w_stand("TF24w", mixing = 1, years = 12, birth_rate = 20, a_pl0 = 1)
-  start <- sum(scm$patch$environment$get_soil_water_state() * 0.3)
-  scm$run()
-  expect_lt(min(tf24w_columns(scm)$departure), -0.01)
-  flux <- scm$patch$environment$get_soil_water_state_cumulative_flux()
-  st <- tf24w_storage(scm)
+  solver <- tf24w_stand("TF24w", mixing = 1, years = 12, birth_rate = 20, a_pl0 = 1)
+  start <- sum(solver$patch$environment$get_soil_water_state() * 0.3)
+  solver$run()
+  expect_lt(min(tf24w_columns(solver)$departure), -0.01)
+  flux <- solver$patch$environment$get_soil_water_state_cumulative_flux()
+  st <- tf24w_storage(solver)
   budget <- (st$total - start) - (flux[[2]] - flux[[3]] - flux[[4]])
   expect_lt(abs(budget), 1e-6 * flux[[2]])
 })

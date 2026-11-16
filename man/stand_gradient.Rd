@@ -5,14 +5,14 @@
 \title{Gradient of a stand's metrics with respect to traits.}
 \usage{
 stand_gradient(
-  scm,
+  x,
   metrics = NULL,
   traits = NULL,
-  hyperpar = param_hyperpar(scm$parameters)
+  hyperpar = param_hyperpar(x$parameters)
 )
 }
 \arguments{
-\item{scm}{A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+\item{x}{A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
 
 \item{metrics}{Metric names to differentiate; defaults to every metric the
@@ -84,12 +84,12 @@ partial derivative with every other parameter fixed.
 
 \section{An invader against a recorded resident}{
 
-After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
+After \code{x$run_mutant(p)}, a gradient is of the invaders' metrics in
 the residents' recorded field, which the invaders read at each rate
 evaluation and do not move, so it carries no derivative: the rare-mutant
-derivative. A run of \code{scm$run_mutant_constant()} is refused.
+derivative. A run of \code{x$run_mutant_constant()} is refused.
 An invasion that kept no states is run again, as an invasion, to keep them;
-set \code{scm$keep_states <- TRUE} before it to save that run.
+set \code{x$keep_states <- TRUE} before it to save that run.
 Several invaders in \code{p} share one run and each has its own columns,
 but each metric is still one sweep, so a set of invaders costs about what
 running them one at a time does. An invader of a resumed resident starts at

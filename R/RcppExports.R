@@ -4101,748 +4101,748 @@ Patch___K93__K93_Env__refinement_error_by_node__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__refinement_error_by_node__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ctor <- function(parameters, environment, events, control) {
-    .Call('_plant_SCM___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
+DeterministicPatchRunner___FF16__FF16_Env__ctor <- function(parameters, environment, events, control) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
-SCM___FF16__FF16_Env__run <- function(obj_) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__run', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___FF16__FF16_Env__run <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___FF16__FF16_Env__run_to <- function(obj_, time) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_to', PACKAGE = 'plant', obj_, time))
+DeterministicPatchRunner___FF16__FF16_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
-SCM___FF16__FF16_Env__run_mutant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___FF16__FF16_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___FF16__FF16_Env__run_mutant_constant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___FF16__FF16_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___FF16__FF16_Env__store_recording <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__store_recording', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__store_recording <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__refine_schedule <- function(obj_) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__refine_schedule', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___FF16__FF16_Env__refine_schedule <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__refine_schedule', PACKAGE = 'plant', obj_))
 }
 
-SCM___FF16__FF16_Env__reset <- function(obj_) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__reset', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___FF16__FF16_Env__reset <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___FF16__FF16_Env__set_node_schedule_times <- function(obj_, times) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
+DeterministicPatchRunner___FF16__FF16_Env__set_node_schedule_times <- function(obj_, times) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___FF16__FF16_Env__time__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__time__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__time__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__parameters__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__parameters__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__parameters__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__patch__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__patch__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__patch__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__history__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__history__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__history__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__history__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__schedule__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__schedule__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__schedule__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__schedule__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__schedule__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___FF16__FF16_Env__schedule__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FF16__FF16_Env__events__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__events__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__events__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__event_log__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__event_log__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__event_log__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ode_times__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__ode_times__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__ode_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ode_step_sizes__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__ode_step_sizes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ode_soil_input_slopes__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ode_soil_substep_ends__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__collect__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__collect__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__collect__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__collect__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__collect__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__collect__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___FF16__FF16_Env__collect__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__collect__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FF16__FF16_Env__collect_refinement_errors__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__collect_refinement_errors__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__collect_refinement_errors__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___FF16__FF16_Env__collect_refinement_errors__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FF16__FF16_Env__keep_states__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__keep_states__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__keep_states__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___FF16__FF16_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FF16__FF16_Env__complete__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__complete__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__complete__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__snapshot_interval__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__snapshot_interval__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FF16__FF16_Env__snapshots__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__snapshots__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___FF16__FF16_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__ctor <- function(parameters, environment, events, control) {
-    .Call('_plant_SCM___TF24__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
+DeterministicPatchRunner___TF24__TF24_Env__ctor <- function(parameters, environment, events, control) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
-SCM___TF24__TF24_Env__run <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__run', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24__TF24_Env__run <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24__TF24_Env__run_to <- function(obj_, time) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
+DeterministicPatchRunner___TF24__TF24_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
-SCM___TF24__TF24_Env__run_mutant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24__TF24_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24__TF24_Env__run_mutant_constant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24__TF24_Env__store_recording <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__refine_schedule <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24__TF24_Env__refine_schedule <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24__TF24_Env__reset <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__reset', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24__TF24_Env__reset <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24__TF24_Env__set_node_schedule_times <- function(obj_, times) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
+DeterministicPatchRunner___TF24__TF24_Env__set_node_schedule_times <- function(obj_, times) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___TF24__TF24_Env__time__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__time__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__time__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__parameters__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__parameters__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__patch__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__patch__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__history__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__history__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__history__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__history__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__schedule__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__schedule__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__schedule__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24__TF24_Env__schedule__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24__TF24_Env__events__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__events__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__events__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__event_log__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__event_log__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__ode_times__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__ode_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__ode_step_sizes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__ode_step_sizes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__collect__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__collect__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__collect__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24__TF24_Env__collect__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24__TF24_Env__collect_refinement_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__collect_refinement_errors__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24__TF24_Env__keep_states__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__keep_states__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24__TF24_Env__complete__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__complete__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__snapshot_interval__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__snapshot_interval__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24__TF24_Env__snapshots__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24__TF24_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__ctor <- function(parameters, environment, events, control) {
-    .Call('_plant_SCM___TF24f__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
+DeterministicPatchRunner___TF24f__TF24_Env__ctor <- function(parameters, environment, events, control) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
-SCM___TF24f__TF24_Env__run <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24f__TF24_Env__run <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24f__TF24_Env__run_to <- function(obj_, time) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
+DeterministicPatchRunner___TF24f__TF24_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
-SCM___TF24f__TF24_Env__run_mutant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24f__TF24_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24f__TF24_Env__run_mutant_constant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24f__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24f__TF24_Env__store_recording <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__refine_schedule <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24f__TF24_Env__refine_schedule <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24f__TF24_Env__reset <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__reset', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24f__TF24_Env__reset <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24f__TF24_Env__set_node_schedule_times <- function(obj_, times) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
+DeterministicPatchRunner___TF24f__TF24_Env__set_node_schedule_times <- function(obj_, times) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___TF24f__TF24_Env__time__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__time__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__time__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__parameters__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__parameters__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__patch__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__patch__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__history__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__history__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__history__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__history__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__schedule__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__schedule__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__schedule__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24f__TF24_Env__schedule__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24f__TF24_Env__events__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__events__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__events__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__event_log__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__event_log__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__ode_times__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__ode_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__ode_step_sizes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__ode_step_sizes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__collect__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__collect__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__collect__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24f__TF24_Env__collect__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24f__TF24_Env__collect_refinement_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__collect_refinement_errors__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24f__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24f__TF24_Env__keep_states__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__keep_states__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24f__TF24_Env__complete__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__complete__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__snapshot_interval__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__snapshot_interval__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24f__TF24_Env__snapshots__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24f__TF24_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__ctor <- function(parameters, environment, events, control) {
-    .Call('_plant_SCM___TF24t__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
+DeterministicPatchRunner___TF24t__TF24_Env__ctor <- function(parameters, environment, events, control) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
-SCM___TF24t__TF24_Env__run <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__run', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24t__TF24_Env__run <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24t__TF24_Env__run_to <- function(obj_, time) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
+DeterministicPatchRunner___TF24t__TF24_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
-SCM___TF24t__TF24_Env__run_mutant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24t__TF24_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24t__TF24_Env__run_mutant_constant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24t__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24t__TF24_Env__store_recording <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__refine_schedule <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24t__TF24_Env__refine_schedule <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24t__TF24_Env__reset <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__reset', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24t__TF24_Env__reset <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24t__TF24_Env__set_node_schedule_times <- function(obj_, times) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
+DeterministicPatchRunner___TF24t__TF24_Env__set_node_schedule_times <- function(obj_, times) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___TF24t__TF24_Env__time__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__time__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__time__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__parameters__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__parameters__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__patch__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__patch__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__history__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__history__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__history__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__history__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__schedule__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__schedule__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__schedule__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24t__TF24_Env__schedule__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24t__TF24_Env__events__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__events__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__events__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__event_log__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__event_log__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__ode_times__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__ode_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__ode_step_sizes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__ode_step_sizes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__collect__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__collect__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__collect__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24t__TF24_Env__collect__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24t__TF24_Env__collect_refinement_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__collect_refinement_errors__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24t__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24t__TF24_Env__keep_states__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__keep_states__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24t__TF24_Env__complete__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__complete__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__snapshot_interval__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__snapshot_interval__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24t__TF24_Env__snapshots__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24t__TF24_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__ctor <- function(parameters, environment, events, control) {
-    .Call('_plant_SCM___TF24w__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
+DeterministicPatchRunner___TF24w__TF24_Env__ctor <- function(parameters, environment, events, control) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
-SCM___TF24w__TF24_Env__run <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__run', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24w__TF24_Env__run <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24w__TF24_Env__run_to <- function(obj_, time) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
+DeterministicPatchRunner___TF24w__TF24_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
-SCM___TF24w__TF24_Env__run_mutant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24w__TF24_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24w__TF24_Env__run_mutant_constant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___TF24w__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24w__TF24_Env__store_recording <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__refine_schedule <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24w__TF24_Env__refine_schedule <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__refine_schedule', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24w__TF24_Env__reset <- function(obj_) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__reset', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___TF24w__TF24_Env__reset <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___TF24w__TF24_Env__set_node_schedule_times <- function(obj_, times) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
+DeterministicPatchRunner___TF24w__TF24_Env__set_node_schedule_times <- function(obj_, times) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___TF24w__TF24_Env__time__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__time__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__time__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__parameters__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__parameters__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__patch__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__patch__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__history__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__history__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__history__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__history__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__schedule__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__schedule__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__schedule__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24w__TF24_Env__schedule__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24w__TF24_Env__events__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__events__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__events__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__event_log__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__event_log__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__ode_times__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__ode_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__ode_step_sizes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__ode_step_sizes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__collect__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__collect__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__collect__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24w__TF24_Env__collect__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__collect__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24w__TF24_Env__collect_refinement_errors__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__collect_refinement_errors__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24w__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24w__TF24_Env__keep_states__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__keep_states__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24w__TF24_Env__complete__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__complete__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__snapshot_interval__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24w__TF24_Env__snapshot_interval__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24w__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24w__TF24_Env__snapshots__get <- function(obj_) {
-    .Call('_plant_SCM___TF24w__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___TF24w__TF24_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ctor <- function(parameters, environment, events, control) {
-    .Call('_plant_SCM___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
+DeterministicPatchRunner___K93__K93_Env__ctor <- function(parameters, environment, events, control) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
-SCM___K93__K93_Env__run <- function(obj_) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__run', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___K93__K93_Env__run <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___K93__K93_Env__run_to <- function(obj_, time) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__run_to', PACKAGE = 'plant', obj_, time))
+DeterministicPatchRunner___K93__K93_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
-SCM___K93__K93_Env__run_mutant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___K93__K93_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___K93__K93_Env__run_mutant_constant <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
+DeterministicPatchRunner___K93__K93_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___K93__K93_Env__store_recording <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__store_recording', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__store_recording <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__refine_schedule <- function(obj_) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__refine_schedule', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___K93__K93_Env__refine_schedule <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__refine_schedule', PACKAGE = 'plant', obj_))
 }
 
-SCM___K93__K93_Env__reset <- function(obj_) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__reset', PACKAGE = 'plant', obj_))
+DeterministicPatchRunner___K93__K93_Env__reset <- function(obj_) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___K93__K93_Env__set_node_schedule_times <- function(obj_, times) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
+DeterministicPatchRunner___K93__K93_Env__set_node_schedule_times <- function(obj_, times) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___K93__K93_Env__time__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__time__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__time__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__parameters__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__parameters__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__parameters__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__patch__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__patch__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__patch__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__history__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__history__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__history__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__history__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__schedule__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__schedule__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__schedule__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__schedule__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__schedule__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___K93__K93_Env__schedule__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___K93__K93_Env__events__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__events__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__events__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__event_log__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__event_log__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__event_log__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ode_times__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__ode_times__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__ode_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ode_step_sizes__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__ode_step_sizes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ode_soil_input_slopes__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ode_soil_substep_ends__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__collect__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__collect__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__collect__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__collect__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__collect__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__collect__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___K93__K93_Env__collect__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__collect__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___K93__K93_Env__collect_refinement_errors__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__collect_refinement_errors__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__collect_refinement_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__collect_refinement_errors__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___K93__K93_Env__collect_refinement_errors__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___K93__K93_Env__keep_states__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__keep_states__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__keep_states__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___K93__K93_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___K93__K93_Env__complete__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__complete__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__complete__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__snapshot_interval__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__snapshot_interval__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+DeterministicPatchRunner___K93__K93_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___K93__K93_Env__snapshots__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__snapshots__get', PACKAGE = 'plant', obj_)
+DeterministicPatchRunner___K93__K93_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticSpecies___FF16__FF16_Env__ctor <- function(strategy) {

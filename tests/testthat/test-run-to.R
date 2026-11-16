@@ -1,15 +1,15 @@
 ## Driving a run from outside (#519): run_to() between legs, the thinned
 ## snapshot record, and the burn-in that stops when the stand has settled.
 
-new_scm <- function(p, ctrl = Control()) {
-  SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
+new_solver <- function(p, ctrl = Control()) {
+  DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
 }
 
 test_that("a sequence of run_to() calls is a run, leg for leg", {
   p <- ff16_parameters(20)
-  a <- new_scm(p)
+  a <- new_solver(p)
   a$run()
-  b <- new_scm(p)
+  b <- new_solver(p)
   for (t in c(5, 10, 15, 20)) {
     b$run_to(t)
   }
@@ -19,7 +19,7 @@ test_that("a sequence of run_to() calls is a run, leg for leg", {
   expect_identical(b$patch$net_reproduction_ratios, a$patch$net_reproduction_ratios)
   ## It stops at the first leg boundary at or past the time asked for, and the
   ## patch it exposes is the live one.
-  c <- new_scm(p)
+  c <- new_solver(p)
   c$run_to(7.3)
   expect_gte(c$time, 7.3)
   expect_false(c$complete)
@@ -37,16 +37,16 @@ test_that("a sequence of run_to() calls is a run, leg for leg", {
 
 test_that("snapshots thin the record and keep every node's lifetime output", {
   p <- ff16_parameters(20)
-  scm <- new_scm(p)
-  scm$snapshot_interval <- 5
-  scm$run()
-  s <- scm$snapshots
+  solver <- new_solver(p)
+  solver$snapshot_interval <- 5
+  solver$run()
+  s <- solver$snapshots
   times <- vapply(s, `[[`, numeric(1), "time")
   ## One at the start, then the first leg boundary at or past 5, 10, 15, 20.
   expect_equal(floor(times / 5), 0:4)
   expect_true(all(times >= c(0, 5, 10, 15, 20)))
   last <- s[[length(s)]]$species[[1]]
-  sp <- scm$patch$species[[1]]
+  sp <- solver$patch$species[[1]]
   expect_equal(last$n_nodes, sp$size)
   expect_equal(last$fecundity, sp$net_reproduction_ratio_by_node)
   trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
@@ -55,14 +55,14 @@ test_that("snapshots thin the record and keep every node's lifetime output", {
   expect_equal(last$n_retired, 0L)
   ## FF16 carries no environment state.
   expect_length(last$environment, 0)
-  tidy <- tidy_snapshots(scm)
+  tidy <- tidy_snapshots(solver)
   expect_equal(nrow(tidy$species), 5)
   expect_equal(tidy$species$time, times)
   expect_equal(names(tidy$environment), "time")
   ## A run with no interval keeps no snapshots, and run() starts the record over.
-  scm$snapshot_interval <- 0
-  scm$run()
-  expect_length(scm$snapshots, 0)
+  solver$snapshot_interval <- 0
+  solver$run()
+  expect_length(solver$snapshots, 0)
 })
 
 test_that("run_until_converged stops when the block means settle", {
@@ -70,13 +70,13 @@ test_that("run_until_converged stops when the block means settle", {
   p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 400, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
-  scm <- new_scm(p, ctrl)
-  r <- run_until_converged(scm, block = 20, tol = 0.02)
+  solver <- new_solver(p, ctrl)
+  r <- run_until_converged(solver, block = 20, tol = 0.02)
   expect_true(r$converged)
   expect_gt(r$time, 40)
   expect_lt(r$time, 400)
-  expect_false(scm$complete)
-  expect_equal(scm$patch$time, r$time)
+  expect_false(solver$complete)
+  expect_equal(solver$patch$time, r$time)
   expect_true(all(c("density", "rel_density") %in% names(r$trace)))
   ## The layer pins the tallest cohort, so by default it is not judged.
   expect_false("height_max" %in% names(r$trace))
@@ -87,11 +87,11 @@ test_that("run_until_converged stops when the block means settle", {
   expect_true(all(is.na(r$trace$rel_density[1:2])))
   expect_true(all(r$trace$rel_density[3:(n - 1)] >= 0.02))
   ## And the run can be exported where it stopped.
-  state <- export_patch_state(scm)
+  state <- export_patch_state(solver)
   expect_equal(state$time, r$time)
   ## A tolerance nothing meets runs to the cap and says so.
-  scm2 <- new_scm(p, ctrl)
-  r2 <- run_until_converged(scm2, block = 20, tol = 1e-12, t_max = 100)
+  solver2 <- new_solver(p, ctrl)
+  r2 <- run_until_converged(solver2, block = 20, tol = 1e-12, t_max = 100)
   expect_false(r2$converged)
   expect_gte(r2$time, 100)
 })

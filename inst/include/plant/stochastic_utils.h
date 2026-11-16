@@ -3,7 +3,7 @@
 #define PLANT_PLANT_STOCHASTIC_UTILS_H_
 
 #include <plant/schedule.h>
-#include <plant/scm_utils.h>
+#include <plant/schedule_utils.h>
 
 namespace plant {
 

@@ -652,7 +652,7 @@ private:
   // Guard against initial conditions whose per-node log-density rates are so
   // large they would drive densities to non-finite values within a few steps.
   void check_initial_density_rates() const;
-  // Guard against the SCM equations running away mid-integration: a cohort
+  // Guard against the size-density equations running away mid-integration: a cohort
   // density (exp(log_density)) or an environment state (e.g. TF24 soil water)
   // going non-finite. Called each derivs evaluation, before the non-finite
   // value can propagate into competition, resource uptake, or physiology and
@@ -1096,7 +1096,7 @@ void Patch<T,E>::check_finite_ode_state() const {
         // propagate into the competition integral or density-weighted resource
         // uptake, where it surfaces as an opaque downstream error.
         const std::string msg =
-          "Non-finite cohort density in the SCM size-density "
+          "Non-finite cohort density in the size-density "
           "(characteristic) equations: species " +
           util::to_string(i + 1) + " has a node with density=" +
           util::to_string(it->get_density()) + " (log_density=" +
@@ -1159,7 +1159,7 @@ void Patch<T,E>::check_finite_ode_state() const {
                  util::to_string(environment.time) +
                  ". For TF24 this is a soil-water state driven non-finite by the "
                  "density-weighted resource uptake as a cohort density runs away "
-                 "in the SCM size-density equations (the same failure that "
+                 "in the size-density equations (the same failure that "
                  "otherwise overflows density to +Inf; see #550). Try a shorter "
                  "max_patch_lifetime or less extreme environmental drivers.");
     }

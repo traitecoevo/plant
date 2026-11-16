@@ -28,7 +28,7 @@ Given several times, the same individuals are followed through all of them,
 so each grows with its cohort and, once dead, stays dead.
 }
 \details{
-The SCM carries density per unit ground area and per unit birth date.
+The deterministic solver carries density per unit ground area and per unit birth date.
 Individuals are drawn as a Poisson process over birth date, at the density at
 the first requested time they could be seen, interpolated between nodes with
 a shape-preserving cubic (PCHIP). Each then carries a fixed hazard budget, drawn from a
@@ -38,8 +38,9 @@ birth date a cohort's density changes only through mortality, so at every
 requested time the number of individuals is Poisson, with mean the area times
 the integral of the density over birth date. The sample is exact apart from
 the interpolation between nodes. The set of nodes changes from frame to frame,
-so the interpolated density at a birth date can rise slightly; having no
-births to add, the sample then follows its running minimum. Individuals of a
+so the interpolated density at a birth date can rise slightly, and so can the
+newest cohort's, which takes in establishment until the next cohort arrives;
+having no births to add, the sample then follows its running minimum. Individuals of a
 cohort that leaves the tracked nodes (as a continuous patch retires its oldest
 cohorts) drop out of the sample. Every other state variable is interpolated to an individual's
 birth date in the same way.

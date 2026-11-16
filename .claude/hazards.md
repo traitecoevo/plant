@@ -90,7 +90,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 ### 15. Long runs and resumes
 
 - A resumed run is not bit-identical to a straight one at the seam; say so beside any number that crosses one.
-- A resume with no introductions left stops where it starts, because `SCM$complete` counts schedule entries. It is refused when the run begins; keep at least one introduction ahead of a resume.
+- A resume with no introductions left stops where it starts, because the deterministic runner's `$complete` counts schedule entries. It is refused when the run begins; keep at least one introduction ahead of a resume.
 - `make_initial_state()` on the birth-date coordinate stamps every node at time 0 and is refused for more than one node per species; it is not the resume entry point.
 - `history` under `collect` is a Patch copy per leg; never turn it on for a long run.
 - The introduction grid can make a fixed point a periodic orbit: between introductions the field swings (1.8% in held R for FF16 at b* with a cohort a year), and a field held at an introduction is the top of the swing. Check a held field inside an interval, by ending the resident's run off the grid, and refine the grid until the swing is below what the comparison needs (#665).

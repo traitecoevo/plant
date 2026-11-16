@@ -12,7 +12,8 @@ namespace plant {
 
 // The name here is likely to change.
 //
-// The interface mirrors that of SCM, and the two share their state, their
+// The interface mirrors that of DeterministicPatchRunner, and the two share
+// their state, their
 // schedule handling and their solver reset through PatchRunner.
 //
 // One thing that is different though is that we need to take care in
@@ -43,7 +44,7 @@ public:
   void advance(double time_);
 
   // time(), complete(), r_parameters(), r_patch(), r_get_state(), r_schedule()
-  // and the schedule setters are PatchRunner's, as SCM's are.
+  // and the schedule setters are PatchRunner's, as DeterministicPatchRunner's are.
   using base_type::time;
   using base_type::complete;
   void reset();
@@ -176,7 +177,8 @@ void StochasticPatchRunner<T, E>::land(double t) {
   solver.get_system_ref().set_time(t);
 }
 
-// Acts on the solver's own system, as SCM does, rather than round-tripping
+// Acts on the solver's own system, as DeterministicPatchRunner does, rather
+// than round-tripping
 // through the `patch` member. Every draw re-syncs the solver, not only one in
 // which somebody died: the draw also resets each survivor's accumulated hazard
 // in the system, and without the re-sync the solver would carry on from its

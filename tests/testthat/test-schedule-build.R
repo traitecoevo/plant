@@ -5,8 +5,8 @@ environment_types <- get_list_of_environment_types()
 test_that("refine_schedule on no residents runs trivially", {
   for (x in names(strategy_types)) {
     p <- testing_parameters(x)
-    expect_silent(scm <- run(p, refine_schedule = TRUE)$solver)
-    expect_equal(length(scm$parameters$strategies), 0)
+    expect_silent(solver <- run(p, refine_schedule = TRUE)$solver)
+    expect_equal(length(solver$parameters$strategies), 0)
   }
 })
 
@@ -14,7 +14,7 @@ test_that("Schedule building", {
   for (x in c("FF16")) {
     ## This is a really dumb test but it should act as a regression test
     ## at least. Refinement now happens entirely in C++ via
-    ## run(refine_schedule = TRUE) -> SCM::refine_schedule().
+    ## run(refine_schedule = TRUE) -> DeterministicPatchRunner::refine_schedule().
     p <- testing_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$strategies[[1]]$birth_rate_y <- 0.1
@@ -22,14 +22,14 @@ test_that("Schedule building", {
     env <- Environment(x)
     ctrl <- Control()
 
-    scm <- run(p, env, ctrl, refine_schedule = TRUE)$solver
-    p2 <- scm$parameters
+    solver <- run(p, env, ctrl, refine_schedule = TRUE)$solver
+    p2 <- solver$parameters
 
     expect_equal(length(p2$node_schedule_times_default), 141)
     expect_equal(length(p2$node_schedule_times[[1]]), 148)
 
     ## Refinement leaves the Parameters self-describing (schedule + ode times).
-    expect_equal(length(p2$ode_times), length(scm$ode_times))
-    expect_true(length(scm$patch$offspring_production) == 1L)
+    expect_equal(length(p2$ode_times), length(solver$ode_times))
+    expect_true(length(solver$patch$offspring_production) == 1L)
   }
 })

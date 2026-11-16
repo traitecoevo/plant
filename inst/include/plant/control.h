@@ -109,7 +109,8 @@ struct Control {
   double ode_tol_scale_soil;
 
   // Fixed-step ODE integration (forward Euler).  Units: years.  When 0 (the
-  // default) the SCM integrates residents with the adaptive, error-controlled
+  // default) the deterministic runner integrates residents with the adaptive,
+  // error-controlled
   // Cash-Karp RKCK solver.  When > 0 it instead uses plain forward Euler on a
   // uniform grid of this spacing (e.g. 1/365 for a daily step), the way
   // industry-standard DGVMs are run.

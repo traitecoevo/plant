@@ -15,7 +15,7 @@ ff16 <- function(lifetime) {
 ctrl <- function(absorb = 0) {
   Control(node_density_coordinate = "birth_date", absorb_epsilon = absorb)
 }
-new_scm <- function(p, c) SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), c)
+new_solver <- function(p, c) DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), c)
 trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
 h_abs <- function(epsilon) {
   s <- FF16_Model()
@@ -37,7 +37,7 @@ test_that("the top layer is off by default and refused where it cannot work", {
 test_that("absorbing a stand conserves its density to rounding at the instant", {
   ## A stand grown without absorption, so many cohorts stand above the height,
   ## loaded with absorption on: the next introduction absorbs all of them.
-  burn <- new_scm(ff16(400), ctrl())
+  burn <- new_solver(ff16(400), ctrl())
   burn$run_to(300)
   state <- export_patch_state(burn)
   state$ode_state <- c(state$ode_state, rep(0, 5 + 5))  # an empty top block
@@ -63,9 +63,9 @@ test_that("absorbing a stand conserves its density to rounding at the instant", 
 })
 
 test_that("a stand with a top layer reaches a fixed point close to the unbounded one", {
-  free <- new_scm(ff16(600), ctrl())
+  free <- new_solver(ff16(600), ctrl())
   free$run()
-  s <- new_scm(ff16(600), ctrl(absorb = 0.02))
+  s <- new_solver(ff16(600), ctrl(absorb = 0.02))
   s$snapshot_interval <- 25
   s$run()
   sp <- s$patch$species[[1]]
@@ -89,7 +89,7 @@ test_that("a cohort is absorbed only at the absorbing height, and frozen there",
   ## passing the absorbing height. Every cohort that leaves it between two legs
   ## while still carrying density was absorbed, so it must stand at the height;
   ## and once out its height never moves again.
-  s <- new_scm(ff16(300), ctrl(absorb = 0.05))
+  s <- new_solver(ff16(300), ctrl(absorb = 0.05))
   s$collect <- TRUE
   s$run()
   hist <- lapply(s$history, function(hh) hh$species[[1]])
@@ -111,9 +111,10 @@ test_that("a cohort is absorbed only at the absorbing height, and frozen there",
 })
 
 test_that("a run starts without the last run's top layer", {
-  ## The layer belongs to a run: a second run on the same SCM -- refinement's,
+  ## The layer belongs to a run: a second run on the same
+  ## DeterministicPatchRunner -- refinement's,
   ## run_mutant()'s pinned resident rerun, a recording -- starts with none.
-  s <- new_scm(ff16(150), ctrl(absorb = 0.05))
+  s <- new_solver(ff16(150), ctrl(absorb = 0.05))
   s$snapshot_interval <- 50
   s$run()
   a <- s$patch$net_reproduction_ratios
@@ -158,7 +159,7 @@ test_that("a layer whose density is spent empties rather than lingering", {
   ## layer whose inflow stopped would keep the canopy top at the absorbing
   ## height for good; below the smallest normal double it is emptied at the
   ## next introduction instant, and its seeds stay.
-  s <- new_scm(ff16(160), ctrl(absorb = 0.05))
+  s <- new_solver(ff16(160), ctrl(absorb = 0.05))
   s$run_to(150)
   state <- export_patch_state(s)
   n <- state$n[[1]]
@@ -262,7 +263,7 @@ test_that("each species has its own layer, at its own height", {
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"), birth_rate = list(1, 1))
   p$strategies[[2]]$pars$hmat <- 10
   p$node_schedule_times <- rep(list(node_schedule_times_periodic(0, 200, 1)), 2)
-  s <- new_scm(p, ctrl(absorb = 0.05))
+  s <- new_solver(p, ctrl(absorb = 0.05))
   s$run()
   layers <- lapply(s$patch$species, function(sp) sp$top_layer)
   expect_true(all(vapply(layers, function(l) l$density > 0, logical(1))))
@@ -309,7 +310,7 @@ test_that("a window resumed from a burn-in scores its own cohorts, not the layer
   ## The burn-in runs without a window, so every cohort it absorbs carries a
   ## fitness weight of one into the exported layer. Resumed into a window, the
   ## ratio is the mean over the window's cohorts, none of which is absorbed.
-  burn <- new_scm(ff16(200), ctrl(absorb = 0.05))
+  burn <- new_solver(ff16(200), ctrl(absorb = 0.05))
   burn$run_to(150)
   expect_gt(burn$patch$species[[1]]$top_layer$weight, 0)
   state <- export_patch_state(burn)
@@ -325,15 +326,15 @@ test_that("a window resumed from a burn-in scores its own cohorts, not the layer
 })
 
 test_that("the top layer survives an export and a resume", {
-  straight <- new_scm(ff16(300), ctrl(absorb = 0.05))
+  straight <- new_solver(ff16(300), ctrl(absorb = 0.05))
   straight$run()
-  first <- new_scm(ff16(300), ctrl(absorb = 0.05))
+  first <- new_solver(ff16(300), ctrl(absorb = 0.05))
   first$run_to(200)
   state <- export_patch_state(first)
   expect_gt(first$patch$species[[1]]$top_layer$density, 0)
   p2 <- set_initial_state(ff16(300), state)
   p2$node_schedule_times <- list(node_schedule_times_periodic(200, 300, 1))
-  resumed <- new_scm(p2, ctrl(absorb = 0.05))
+  resumed <- new_solver(p2, ctrl(absorb = 0.05))
   resumed$snapshot_interval <- 1
   resumed$run()
   ## The layer the resumed run starts from is the one exported.

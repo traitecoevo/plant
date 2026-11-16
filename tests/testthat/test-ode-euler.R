@@ -3,7 +3,8 @@
 ## single derivative evaluation per step on a uniform grid (the way many
 ## industry-standard DGVMs integrate). The bare-solver behaviour (advance_euler
 ## on the Lorenz fixture) now lives with the solver itself in the odelia
-## package; here we cover plant's use of it: (1) the SCM fixed_time_step path
+## package; here we cover plant's use of it: (1) the deterministic runner's
+## fixed_time_step path
 ## converging on the adaptive result, and (2) the guards against combining it
 ## with the mutant pinned-run path.
 ##
@@ -12,7 +13,7 @@
 ## decay and the fixed/adaptive gap -- is horizon-independent, so the shorter
 ## patch is ~3x faster with no loss of coverage.
 
-test_that("SCM fixed-step Euler converges on the adaptive result", {
+test_that("Deterministic fixed-step Euler converges on the adaptive result", {
   x <- "FF16"
   p0 <- testing_parameters(x)
   p0$max_patch_lifetime <- 40
@@ -38,7 +39,7 @@ test_that("SCM fixed-step Euler converges on the adaptive result", {
   expect_equal(fine, ref, tolerance = 0.03)
 })
 
-test_that("SCM fixed-step walks the expected uniform grid", {
+test_that("Deterministic fixed-step walks the expected uniform grid", {
   x <- "FF16"
   p0 <- testing_parameters(x)
   p0$max_patch_lifetime <- 40
@@ -46,8 +47,8 @@ test_that("SCM fixed-step walks the expected uniform grid", {
   env <- Environment(x)
 
   dt <- 0.25
-  scm <- run(p, env, Control(fixed_time_step = dt))$solver
-  ode_times <- scm$ode_times
+  solver <- run(p, env, Control(fixed_time_step = dt))$solver
+  ode_times <- solver$ode_times
 
   ## Introductions (schedule event times) are the only points where the grid
   ## restarts; between them every interval is <= dt (the last sub-interval of
@@ -57,8 +58,8 @@ test_that("SCM fixed-step walks the expected uniform grid", {
   expect_true(all(steps <= dt + 1e-8))
 
   ## Finer steps mean strictly more evaluations.
-  scm_fine <- run(p, env, Control(fixed_time_step = dt / 2))$solver
-  expect_gt(length(scm_fine$ode_times), length(ode_times))
+  solver_fine <- run(p, env, Control(fixed_time_step = dt / 2))$solver
+  expect_gt(length(solver_fine$ode_times), length(ode_times))
 })
 
 test_that("fixed_time_step is rejected on the mutant pinned-run paths", {

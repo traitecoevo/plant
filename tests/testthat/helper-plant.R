@@ -32,7 +32,7 @@ expect_equal_internals <- function(object, expected, ...) {
 }
 
 # One compute_rates call on a standalone TF24 individual, returning its named
-# aux vector. The cheapest probe of the hydraulic path there is: no SCM, no
+# aux vector. The cheapest probe of the hydraulic path there is: no run, no
 # patch, one leaf optimisation. Shared by test-tf24-root-pars.R and
 # test-tf24-stem-hydraulics.R.
 #
@@ -121,7 +121,8 @@ poisson_pulses <- function(from, to, rate, mean_amount) {
 # psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
 # it does not satisfy the generic invariants these lists drive (5-state layout;
 # growth of a standalone Individual stepped a few times, which bypasses that
-# initialisation). TF24f is covered via the SCM in test-model-tf24f.R. TF24t
+# initialisation). TF24f is covered via the deterministic runner in
+# test-model-tf24f.R. TF24t
 # is excluded for the same reasons (four appended states, seeded in
 # set_initial_states) and is covered in test-model-tf24t.R.
 

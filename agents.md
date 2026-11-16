@@ -32,7 +32,8 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
 ┌───────────────────────────▼─────────────────────────────────┐
 │  C++ core  (inst/include/plant/*.h  +  src/*.cpp)            │
 │  - templated class hierarchy: Model, Environment,            │
-│    Individual, Node, Species, Patch, SCM, Stochastic*        │
+│    Individual, Node, Species, Patch,                         │
+│    DeterministicPatchRunner, Stochastic*                     │
 │  - numerics: ODE solver, adaptive quadrature, interpolators  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -78,7 +79,7 @@ Individual<T,E>                     one plant: state + rates from its model
 Node<T,E>                           a cohort in the method-of-characteristics
 Species<T,E>                        all nodes/cohorts of one strategy
 Patch<T,E>                          all Species sharing one Environment
-SCM<T,E>                            the deterministic solver (see §3)
+DeterministicPatchRunner<T,E>       the deterministic solver (see §3)
 Parameters<T,E>                     model configuration (strategies, schedule, …)
 Schedule                            the queue of scheduled events: introductions, pulses, harvests, extremes
 ```
@@ -92,7 +93,7 @@ Key headers to know:
 | Environments | [models/ff16_environment.h](inst/include/plant/models/ff16_environment.h) (and tf24/k93 variants) |
 | Single plant | [individual.h](inst/include/plant/individual.h), per-plant state in [internals.h](inst/include/plant/internals.h) |
 | Cohort / species / patch | [node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h), [patch.h](inst/include/plant/patch.h) |
-| Deterministic solver | [scm.h](inst/include/plant/scm.h), helpers in [scm_utils.h](inst/include/plant/scm_utils.h) |
+| Deterministic solver | [deterministic_patch_runner.h](inst/include/plant/deterministic_patch_runner.h), helpers in [schedule_utils.h](inst/include/plant/schedule_utils.h) |
 | Stochastic solver | [stochastic_patch_runner.h](inst/include/plant/stochastic_patch_runner.h), `stochastic_patch.h`, `stochastic_species.h` |
 | What the two solvers share | [species_base.h](inst/include/plant/species_base.h), [patch_system.h](inst/include/plant/patch_system.h) (the ODE system's layout), [patch_runner.h](inst/include/plant/patch_runner.h); a change to one solver's ODE interface, competition or schedule handling belongs here, so the other cannot miss it |
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
@@ -123,7 +124,7 @@ Every Model carries a `Control` and an `ExtrinsicDrivers` object.
 
 `plant` solves the same model two ways:
 
-1. **Deterministic — SCM, the solver by the method of characteristics.** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run()](R/run.R) in R. Recording every step for `tidy()` and adaptive schedule refinement are arguments of `run()` (`record = "steps"`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
+1. **Deterministic — the solver by the method of characteristics.** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `DeterministicPatchRunner<T,E>` in C++, [run()](R/run.R) in R. Recording every step for `tidy()` and adaptive schedule refinement are arguments of `run()` (`record = "steps"`, `refine_schedule = TRUE`); the refinement loop itself lives in `DeterministicPatchRunner::refine_schedule()` in C++ (see below).
 
 2. **Stochastic — finite-size population.** Individuals arrive and die as discrete events. `StochasticPatchRunner<T,E>` in C++; in R, `run(p, method = "stochastic")`, which builds the runner with arrivals drawn by `stochastic_schedule()` and steps it with the helpers in [R/stochastic.R](R/stochastic.R).
 
@@ -131,7 +132,7 @@ Both share the same `Model`, `Environment`, `Individual`, and `Parameters`. A si
 
 ### Where the schedule and the control defaults live
 
-Adaptive schedule refinement is `SCM::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run()` ([R/run.R](R/run.R)) builds an `SCM` from a `scenario` (`p`, `env`, `control`, `events`), runs it and returns a `plant_run`: the scenario as run, whose `p` holds the possibly-refined parameters, the fitness values and event log as copies, and the live `SCM` at `$solver`. `tidy()` of a run recorded with `record = "steps"` returns the tidied steps with those values, `p`, `events` and `event_log`. With `collect_refinement_errors` set, `SCM::run()` accumulates each node's refinement error on the patch, read back as `scm$patch$refinement_error_by_node`. The fitness values and error signals are computed by `Patch` and read from it (`scm$patch$net_reproduction_ratios`), and the `SCM` keeps no copies of them. Each `Node` records its introduction time and the patch density at its birth, so fitness and error calculations do not re-derive them after the run.
+Adaptive schedule refinement is `DeterministicPatchRunner::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run()` ([R/run.R](R/run.R)) builds a `DeterministicPatchRunner` from a `scenario` (`p`, `env`, `control`, `events`), runs it and returns a `plant_run`: the scenario as run, whose `p` holds the possibly-refined parameters, the fitness values and event log as copies, and the live `DeterministicPatchRunner` at `$solver`. `tidy()` of a run recorded with `record = "steps"` returns the tidied steps with those values, `p`, `events` and `event_log`. With `collect_refinement_errors` set, `DeterministicPatchRunner::run()` accumulates each node's refinement error on the patch, read back as `solver$patch$refinement_error_by_node`. The fitness values and error signals are computed by `Patch` and read from it (`solver$patch$net_reproduction_ratios`), and the `DeterministicPatchRunner` keeps no copies of them. Each `Node` records its introduction time and the patch density at its birth, so fitness and error calculations do not re-derive them after the run.
 
 The numeric defaults every run uses are set in one place, the C++ `Control()` constructor ([src/control.cpp](src/control.cpp)); `control_accurate()` tightens the ODE and schedule tolerances for a high-accuracy run.
 
@@ -150,7 +151,7 @@ knowing before you go looking for a leaf bug here:
 - **The two repos move together.** plant pins phylloptim to a commit in
   `Remotes:` (and an exact version in `LinkingTo`), so bumping that pin is what
   changes results here. Any coupled change
-  lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
+  lands as a pair of PRs, and the plant half is what re-baselines the stand values.
 - **The leaf is purely intensive.** Every input is per unit leaf area or an intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is reduced *here* and passed in already divided. That includes the ROOT RESISTANCES: `set_physiology` takes a `RootNetwork`, and `TF24_Model` runs `phylloptim::root_network_from_carbon` on `root_carbon_per_leaf_area_` to build it. Passing a network built from absolute carbon compiles fine, quietly weakens the root system by the leaf area, and **the leaf cannot detect it**: the division happens here, not in the leaf.
 - **Do not open-code the layer thickness, and do not switch it to the
   environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
@@ -191,7 +192,7 @@ much as the prose. Rules:
 - **One bullet per change; PR number(s) at the end** in parens, e.g. `(#463)`.
 - **State the `old -> new` mapping explicitly**, with the call form, not just the
   name. `run_scm_collect(p, …) -> tidy(run(p, …, record = "steps"))` is
-  actionable; "consolidated the SCM interface" is not.
+  actionable; "consolidated the run interface" is not.
 - **One sub-bullet per affected symbol** when a change touches several:
   ```markdown
   * <one-line what-and-why> (#NNN). Migration:
@@ -227,7 +228,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`). These are `switch()` statements that must list every model; the schedule helpers are found by name from the `Parameters` object's template types, so they need no row. |
 | [run.R](R/run.R) | `run()`, the one verb (#428), for a patch by either solver (`method =`) and for a single plant (`run(individual, times = )`): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
-| [scm_support.R](R/scm_support.R) | `base_parameters`, the `Control` presets `control` (alias) / `control_accurate` / `control_tf24`, `export_patch_state` / `make_initial_state` / `set_initial_state`, `fitness_window`. The fast settings are the C++ `Control()` defaults and schedule refinement is `SCM::refine_schedule` (§3) |
+| [run_support.R](R/run_support.R) | `base_parameters`, the `Control` presets `control` (alias) / `control_accurate` / `control_tf24`, `export_patch_state` / `make_initial_state` / `set_initial_state`, `fitness_window`. The fast settings are the C++ `Control()` defaults and schedule refinement is `DeterministicPatchRunner::refine_schedule` (§3) |
 | [stochastic.R](R/stochastic.R) | The stochastic run's arrival schedule, runner and step collection, internal to `run(method = "stochastic")` |
 | [individual.R](R/individual.R) | The internal growers behind `run(individual, ...)`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
@@ -430,7 +431,7 @@ Rules:
 Every baseline the suite compares against, and what may re-bless it, is listed in [.claude/measurements.md](.claude/measurements.md).
 
 `testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file
-per component (`test-scm.R`, `test-patch.R`, `test-model-ff16.R`,
+per component (`test-deterministic-patch-runner.R`, `test-patch.R`, `test-model-ff16.R`,
 `test-leaf.r`, …). Shared setup is in `helper-plant.R`. Regression baselines for
 FF16 are in `tests/testthat/FF16_reference/` and checked by
 `test-model-ff16-reference-comparison.R` — if you intentionally change FF16
@@ -447,7 +448,7 @@ exists because each of its settings fails quietly when left out:
 
 - It calls `test_check("plant")` from `tests/`. `test_check` evaluates the tests
   in plant's namespace, where the RcppR6 internals (`Parameters`, `Species`,
-  `SCM`, ...) live. `test_dir()` uses the global environment and reports about
+  `DeterministicPatchRunner`, ...) live. `test_dir()` uses the global environment and reports about
   ninety "could not find function" errors that look like a broken build, and
   `test_check` run from the package root finds no test files.
 - It sets `TESTTHAT_PARALLEL=false`, because the parallel workers do not inherit
@@ -571,7 +572,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
   `Remotes:` sha together, rebuilding, and recording the baseline diff.
 - ℹ️ Active bindings ending in `_` generally expose internal C++ fields for
   inspection/testing, not part of the stable user API.
-- ℹ️ Two solvers (deterministic SCM, stochastic) share the same model classes —
+- ℹ️ Two solvers (deterministic, stochastic) share the same model classes —
   changes to a Model affect both.
 - ⚠️ Several hot-path constructs look "wrong" but are deliberate performance
   choices — see §12 before "tidying" them (inline helpers in headers, integer
@@ -586,8 +587,8 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 
 ## 12. Performance & optimisation strategies
 
-The deterministic SCM solver spends almost all of its time in one nested loop
-(`SCM::run` → `ode::derivs` → `Patch::compute_rates` → `Species::compute_rates`
+The deterministic solver spends almost all of its time in one nested loop
+(`DeterministicPatchRunner::run` → `ode::derivs` → `Patch::compute_rates` → `Species::compute_rates`
 → `Node::compute_rates`/`growth_rate_gradient` → `Model::compute_rates` →
 `assimilation`/competition). Because that loop runs for every node, every
 quadrature point, every timestep, small per-call costs dominate. The codebase
@@ -619,7 +620,7 @@ follow-up [#470] (LTO).
   tried and removed: three arrangements measured within 1.5%, and the function has
   since moved to `Individual` and become scalar-templated, so a cached scratch would
   exist at the active type and carry tape slots across recordings — the aliasing
-  failure `scm.h` records, for 1.5%. **Do not reintroduce it.** The copy is also
+  failure `deterministic_patch_runner.h` records, for 1.5%. **Do not reintroduce it.** The copy is also
   absent from the gradient path entirely: `log_density_rate` calls this only on the
   height coordinate, and the reverse pass runs on the birth-date one.
 
@@ -771,7 +772,7 @@ reduction, the reverse pass or `odelia`. Four steps:
 2. **Add its name to `tf24_census`**, the tuple below the metrics in the same
    file. That is the one-word change: `census()`,
    `census_state_adjoint()` and `census_trait_gradient()` in
-   [inst/include/plant/scm.h](inst/include/plant/scm.h) all fold over the tuple,
+   [inst/include/plant/deterministic_patch_runner.h](inst/include/plant/deterministic_patch_runner.h) all fold over the tuple,
    and `census_metric_names_tf24()` reports it, so the new row appears in the
    value, in the seed and in the gradient with no further edit.
 3. **Rebuild.** No export signature changes and no new symbol reaches R, so
@@ -790,7 +791,7 @@ reduction, the reverse pass or `odelia`. Four steps:
 What a metric may *not* do: read another cohort, read the light field, or carry
 a state of its own. Each of those makes it a term in the rates rather than a
 functional of the state at one time, and the seeding in
-`SCM::census_state_adjoint` — one recording of the reduction with the ODE state
+`DeterministicPatchRunner::census_state_adjoint` — one recording of the reduction with the ODE state
 as its inputs — would no longer be the whole derivative.
 
 ---

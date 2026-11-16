@@ -140,7 +140,7 @@ public:
 
   // Unfortunate, but need a get_ here because of name shadowing...
   value_type get_log_density() const {return log_density;}
-  // exp(log_density); can overflow to +Inf when the SCM density equation runs
+  // exp(log_density); can overflow to +Inf when the density equation runs
   // away (see Patch::check_finite_ode_state).
   // What the node contributes: its state, through the open interval's factor
   // where it has one.

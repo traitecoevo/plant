@@ -288,7 +288,8 @@ public:
   }
 
   // Each species' net reproduction ratio and offspring production are offered
-  // as differentiable stand metrics beside the census (SCM::stand_metrics).
+  // as differentiable stand metrics beside the census
+  // (DeterministicPatchRunner::stand_metrics).
   // Declared here because the fecundity channel is refereed for this model:
   // test-ff16-fitness-gradient.R checks every route into it against a pinned
   // central difference.
@@ -918,7 +919,7 @@ S FF16_Model<S>::mass_above_ground(const S& mass_leaf, const S& mass_bark,
 
 // update_dependent_aux() is defined inline in the class (hot path).
 
-// one-shot update of the scm variables
+// one-shot update of the model's ODE variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 template <typename S>
 void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
@@ -1060,7 +1061,7 @@ S FF16_Model<S>::turnover_sapwood(const S& mass) const {
 // Net production
 //
 // NOTE: Translation of variable names from the Falster 2011.  Everything
-// before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
+// before the minus sign is their N, our `net_mass_production_dt` is their P.
 template <typename S>
 S FF16_Model<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
                                              const S& turnover) const {

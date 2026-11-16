@@ -268,7 +268,7 @@ public:
 
   // The tallest node height and whether the heights are ordered, from a single
   // pass. compute_competition() needs both on every call, and walking the heights
-  // twice was measurably slower on FF16 (~5% on the SCM benchmark) than the
+  // twice was measurably slower on FF16 (~5% on the run benchmark) than the
   // O(1) nodes.front() it replaced.
   // h_max is the canopy top, a position; decreasing is a comparison outcome and
   // structural, so it stays bool whatever the heights are made of.

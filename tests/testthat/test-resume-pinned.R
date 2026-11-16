@@ -6,8 +6,8 @@
 ## A resident run to 10 and exported, then the parameters that resume it to 20.
 resumed_parameters <- function() {
   p1 <- ff16_parameters(10)
-  scm1 <- run(p1)$solver
-  state <- export_patch_state(scm1)
+  solver1 <- run(p1)$solver
+  state <- export_patch_state(solver1)
   p2 <- set_initial_state(ff16_parameters(20), state)
   tt <- ff16_parameters(20)$node_schedule_times[[1]]
   p2$node_schedule_times <- list(tt[tt > state$time])
@@ -20,12 +20,12 @@ test_that("an empty patch starts at initial_time", {
   tt <- p$node_schedule_times[[1]]
   p$initial_time <- 5
   p$node_schedule_times <- list(tt[tt >= 5])
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), Control())
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), Control())
   ## The clock is the parameters' before anything runs.
-  expect_equal(scm$time, 5)
-  scm$run()
-  expect_equal(scm$patch$time, 20)
-  expect_equal(scm$patch$species[[1]]$size, sum(tt >= 5))
+  expect_equal(solver$time, 5)
+  solver$run()
+  expect_equal(solver$patch$time, 20)
+  expect_equal(solver$patch$species[[1]]$size, sum(tt >= 5))
   ## Under constant drivers and no disturbance weighting the same run shifted
   ## to start at zero gives the same stand, to the rounding of the shifted
   ## clock.
@@ -33,39 +33,39 @@ test_that("an empty patch starts at initial_time", {
   p0$initial_time <- 0
   p0$max_patch_lifetime <- 15
   p0$node_schedule_times <- list(tt[tt >= 5] - 5)
-  scm0 <- run(p0)$solver
-  expect_equal(scm$patch$net_reproduction_ratios, scm0$patch$net_reproduction_ratios,
+  solver0 <- run(p0)$solver
+  expect_equal(solver$patch$net_reproduction_ratios, solver0$patch$net_reproduction_ratios,
                tolerance = 1e-6)
 })
 
 test_that("a resumed run reruns its own recorded schedule", {
   r <- resumed_parameters()
-  scm2 <- run(r$p2)$solver
+  solver2 <- run(r$p2)$solver
   p3 <- r$p2
-  p3$ode_times <- scm2$ode_times
-  p3$ode_step_sizes <- scm2$ode_step_sizes
+  p3$ode_times <- solver2$ode_times
+  p3$ode_step_sizes <- solver2$ode_step_sizes
   ## The first recorded time is the resumed time, not zero, and the pinned run
   ## crosses the gap to the first residual introduction by the schedule.
   expect_equal(p3$ode_times[[1]], r$state$time)
-  scm3 <- run(p3)$solver
-  expect_identical(scm3$patch$ode_state, scm2$patch$ode_state)
-  expect_identical(scm3$patch$net_reproduction_ratios, scm2$patch$net_reproduction_ratios)
+  solver3 <- run(p3)$solver
+  expect_identical(solver3$patch$ode_state, solver2$patch$ode_state)
+  expect_identical(solver3$patch$net_reproduction_ratios, solver2$patch$net_reproduction_ratios)
 })
 
 test_that("a mutant invades a resumed resident", {
   r <- resumed_parameters()
-  scm2 <- run(r$p2)$solver
-  resident_times <- scm2$patch$species[[1]]$node_times
-  resident_nodes <- scm2$patch$species[[1]]$net_reproduction_ratio_by_node
+  solver2 <- run(r$p2)$solver
+  resident_times <- solver2$patch$species[[1]]$node_times
+  resident_nodes <- solver2$patch$species[[1]]$net_reproduction_ratio_by_node
   ## The invader starts where the resident resumed, with no cohorts of its own
   ## and the resident's residual schedule, and is the resident's own strategy,
   ## so its cohorts must reproduce the resident's cohorts born after the resume.
   pm <- ff16_parameters(20)
   pm$initial_time <- r$state$time
   pm$node_schedule_times <- r$p2$node_schedule_times
-  scm2$run_mutant(pm)
-  mutant_times <- scm2$patch$species[[1]]$node_times
-  mutant_nodes <- scm2$patch$species[[1]]$net_reproduction_ratio_by_node
+  solver2$run_mutant(pm)
+  mutant_times <- solver2$patch$species[[1]]$node_times
+  mutant_nodes <- solver2$patch$species[[1]]$net_reproduction_ratio_by_node
   expect_equal(mutant_times, r$p2$node_schedule_times[[1]])
   after <- resident_times > r$state$time
   expect_equal(mutant_nodes, resident_nodes[after], tolerance = 1e-8)
@@ -76,12 +76,12 @@ test_that("an exported state carries the events still to come", {
   ev <- events(events_default(p),
                harvest(time = 5, fraction = 0.3),
                harvest(time = 15, fraction = 0.2))
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, Control())
-  scm$collect <- TRUE
-  scm$run()
-  times <- vapply(scm$history, function(h) h$time, numeric(1))
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), ev, Control())
+  solver$collect <- TRUE
+  solver$run()
+  times <- vapply(solver$history, function(h) h$time, numeric(1))
   k <- which(times >= 10)[[1]]
-  state <- export_patch_state(scm, step = k)
+  state <- export_patch_state(solver, step = k)
   expect_true(all(state$events$time >= state$time - 1e-8))
   is_harvest <- state$events$type == "harvest"
   expect_equal(state$events$time[is_harvest], 15)
@@ -92,11 +92,11 @@ test_that("an exported state carries the events still to come", {
   ## step-size restart; without them the harvest at 15 is lost.
   p2 <- set_initial_state(p, state)
   with_events <- run(p2, events = state$events)$solver
-  expect_equal(with_events$patch$net_reproduction_ratios, scm$patch$net_reproduction_ratios,
+  expect_equal(with_events$patch$net_reproduction_ratios, solver$patch$net_reproduction_ratios,
                tolerance = 1e-3)
   without <- run(p2)$solver
-  expect_gt(abs(without$patch$net_reproduction_ratios - scm$patch$net_reproduction_ratios),
-            1e-2 * scm$patch$net_reproduction_ratios)
+  expect_gt(abs(without$patch$net_reproduction_ratios - solver$patch$net_reproduction_ratios),
+            1e-2 * solver$patch$net_reproduction_ratios)
 })
 
 test_that("a resume with no introductions left is refused, not stopped at its start", {
@@ -111,9 +111,9 @@ test_that("a resume with no introductions left is refused, not stopped at its st
 test_that("an action applied at the export time is not exported again", {
   p <- ff16_parameters(15)
   ev <- events(events_default(p), harvest(time = 15, fraction = 0.2))
-  scm <- run(p, events = ev)$solver
-  expect_equal(scm$event_log$time, 15)
-  state <- export_patch_state(scm)
+  solver <- run(p, events = ev)$solver
+  expect_equal(solver$event_log$time, 15)
+  state <- export_patch_state(solver)
   expect_equal(state$time, 15)
   expect_false(any(state$events$type == "harvest"))
   expect_equal(length(state$node_schedule_times[[1]]), 0)
@@ -133,13 +133,13 @@ test_that("an invader introduced at the resume instant stands in the resident's 
   }
   p <- mk(160)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 160, 1))
-  burn <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
+  burn <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
   burn$run_to(60)
   state <- export_patch_state(burn)
   sched <- node_schedule_times_periodic(60, 160, 1)
   p2 <- set_initial_state(mk(160), state)
   p2$node_schedule_times <- list(sched)
-  res <- SCM("FF16", "FF16_Env")(p2, Environment("FF16"), empty_events(), ctrl)
+  res <- DeterministicPatchRunner("FF16", "FF16_Env")(p2, Environment("FF16"), empty_events(), ctrl)
   res$run()
   sp <- res$patch$species[[1]]
   resident <- sp$net_reproduction_ratio_by_node[sp$node_times >= 60]

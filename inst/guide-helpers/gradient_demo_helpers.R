@@ -60,26 +60,26 @@ gd_parameters <- function(traits, lifetime = 40, birth_rate = 1.10,
 gd_point <- function(traits, lifetime = 40, schedule = NULL, refine = TRUE,
                      ctrl = Control(node_density_coordinate = "birth_date")) {
   p <- gd_parameters(traits, lifetime = lifetime, schedule = schedule)
-  scm <- run(p, Environment("TF24"), ctrl, refine_schedule = refine,
-             record = "states")$solver
+  solver <- run(p, Environment("TF24"), ctrl, refine_schedule = refine,
+                record = "states")$solver
   ## Partial derivatives: each column holds every other parameter fixed. The
   ## trade-offs `p` carries are left out here, so gd_trait_gradient() is what
   ## carries a trait's derived parameters along with it, and the guide can show
   ## the two side by side.
-  g <- stand_gradient(scm, hyperpar = NULL)
+  g <- stand_gradient(solver, hyperpar = NULL)
   list(traits = traits,
        value = g$value,
        gradient = g$gradient,
        refused = stand_gradient_refused(g),
-       x = gd_param_values(scm, colnames(g$gradient)),
-       schedule = scm$parameters$node_schedule_times,
-       steps = length(scm$ode_times) - 1L)
+       x = gd_param_values(solver, colnames(g$gradient)),
+       schedule = solver$parameters$node_schedule_times,
+       steps = length(solver$ode_times) - 1L)
 }
 
 ## The parameter value behind every gradient column, in the same order. Columns
 ## are named "<species>.<parameter>".
-gd_param_values <- function(scm, cols) {
-  strategies <- scm$parameters$strategies
+gd_param_values <- function(solver, cols) {
+  strategies <- solver$parameters$strategies
   vapply(cols, function(cn) {
     sp <- as.integer(sub("\\..*$", "", cn))
     nm <- sub("^[0-9]+\\.", "", cn)

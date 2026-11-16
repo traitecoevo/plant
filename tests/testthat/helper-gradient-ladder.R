@@ -585,13 +585,13 @@ ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
   }
   ctrl <- Control()
   ctrl$node_density_coordinate <- "birth_date"
-  scm <- SCM("TF24", "TF24_Env")(p, ladder_environment(rain, amplitude, lifetime),
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, ladder_environment(rain, amplitude, lifetime),
                                  empty_events(), ctrl)
   # The tallies accumulate, so a stand starts its own count rather than the
   # count of whatever ran before it in this process.
-  census_clear_diagnostics_tf24(scm)
-  scm$run()
-  scm
+  census_clear_diagnostics_tf24(solver)
+  solver$run()
+  solver
 }
 
 # The regimes a reference is captured over, and the reason each is here rather

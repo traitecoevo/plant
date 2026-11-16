@@ -252,7 +252,8 @@ test_that("offspring arrival", {
   # end-to-end check.
   #
   # Tolerance is 2e-2 (relative), not machine-epsilon: offspring_production is an
-  # integrated SCM output, so per-step FMA/rounding differences accumulate across
+  # integrated deterministic output, so per-step FMA/rounding differences
+  # accumulate across
   # architectures. Under the NSC reserve-gated growth of #517 the growth rate
   # passes through exp/sqrt/logistic terms (the reserve gate and smooth
   # positive-part of net production), which are more platform-sensitive than the
@@ -340,7 +341,7 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
   # The stem path integral (plant/stem_hydraulics.h) replaced a resistance
   # strictly linear in height. Setting D_c, theta_c and L_tip to zero and K_s
   # back to its old whole-stem value of 1, with no storage relaxation offset,
-  # must recover that model exactly -- end-to-end through a full SCM run, not
+  # must recover that model exactly -- end-to-end through a full deterministic run, not
   # just in the closed form.
   #
   # The values pinned here are develop's own, i.e. the ones the tests above this
@@ -440,7 +441,7 @@ results$env$soil_moist_cumulative_flux %>%
 expect_true(1 - (stem_side/root_side$root_side[-1])[length(stem_side)] < 5e-2)
 })
 
-test_that("SCM completes under extreme seasonal drought (#517, #550)", {
+test_that("A deterministic run completes under extreme seasonal drought (#517, #550)", {
   # This regime used to blow up (#550): under extreme seasonal drought the
   # instantaneous growth-dependent mortality a_dG1*exp(-a_dG2*productivity_area)
   # overflowed to ~1e32, running the coupled (log_density, mortality) ODE away

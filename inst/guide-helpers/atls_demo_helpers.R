@@ -175,14 +175,14 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
   do.call(rbind, rows)
 }
 
-## --- Community scale (SCM) --------------------------------------------------
+## --- Community scale (deterministic runs) -----------------------------------
 ## A single-species patch under a CONSTANT climate (the `leaf_temp` driver as the
 ## midday air temperature; other drivers at their defaults), run for a whole
 ## patch lifetime. Each run returns the net reproduction ratio R0 and lifetime
 ## offspring production. Runs take tens of seconds, so callers keep grids small
 ## and the .qmd caches them.
 
-## One SCM run. `type` is "TF24t", or "TF24" for the energy-balance-only
+## One deterministic run. `type` is "TF24t", or "TF24" for the energy-balance-only
 ## comparator (pars$use_energy_balance set to 1 to match TF24t's forced
 ## balance). `mutate` edits the resident strategy: the thermal axes are TF24t
 ## strategy fields (topt_offset for tolerance; k_i and k_rec for repair; alpha
@@ -208,7 +208,7 @@ atls_scm_fitness <- function(air_temp, type = "TF24t", mutate = identity,
              offspring = res$offspring_production)
 }
 
-## Heritable archetypes for the SCM comparisons, each a single-axis move off the
+## Heritable archetypes for the stand comparisons, each a single-axis move off the
 ## generalist. Acclimation is a change of kinetics, since A is a state.
 atls_scm_strategies <- function() {
   list(
@@ -228,7 +228,7 @@ atls_scm_default_workers <- function() {
 ## Run a list of zero-argument jobs, each returning a 1-row data.frame, and rbind
 ## them in order. Forked (parallel::mclapply), so the workers inherit whatever
 ## plant the session loaded -- a pkgload::load_all build included, which a
-## PSOCK cluster would not see. Sequential on Windows or with one worker. SCM
+## PSOCK cluster would not see. Sequential on Windows or with one worker. The
 ## runs are deterministic and mclapply keeps order, so both give the same frame.
 atls_scm_run_jobs <- function(jobs, workers = atls_scm_default_workers()) {
   workers <- max(1L, min(workers, length(jobs)))
@@ -241,7 +241,7 @@ atls_scm_run_jobs <- function(jobs, workers = atls_scm_default_workers()) {
   }
   failed <- vapply(rows, inherits, logical(1), "try-error")
   if (any(failed)) {
-    stop("SCM job failed: ", as.character(rows[[which(failed)[1]]]))
+    stop("deterministic run failed: ", as.character(rows[[which(failed)[1]]]))
   }
   do.call(rbind, rows)
 }

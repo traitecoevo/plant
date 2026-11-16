@@ -4,10 +4,10 @@
 \alias{stand_census_state_adjoint}
 \title{Sensitivity of the stand metrics to the ODE state at the current time.}
 \usage{
-stand_census_state_adjoint(scm)
+stand_census_state_adjoint(x)
 }
 \arguments{
-\item{scm}{A run \code{SCM} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+\item{x}{A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
 birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
 }
 \value{
@@ -18,7 +18,7 @@ One row per metric -- the census metrics, then for a model that declares
 its fitness differentiable each species' net reproduction ratio and offspring
 production, named as \code{\link{stand_gradient}} names them -- and one
 column per ODE state entry, in the order
-\code{scm$patch$ode_state} writes. This is what the reverse pass starts
+\code{x$patch$ode_state} writes. This is what the reverse pass starts
 with. The cohort-height columns carry the trapezium weights as well as the
 integrand only where the height is the coordinate integrated over; on the
 birth-date coordinate the weights are constants.

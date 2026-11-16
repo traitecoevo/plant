@@ -24,10 +24,10 @@ fitness_stand <- function(..., ctrl = fitness_control()) {
   run(fitness_parameters(...), NULL, ctrl, record = "states")$solver
 }
 
-pinned <- function(scm) {
-  p <- scm$parameters
-  p$ode_times <- scm$ode_times
-  p$ode_step_sizes <- scm$ode_step_sizes
+pinned <- function(solver) {
+  p <- solver$parameters
+  p$ode_times <- solver$ode_times
+  p$ode_step_sizes <- solver$ode_step_sizes
   p
 }
 
@@ -35,35 +35,35 @@ pinned <- function(scm) {
 fitness_of <- function(p) stand_fitness(run(p, NULL, fitness_control())$solver)
 
 test_that("FF16 reports its fitness under the names the gradient uses", {
-  scm <- fitness_stand(lma = c(0.0825, 0.2))
-  f <- stand_fitness(scm)
+  solver <- fitness_stand(lma = c(0.0825, 0.2))
+  f <- stand_fitness(solver)
   expect_equal(names(f), c("1.net_reproduction_ratio", "1.offspring_production",
                            "2.net_reproduction_ratio", "2.offspring_production"))
   # The same numbers the run has always reported, bit for bit.
-  expect_identical(unname(f[c(1, 3)]), scm$patch$net_reproduction_ratios)
-  expect_identical(unname(f[c(2, 4)]), scm$patch$offspring_production)
+  expect_identical(unname(f[c(1, 3)]), solver$patch$net_reproduction_ratios)
+  expect_identical(unname(f[c(2, 4)]), solver$patch$offspring_production)
   # The census keeps its own three, and the gradient defaults to all seven.
-  expect_equal(names(stand_census(scm)),
+  expect_equal(names(stand_census(solver)),
                c("leaf_area", "mass_above_ground", "area_stem"))
-  g <- stand_gradient(scm, traits = "1.lma", hyperpar = NULL)
-  expect_equal(rownames(g$gradient), c(names(stand_census(scm)), names(f)))
+  g <- stand_gradient(solver, traits = "1.lma", hyperpar = NULL)
+  expect_equal(rownames(g$gradient), c(names(stand_census(solver)), names(f)))
   expect_false(any(stand_gradient_refused(g)))
   # S_D reaches the fitness directly, so it is a column now.
-  expect_true("1.S_D" %in% colnames(stand_gradient(scm, metrics = "1.offspring_production",
+  expect_true("1.S_D" %in% colnames(stand_gradient(solver, metrics = "1.offspring_production",
                                                    hyperpar = NULL)$gradient))
-  expect_error(stand_gradient(scm, metrics = "3.offspring_production",
+  expect_error(stand_gradient(solver, metrics = "3.offspring_production",
                               hyperpar = NULL),
                "Unknown metric")
 })
 
 test_that("the fitness gradient is the pinned-step central difference", {
-  scm <- fitness_stand()
-  expect_gt(stand_fitness(scm)[["1.net_reproduction_ratio"]], 0)
-  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "1.offspring_production"),
+  solver <- fitness_stand()
+  expect_gt(stand_fitness(solver)[["1.net_reproduction_ratio"]], 0)
+  g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
+                                          "1.offspring_production"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  p <- pinned(scm)
+  p <- pinned(solver)
   # Every route into the fecundity state: the reproduction schedule (hmat,
   # a_f1, a_f2), the per-seed cost (omega, a_f3), survival during dispersal
   # (S_D, a direct term and nothing else), growth and the light field (lma,
@@ -82,25 +82,25 @@ test_that("the fitness gradient is the pinned-step central difference", {
   # ratio times that rate, column for column.
   # Every column but the birth rate's own, which carries the ratio itself too
   # (test-ff16-birth-rate-gradient.R has that one).
-  b <- scm$parameters$strategies[[1]]$birth_rate_y
+  b <- solver$parameters$strategies[[1]]$birth_rate_y
   traits <- setdiff(colnames(g$gradient), "1.birth_rate")
   expect_equal(g$gradient["1.offspring_production", traits],
                b * g$gradient["1.net_reproduction_ratio", traits],
                tolerance = 1e-12)
   # S_D multiplies the whole integral, so its column is the value over S_D.
-  S_D <- scm$parameters$strategies[[1]]$pars$S_D
+  S_D <- solver$parameters$strategies[[1]]$pars$S_D
   expect_equal(g$gradient["1.net_reproduction_ratio", "1.S_D"],
                g$value[["1.net_reproduction_ratio"]] / S_D, tolerance = 1e-12)
 })
 
 test_that("one species' fitness responds to the other's traits through the canopy", {
-  scm <- fitness_stand(lma = c(0.0825, 0.2))
-  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "2.net_reproduction_ratio"),
+  solver <- fitness_stand(lma = c(0.0825, 0.2))
+  g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
+                                          "2.net_reproduction_ratio"),
                       traits = c("1.lma", "2.lma", "1.k_I", "2.k_I"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  p <- pinned(scm)
+  p <- pinned(solver)
   # A finer step than the one-species test: one species' fitness is strongly
   # curved in the other's lma, and at a relative step of 1e-4 the difference's
   # own truncation error is 2e-5 (it falls as the square of the step: 3e-7 at
@@ -120,14 +120,14 @@ test_that("the fitness gradient over a window is the pinned-step central differe
   # regime's, read at the birth dates, so they carry no derivative and the
   # normalisation divides the gradient as it divides the value.
   p <- fitness_window(fitness_parameters(), 2, 5)
-  scm <- run(p, NULL, fitness_control(), record = "states")$solver
-  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "1.offspring_production"),
+  solver <- run(p, NULL, fitness_control(), record = "states")$solver
+  g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
+                                          "1.offspring_production"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_identical(g$value[["1.net_reproduction_ratio"]],
-                   scm$patch$net_reproduction_ratios)
-  q <- pinned(scm)
+                   solver$patch$net_reproduction_ratios)
+  q <- pinned(solver)
   for (name in c("hmat", "lma", "S_D")) {
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
       fd <- central_difference(q, 1, name, metric, fitness_of)

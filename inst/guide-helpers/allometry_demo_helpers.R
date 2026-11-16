@@ -109,7 +109,7 @@ allometry_self_thinning <- function(a_pl0 = 1.0, mpl = 25, lma = 0.0825,
 ## recovery can both be seen. The ODE is integrated within each interval at
 ## fixed soil water and the state carried across, which is a piecewise-constant
 ## driver rather than a smooth one -- adequate for a demo, and stated so the
-## reader does not mistake it for how the SCM drives soil water.
+## reader does not mistake it for how the deterministic runner drives soil water.
 allometry_trajectory <- function(a_pl0, soil_history, dt = 0.1, height0 = 4) {
   s <- tf24_allometry_strategy(a_pl0, collect_all_auxiliary = TRUE)
   ind <- TF24_Individual(s)

@@ -183,7 +183,8 @@ public:
   static constexpr bool density_in_birth_date_default = true;
 
   // Each species' net reproduction ratio and offspring production are stand
-  // metrics (SCM::stand_metrics), refereed in test-tf24-fitness-gradient.R.
+  // metrics (DeterministicPatchRunner::stand_metrics), refereed in
+  // test-tf24-fitness-gradient.R.
   static constexpr bool differentiable_fitness = true;
 
   // The metrics a census of this model sums, in the order it reports them. Beside

@@ -4,10 +4,11 @@
 \alias{tidy_snapshots}
 \title{Tidy a run's snapshots}
 \usage{
-tidy_snapshots(scm)
+tidy_snapshots(x)
 }
 \arguments{
-\item{scm}{An \code{SCM} or \code{plant_run} that was run with a positive
+\item{x}{A \code{DeterministicPatchRunner} or \code{plant_run} that was run
+with a positive
 \code{snapshot_interval}.}
 }
 \value{
@@ -22,8 +23,9 @@ A list of three: \code{species}, a data frame with one row per
   node's lifetime offspring output.
 }
 \description{
-Flatten the thinned record of a run. With \code{scm$snapshot_interval} set
-before the run, the SCM keeps one summary per interval instead of a copy
+Flatten the thinned record of a run. With \code{x$snapshot_interval} set
+before the run, the deterministic runner keeps one summary per interval
+instead of a copy
 of the whole patch per leg: per species the node counts, the tallest cohort
 carrying density, the trapezium of the carried density over the birth-date
 grid and every node's lifetime offspring output, plus the environment's own

@@ -4,7 +4,8 @@
 
 // One body per question, instantiated per model below. A metric is added to a
 // strategy's own census_metrics(); nothing here names one, and the codomain is
-// that list's length. The R side picks the model's entry points off the SCM's
+// that list's length. The R side picks the model's entry points off the
+// deterministic runner's
 // own class, so a model declaring no census is refused there by name.
 
 // Defined below the helpers that call it, with external linkage: the ladder's
@@ -15,30 +16,30 @@ namespace {
 
 // The metrics' names, each carrying its kind ("census" or "fitness") as the
 // R name, so the R side splits the two without parsing the metric's name.
-template <class SCM>
-Rcpp::CharacterVector metric_names_of(SCM& scm) {
-  const auto metrics = scm.stand_metrics();
+template <class Runner>
+Rcpp::CharacterVector metric_names_of(Runner& runner) {
+  const auto metrics = runner.stand_metrics();
   Rcpp::CharacterVector ret(metrics.size());
   Rcpp::CharacterVector kinds(metrics.size());
   for (size_t m = 0; m < metrics.size(); ++m) {
     ret[m] = metrics[m].name;
-    kinds[m] = SCM::metric_kind_name(metrics[m]);
+    kinds[m] = Runner::metric_kind_name(metrics[m]);
   }
   ret.names() = kinds;
   return ret;
 }
 
-template <class SCM>
-std::vector<std::vector<double>> state_adjoint_of(SCM& scm) {
-  return scm.census_state_and_trait_rows().state.to_vectors();
+template <class Runner>
+std::vector<std::vector<double>> state_adjoint_of(Runner& runner) {
+  return runner.census_state_and_trait_rows().state.to_vectors();
 }
 
 // The parameters no gradient exists for, each with the sentence saying why, so
 // asking for one is refused in the model's own words. Without this a caller who
 // asks for `eta` is told the name is unknown, which it is not.
-template <class SCM>
+template <class Runner>
 Rcpp::CharacterVector undifferentiable_of() {
-  const auto reasons = SCM::strategy_type::undifferentiable_reasons();
+  const auto reasons = Runner::strategy_type::undifferentiable_reasons();
   Rcpp::CharacterVector ret(reasons.size());
   Rcpp::CharacterVector names(reasons.size());
   for (size_t i = 0; i < reasons.size(); ++i) {
@@ -56,8 +57,8 @@ Rcpp::CharacterVector undifferentiable_of() {
 // not know the census asks for. Naming a subset is what makes a single metric
 // cost one, and a name is what crosses: a position means a different metric as
 // soon as the model's list changes.
-template <class SCM>
-Rcpp::List trait_gradient_of(SCM& scm,
+template <class Runner>
+Rcpp::List trait_gradient_of(Runner& runner,
                              Rcpp::Nullable<Rcpp::CharacterVector> which_metrics) {
   std::vector<std::string> wanted;
   if (which_metrics.isNotNull()) {
@@ -66,14 +67,14 @@ Rcpp::List trait_gradient_of(SCM& scm,
       wanted.push_back(Rcpp::as<std::string>(v[i]));
     }
   }
-  return census_gradient_to_r(scm.census_trait_gradient({}, wanted));
+  return census_gradient_to_r(runner.census_trait_gradient({}, wanted));
 }
 
 // The same rule as the metrics above: a name is what crosses. The entries arrive
-// paired from SCM::gradient_control(), so nothing here chooses an order.
-template <class SCM>
-Rcpp::NumericVector control_of(SCM& scm) {
-  const auto entries = scm.gradient_control();
+// paired from Runner::gradient_control(), so nothing here chooses an order.
+template <class Runner>
+Rcpp::NumericVector control_of(Runner& runner) {
+  const auto entries = runner.gradient_control();
   Rcpp::NumericVector out(entries.size());
   Rcpp::CharacterVector names(entries.size());
   for (size_t i = 0; i < entries.size(); ++i) {
@@ -115,18 +116,18 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g) {
 // ---- TF24 ----------------------------------------------------------------
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return metric_names_of(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<double> census_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+std::vector<double> census_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->census();
 }
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return state_adjoint_of(*obj_);
 }
 
@@ -135,64 +136,64 @@ census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<dou
 // accumulate in. Each name carries its species index, as "1.lma".
 // [[Rcpp::export]]
 std::vector<std::string>
-census_trait_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+census_trait_names_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return obj_->r_patch().trait_adjoint_names();
 }
 
 // [[Rcpp::export]]
 Rcpp::CharacterVector census_undifferentiable_tf24() {
-  return undifferentiable_of<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > >();
+  return undifferentiable_of<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > >();
 }
 
 // [[Rcpp::export]]
 Rcpp::List
-census_trait_gradient_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
+census_trait_gradient_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,
                            Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
   return trait_gradient_of(*obj_, which_metrics);
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
+Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   return control_of(*obj_);
 }
 
 // ---- FF16 ----------------------------------------------------------------
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
+Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return metric_names_of(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<double> census_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
+std::vector<double> census_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return obj_->census();
 }
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
-census_state_adjoint_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
+census_state_adjoint_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return state_adjoint_of(*obj_);
 }
 
 // [[Rcpp::export]]
 std::vector<std::string>
-census_trait_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
+census_trait_names_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return obj_->r_patch().trait_adjoint_names();
 }
 
 // [[Rcpp::export]]
 Rcpp::CharacterVector census_undifferentiable_ff16() {
-  return undifferentiable_of<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > >();
+  return undifferentiable_of<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > >();
 }
 
 // [[Rcpp::export]]
 Rcpp::List
-census_trait_gradient_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_,
+census_trait_gradient_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_,
                            Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
   return trait_gradient_of(*obj_, which_metrics);
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector gradient_control_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
+Rcpp::NumericVector gradient_control_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_) {
   return control_of(*obj_);
 }

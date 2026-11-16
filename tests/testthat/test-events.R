@@ -114,7 +114,7 @@ test_that("an out-of-range species index is rejected", {
   bad <- Events(time = c(0, 1), type = rep("node_introduction", 2),
                 target = rep("species", 2), target_index = c(1L, 2L),
                 params = list(numeric(0), numeric(0)))
-  expect_error(SCM("FF16", "FF16_Env")(p, Environment("FF16"), bad, control()),
+  expect_error(DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), bad, control()),
                "outside 1\\.\\.1")
 })
 
@@ -136,11 +136,11 @@ test_that("the events path reproduces the default path exactly", {
                         birth_rate = list(1, 1))
 
     run <- function(ev) {
-      scm <- SCM(x, e)(p, Environment(x), ev, control())
-      scm$run()
-      list(ode_times = scm$ode_times,
-           net_reproduction_ratios = scm$patch$net_reproduction_ratios,
-           ode_state = scm$patch$ode_state)
+      solver <- DeterministicPatchRunner(x, e)(p, Environment(x), ev, control())
+      solver$run()
+      list(ode_times = solver$ode_times,
+           net_reproduction_ratios = solver$patch$net_reproduction_ratios,
+           ode_state = solver$patch$ode_state)
     }
 
     expect_identical(run(events(node_introductions(p))),
@@ -153,8 +153,8 @@ test_that("a schedule round-trips through the events format", {
                       trait_matrix(c(0.08, 0.1), "lma"),
                       birth_rate = list(1, 1))
   ev <- events(node_introductions(p))
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
-  back <- scm$events
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
+  back <- solver$events
 
   expect_identical(back$time, ev$time)
   expect_identical(back$type, ev$type)
@@ -223,10 +223,10 @@ test_that("a resource pulse is refused by environments with no pools", {
   ## which is the path a user actually takes.
   p <- add_strategies(testing_parameters("FF16"), trait_matrix(1, "lma"))
   ev <- events(node_introductions(p), rainfall_pulse(time = 1, depth = 0.01))
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
   ## FF16 declares no resources at all, so the patch catches it before the
   ## environment is even asked, and says how many there are.
-  expect_error(scm$run(), "this environment has 0 resources")
+  expect_error(solver$run(), "this environment has 0 resources")
 
   expect_error(Environment("TF24")$add_water_pulse(-1),
                "finite and non-negative")
@@ -242,9 +242,9 @@ test_that("pulses wet the soil during a run", {
   p <- add_strategies(p, trait_matrix(1, "lma"))
 
   run <- function(ev) {
-    scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), ev, control())
-    scm$run()
-    scm
+    solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"), ev, control())
+    solver$run()
+    solver
   }
 
   base <- run(events(node_introductions(p)))
@@ -270,8 +270,8 @@ test_that("pulses wet the soil during a run", {
   ## The column balances: what it stored is what came in, less what drained
   ## and what the plants took. This holds with pulses in it precisely because
   ## a pulse adds to storage and to sum_infiltration together.
-  balance <- function(scm) {
-    e <- scm$patch$environment
+  balance <- function(solver) {
+    e <- solver$patch$environment
     dz <- e$get_soil_layer_widths()
     f <- e$get_soil_water_state_cumulative_flux()
     ## sum(theta * dz), per layer: theta is intensive, so a scalar width is only
@@ -306,15 +306,15 @@ ff16_run <- function(ev = NULL, max_lifetime = 20) {
   p$max_patch_lifetime <- max_lifetime
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(1, "lma"))
-  scm <- SCM("FF16", "FF16_Env")(
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(
     p, Environment("FF16"),
     if (is.null(ev)) events(node_introductions(p)) else ev(p), control())
-  scm$run()
-  scm
+  solver$run()
+  solver
 }
 
-total_density <- function(scm) {
-  sum(exp(scm$patch$species[[1]]$log_densities))
+total_density <- function(solver) {
+  sum(exp(solver$patch$species[[1]]$log_densities))
 }
 
 test_that("harvest removes a fraction of the standing density", {
@@ -386,12 +386,12 @@ test_that("a climate extreme accrues dose only above its threshold", {
   ## Above it, damage rises with both peak intensity and duration -- which is
   ## the sub-integration doing its work, since duration enters nowhere else.
   damage <- function(intensity, duration) {
-    scm <- ff16_run(function(p) {
+    solver <- ff16_run(function(p) {
       events(node_introductions(p),
              climate_extreme(time = 10, intensity = intensity,
                              duration = duration, threshold = 40))
     })
-    scm$event_log$applied[[1]][[1]]
+    solver$event_log$applied[[1]][[1]]
   }
   expect_gt(damage(45, 14 / 365), 0)
   expect_gt(damage(50, 14 / 365), damage(45, 14 / 365))
@@ -406,13 +406,13 @@ test_that("a climate extreme accrues dose only above its threshold", {
 })
 
 test_that("the event log records every applied event, in order", {
-  scm <- ff16_run(function(p) {
+  solver <- ff16_run(function(p) {
     events(node_introductions(p),
            harvest(time = 5, fraction = 0.2),
            climate_extreme(time = 12, intensity = 45),
            harvest(time = 15, fraction = 0.1, size_min = 2))
   })
-  log <- scm$event_log
+  log <- solver$event_log
   expect_equal(log$time, c(5, 12, 15))
   expect_equal(log$type, c("harvest", "climate_extreme", "harvest"))
   expect_equal(length(log$requested), 3)
@@ -423,8 +423,8 @@ test_that("the event log records every applied event, in order", {
   expect_false(any(log$type == "node_introduction"))
 
   ## reset() clears it, so the log always describes the run in front of you.
-  scm$reset()
-  expect_equal(length(scm$event_log$time), 0)
+  solver$reset()
+  expect_equal(length(solver$event_log$time), 0)
 })
 
 # Domain hooks (odelia #55/#56). These make two previously-fatal conditions into
@@ -436,8 +436,8 @@ test_that("the event log records every applied event, in order", {
 
 test_that("the patch declares its state domain to the solver", {
   p <- add_strategies(testing_parameters("TF24"), trait_matrix(1, "lma"))
-  scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), control())
-  patch <- scm$patch
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), control())
+  patch <- solver$patch
   y <- patch$ode_state
 
   ## A sane state is accepted.
@@ -458,9 +458,9 @@ test_that("the patch declares its state domain to the solver", {
   ## established), so the species block must NOT be rejected for that -- a
   ## blanket finiteness test would stall the solver at its minimum step.
   ff <- add_strategies(testing_parameters("FF16"), trait_matrix(1, "lma"))
-  scm_ff <- SCM("FF16", "FF16_Env")(ff, Environment("FF16"), empty_events(),
+  solver_ff <- DeterministicPatchRunner("FF16", "FF16_Env")(ff, Environment("FF16"), empty_events(),
                                     control())
-  expect_true(scm_ff$patch$ode_state_valid(c(-Inf, 1, 2)))
+  expect_true(solver_ff$patch$ode_state_valid(c(-Inf, 1, 2)))
 })
 
 # --- Review of #632 (@elijahmagistrado / GPT 5.6 Sol) -------------------------
@@ -478,12 +478,12 @@ test_that("collected results carry the events and the log", {
   out <- tidy(run(p, events = ev, record = "steps"))
   expect_true(all(c("events", "event_log") %in% names(out)))
 
-  scm <- run(p, events = ev)$solver
-  expect_identical(out$events$time, scm$events$time)
-  expect_identical(out$events$type, scm$events$type)
-  expect_identical(out$event_log$time, scm$event_log$time)
-  expect_identical(out$event_log$type, scm$event_log$type)
-  expect_identical(out$event_log$applied, scm$event_log$applied)
+  solver <- run(p, events = ev)$solver
+  expect_identical(out$events$time, solver$events$time)
+  expect_identical(out$events$type, solver$events$type)
+  expect_identical(out$event_log$time, solver$event_log$time)
+  expect_identical(out$event_log$type, solver$event_log$type)
+  expect_identical(out$event_log$applied, solver$event_log$applied)
 
   ## The whole requested schedule comes back, not just the interventions.
   expect_equal(length(out$events$time), length(ev$time))
@@ -571,9 +571,9 @@ test_that("simultaneous events keep their type order and their input order", {
 
   ## And the object agrees with the queue that will run it. This is the guard
   ## against R's idea of the order drifting from the C++ enum's.
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
-  expect_identical(scm$events$type, ev$type)
-  expect_identical(scm$events$time, ev$time)
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
+  expect_identical(solver$events$type, ev$type)
+  expect_identical(solver$events$time, ev$time)
 
   ## Within one type at one time, input order is preserved. It matters: two
   ## pulses at an instant are capped in sequence against the same pool, so the
@@ -587,8 +587,8 @@ test_that("simultaneous events keep their type order and their input order", {
   big <- 0.5   # far more than layer 0 can hold, so the first one takes it all
   pulses <- events(events_default(tf),
                    rainfall_pulse(time = c(2, 2), depth = c(big, big)))
-  scm <- run(tf, env = env, events = pulses)$solver
-  log <- scm$event_log
+  solver <- run(tf, env = env, events = pulses)$solver
+  log <- solver$event_log
   expect_equal(length(log$time), 2)
   ## The first-applied pulse is credited with the accepted water; the second
   ## finds the layer full and is shed. Reversed input order would swap these.

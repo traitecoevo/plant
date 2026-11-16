@@ -9,7 +9,8 @@
 ##' about 60\% of the steps, at about a third of the error.
 ##'
 ##' \code{ode_tol_scale_soil} multiplies the tolerance on TF24's soil layers in
-##' the SCM's adaptive steps, which decides which steps it takes and nothing
+##' the deterministic runner's adaptive steps, which decides which steps it
+##' takes and nothing
 ##' else. Its default of 1 leaves every step as it was. The stochastic runner
 ##' ignores it, and warns. \code{ode_soil_substep_tol} is the relative
 ##' tolerance that chooses the soil's substeps inside a step (default 1e-9).
@@ -62,7 +63,8 @@ base_parameters <- function(type = NA, env = environment_type(type)) {
 }
 
 
-##' Export the full state of a patch from a (run) \code{SCM} so it can be
+##' Export the full state of a patch from a (run)
+##' \code{DeterministicPatchRunner} so it can be
 ##' re-imported to initialise a new run (see \code{\link{set_initial_state}}). The
 ##' exported object captures everything needed to reproduce the patch's forward
 ##' trajectory: every node's ODE state plus the per-node birth bookkeeping
@@ -73,11 +75,12 @@ base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' from its own regime (see \code{\link{set_initial_state}}); they are exported
 ##' as a record of the run that made them.
 ##'
-##' @title Export patch state from an SCM
-##' @param scm A \code{plant_run}, or an \code{SCM} object that has been run.
-##' @param step Optional 1-based index into \code{scm$history} (requires the run
+##' @title Export patch state from a deterministic runner
+##' @param x A \code{plant_run}, or a \code{DeterministicPatchRunner} object
+##'   that has been run.
+##' @param step Optional 1-based index into \code{x$history} (requires the run
 ##'   to have recorded its steps, \code{record = "steps"}); when \code{NULL}
-##'   (default) the SCM's current/final patch is used.
+##'   (default) the deterministic runner's current/final patch is used.
 ##' @return A list describing the patch state, suitable for
 ##'   \code{\link{set_initial_state}}: \code{time}, \code{n} (nodes per species),
 ##'   \code{ode_state} (flat), the per-species lists \code{node_times},
@@ -85,7 +88,8 @@ base_parameters <- function(type = NA, env = environment_type(type)) {
 ##'   \code{node_schedule_times}, and \code{events}, the run's events still to
 ##'   come -- its residual introductions and every action the run had not yet
 ##'   applied when the state was taken (an action at the export time itself is
-##'   pending in a collected snapshot and in a run that \code{SCM$run_to()}
+##'   pending in a collected snapshot and in a run that
+##'   \code{DeterministicPatchRunner$run_to()}
 ##'   stopped there, and applied in a finished run's final patch). Events are a \code{\link{run}} argument rather than a field
 ##'   of \code{Parameters}: \code{run(p, from = state)} applies them, and a
 ##'   run of \code{set_initial_state(p, state)} must be given
@@ -100,9 +104,9 @@ base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' species' nodes.
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{run}}
 ##' @export
-export_patch_state <- function(scm, step = NULL) {
-  scm <- as_scm(scm)
-  patch <- if (is.null(step)) scm$patch else scm$history[[step]]
+export_patch_state <- function(x, step = NULL) {
+  x <- as_solver(x)
+  patch <- if (is.null(step)) x$patch else x$history[[step]]
   time <- patch$time
   species <- patch$species
   tol <- 1e-8
@@ -116,7 +120,7 @@ export_patch_state <- function(scm, step = NULL) {
   ## made it, and a time an initialised node carries is never residual.
   node_times <- lapply(species, function(s) s$node_times)
   residual <- Map(function(tt, made) tt[tt >= time - tol & !(tt %in% made)],
-                  scm$parameters$node_schedule_times, node_times)
+                  x$parameters$node_schedule_times, node_times)
 
   list(
     time = time,
@@ -126,9 +130,9 @@ export_patch_state <- function(scm, step = NULL) {
     patch_density = lapply(species, function(s) s$patch_densities),
     pr_patch_survival = lapply(species, function(s) s$pr_patch_survival_at_birth),
     node_schedule_times = residual,
-    events = residual_events(scm, time, residual, tol,
-                             final = isTRUE(scm$complete) &&
-                               (is.null(step) || step == length(scm$history)))
+    events = residual_events(x, time, residual, tol,
+                             final = isTRUE(x$complete) &&
+                               (is.null(step) || step == length(x$history)))
   )
 }
 
@@ -141,8 +145,8 @@ export_patch_state <- function(scm, step = NULL) {
 ## leaves only after applying everything scheduled at its end. The event log
 ## cannot decide this, because it covers the whole run whichever snapshot is
 ## exported.
-residual_events <- function(scm, time, residual, tol, final) {
-  ev <- scm$events
+residual_events <- function(solver, time, residual, tol, final) {
+  ev <- solver$events
   n <- length(ev$time)
   if (n == 0L) {
     return(ev)

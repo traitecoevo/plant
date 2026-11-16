@@ -15,7 +15,7 @@
 ##'
 ##' The surface layer accepts what its free capacity allows and sheds the rest,
 ##' which is not a corner case: a realistic dryland event (~13 mm) already
-##' exceeds a moderately wet layer's capacity. \code{scm$event_log} reports how
+##' exceeds a moderately wet layer's capacity. \code{solver$event_log} reports how
 ##' much of each pulse landed and how much was shed.
 ##'
 ##' @param time Event time(s), in years of patch age.

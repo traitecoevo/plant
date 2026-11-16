@@ -268,7 +268,8 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
 
 test_that("TF24's environment states are integrated over a stochastic run", {
   ## The stochastic patch used to run the species alone, so TF24's soil water sat
-  ## at its initial 0.214 for a whole run while the SCM integrated it up to the
+  ## at its initial 0.214 for a whole run while the deterministic runner
+  ## integrated it up to the
   ## drainage equilibrium and then drew it down as leaf area grew.
   p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Model()),
                                       patch_area=50)
@@ -414,8 +415,8 @@ test_that("a refused event leaves the stochastic schedule where it was", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
   p$node_schedule_times <- list(c(0, 1, 2))
   ev <- events(node_introductions(p), harvest(time = 1, fraction = 0.3))
-  scm <- run(p, events = ev, until = 0)$solver
-  schedule <- scm$schedule
+  solver <- run(p, events = ev, until = 0)$solver
+  schedule <- solver$schedule
 
   set.seed(1)
   obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())

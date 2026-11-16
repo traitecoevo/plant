@@ -13,6 +13,13 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The deterministic solver `SCM` is `DeterministicPatchRunner`, and the functions that took one name their argument `x`.** "SCM" was an acronym nothing in the package expanded. The new name pairs with `StochasticPatchRunner`, with which it shares the base `PatchRunner`, and with `run(method = "deterministic")`. A run's `$solver` is the same object under the new class. No number moves (#684). Migration:
+  * `stand_gradient(scm = res)` -> `stand_gradient(res)` or `stand_gradient(x = res)`; likewise `stand_census()`, `stand_census_state_adjoint()`, `stand_fitness()`, `gradient_control()`, `export_patch_state()`, `tidy_snapshots()`, `run_until_converged()` and `fixed_point_fitness()`
+  * `inherits(res$solver, "SCM")` -> `inherits(res$solver, "DeterministicPatchRunner")`; the full class is `DeterministicPatchRunner<FF16,FF16_Env>` where it was `SCM<FF16,FF16_Env>`
+  * `plant:::SCM("FF16", "FF16_Env")(p, env, events, control)` -> `run(p, env = env, events = events, control = control, until = 0)$solver`, or `plant:::DeterministicPatchRunner(...)` with the same arguments
+  * `run_plant_benchmarks()`'s `scm` expression -> `run`
+  * C++: `plant::SCM<T,E>` -> `plant::DeterministicPatchRunner<T,E>`; `<plant/scm.h>` -> `<plant/deterministic_patch_runner.h>`; `<plant/scm_utils.h>` -> `<plant/schedule_utils.h>`
+
 * **The stochastic solver draws deaths every `Control$stochastic_death_interval` years (default 0.05), and keeps each survivor's hazard reset.** Deaths were drawn only when a seed arrived, so the interval was whatever the arrivals gave, and a plant that had died went on shading the living until the next one: at one arrival a year, about 8% fewer FF16 plants survived to 30 years. Worse, a draw in which nobody died left the solver on its own copy of the state, so each survivor's reset was lost and the next draw counted that hazard again; in an FF16 stand with arrivals every 0.05 yr this left 57% fewer plants alive at 30 years. A run could also stop with "Start time not what was expected" when the patch's time sat one ulp from the solver's (#601). Deterministic runs do not move, and no `scientific_version` changes. A stochastic run takes about twice as long at the default. Migration:
   * a seeded stochastic result recorded before this change -> re-run; the draws differ, so the same seed gives a different stand
   * to trade accuracy for speed, raise `stochastic_death_interval`; it must be positive and finite

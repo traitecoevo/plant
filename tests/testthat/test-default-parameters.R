@@ -80,9 +80,9 @@ test_that("the trade-offs survive validate(), run() and a saved object", {
   f <- p$hyperpar
   expect_identical(plant:::validate(p)$hyperpar, f)
 
-  scm <- run(p)$solver
-  expect_identical(scm$parameters$hyperpar, f)
-  expect_identical(param_hyperpar(scm$parameters), f)
+  solver <- run(p)$solver
+  expect_identical(solver$parameters$hyperpar, f)
+  expect_identical(param_hyperpar(solver$parameters), f)
   res <- tidy(run(p, record = "steps"))
   expect_identical(res$p$hyperpar, f)
 

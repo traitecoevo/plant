@@ -51,7 +51,8 @@ test_that("Nontrivial creation", {
   }
 })
 
-# Now overwritten in call to SCM or Patch - will need appropriate test
+# Now overwritten in call to DeterministicPatchRunner or Patch - will need
+# appropriate test
 # test_that("Parameters overwrites Model control", {
 #   for (x in names(strategy_types)) {
 #     ctrl <- ctrl_s <- ctrl_p <- Control()

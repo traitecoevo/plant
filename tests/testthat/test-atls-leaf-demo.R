@@ -52,8 +52,8 @@ test_that("ATLS demo leaf helpers run end-to-end (impairment, strategies, avoida
   expect_lt(good$k_imp, poor$k_imp)
 })
 
-test_that("ATLS demo SCM helpers return sane stand fitness", {
-  # Three SCM runs over 15 years rather than the default 105, about 2 s each,
+test_that("ATLS demo stand-scale helpers return sane stand fitness", {
+  # Three deterministic runs over 15 years rather than the default 105, about 2 s each,
   # one after another. The direction asserted below holds at both lengths:
   # tolerant over generalist by 29x at 15 years and 6e4x at 105.
   skip_on_cran()

@@ -5,7 +5,7 @@
 \title{Invader fitness at a fixed point}
 \usage{
 fixed_point_fitness(
-  scm,
+  x,
   p,
   traits,
   hyperpar = param_hyperpar(p),
@@ -14,7 +14,8 @@ fixed_point_fitness(
 )
 }
 \arguments{
-\item{scm}{The resident's \code{plant_run} or \code{SCM}, run to its fixed point.}
+\item{x}{The resident's \code{plant_run} or \code{DeterministicPatchRunner},
+run to its fixed point.}
 
 \item{p}{The resident's \code{Parameters}; each invader's strategy is built
 from them as \code{\link{add_mutant}} builds one.}
@@ -43,7 +44,7 @@ Fitness of invaders at a resident's fixed point
 A resident at a fixed point makes one field, so an invader of it needs no
 recording of the resident and no pinned run: it stands in that one field,
 constant, for its whole life. This runs each strategy in \code{traits} as one cohort
-born at time zero into the field \code{scm} stands in now, until the cohort
+born at time zero into the field \code{x} stands in now, until the cohort
 is dead, and returns each one's lifetime offspring per seed. Every arrival
 at a fixed point sees the same field, so that one cohort's output is the
 invader's fitness. The resident's own strategy scores a resident cohort's
@@ -52,12 +53,12 @@ equilibrium (it is not the run's \code{net_reproduction_ratios}, which a
 continuous patch's ever-growing node list does not make a per-cohort
 quantity).
 
-The field is taken from the state \code{scm} has reached at the first call,
+The field is taken from the state \code{x} has reached at the first call,
 and used for every later one; run the resident to its fixed point first, for
 instance with \code{\link{run_until_converged}} under constant drivers and
 the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
 together, as one community, since nothing they do moves a constant field.
-\code{scm} is consumed: afterwards it holds the invaders, and the field is
+\code{x} is consumed: afterwards it holds the invaders, and the field is
 cleared, so a later run of it builds its own. A \code{plant_run} given here
 is refused afterwards, so pass every invader in one call.
 
@@ -65,7 +66,7 @@ The introduction grid has to make the stand a fixed point. Between two
 introductions the field swings, and a grid that is too coarse makes the
 stand a periodic orbit whose field, taken at an introduction, is the top of
 the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in
-constant-field fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
+constant-field fitness at a cohort a year and 0.02 \% at four. \code{DeterministicPatchRunner$run_to()} stops
 only at introduction instants, so to take a field mid-interval, and check
 the grid, end the resident's run there with \code{max_patch_lifetime}.
 }

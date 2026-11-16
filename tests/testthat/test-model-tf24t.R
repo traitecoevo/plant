@@ -8,7 +8,7 @@
 # Impairment is a STATE, not an instantaneous factor: a fresh hot leaf loses
 # nothing beyond the reversible peaked Arrhenius until I and D accrue through the
 # ODE. So the physics is tested on single rate evaluations at preset states, and
-# the SCM runs are short.
+# the deterministic runs are short.
 #
 # The dynamics are phylloptim's (Leaf$damage_rates, the centred Arrhenius rates,
 # the costs in R_d) and are tested there (test-thermal-damage.R). What is tested
@@ -255,7 +255,7 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
   # evaluation is bit-identical to TF24 run with pars$use_energy_balance = 1,
   # which is the energy balance TF24t forces.
   #
-  # A free SCM run is NOT bit-identical, and should not be: TF24t's four extra
+  # A free deterministic run is NOT bit-identical, and should not be: TF24t's four extra
   # states sit in the adaptive step-size controller's error norm, so the two runs
   # take different steps (measured 260 against 266, offspring 7.7e-4 apart). What
   # does hold exactly is TF24 pinned to TF24t's own step program, which is the
@@ -398,8 +398,8 @@ test_that("TF24t has no stand gradient", {
   p <- testing_parameters("TF24t")
   p$max_patch_lifetime <- 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
-  scm <- run(p)$solver
-  expect_error(stand_gradient(scm), "thermal-damage layer")
+  solver <- run(p)$solver
+  expect_error(stand_gradient(solver), "thermal-damage layer")
 })
 
 test_that("TF24t runs end-to-end; the fractions are bounded; A stays non-negative", {

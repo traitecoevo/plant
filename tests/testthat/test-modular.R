@@ -47,10 +47,10 @@ test_that("Construction", {
     expect_inherits(pat, sprintf("Patch<%s,%s>", x, e))
     expect_equal(class(pat$species[[1]]), class(sp))
 
-    scm <- SCM(x, e)(par, env, empty_events(), ctrl)
-    expect_inherits(scm, "SCM")
-    expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
-    expect_equal(class(scm$patch), class(pat))
+    solver <- DeterministicPatchRunner(x, e)(par, env, empty_events(), ctrl)
+    expect_inherits(solver, "DeterministicPatchRunner")
+    expect_inherits(solver, sprintf("DeterministicPatchRunner<%s,%s>", x, e))
+    expect_equal(class(solver$patch), class(pat))
 
     ## Stochastic model:
     s_sp <- StochasticSpecies(x, e)(s)

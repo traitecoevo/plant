@@ -34,32 +34,32 @@ test_that("mutant method works", {
   pr1m10 <- add_strategies(pr1, trait_matrix(seq(lma[1], lma[3], length.out=10), "lma"), birth_rate = rep(birth_rate, 10))
 
   # test error handling
-  # scm object but not yet run
+  # solver object but not yet run
   types <- extract_RcppR6_template_types(pr1, "Parameters")
-  scm <- do.call("SCM", types)(pr1, e, empty_events(), ctrl)
+  solver <- do.call("DeterministicPatchRunner", types)(pr1, e, empty_events(), ctrl)
 
-  expect_error(scm$run_mutant(p0), "Run a resident first")
+  expect_error(solver$run_mutant(p0), "Run a resident first")
 
   # check mutant fitness against resindet and expected values
-  scm <- run(pr1, e, ctrl)$solver
-  pr1_rr <- scm$patch$net_reproduction_ratios
+  solver <- run(pr1, e, ctrl)$solver
+  pr1_rr <- solver$patch$net_reproduction_ratios
   expected <- 2.77316
   expect_equal(pr1_rr, expected, tolerance = tol)
 
-  scm$run_mutant(pr1m1)
-  pr1m1_rr <- scm$patch$net_reproduction_ratios
+  solver$run_mutant(pr1m1)
+  pr1m1_rr <- solver$patch$net_reproduction_ratios
   expected <- c(2.77316, 3.708121)
   expect_equal(pr1m1_rr, expected, tolerance = tol)
   expect_equal(pr1m1_rr[1], pr1_rr, tolerance = tol)
 
-  scm$run_mutant(pr1m3)
-  pr1m3_rr <- scm$patch$net_reproduction_ratios
+  solver$run_mutant(pr1m3)
+  pr1m3_rr <- solver$patch$net_reproduction_ratios
   expected <- c(2.77316, 3.745544e-10, 2.77316, 3.708121)
   expect_equal(pr1m3_rr, expected, tolerance = tol)
   expect_equal(pr1m3_rr[1], pr1_rr, tolerance = tol)
 
-  scm$run_mutant(pr1m10)
-  pr1m10_rr <- scm$patch$net_reproduction_ratios
+  solver$run_mutant(pr1m10)
+  pr1m10_rr <- solver$patch$net_reproduction_ratios
   expected <- c(2.77316, 3.745544e-10, 9.295552e-07, 0.136394, 2.77316, 3.890101, 1.525211, 1.160076, 1.871274, 2.765771, 3.708121)
   expect_equal(pr1m10_rr, expected, tolerance = tol)
   expect_equal(pr1m10_rr[1], pr1_rr, tolerance = tol)
@@ -73,26 +73,26 @@ test_that("mutant method works", {
 
   pr3m10 <- add_strategies(pr3, trait_matrix(seq(lma[1], lma[3], length.out = 10), "lma"), birth_rate = rep(birth_rate, 10))
 
-  scm <- run(pr3, e, ctrl)$solver
-  pr3_rr <- scm$patch$net_reproduction_ratios
+  solver <- run(pr3, e, ctrl)$solver
+  pr3_rr <- solver$patch$net_reproduction_ratios
   expected <- c(4.266668e-10, 2.83187, 0.09125858)
   expect_equal(pr3_rr, expected, tolerance = tol)
 
 
-  scm$run_mutant(pr3m1)
-  pr3m1_rr <- scm$patch$net_reproduction_ratios
+  solver$run_mutant(pr3m1)
+  pr3m1_rr <- solver$patch$net_reproduction_ratios
   expected <- c(4.266668e-10, 2.83187, 0.09125858, 0.09125858)
   expect_equal(pr3m1_rr, expected, tolerance = tol)
   expect_equal(pr3m1_rr[1:3], pr3_rr, tolerance = tol)
 
-  scm$run_mutant(pr3m3)
-  pr3m3_rr <- scm$patch$net_reproduction_ratios
+  solver$run_mutant(pr3m3)
+  pr3m3_rr <- solver$patch$net_reproduction_ratios
   expected <- c(4.266668e-10, 2.83187, 0.09125858, 4.266668e-10, 2.83187, 0.09125858)
   expect_equal(pr3m3_rr, expected, tolerance = tol)
   expect_equal(pr3m3_rr[1:3], pr3_rr, tolerance = tol)
 
-  scm$run_mutant(pr3m10)
-  pr3m10_rr <- scm$patch$net_reproduction_ratios
+  solver$run_mutant(pr3m10)
+  pr3m10_rr <- solver$patch$net_reproduction_ratios
   expected <- c(4.266668e-10, 2.83187, 0.09125858, 4.266668e-10, 5.59171e-06, 0.2661018, 2.83187, 2.689998, 0.3798588, 0.07099742, 0.07227027, 0.08342955, 0.09125858)
   expect_equal(pr3m10_rr, expected, tolerance = tol)
   expect_equal(pr3m10_rr[1:3], pr3_rr, tolerance = tol)
@@ -128,11 +128,11 @@ test_that("mutant method densities", {
     p1 <- p
     p1$strategies[[1]]$birth_rate_y <- x
 
-    scm <- run(p1, control = ctrl)$solver
-    r_rr <- scm$patch$net_reproduction_ratios
+    solver <- run(p1, control = ctrl)$solver
+    r_rr <- solver$patch$net_reproduction_ratios
 
-    scm$run_mutant(p1)
-    m_rr <- scm$patch$net_reproduction_ratios
+    solver$run_mutant(p1)
+    m_rr <- solver$patch$net_reproduction_ratios
 
     dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr))
   }
@@ -161,11 +161,11 @@ test_that("an invasion meets the run's harvests, and introduces only where it di
 
   # An invader with the residents' traits meets both events, as they did, and
   # comes back with their fitness, which the events move.
-  scm <- run(p, events = ev)$solver
-  harvested <- scm$patch$net_reproduction_ratios
-  scm$run_mutant(p)
-  expect_equal(scm$patch$net_reproduction_ratios, harvested, tolerance = 1e-12)
-  expect_equal(scm$event_log$type, c("harvest", "climate_extreme"))
+  solver <- run(p, events = ev)$solver
+  harvested <- solver$patch$net_reproduction_ratios
+  solver$run_mutant(p)
+  expect_equal(solver$patch$net_reproduction_ratios, harvested, tolerance = 1e-12)
+  expect_equal(solver$event_log$type, c("harvest", "climate_extreme"))
   expect_gt(abs(log(harvested / run(p)$net_reproduction_ratios)), 0.01)
 
   one_species <- run(p, events = events(events_default(p),
@@ -173,12 +173,12 @@ test_that("an invasion meets the run's harvests, and introduces only where it di
                                                 species = 1)))$solver
   expect_error(one_species$run_mutant(p), "an invader is none of them")
 
-  scm <- run(p)$solver
-  expect_no_error(scm$run_mutant(p))
+  solver <- run(p)$solver
+  expect_no_error(solver$run_mutant(p))
   times <- p$node_schedule_times[[1]]
   off <- p
   off$node_schedule_times <- list(sort(c(times, mean(times[2:3]))))
-  expect_error(scm$run_mutant(off), "where the resident introduced nothing")
+  expect_error(solver$run_mutant(off), "where the resident introduced nothing")
 })
 
 test_that("a run after an invasion runs the invaders as a community of their own", {
@@ -188,31 +188,32 @@ test_that("a run after an invasion runs the invaders as a community of their own
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   alone <- run(q)$net_reproduction_ratios
 
-  scm <- run(p)$solver
-  scm$run_mutant(q)
-  expect_gt(abs(log(scm$patch$net_reproduction_ratios / alone)), 0.01)
-  scm$run()
-  expect_equal(scm$patch$net_reproduction_ratios, alone, tolerance = 1e-12)
+  solver <- run(p)$solver
+  solver$run_mutant(q)
+  expect_gt(abs(log(solver$patch$net_reproduction_ratios / alone)), 0.01)
+  solver$run()
+  expect_equal(solver$patch$net_reproduction_ratios, alone, tolerance = 1e-12)
   # And the next invasion reads that run, not the first.
-  scm$run_mutant(q)
-  expect_equal(scm$patch$net_reproduction_ratios, alone, tolerance = 1e-12)
+  solver$run_mutant(q)
+  expect_equal(solver$patch$net_reproduction_ratios, alone, tolerance = 1e-12)
 })
 
-test_that("an invader's patch reads its run after the SCM has let it go", {
+test_that("an invader's patch reads its run after the deterministic runner has let it go", {
   p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 20
   q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
 
-  scm <- run(p)$solver
-  scm$run_mutant(q)
-  invader <- scm$patch
+  solver <- run(p)$solver
+  solver$run_mutant(q)
+  invader <- solver$patch
   invader$compute_environment()
   before <- invader$ode_rates
 
-  # The next run drops the SCM's hold on the invaded run, and then the SCM goes.
-  scm$run()
-  rm(scm)
+  # The next run drops the deterministic runner's hold on the invaded run, and
+  # then the deterministic runner goes.
+  solver$run()
+  rm(solver)
   gc()
 
   invader$compute_environment()
@@ -272,20 +273,20 @@ test_that("mutant method densities, TF24", {
   env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
   env$extrinsic_drivers_set_constant("rainfall", 1)
 
-  scm <- run(p1, env = env, control = ctrl)$solver
-  resident_rr <- scm$patch$net_reproduction_ratios
+  solver <- run(p1, env = env, control = ctrl)$solver
+  resident_rr <- solver$patch$net_reproduction_ratios
 
   # Not assertions about the model, just guards that the pinned run below has
   # something to rerun: a resident that died out would make the identity
   # trivial, and a short recording would make it cheap in the wrong way.
   expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
-  expect_gt(length(scm$ode_times), 150)
-  expect_equal(scm$patch$species[[1]]$size, 20L)
+  expect_gt(length(solver$ode_times), 150)
+  expect_equal(solver$patch$species[[1]]$size, 20L)
 
   # Identical mutant, reading the resident's own recorded field, must
   # recover the resident's own fitness.
-  expect_no_error(scm$run_mutant(p1))
-  mutant_rr <- scm$patch$net_reproduction_ratios
+  expect_no_error(solver$run_mutant(p1))
+  mutant_rr <- solver$patch$net_reproduction_ratios
 
   expect_equal(log(mutant_rr), log(resident_rr), tolerance = tol)
 })
@@ -302,11 +303,11 @@ test_that("an invader replays a step too short to move its stages, TF24", {
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
   ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
-  scm <- run(p, env, ctrl, record = "states")$solver
-  expect_gt(sum(diff(scm$ode_times) < 1e-12), 0)
-  resident_rr <- scm$patch$net_reproduction_ratios
-  expect_no_error(scm$run_mutant(scm$parameters))
-  expect_equal(scm$patch$net_reproduction_ratios, resident_rr, tolerance = 1e-10)
+  solver <- run(p, env, ctrl, record = "states")$solver
+  expect_gt(sum(diff(solver$ode_times) < 1e-12), 0)
+  resident_rr <- solver$patch$net_reproduction_ratios
+  expect_no_error(solver$run_mutant(solver$parameters))
+  expect_equal(solver$patch$net_reproduction_ratios, resident_rr, tolerance = 1e-10)
 })
 
 test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
@@ -338,14 +339,14 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
   }
 
   offset <- TF24_Model()$pars$storage_relaxation_offset
-  scm <- run_offset(offset)
+  solver <- run_offset(offset)
   for (m in c(0.7, 2)) {
-    scm$run_mutant(stand(m, offset))
-    expect_true(is.finite(scm$patch$net_reproduction_ratios))
+    solver$run_mutant(stand(m, offset))
+    expect_true(is.finite(solver$patch$net_reproduction_ratios))
   }
 
-  scm <- run_offset(0)
-  scm$run_mutant(stand(0.7, 0))
-  expect_true(is.finite(scm$patch$net_reproduction_ratios))
-  expect_error(scm$run_mutant(stand(2, 0)), "Non-finite cohort density")
+  solver <- run_offset(0)
+  solver$run_mutant(stand(0.7, 0))
+  expect_true(is.finite(solver$patch$net_reproduction_ratios))
+  expect_error(solver$run_mutant(stand(2, 0)), "Non-finite cohort density")
 })

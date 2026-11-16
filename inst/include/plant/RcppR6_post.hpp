@@ -202,29 +202,29 @@ template <> inline std::string generator_name<plant::Patch<plant::TF24w_Model<do
 template <> inline std::string   class_name_r<plant::Patch<plant::K93_Model,plant::K93_Environment> >() {return "Patch<K93,K93_Env>";}
 template <> inline std::string   package_name<plant::Patch<plant::K93_Model,plant::K93_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Patch<plant::K93_Model,plant::K93_Environment> >() {return ".R6_Patch___K93__K93_Env";}
-template <> inline std::string   class_name_r<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "SCM<FF16,FF16_Env>";}
-template <> inline std::string   package_name<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return ".R6_SCM___FF16__FF16_Env";}
+template <> inline std::string   class_name_r<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "DeterministicPatchRunner<FF16,FF16_Env>";}
+template <> inline std::string   package_name<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "plant";}
+template <> inline std::string generator_name<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return ".R6_DeterministicPatchRunner___FF16__FF16_Env";}
 
-template <> inline std::string   class_name_r<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return "SCM<TF24,TF24_Env>";}
-template <> inline std::string   package_name<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_SCM___TF24__TF24_Env";}
+template <> inline std::string   class_name_r<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return "DeterministicPatchRunner<TF24,TF24_Env>";}
+template <> inline std::string   package_name<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
+template <> inline std::string generator_name<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_DeterministicPatchRunner___TF24__TF24_Env";}
 
-template <> inline std::string   class_name_r<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return "SCM<TF24f,TF24_Env>";}
-template <> inline std::string   package_name<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_SCM___TF24f__TF24_Env";}
+template <> inline std::string   class_name_r<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return "DeterministicPatchRunner<TF24f,TF24_Env>";}
+template <> inline std::string   package_name<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
+template <> inline std::string generator_name<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_DeterministicPatchRunner___TF24f__TF24_Env";}
 
-template <> inline std::string   class_name_r<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return "SCM<TF24t,TF24_Env>";}
-template <> inline std::string   package_name<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_SCM___TF24t__TF24_Env";}
+template <> inline std::string   class_name_r<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return "DeterministicPatchRunner<TF24t,TF24_Env>";}
+template <> inline std::string   package_name<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
+template <> inline std::string generator_name<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_DeterministicPatchRunner___TF24t__TF24_Env";}
 
-template <> inline std::string   class_name_r<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return "SCM<TF24w,TF24_Env>";}
-template <> inline std::string   package_name<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_SCM___TF24w__TF24_Env";}
+template <> inline std::string   class_name_r<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return "DeterministicPatchRunner<TF24w,TF24_Env>";}
+template <> inline std::string   package_name<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
+template <> inline std::string generator_name<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_DeterministicPatchRunner___TF24w__TF24_Env";}
 
-template <> inline std::string   class_name_r<plant::SCM<plant::K93_Model,plant::K93_Environment> >() {return "SCM<K93,K93_Env>";}
-template <> inline std::string   package_name<plant::SCM<plant::K93_Model,plant::K93_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::SCM<plant::K93_Model,plant::K93_Environment> >() {return ".R6_SCM___K93__K93_Env";}
+template <> inline std::string   class_name_r<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> >() {return "DeterministicPatchRunner<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> >() {return ".R6_DeterministicPatchRunner___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "StochasticSpecies<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return ".R6_StochasticSpecies___FF16__FF16_Env";}
@@ -1514,46 +1514,46 @@ template <> inline SEXP wrap(const plant::Patch<plant::K93_Model,plant::K93_Envi
 template <> inline plant::Patch<plant::K93_Model,plant::K93_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> >(x));
 }
-template <> inline SEXP wrap(const plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
+template <> inline SEXP wrap(const plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
 }
-template <> inline plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-template <> inline plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >(x));
+template <> inline plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
 }
 
-template <> inline SEXP wrap(const plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >(x));
+template <> inline SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >(x));
 }
-template <> inline plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-template <> inline plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >(x));
+template <> inline plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >(x));
 }
 
-template <> inline SEXP wrap(const plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >(x));
+template <> inline SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >(x));
 }
-template <> inline plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >(x));
+template <> inline plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >(x));
 }
 
-template <> inline SEXP wrap(const plant::SCM<plant::K93_Model,plant::K93_Environment>& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> >(x));
+template <> inline SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >(x));
 }
-template <> inline plant::SCM<plant::K93_Model,plant::K93_Environment> as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Model,plant::K93_Environment> >(x));
+template <> inline plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >(x));
+}
+
+template <> inline SEXP wrap(const plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >(x));
+}
+template <> inline plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >(x));
+}
+
+template <> inline SEXP wrap(const plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> >(x));
+}
+template <> inline plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> >& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
