@@ -5,9 +5,15 @@
 ##' leaf area above relative height \code{u = z / H}, which is the shade the
 ##' plant casts at \code{u}; and \code{q = -dQ/du}, the leaf area's density in
 ##' \code{u}. For FF16, TF24 and K93 alike this is the Yokozawa profile set by
-##' \code{pars$eta}, except under FF16's \code{"flat-top-soft-box"} shading
-##' model, whose profile is a smoothed step. K93's profile spreads basal area
-##' over stem diameter rather than leaf area over height.
+##' \code{pars$eta}. K93's profile spreads basal area over stem diameter rather
+##' than leaf area over height.
+##'
+##' Under FF16's \code{"flat-top-soft-box"} shading model \code{Q} is instead
+##' the smoothed step of shade the model has the crown cast, and \code{q} its
+##' density; \code{eta_c} is still the Yokozawa profile's, which the model's
+##' sapwood and the step's centre read, so it is the mean of \code{u} under
+##' \code{q} only where the step lies wholly within the crown
+##' (\code{eta_c > 0.5}).
 ##'
 ##' The shading model is resolved from the strategy's own \code{control}, with
 ##' each model's default where it is empty. A strategy taken from a run's
@@ -20,7 +26,8 @@
 ##' @param control The run's \code{Control}, or \code{NULL} for the strategy's
 ##'   own.
 ##' @return A list: \code{profile}, a tibble of \code{u}, \code{Q} and
-##'   \code{q}; and \code{eta_c}, the leaf-area-weighted mean of \code{u}.
+##'   \code{q}; and \code{eta_c}, the Yokozawa profile's leaf-area-weighted
+##'   mean of \code{u}.
 ##' @seealso \code{\link{model_size}}
 ##' @export
 ##' @examples
@@ -64,7 +71,8 @@ model_function <- function(strategy, suffix) {
 ##' caller labels them without knowing the model.
 ##'
 ##' @param x A model name (\code{"FF16"}, \code{"TF24f"}, ...), a
-##'   \code{Parameters} object, or a tidied run carrying one as \code{$p}.
+##'   \code{Parameters} object, a \code{plant_run}, or a tidied deterministic
+##'   run, which carries its parameters as \code{$p}.
 ##' @param registry A registry from \code{\link{model_registry}}.
 ##' @return A list of \code{model}, \code{size} and \code{size_units} (the
 ##'   state named \code{height}), and \code{competitive_size} and
@@ -76,7 +84,9 @@ model_function <- function(strategy, suffix) {
 ##' model_size("K93")$size
 ##' model_size(base_parameters("FF16"))$size_units
 model_size <- function(x, registry = model_registry()) {
-  if (is.list(x) && !inherits(x, "Parameters") && !is.null(x$p)) {
+  if (inherits(x, "plant_run")) {
+    x <- x$scenario$p
+  } else if (is.list(x) && !inherits(x, "Parameters") && !is.null(x$p)) {
     x <- x$p
   }
   model <- if (inherits(x, "Parameters")) {
@@ -84,7 +94,8 @@ model_size <- function(x, registry = model_registry()) {
   } else if (is.character(x) && length(x) == 1L) {
     x
   } else {
-    stop("`x` must be a model name, a Parameters object or a tidied run",
+    stop("`x` must be a model name, a Parameters object, a plant_run or a ",
+         "tidied deterministic run (a tidied stochastic run has no $p)",
          call. = FALSE)
   }
   models <- registry$models

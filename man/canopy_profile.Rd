@@ -17,7 +17,8 @@ own.}
 }
 \value{
 A list: \code{profile}, a tibble of \code{u}, \code{Q} and
-  \code{q}; and \code{eta_c}, the leaf-area-weighted mean of \code{u}.
+  \code{q}; and \code{eta_c}, the Yokozawa profile's leaf-area-weighted
+  mean of \code{u}.
 }
 \description{
 The vertical distribution of a plant's leaf area, as the model computes it
@@ -25,11 +26,17 @@ through its crown shape (\code{CanopyShape}): \code{Q}, the fraction of the
 leaf area above relative height \code{u = z / H}, which is the shade the
 plant casts at \code{u}; and \code{q = -dQ/du}, the leaf area's density in
 \code{u}. For FF16, TF24 and K93 alike this is the Yokozawa profile set by
-\code{pars$eta}, except under FF16's \code{"flat-top-soft-box"} shading
-model, whose profile is a smoothed step. K93's profile spreads basal area
-over stem diameter rather than leaf area over height.
+\code{pars$eta}. K93's profile spreads basal area over stem diameter rather
+than leaf area over height.
 }
 \details{
+Under FF16's \code{"flat-top-soft-box"} shading model \code{Q} is instead
+the smoothed step of shade the model has the crown cast, and \code{q} its
+density; \code{eta_c} is still the Yokozawa profile's, which the model's
+sapwood and the step's centre read, so it is the mean of \code{u} under
+\code{q} only where the step lies wholly within the crown
+(\code{eta_c > 0.5}).
+
 The shading model is resolved from the strategy's own \code{control}, with
 each model's default where it is empty. A strategy taken from a run's
 parameters carries an empty one, so pass the run's control, which

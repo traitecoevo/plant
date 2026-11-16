@@ -51,6 +51,12 @@ test_that("a tidied run keeps the control that sets how its crowns cast shade", 
   expect_false(isTRUE(all.equal(soft$profile$Q, (1 - u^s$pars$eta)^2)))
   expect_equal(soft$profile$Q[c(1, 11)], c(1, 0))
   expect_true(all(diff(soft$profile$Q) <= 0))
+  ## q is the soft box's own density, -dQ/du, not the Yokozawa one.
+  h <- 1e-6
+  mid <- c(0.85, 0.9, 0.95)
+  dQ <- (canopy_profile(s, mid + h, out$control)$profile$Q -
+           canopy_profile(s, mid - h, out$control)$profile$Q) / (2 * h)
+  expect_equal(canopy_profile(s, mid, out$control)$profile$q, -dQ, tolerance = 1e-6)
 })
 
 test_that("model_size() says what each model's size state measures", {
@@ -64,6 +70,27 @@ test_that("model_size() says what each model's size state measures", {
   expect_identical(model_size("TF24w")[-1], model_size("TF24")[-1])
   expect_identical(model_size(base_parameters("K93")), k93)
   expect_error(model_size("XX99"), "Unknown model")
+  expect_error(model_size(list(time = 1)), "tidied deterministic run")
+  ## The registry refuses a base model that does not say what its size is.
+  base <- yaml::read_yaml(system.file("model-registry.yml", package = "plant"))
+  base$models$K93$size_units <- NULL
+  f <- withr::local_tempfile(fileext = ".yml")
+  yaml::write_yaml(base, f)
+  expect_error(suppressWarnings(model_registry(f)),
+               "model 'K93' extends none but lacks size_units")
+})
+
+test_that("expand_state() pairs each species with its own strategy", {
+  ## The species column is character, so from the tenth species on a split on
+  ## it alone would order "10" before "2".
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 2
+  lma <- seq(0.06, 0.3, length.out = 11)
+  p <- add_strategies(p, trait_matrix(lma, "lma"), birth_rate = rep(1, 11))
+  sp <- expand_state(tidy(run(p, record = "steps")))$species
+  sp <- sp[!is.na(sp$height), ]
+  by_species <- tapply(sp$mass_leaf / sp$area_leaf, as.integer(sp$species), mean)
+  expect_equal(unname(by_species), lma, tolerance = 1e-12)
 })
 
 test_that("K93's run gives stem sizes and records its competition field", {

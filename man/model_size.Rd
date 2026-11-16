@@ -8,7 +8,8 @@ model_size(x, registry = model_registry())
 }
 \arguments{
 \item{x}{A model name (\code{"FF16"}, \code{"TF24f"}, ...), a
-\code{Parameters} object, or a tidied run carrying one as \code{$p}.}
+\code{Parameters} object, a \code{plant_run}, or a tidied deterministic
+run, which carries its parameters as \code{$p}.}
 
 \item{registry}{A registry from \code{\link{model_registry}}.}
 }
