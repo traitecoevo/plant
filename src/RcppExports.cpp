@@ -3253,6 +3253,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Schedule__add_events
+void Schedule__add_events(plant::RcppR6::RcppR6<plant::Schedule> obj_, plant::Events events);
+RcppExport SEXP _plant_Schedule__add_events(SEXP obj_SEXP, SEXP eventsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Schedule> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Events >::type events(eventsSEXP);
+    Schedule__add_events(obj_, events);
+    return R_NilValue;
+END_RCPP
+}
 // Schedule__size__get
 size_t Schedule__size__get(plant::RcppR6::RcppR6<plant::Schedule> obj_);
 RcppExport SEXP _plant_Schedule__size__get(SEXP obj_SEXP) {
@@ -16728,6 +16739,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// StochasticPatchRunner___FF16__FF16_Env__event_log__get
+plant::EventLog StochasticPatchRunner___FF16__FF16_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__event_log__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16__FF16_Env__event_log__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // StochasticPatchRunner___TF24__TF24_Env__ctor
 plant::StochasticPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > StochasticPatchRunner___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control);
 RcppExport SEXP _plant_StochasticPatchRunner___TF24__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -16847,6 +16869,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::Schedule >::type value(valueSEXP);
     StochasticPatchRunner___TF24__TF24_Env__schedule__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// StochasticPatchRunner___TF24__TF24_Env__event_log__get
+plant::EventLog StochasticPatchRunner___TF24__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_StochasticPatchRunner___TF24__TF24_Env__event_log__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___TF24__TF24_Env__event_log__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // StochasticPatchRunner___TF24f__TF24_Env__ctor
@@ -16970,6 +17003,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// StochasticPatchRunner___TF24f__TF24_Env__event_log__get
+plant::EventLog StochasticPatchRunner___TF24f__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_StochasticPatchRunner___TF24f__TF24_Env__event_log__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___TF24f__TF24_Env__event_log__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // StochasticPatchRunner___TF24t__TF24_Env__ctor
 plant::StochasticPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > StochasticPatchRunner___TF24t__TF24_Env__ctor(plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control);
 RcppExport SEXP _plant_StochasticPatchRunner___TF24t__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -17089,6 +17133,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::Schedule >::type value(valueSEXP);
     StochasticPatchRunner___TF24t__TF24_Env__schedule__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// StochasticPatchRunner___TF24t__TF24_Env__event_log__get
+plant::EventLog StochasticPatchRunner___TF24t__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_StochasticPatchRunner___TF24t__TF24_Env__event_log__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___TF24t__TF24_Env__event_log__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // StochasticPatchRunner___TF24w__TF24_Env__ctor
@@ -17212,6 +17267,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// StochasticPatchRunner___TF24w__TF24_Env__event_log__get
+plant::EventLog StochasticPatchRunner___TF24w__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_StochasticPatchRunner___TF24w__TF24_Env__event_log__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___TF24w__TF24_Env__event_log__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // StochasticPatchRunner___K93__K93_Env__ctor
 plant::StochasticPatchRunner<plant::K93_Model,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Model,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control);
 RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -17331,6 +17397,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::Schedule >::type value(valueSEXP);
     StochasticPatchRunner___K93__K93_Env__schedule__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// StochasticPatchRunner___K93__K93_Env__event_log__get
+plant::EventLog StochasticPatchRunner___K93__K93_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__event_log__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___K93__K93_Env__event_log__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // ResourceSpline__ctor
@@ -19769,6 +19846,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Schedule__reset", (DL_FUNC) &_plant_Schedule__reset, 1},
     {"_plant_Schedule__pop", (DL_FUNC) &_plant_Schedule__pop, 1},
     {"_plant_Schedule__copy", (DL_FUNC) &_plant_Schedule__copy, 1},
+    {"_plant_Schedule__add_events", (DL_FUNC) &_plant_Schedule__add_events, 2},
     {"_plant_Schedule__size__get", (DL_FUNC) &_plant_Schedule__size__get, 1},
     {"_plant_Schedule__n_species__get", (DL_FUNC) &_plant_Schedule__n_species__get, 1},
     {"_plant_Schedule__next_introduction__get", (DL_FUNC) &_plant_Schedule__next_introduction__get, 1},
@@ -20972,6 +21050,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set, 2},
+    {"_plant_StochasticPatchRunner___FF16__FF16_Env__event_log__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__event_log__get, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__run, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__run_next, 1},
@@ -20983,6 +21062,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__set, 2},
+    {"_plant_StochasticPatchRunner___TF24__TF24_Env__event_log__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__event_log__get, 1},
     {"_plant_StochasticPatchRunner___TF24f__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___TF24f__TF24_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__run, 1},
     {"_plant_StochasticPatchRunner___TF24f__TF24_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__run_next, 1},
@@ -20994,6 +21074,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___TF24f__TF24_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___TF24f__TF24_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___TF24f__TF24_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__schedule__set, 2},
+    {"_plant_StochasticPatchRunner___TF24f__TF24_Env__event_log__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24f__TF24_Env__event_log__get, 1},
     {"_plant_StochasticPatchRunner___TF24t__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___TF24t__TF24_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__run, 1},
     {"_plant_StochasticPatchRunner___TF24t__TF24_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__run_next, 1},
@@ -21005,6 +21086,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___TF24t__TF24_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___TF24t__TF24_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___TF24t__TF24_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__schedule__set, 2},
+    {"_plant_StochasticPatchRunner___TF24t__TF24_Env__event_log__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24t__TF24_Env__event_log__get, 1},
     {"_plant_StochasticPatchRunner___TF24w__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___TF24w__TF24_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__run, 1},
     {"_plant_StochasticPatchRunner___TF24w__TF24_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__run_next, 1},
@@ -21016,6 +21098,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___TF24w__TF24_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___TF24w__TF24_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___TF24w__TF24_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__schedule__set, 2},
+    {"_plant_StochasticPatchRunner___TF24w__TF24_Env__event_log__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24w__TF24_Env__event_log__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run_next, 1},
@@ -21027,6 +21110,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
+    {"_plant_StochasticPatchRunner___K93__K93_Env__event_log__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__event_log__get, 1},
     {"_plant_ResourceSpline__ctor", (DL_FUNC) &_plant_ResourceSpline__ctor, 0},
     {"_plant_ResourceSpline__get_value_at_height", (DL_FUNC) &_plant_ResourceSpline__get_value_at_height, 2},
     {"_plant_ResourceSpline__init_interpolators", (DL_FUNC) &_plant_ResourceSpline__init_interpolators, 2},

@@ -374,9 +374,16 @@ test_that("harvest respects its size band", {
 })
 
 test_that("removing an entire cohort is refused rather than silently infinite", {
-  ## Caught when the schedule is built, not partway through a run.
-  expect_error(harvest(time = 10, fraction = 1) |> events(),
-               "which must be in \\[0, 1\\)")
+  ## A fraction of 1 is the stochastic solver's (test-stochastic-patch-runner.R).
+  ## The deterministic one refuses it when its runner is built, not partway
+  ## through a run, and a fraction above 1 is refused as an event.
+  ev <- harvest(time = 10, fraction = 1) |> events()
+  p <- testing_parameters("FF16")
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  expect_error(run(p, events = events(node_introductions(p), ev), until = 0),
+               "which must be in \\[0, 1\\) for the deterministic solver")
+  expect_error(harvest(time = 10, fraction = 1.5) |> events(),
+               "which must be in \\[0, 1\\]")
 })
 
 test_that("a climate extreme accrues dose only above its threshold", {

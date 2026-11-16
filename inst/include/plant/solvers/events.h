@@ -92,7 +92,9 @@ public:
   // `nodes_affected` counts numerical cohorts touched, not individuals -- it is
   // bookkeeping about the discretisation. `density_removed` is the quantity
   // actually taken out, summed over those cohorts, and is the number to read
-  // when asking what the intervention did.
+  // when asking what the intervention did. In the stochastic solver a node is
+  // an individual: `nodes_affected` counts those drawn for, and
+  // `density_removed` those removed per unit area.
   std::vector<std::vector<double> > applied;
 };
 
@@ -108,6 +110,10 @@ public:
 };
 
 EventLog event_log_from_records(const std::vector<EventRecord>& records);
+
+// The deterministic solver's own limit on a harvest: it scales each cohort's
+// density, so it must leave a positive fraction of it. Refused before a run.
+void require_partial_harvests(const std::vector<ScheduleEvent>& events);
 
 // Reject events scheduled past the end of the run. Separate from validate()
 // because Events crosses the R boundary without knowing the run's length.

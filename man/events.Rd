@@ -48,7 +48,10 @@ that case under a name that reads correctly.}
 resource in. What the pool cannot hold is shed rather than forced in;
 \code{solver$event_log} reports how much of each.}
 
-\item{fraction}{Fraction of individuals removed, in \code{[0, 1)}.}
+\item{fraction}{Fraction of individuals removed, in \code{[0, 1]}. The
+deterministic solver needs it below 1, since it scales each cohort's
+density; the stochastic solver removes each individual with this
+probability, so 1 removes them all.}
 
 \item{size_min, size_max}{Only individuals whose size falls in this band are
 removed. Size is the individual's size coordinate — height, for plant's

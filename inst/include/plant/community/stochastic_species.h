@@ -77,6 +77,13 @@ public:
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by killing individuals.
   size_t deaths();
+  // An event's removal: each living individual is removed with probability
+  // pr(height), the stochastic counterpart of the deterministic patch scaling a
+  // cohort's density by 1 - pr. One with pr(height) = 0 is not drawn for, so
+  // an event that cannot reach an individual leaves the random stream alone.
+  // Returns {individuals drawn for, individuals removed}.
+  template <typename Pr>
+  std::pair<size_t, size_t> remove(Pr pr);
   value_type establishment_probability(const E& environment) {
     return new_node.establishment_probability(environment);
   }
@@ -269,6 +276,27 @@ size_t StochasticSpecies<T,E>::deaths() {
     }
   }
   return died;
+}
+
+template <typename T, typename E>
+template <typename Pr>
+std::pair<size_t, size_t> StochasticSpecies<T,E>::remove(Pr pr) {
+  size_t drawn = 0, removed = 0;
+  for (auto& n : nodes) {
+    if (!n.alive) {
+      continue;
+    }
+    const double p = pr(odelia::util::to_passive(n.height()));
+    if (!(p > 0.0)) {
+      continue;
+    }
+    ++drawn;
+    if (unif_rand() < p) {
+      n.alive = false;
+      ++removed;
+    }
+  }
+  return {drawn, removed};
 }
 
 template <typename T, typename E>

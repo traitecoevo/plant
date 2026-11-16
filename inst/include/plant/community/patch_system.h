@@ -2,6 +2,8 @@
 #ifndef PLANT_PLANT_PATCH_SYSTEM_H_
 #define PLANT_PLANT_PATCH_SYSTEM_H_
 
+#include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <vector>
 #include <odelia/ode_interface.hpp>
@@ -11,6 +13,33 @@
 #include <plant/numerics/with_slope.h>
 
 namespace plant {
+
+// The survival fraction a climate extreme leaves, shared by both patches (the
+// deterministic one scales density by it, the stochastic one draws each
+// individual against it): the dose accrued above
+// `threshold` over `duration` years, through half-hourly sub-steps of a
+// sinusoidal daily cycle peaking at `intensity`, as exp(-sensitivity * dose).
+inline double climate_extreme_survival(double intensity, double duration,
+                                       double threshold, double sensitivity) {
+  // Half-hourly sub-steps through a sinusoidal daily cycle peaking at
+  // `intensity`, with amplitude set by its excess over `threshold`. Dose
+  // accrues only above the threshold, so a mild episode accrues none at all.
+  const double dt_days = 0.5 / 24.0;
+  const size_t n_steps =
+    static_cast<size_t>(std::max(1.0, std::ceil(duration * 365.0 / dt_days)));
+  const double amplitude = std::max(0.0, intensity - threshold);
+  double damage = 0.0;
+  for (size_t k = 0; k < n_steps; ++k) {
+    const double day_fraction =
+      std::fmod(static_cast<double>(k) * dt_days, 1.0);
+    // Peak mid-cycle; the trough sits one amplitude below the threshold.
+    const double level =
+      threshold + amplitude * (2.0 * std::sin(M_PI * day_fraction) - 1.0);
+    const double excess = std::max(0.0, level - threshold);
+    damage += sensitivity * excess * dt_days / 365.0;
+  }
+  return std::exp(-damage);
+}
 
 // What the two patches share:
 //   * Patch<T,E>            -- the deterministic patch, whose species carry a

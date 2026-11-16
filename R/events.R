@@ -183,7 +183,10 @@ resource_pulse <- function(time, resource, amount) {
              target_index = resource, params = list(amount = amount))
 }
 
-##' @param fraction Fraction of individuals removed, in \code{[0, 1)}.
+##' @param fraction Fraction of individuals removed, in \code{[0, 1]}. The
+##'   deterministic solver needs it below 1, since it scales each cohort's
+##'   density; the stochastic solver removes each individual with this
+##'   probability, so 1 removes them all.
 ##' @param size_min,size_max Only individuals whose size falls in this band are
 ##'   removed. Size is the individual's size coordinate — height, for plant's
 ##'   models. The defaults take the whole population.

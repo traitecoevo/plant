@@ -1,5 +1,6 @@
 #include <plant/numerics/fp_contract.h>
 #include <plant/solvers/schedule.h>
+#include <plant/solvers/events.h>
 #include <plant/parameters.h>
 #include <plant/util.h>
 #include <Rcpp.h>
@@ -263,6 +264,18 @@ void Schedule::r_set_times(std::vector<double> times_,
     Rcpp::stop("Times cannot be greater than max_time");
   }
   set_times(times_, species_index.check_bounds(n_species));
+}
+
+void Schedule::r_add_events(const Events& events) {
+  validate_event_horizon(events, max_time);
+  for (const Event& e : to_schedule_events(events, n_species)) {
+    if (e.is_node_introduction()) {
+      insert(e.time_introduction(), e.target_index);
+    } else {
+      add_action(e);
+    }
+  }
+  reset();
 }
 
 std::vector<double> Schedule::r_times(util::index species_index) const {

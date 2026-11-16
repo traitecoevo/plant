@@ -403,6 +403,10 @@ Schedule:
     copy:
       return_type: "plant::Schedule"
       name_cpp: r_copy
+    add_events:
+      return_type: void
+      name_cpp: r_add_events
+      args: [events: "plant::Events"]
 
 Control:
   name_cpp: "plant::Control"
@@ -1176,6 +1180,11 @@ StochasticPatchRunner:
       access: member
       name_cpp: r_schedule
       name_cpp_set: r_set_schedule
+    # What the run's scheduled events did, as DeterministicPatchRunner's.
+    event_log:
+      type: "plant::EventLog"
+      access: member
+      name_cpp: r_event_log
 
 ResourceSpline:
   name_cpp: "plant::ResourceSpline<double>"

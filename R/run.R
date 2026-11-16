@@ -70,7 +70,11 @@ print.plant_scenario <- function(x, ...) {
 ##' \code{p$node_schedule_times}; the result's \code{scenario$p} carries the
 ##' times drawn. It has no fitness integral, so
 ##' its result's fitness values are \code{NULL}, and it refuses \code{until},
-##' \code{from}, \code{refine_schedule}, \code{record = "states"} and events.
+##' \code{from}, \code{refine_schedule} and \code{record = "states"}. It takes
+##' \code{events}' harvests, resource pulses and climate extremes, drawing each
+##' individual's removal by chance, but refuses node introductions there, since
+##' its arrivals are drawn. Its deaths are drawn every
+##' \code{control$stochastic_death_interval} years.
 ##' Seed R's random number generator to repeat one.
 ##'
 ##' A single plant is grown by \code{run(individual, times = )}, which reports
@@ -129,7 +133,9 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{Parameters} for a \code{\link{run_mutant}} result, else \code{NULL}),
 ##'   \code{method}, and \code{solver}, the live
 ##'   \code{DeterministicPatchRunner}. A stochastic
-##'   result's fitness values and \code{event_log} are \code{NULL}, its
+##'   result's fitness values are \code{NULL}, its \code{event_log} holds what
+##'   its events did (a removal reports individuals drawn for, and those removed
+##'   per unit area), its
 ##'   \code{steps} hold what \code{record = "steps"} kept, and its solver is a
 ##'   \code{StochasticPatchRunner}. An \code{Individual}'s run returns a
 ##'   \code{plant_individual_run} instead: a list with \code{time} (the times given, or
@@ -282,19 +288,23 @@ no_more_arguments <- function(...) {
 }
 
 ## The stochastic solver under run(). It runs the whole lifetime and reports no
-## fitness, so whatever needs a stopping point, a resume, a recording for
-## gradients or events is refused by name.
+## fitness, so whatever needs a stopping point, a resume or a recording for
+## gradients is refused by name. It takes a run's harvests, pulses and climate
+## extremes, but not its introductions: arrivals are drawn from the birth rates.
 run_stochastic <- function(x, until, from, record, refine_schedule) {
   refused <- c(until = !is.null(until), from = !is.null(from),
                refine_schedule = isTRUE(refine_schedule),
-               `record = "states"` = "states" %in% record,
-               events = !is.null(x$events))
+               `record = "states"` = "states" %in% record)
   if (any(refused)) {
-    stop("The stochastic solver runs the whole lifetime with no events; it ",
-         "cannot take ", paste(names(refused)[refused], collapse = ", "),
-         call. = FALSE)
+    stop("The stochastic solver runs the whole lifetime; it cannot take ",
+         paste(names(refused)[refused], collapse = ", "), call. = FALSE)
   }
-  obj <- stochastic_runner(x$p, x$env, x$control)
+  if (!is.null(x$events) && any(x$events$type == "node_introduction")) {
+    stop("The stochastic solver draws its arrivals from the birth rates and ",
+         "p$patch_area, so its events cannot hold node introductions: leave ",
+         "node_introductions(p) out of events()", call. = FALSE)
+  }
+  obj <- stochastic_runner(x$p, x$env, x$control, x$events)
   steps <- NULL
   if ("steps" %in% record) {
     steps <- collect_stochastic_steps(obj)
@@ -306,7 +316,7 @@ run_stochastic <- function(x, until, from, record, refine_schedule) {
   x$p <- obj$parameters
   structure(list(scenario = x, time = obj$time, complete = obj$complete,
                  offspring_production = NULL, net_reproduction_ratios = NULL,
-                 event_log = NULL, record = record, mutants = NULL,
+                 event_log = obj$event_log, record = record, mutants = NULL,
                  method = "stochastic", steps = steps, solver = obj),
             class = "plant_run")
 }
