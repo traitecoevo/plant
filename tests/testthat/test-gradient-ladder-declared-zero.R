@@ -121,7 +121,7 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
     expect_false(is.na(at))
     # Named rather than defaulted: the bound below is the reference's own error at
     # THIS step, so the two have to be one number.
-    rel <- 1e-4
+    rel <- 1e-5
     got <- ladder_seed_geometry_tangent_tf24(patch, at)
     ref <- ladder_boundary_difference(patch, name, rel = rel)
 
@@ -136,14 +136,15 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
     expect_gt(abs(got$dheight), 0)
 
     # And the row, against a difference of the rebuilt root. What bounds it is
-    # where the root-find stopped, not how fine the step is: the reference
-    # differences a bisection whose answer is quantised at half a bracket, and a
-    # relative step of 1e-4 in the parameter is a step of a few nanometres in the
-    # height, which is smaller than the quantisation it is dividing.
+    # where the root-find stopped: the reference differences a bisection whose
+    # answer is quantised at half a bracket, and that error grows as the step
+    # falls.
     #
-    # 1e-4 is also where this is the WHOLE bound: the reference's truncation there
-    # is a ten-thousandth of it for every one of the eight. At 1e-3 truncation
-    # returns at a seventh and the bound would need a second term.
+    # The bound shrinks with the root tolerance and truncation does not, so the
+    # step is chosen at the default tolerance (1e-12). There 1e-5 is where this
+    # is the WHOLE bound: every one of the eight uses at most a third of it. At
+    # 1e-4 truncation reaches it (a_l2 exceeds it), and at 1e-3 every one but
+    # a_b1 does, so a coarser step would need a second term.
     #
     # No factor of ten. This is a hard interval, not a scale estimate, so over it
     # means the row disagrees by more than a bisected root-find can account for.
