@@ -19,7 +19,7 @@ Depends:
     R (>= 4.5.0)
 Encoding: UTF-8
 License: AGPL (>= 3)
-LinkingTo: Rcpp, BH, odelia (== 0.11.1), phylloptim (== 0.37.0)
+LinkingTo: Rcpp, BH, odelia (== 0.11.2), phylloptim (== 0.38.0)
 Imports:
     Rcpp,
     R6,
@@ -31,7 +31,7 @@ Imports:
     tidyselect (>= 1.2.0),
     tidyr,
     purrr,
-    odelia (>= 0.11.1),
+    odelia (>= 0.11.2),
     yaml
 Suggests:
     phylloptim,
