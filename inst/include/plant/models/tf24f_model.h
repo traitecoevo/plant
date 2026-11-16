@@ -178,8 +178,9 @@ public:
   static constexpr double marginal_step = 1e-4;
 
   // How far, in MPa, the slope's probes keep from a kink in uptake (see
-  // collar_on_tape). phylloptim's marginal has been seen noisy, to 1e-3
-  // relative, within about 1e-6 MPa of one; this keeps a factor of ten clear.
+  // collar_on_tape). Next to a layer's potential phylloptim's marginal has
+  // been seen to wander by 3e-4 of its value within about 1e-6 MPa; this
+  // keeps a factor of ten clear.
   static constexpr double kink_clearance = 1e-5;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
@@ -507,45 +508,43 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
     marginal_ = S(marginal);
     return collar;
   }
-  // ⚠️ NO PROBE OF THE SLOPE MAY LAND NEAR A KINK IN UPTAKE. Each layer's
-  // uptake has one at the layer's own potential, where the root conductivity's
-  // mean over the span from soil to collar is 0/0, and one at its gravity
-  // balance, where its flow changes sign. The marginal's slope jumps there,
-  // and phylloptim's marginal is noisy close to one: a probe that landed on a
-  // layer's potential read 4% low, and put an error of 4% into an invader's
-  // gradient. So a stencil that would reach a kink is taken from the side away
-  // from it, without the marginal at the collar, which may itself sit in that
-  // noise.
-  double below = std::numeric_limits<double>::infinity();
-  double above = std::numeric_limits<double>::infinity();
+  // ⚠️ NO PROBE OF THE SLOPE MAY LAND NEAR A KINK IN UPTAKE, OR ACROSS ONE.
+  // Each rooted layer's uptake has one at the layer's own potential, where the
+  // root conductivity's mean over the span from soil to collar is 0/0. The
+  // marginal's slope jumps there, and phylloptim's marginal is noisy next to
+  // one: a probe that landed on a layer's potential read 4% low, and put an
+  // error of 4% into an invader's gradient. So a stencil is used only if every
+  // probe keeps kink_clearance from every kink and none lies across one from
+  // the collar: the central one, else three points out on one side, which
+  // leave out the marginal at the collar, as that may itself sit in the noise.
+  // A layer's gravity balance, where its flow changes sign, is smooth.
   const std::vector<double>& soil = leaf.supply_psi_soil();
-  const std::vector<double>& gravity = leaf.roots_.grav_head_z_;
-  for (std::size_t i = 0; i < soil.size(); ++i) {
-    for (const double kink :
-         {soil[i], soil[i] + (i < gravity.size() ? gravity[i] : 0.0)}) {
-      const double d = kink - at;
-      if (d >= 0.0) {
-        above = std::min(above, d);
-      } else {
-        below = std::min(below, -d);
+  const std::size_t rooted = static_cast<std::size_t>(
+      std::max(0, std::min(leaf.roots_.max_soil_layer,
+                           static_cast<int>(soil.size()))));
+  const double h = marginal_step;
+  auto usable = [&](std::initializer_list<double> steps) {
+    for (const double dz : steps) {
+      const double c = collar_at(z + dz, bound_a_, bound_b_);
+      for (std::size_t i = 0; i < rooted; ++i) {
+        const double kink = soil[i];
+        if (std::abs(kink - c) < kink_clearance ||
+            (kink - at) * (kink - c) <= 0.0) {
+          return false;
+        }
       }
     }
-  }
+    return true;
+  };
   const S M_held = leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in);
   // dM/dz at fixed ends. The marginal moves the leaf, so its outputs are put
   // back at the collar before anything reads them.
-  const double h = marginal_step;
-  auto clear = [&](double dz) {
-    const double c = collar_at(z + dz, bound_a_, bound_b_);
-    return dz > 0.0 ? c - at + kink_clearance < above
-                    : at - c + kink_clearance < below;
-  };
   auto marginal_at = [&](double dz, bool& ok) {
     return leaf.dprofit_droot_collar_psi(collar_at(z + dz, bound_a_, bound_b_),
                                          &ok);
   };
   double dM_dz = std::numeric_limits<double>::quiet_NaN();
-  if (clear(h) && clear(-h)) {
+  if (usable({h, -h})) {
     bool up_ok = false, down_ok = false;
     const double up = marginal_at(h, up_ok);
     const double down = marginal_at(-h, down_ok);
@@ -561,7 +560,10 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
   } else {
     // Second order from the side away from the kink, by the quadratic through
     // the three points one, two and three steps out, read back at the collar.
-    const double side = clear(-3.0 * h) ? -1.0 : clear(3.0 * h) ? 1.0 : 0.0;
+    // With no usable side the slope stays NaN, and is refused below.
+    const double side = usable({-h, -2.0 * h, -3.0 * h})  ? -1.0
+                        : usable({h, 2.0 * h, 3.0 * h}) ? 1.0
+                                                         : 0.0;
     bool ok1 = false, ok2 = false, ok3 = false;
     if (side != 0.0) {
       const double m1 = marginal_at(side * h, ok1);
