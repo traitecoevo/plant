@@ -60,11 +60,14 @@ private:
   using base_type::schedule;
   using base_type::solver;
 
-  // PatchRunner's hooks: a schedule set from R gets this runner's death checks
-  // in place of any it carries, on the copy and before it is taken, so a
-  // schedule refused here leaves the runner as it was. It then takes effect at
-  // once.
-  void prepare_schedule(Schedule& x) const { place_death_checks(x); }
+  // PatchRunner's hooks: a schedule set from R is checked and gets this
+  // runner's death checks in place of any it carries, on the copy and before
+  // it is taken, so a schedule refused here leaves the runner as it was. It
+  // then takes effect at once.
+  void prepare_schedule(Schedule& x) const {
+    check_events(x);
+    place_death_checks(x);
+  }
   void schedule_changed() { reset(); }
 
   // The death-check grid, on `x`: a check at every multiple of death_interval
@@ -73,6 +76,10 @@ private:
   // check there would still split the leg that integrates the environment up
   // to it.
   void place_death_checks(Schedule& x) const;
+  // What would otherwise be refused only when its entry is reached, after the
+  // entry is taken: a schedule with no end, or a pulse into a pool this
+  // environment does not have.
+  void check_events(const Schedule& x) const;
   // Takes the next entry, applies it and integrates to the one after.
   const schedule_entry& step();
   // An entry's actions, in their rank order: death checks, then the rest.
@@ -196,6 +203,24 @@ void StochasticPatchRunner<T, E>::apply_actions(const schedule_entry& entry) {
 }
 
 template <typename T, typename E>
+void StochasticPatchRunner<T, E>::check_events(const Schedule& x) const {
+  if (x.size() > 0 && !std::isfinite(x.get_max_time())) {
+    util::stop("The stochastic runner needs a schedule with a finite "
+               "max_time, where its last death check falls");
+  }
+  for (const ScheduleEvent& e : x.get_events()) {
+    if (e.type == EventType::ResourcePulse &&
+        e.target_index >= patch.n_resources()) {
+      util::stop("The resource pulse at t = " +
+                 util::to_string(e.time_introduction()) + " is into resource " +
+                 util::to_string(e.target_index + 1) +
+                 ", which does not exist: this environment has " +
+                 util::to_string(patch.n_resources()) + " resources");
+    }
+  }
+}
+
+template <typename T, typename E>
 void StochasticPatchRunner<T, E>::place_death_checks(Schedule& x) const {
   std::vector<ScheduleEvent> checks;
   const double t_max = x.get_max_time();
@@ -206,11 +231,7 @@ void StochasticPatchRunner<T, E>::place_death_checks(Schedule& x) const {
     }
   }
   if (!arrivals.empty()) {
-    if (!std::isfinite(t_max)) {
-      util::stop("The stochastic runner needs a schedule with a finite "
-                 "max_time, where its last death check falls");
-    }
-    // The runner's own setter takes times unchecked, and a time outside the
+    // check_events() has refused an endless schedule. The runner's own setter takes times unchecked, and a time outside the
     // patch's life would put a check before the first arrival or none after
     // the last.
     for (const double t : arrivals) {

@@ -1,4 +1,4 @@
-##' Discrete events applied during a deterministic run.
+##' Discrete events applied during a run.
 ##'
 ##' An event is a \code{(time, action)} pair applied between solver legs: the
 ##' integrator is stopped at the event time, the action changes the patch, the
@@ -28,9 +28,16 @@
 ##' own fast sub-model over a nominal duration — \code{\link{climate_extreme}}
 ##' does — with demography frozen. The solver sees one jump either way.
 ##'
-##' Events sharing a time are applied in a fixed order: environment events
-##' first, then demographic ones, then node introductions — so a node
-##' introduced at that instant starts life in the post-event environment.
+##' Events sharing a time are applied in a fixed order: the stochastic
+##' solver's own death check first (it settles the interval just ended), then
+##' environment events, then demographic ones, then node introductions — so a
+##' node introduced at that instant starts life in the post-event environment.
+##'
+##' The stochastic solver (\code{run(method = "stochastic")}) takes the same
+##' harvests, pulses and climate extremes, drawing each individual's removal by
+##' chance, so that each matches the deterministic event in expectation. Its
+##' arrivals are drawn from the birth rates, so its events must leave out
+##' \code{node_introductions(p)}.
 ##'
 ##' Because an event is also a stop time for the integrator, adding one changes
 ##' the adaptive step sequence. A run with events legitimately differs from one
@@ -39,7 +46,11 @@
 ##' What each event actually did — as against what was asked of it — is
 ##' recorded, and readable afterwards as \code{solver$event_log}. The two differ
 ##' routinely: a pulse is capped at what the pool can hold, and harvesting a
-##' size class removes whatever was in it.
+##' size class removes whatever was in it. A removal reports the fraction
+##' applied, then, in the deterministic solver, the cohorts touched and the sum
+##' of their point densities removed (per unit size), and in the stochastic one
+##' the individuals drawn for and those removed per unit area. Only the fraction
+##' compares across the two.
 ##'
 ##' @param ... For \code{events}, objects returned by the individual event
 ##'   constructors, or whole \code{Events} objects; these are concatenated. Each
@@ -56,6 +67,8 @@
 ##'   events_default(p),
 ##'   harvest(time = 20, fraction = 0.3)
 ##' )
+##' ## The stochastic solver draws its own arrivals, so leave them out:
+##' ev_stochastic <- events(harvest(time = 20, fraction = 0.3))
 events <- function(...) {
   parts <- list(...)
   parts <- parts[!vapply(parts, is.null, logical(1))]

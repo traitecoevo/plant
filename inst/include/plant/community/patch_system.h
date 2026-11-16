@@ -183,6 +183,7 @@ public:
   // * R interface
   parameters_type r_parameters() const { return parameters; }
   environment_type r_environment() const { return environment; }
+  size_t n_resources() const { return environment.n_resources(); }
   std::vector<species_type> r_species() const { return species; }
   species_type r_at(util::index species_index) const {
     return species[species_index.check_bounds(size())];

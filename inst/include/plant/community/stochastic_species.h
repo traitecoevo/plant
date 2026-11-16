@@ -79,8 +79,8 @@ public:
   size_t deaths();
   // An event's removal: each living individual is removed with probability
   // pr(height), the stochastic counterpart of the deterministic patch scaling a
-  // cohort's density by 1 - pr. One with pr(height) = 0 is not drawn for, so
-  // an event that cannot reach an individual leaves the random stream alone.
+  // cohort's density by 1 - pr. One with pr(height) = 0 is not drawn for:
+  // an event takes no random number for an individual it cannot reach.
   // Returns {individuals drawn for, individuals removed}.
   template <typename Pr>
   std::pair<size_t, size_t> remove(Pr pr);

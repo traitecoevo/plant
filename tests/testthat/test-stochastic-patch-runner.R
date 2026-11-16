@@ -502,6 +502,10 @@ test_that("the deterministic runner refuses a stochastic runner's schedule", {
   det <- DeterministicPatchRunner("FF16", "FF16_Env")(
     p, Environment("FF16"), empty_events(), Control())
   expect_error(det$schedule <- obj$schedule, "death checks")
+  ## A whole-cohort harvest is refused on this path too, before any run.
+  s <- det$schedule
+  s$add_events(events(harvest(time = 1, fraction = 1)))
+  expect_error(det$schedule <- s, "for the deterministic solver")
 })
 
 ## A stand dense enough that a removal draws for dozens of individuals.
@@ -583,9 +587,14 @@ test_that("a resource pulse reaches the stochastic patch's soil, even before the
   p$max_patch_lifetime <- 2
   ctrl <- stochastic_control("TF24")
   depth <- 0.01
+  rainfall <- function(res) {
+    res$solver$patch$environment$get_soil_water_state_cumulative_flux()[[1]]
+  }
   set.seed(5)
   res <- run(p, Environment("TF24"), ctrl, method = "stochastic",
              events = events(rainfall_pulse(time = c(1e-3, 1.5), depth = depth)))
+  set.seed(5)
+  dry <- run(p, Environment("TF24"), ctrl, method = "stochastic")
   expect_lt(1e-3, res$scenario$p$node_schedule_times[[1]][[1]])
   log <- res$event_log
   expect_identical(log$time, c(1e-3, 1.5))
@@ -594,6 +603,77 @@ test_that("a resource pulse reaches the stochastic patch's soil, even before the
     expect_equal(sum(a), depth)
   }
   expect_gt(log$applied[[1]][[1]], 0)
+  ## The pulses reach the state the solver carries on from, not only the log:
+  ## the run's cumulative rainfall holds both. The continuous accumulator moves
+  ## at the ODE tolerance, since the pulses also split the legs.
+  expect_equal(rainfall(res) - rainfall(dry), 2 * depth, tolerance = 1e-4)
+})
+
+test_that("an event before the first arrival on an empty FF16 patch is applied", {
+  ## FF16's environment carries no state, so the leg to it is the fixed step
+  ## an empty system takes.
+  p <- events_stand()
+  set.seed(6)
+  res <- run(p, method = "stochastic",
+             events = events(climate_extreme(time = 1e-3, intensity = 1000)))
+  expect_lt(1e-3, res$scenario$p$node_schedule_times[[1]][[1]])
+  expect_identical(res$event_log$time, 1e-3)
+  expect_identical(res$event_log$applied[[1]][2:3], c(0, 0))
+  expect_true(res$complete)
+})
+
+test_that("at a shared instant, a harvest acts before the arrival there", {
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 2
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  set.seed(2)
+  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  obj$set_node_schedule_times(list(c(0.1, 0.2, 1)))
+  s <- obj$schedule
+  s$add_events(events(harvest(time = 1, fraction = 1)))
+  obj$schedule <- s
+  while (!obj$complete) obj$run_next()
+  ## Everyone who arrived before is removed, and the arrival at the harvest's
+  ## own instant is not.
+  alive <- attr(obj$patch$state$species[[1]], "is_alive")
+  expect_identical(alive, c(FALSE, FALSE, TRUE))
+  expect_identical(obj$event_log$applied[[1]][[2]], 2)
+})
+
+test_that("a harvest aimed at one species leaves the others", {
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 3
+  p <- suppressMessages(add_strategies(p, trait_matrix(c(0.0825, 0.1), "lma"),
+                                       birth_rate = list(30, 30)))
+  set.seed(7)
+  res <- run(p, method = "stochastic", record = "steps",
+             events = events(harvest(time = 2.5, fraction = 1, species = 2)))
+  st <- tidy(res)
+  after <- which(st$time > 2.5)[[1]]
+  alive <- function(i, row) {
+    sum(attr(st$species, "is_alive")[[i]][row, ], na.rm = TRUE)
+  }
+  expect_gt(alive(2, after - 1), 0)
+  expect_identical(alive(2, after), 0L)
+  expect_gt(alive(1, after), 0)
+})
+
+test_that("a pulse into a pool the environment does not have is refused before the run", {
+  ## FF16 has no resource pools. Refused when the schedule is set, so the
+  ## runner is left as it was, rather than when the run reaches the pulse.
+  p <- events_stand()
+  set.seed(8)
+  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  size <- obj$schedule$size
+  s <- obj$schedule
+  s$add_events(events(resource_pulse(time = 1.5, resource = 1, amount = 1)))
+  expect_error(obj$schedule <- s, "does not exist")
+  expect_equal(obj$schedule$size, size)
+  expect_error(run(p, method = "stochastic",
+                   events = events(resource_pulse(time = 1.5, resource = 1,
+                                                  amount = 1))),
+               "does not exist")
 })
 
 test_that("a stochastic run refuses node introductions in its events", {

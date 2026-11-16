@@ -92,9 +92,14 @@ public:
   // `nodes_affected` counts numerical cohorts touched, not individuals -- it is
   // bookkeeping about the discretisation. `density_removed` is the quantity
   // actually taken out, summed over those cohorts, and is the number to read
-  // when asking what the intervention did. In the stochastic solver a node is
-  // an individual: `nodes_affected` counts those drawn for, and
-  // `density_removed` those removed per unit area.
+  // when asking what the intervention did. It is a sum of the cohorts' point
+  // densities, each per unit of the size (or birth-date) coordinate, not a
+  // number of individuals per area.
+  //
+  // In the stochastic solver a node is an individual: `nodes_affected` counts
+  // those drawn for, and `density_removed` is those removed per unit area. The
+  // two solvers' third entries are in different units, so across them only
+  // `fraction_applied` compares.
   std::vector<std::vector<double> > applied;
 };
 
