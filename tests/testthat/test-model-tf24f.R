@@ -207,7 +207,6 @@ test_that("acclimation runs, is active, and converges to TF24", {
     run(tf24f_stand("TF24f", k_acclim = k), Environment("TF24f"),
         Control())$offspring_production
   }
-  slow <- at_gain(0.01)
   fast <- at_gain(10)
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
@@ -216,17 +215,18 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     fitness, so the tracked position is feeding back into the demography
   #     rather than being a no-op.
   #
-  #     ⚠️ Offspring production is NOT monotone in k_acclim, so a pair of gains
-  #     can sit at the same height on either side of a turning point and differ
-  #     by little with the feedback fully live. Measured here at hmat = 5,
-  #     max_patch_lifetime = 5, on the birth-date coordinate TF24f defaults to:
+  #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
+  #     sit on one side of its turning point: a pair straddling it can sit at
+  #     the same height on either side and differ by little with the feedback
+  #     fully live. Measured here at hmat = 5, max_patch_lifetime = 5, on the
+  #     birth-date coordinate TF24f defaults to:
   #
   #       k_acclim    0.01     0.1      1       10      100
   #       offspring   367.4   314.4   320.4   330.0   330.7
   #
-  #     A plant that barely adjusts keeps the position it was born with, and
-  #     differs from one that tracks by 11%.
-  expect_gt(abs(fast - slow) / slow, 0.05)
+  #     The turning point is near 0.1, so the contrast is taken on the falling
+  #     limb below it, where the two differ by 14%.
+  expect_gt(abs(at_gain(0.1) - at_gain(0.01)) / at_gain(0.01), 0.1)
 
   # (3) As the acclimation gain grows, TF24f tracks the optimum that TF24
   #     computes directly each step, so its offspring production converges
@@ -248,14 +248,16 @@ test_that("acclimation runs, is active, and converges to TF24", {
   expect_lt(abs(converged - tf24), abs(fast - tf24))
 })
 
-test_that("under drought the collar stays in its interval and follows TF24", {
+test_that("under drought the barrier holds the position, and TF24f follows TF24", {
   # Under dry pulses profit still rises at the dry end of the feasible interval
   # for about half of each year, and the interval itself moves by megapascals
   # as the soil dries and rewets. The position is the collar's place between
-  # the ends, so it moves with them, and the barrier holds it a short step
-  # inside the dry end: a finite position throughout, near logit(1 - 1e-4),
-  # where no state held in MPa stayed inside the interval. Measured gap in
-  # offspring production against TF24 (27.38):
+  # the ends, so it moves with them. At k_acclim = 30 it climbs to the dry end
+  # within a dry spell and the barrier holds it there, near 10: above 9.21, the
+  # logit of 1 - seed_margin, where a newborn with its optimum on that end is
+  # seated, so the dynamics reached it; and bounded, where without the barrier
+  # it would run on by about 20 in each dry spell. Measured gap in offspring
+  # production against TF24 at the default tolerance (27.38):
   #
   #   k_acclim     1      10      30     100
   #   rel. gap   4.0%    4.9%    1.6%   0.45%
@@ -266,14 +268,82 @@ test_that("under drought the collar stays in its interval and follows TF24", {
   }
   tf24 <- run(tf24f_stand("TF24", lifetime, lma = 0.07),
               tf24f_soil("TF24", "dry pulses"), Control())$offspring_production
-  slow <- at_gain(1)
-  position <- tidy(slow)$species$collar_position
-  position <- position[!is.na(position)]
-  expect_true(all(is.finite(position)))
-  expect_gt(max(position), 8)
-  expect_lt(max(position), 12)
-  expect_equal(slow$offspring_production, tf24, tolerance = 0.08)
-  expect_equal(at_gain(30)$offspring_production, tf24, tolerance = 0.03)
+  expect_equal(at_gain(1)$offspring_production, tf24, tolerance = 0.08)
+  fast <- at_gain(30)
+  expect_equal(fast$offspring_production, tf24, tolerance = 0.03)
+  # NA pads the nodes not yet born at a step; a NaN is a position that failed.
+  position <- tidy(fast)$species$collar_position
+  expect_false(any(is.nan(position)))
+  expect_gt(max(position, na.rm = TRUE), 9.3)
+  expect_lt(max(position, na.rm = TRUE), 12)
+})
+
+# One individual at a given position, in a soil and light that keep its leaf
+# open: the collar it is evaluated at, and the position's rate.
+tf24f_at_position <- function(z, k_acclim = 1) {
+  s <- TF24f_Model()
+  s$k_acclim <- k_acclim
+  ind <- TF24f_Individual(s)
+  ind$set_state("height", 5)
+  ind$set_state("collar_position", z)
+  ind$compute_rates(tf24f_open_soil())
+  vars <- ind$internals
+  list(collar = stats::setNames(vars$auxs, ind$aux_names)[["opt_root_psi"]],
+       rate = vars$rates[ind$ode_names == "collar_position"])
+}
+
+tf24f_open_soil <- function() {
+  env <- TF24_Environment()
+  env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.25, 5))
+  env
+}
+
+test_that("a position names the collar a + (b - a) u between the ends", {
+  logistic <- function(z) 1 / (1 + exp(-z))
+  collar <- function(z) tf24f_at_position(z)$collar
+  # The ends from two positions, then every other position from them.
+  width <- (collar(2) - collar(-2)) / (logistic(2) - logistic(-2))
+  wet_end <- collar(0) - width / 2
+  expect_gt(width, 1)
+  expect_gt(wet_end, 0)
+  for (z in c(-12, -5, 1, 5, 12)) {
+    expect_equal(collar(z), wet_end + width * logistic(z), tolerance = 1e-10)
+  }
+})
+
+test_that("the position's rate is k [(b - a) dP/dpsi - 2 mu sinh z]", {
+  # The gain multiplies the whole rate, and at zero the position is frozen.
+  expect_identical(tf24f_at_position(1, k_acclim = 0)$rate, 0)
+  expect_equal(tf24f_at_position(1, k_acclim = 3)$rate,
+               3 * tf24f_at_position(1)$rate, tolerance = 1e-12)
+  # In the middle the barrier is nothing, and profit rises towards a drier
+  # collar in this soil and light.
+  expect_gt(tf24f_at_position(0)$rate, 0)
+  # Far towards the dry end the barrier is nearly the whole rate, 1.5e-3 of it
+  # left to the marginal at z = 20: mu is barrier_fraction (1e-5) of
+  # TF24_cost_scale.
+  mu <- 1e-5 * TF24f_Model()$pars$TF24_cost_scale
+  expect_equal(tf24f_at_position(20)$rate, -2 * mu * sinh(20),
+               tolerance = 5e-3)
+})
+
+test_that("a newborn is seated at TF24's optimum", {
+  seated <- function(model) {
+    ind <- get(paste0(model, "_Individual"))()
+    env <- tf24f_open_soil()
+    ind$set_initial_states(env)
+    ind$compute_rates(env)
+    vars <- ind$internals
+    list(collar = stats::setNames(vars$auxs, ind$aux_names)[["opt_root_psi"]],
+         rate = vars$rates[ind$ode_names == "collar_position"])
+  }
+  tf24f <- seated("TF24f")
+  # The collar is TF24's but for the seed's margin, 1e-4 of the interval at
+  # most; and at the optimum the marginal is nothing, so the position rests.
+  expect_equal(tf24f$collar, seated("TF24")$collar, tolerance = 1e-4)
+  expect_lt(abs(tf24f$rate), 0.01)
 })
 
 test_that("offspring production is smooth in a trait at the interval's ends", {
@@ -293,12 +363,14 @@ test_that("offspring production is smooth in a trait at the interval's ends", {
   pinned$ode_step_sizes <- base$ode_step_sizes
   pinned$ode_soil_input_slopes <- base$ode_soil_input_slopes
   pinned$ode_soil_substep_ends <- base$ode_soil_substep_ends
-  response <- function(rel) {
+  at <- function(factor) {
     q <- pinned
-    q$strategies[[1]]$pars$lma <- q$strategies[[1]]$pars$lma * (1 + rel)
-    (run(q, env(), ctrl)$offspring_production -
-       base$patch$offspring_production) / rel
+    q$strategies[[1]]$pars$lma <- q$strategies[[1]]$pars$lma * factor
+    run(q, env(), ctrl)$offspring_production
   }
+  # d(offspring) / d(ln lma), centred, on the pinned steps.
+  response <- function(rel) (at(1 + rel) - at(1 - rel)) / (2 * rel)
+  expect_lt(response(1e-4), -1000)
   expect_equal(response(1e-6), response(1e-4), tolerance = 1e-3)
 })
 

@@ -117,8 +117,8 @@ poisson_pulses <- function(from, to, rate, mean_amount) {
 }
 
 # NOTE: TF24f (#525) is intentionally excluded from these generic cross-strategy
-# lists. It is an experimental variant with a 6th ODE state (tracked root-collar
-# psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
+# lists. It is an experimental variant with one more ODE state (the collar's
+# tracked position) and relies on birth-initialisation via Node::compute_initial_conditions, so
 # it does not satisfy the generic invariants these lists drive (5-state layout;
 # growth of a standalone Individual stepped a few times, which bypasses that
 # initialisation). TF24f is covered via the deterministic runner in

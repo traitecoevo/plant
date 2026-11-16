@@ -380,7 +380,7 @@ The shipped models:
 - **FF16**: the default model (Falster et al. 2011, 2016, 2018).
 - **K93**: Kohyama 1993, a simpler size-structured model, and the smallest complete model to read.
 - **TF24**: plant's hydraulic model, whose leaf gas exchange and hydraulics are phylloptim's (§3.1).
-- **TF24f**: TF24 with fast acclimation, as a subclass.
+- **TF24f**: TF24 with a plastic hydraulic operating point, tracked as an ODE state; a subclass.
 - **TF24t**: TF24 with leaf thermal damage and acclimation, as a subclass with four appended states ([tf24t_model.h](inst/include/plant/models/tf24t_model.h)). Its thermal parameters sit at the top level of the strategy, beside `pars`.
 - **TF24w**: TF24 with a private root-zone soil column per cohort ([tf24w_model.h](inst/include/plant/models/tf24w_model.h)). A subclass with five water states appended, because `state_size()` is static and a parameter-dependent count is not feasible. Its coupling between cohorts (mixing toward the patch mean, land transfer as crowns grow, die and overlap) is two extra passes in `Patch::compute_rates` guarded by the `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each refused where first seen: birth-date coordinate only, no gradient path, no stochastic patch, at most five soil layers. The pooled limit (large `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
 
@@ -415,7 +415,7 @@ Rules:
   serialisation-format changes — the science is unchanged.
 - FF16/K93 are scientifically frozen and should rarely move; TF24 and its subclasses change
   often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
-- **TF24f is a compound version.** It is a fast *approximation* of TF24 that
+- **TF24f is a compound version.** It is an *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
   `"<TF24 version>.<approximation revision>"`. The major
   component auto-tracks `TF24_Model::scientific_version` (a TF24 change

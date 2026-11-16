@@ -30,8 +30,9 @@ namespace plant {
 // mu ln(u (1 - u)). Every z is a feasible collar, so nothing is clamped. The
 // collar moves with the ends as the soil dries. Where profit still rises at an
 // end, the state settles where the barrier balances the marginal, a short
-// step inside that end, instead of running on. And in z the marginal's
-// logarithm is a straight line, so the rate is not stiff there.
+// step inside that end, instead of running on. And near the dry end the
+// marginal goes like the log of the distance to it, which is linear in z, so
+// the rate is not stiff there.
 //
 // The states shared with TF24 are computed by the inherited compute_rates.
 template <typename S = double>
@@ -102,7 +103,7 @@ public:
 
   // Acclimation gain k in dz/dt = k * [(b - a) dP/dpsi - 2 mu sinh(z)]: how
   // fast the position climbs the profit gradient. A large k recovers TF24's
-  // instantaneous optimum.
+  // instantaneous optimum, to within the barrier's hold at an end.
   S k_acclim = 1.0;
 
   // The log barrier's weight mu, as a fraction of TF24_cost_scale, the scale
@@ -123,10 +124,11 @@ public:
 
   // Channel between compute_rates() and solve_leaf(): the position going in;
   // the marginal profit at its collar and the interval's width coming back.
-  // The position's default is finite (the middle of the interval), so
-  // solve_leaf is safe before the first compute_rates (e.g. during
-  // establishment_probability), where the state has not been read yet. With no
-  // interval the width is zero, and the marginal with it.
+  // A species' cohorts share one strategy, so a solve outside compute_rates
+  // (establishment_probability's own) reads the position the last rate
+  // evaluation left, or the default before any: every position is a feasible
+  // collar, so that solve is safe, at another cohort's place in the interval.
+  // With no interval the width is zero, and the marginal with it.
   S position_ = 0.0;
   S marginal_ = 0.0;
   S width_ = 0.0;
@@ -177,6 +179,15 @@ void TF24f_Model<S>::compute_rates(const TF24_Environment<S>& environment,
   if (!util::is_finite(k) || k < 0.0) {
     util::stop("TF24f: k_acclim must be finite and >= 0 (got " +
                util::to_string(k) + ")");
+  }
+  // The barrier is the only thing that stops a position running on where
+  // profit rises at an end, and its weight is a fraction of the cost scale.
+  if (!(odelia::util::to_passive(this->pars.TF24_cost_scale) > 0.0)) {
+    util::stop("TF24f: TF24_cost_scale must be > 0 (got " +
+               util::format_double(
+                   odelia::util::to_passive(this->pars.TF24_cost_scale)) +
+               "): the barrier that holds the tracked position inside its "
+               "interval is a fraction of it");
   }
   position_ = vars.state(state_idx_collar_position);
   base_type::compute_rates(environment, vars);
@@ -255,13 +266,20 @@ void TF24f_Model<S>::solve_leaf() try {
 template <typename S>
 void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
                                         Internals<S>& vars) {
+  // Every leaf solve here is the optimiser's, TF24's own included: a newborn
+  // has no position yet, and the strategy's is another cohort's. Put back on
+  // every exit, a rejected step's among them, because the strategy is shared.
+  struct restore_flag {
+    bool& flag;
+    ~restore_flag() { flag = false; }
+  };
+  initializing_ = true;
+  const restore_flag restore{initializing_};
   // Initialise the shared TF24 states first (notably the NSC storage pool) --
   // set_initial_states is non-virtual, so without this call TF24f seedlings
   // would be born with empty reserves and die immediately.
   base_type::set_initial_states(environment, vars);
-  initializing_ = true;
   this->net_mass_production_dt(environment, vars);
-  initializing_ = false;
   // With no interval the leaf is shut wherever the position is: the middle.
   double z = 0.0;
   if (seed_open_) {
