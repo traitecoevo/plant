@@ -169,9 +169,10 @@ struct TF24_Pars {
   // strategy built from traits and the bare default share one curve (#611).
   S stem_P50 = 2.8887256653360196;
   // Sapwood-specific conductivity of the TERMINAL segment: the whole-stem value
-  // 1 of the height-linear model, back-derived to the tip by
-  // TF24_K_s_from_whole_stem(1), so that the two models' resistances agree at
-  // TF24_H_ANCHOR = 1 m. The ratio is 2.9782.
+  // 1 of the height-linear model, back-derived to the tip so that the two
+  // models' resistances agree at TF24_H_ANCHOR = 1 m, which
+  // test-tf24-stem-hydraulics.R checks against the path integral. The ratio is
+  // 2.9782.
   //
   // Only theta*K_s is identifiable, so agreement with the height-linear model
   // holds at exactly ONE height and nowhere else. That is by construction:

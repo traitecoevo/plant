@@ -29,15 +29,8 @@ test_that("stem path parameters carry their shipped defaults", {
   expect_identical(p$theta_c, 0)
   expect_identical(p$L_tip, 0.02)
   # K_s is now a TERMINAL-SEGMENT conductivity, back-derived from the old
-  # whole-stem 1 so that resistance is unchanged at the anchor height. Asserted
-  # against the helper rather than a literal, so the two cannot drift apart.
-  # Deliberately expect_equal, not expect_identical. The header default is a
-  # literal while the helper computes it through log() and expm1(), whose
-  # last-ULP behaviour is libm-dependent -- so a bitwise comparison here would be
-  # asserting something about the platform's maths library rather than about
-  # plant. 1e-12 is far tighter than any real drift and still catches the thing
-  # that matters, which is the literal and the helper falling out of step.
-  expect_equal(p$K_s, TF24_K_s_from_whole_stem(1), tolerance = 1e-12)
+  # whole-stem 1 so that resistance is unchanged at the anchor height, which the
+  # path-integral test below checks.
   expect_equal(1 / p$K_s, 2.9781957045054700, tolerance = 1e-12)
 })
 
@@ -78,7 +71,7 @@ test_that("resistance is unchanged at the anchor height and rotates about it", {
   # every plant is more resistant than under the old model, above it every plant
   # is less: the reparameterisation is a rotation, not a rescaling.
   p <- TF24_Model()$pars
-  eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
+  eta_c <- canopy_profile(TF24_Model(), u = 1)$eta_c
   beta <- 2 * p$D_c + p$theta_c
 
   # theta cancels; K_s_old was 1.
