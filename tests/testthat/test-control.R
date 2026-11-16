@@ -49,7 +49,9 @@ test_that("Defaults", {
     vulnerability_curve_ncontrol =
       phylloptim::leaf_control()$vulnerability_curve_ncontrol,
     ci_abs_tol = 1e-3,
-    ci_niter = 1000
+    ci_niter = 1000,
+    # The stochastic solver draws deaths every 0.05 yr (#601).
+    stochastic_death_interval = 0.05
   )
 
   keys <- sort(names(expected))
@@ -82,6 +84,19 @@ test_that("a Control or Parameters saved before a field existed still loads", {
   b <- run(p, control = Control(node_density_coordinate = "birth_date"))$solver
   expect_identical(a$patch$net_reproduction_ratios, b$patch$net_reproduction_ratios)
   expect_equal(a$parameters$fitness_window_start, 0)
+})
+
+test_that("a Control saved before the death-check interval takes the default", {
+  ## Not inert: before the interval, the stochastic solver drew deaths only at
+  ## arrivals. An old Control now runs on the 0.05-yr grid, as NEWS says.
+  ctrl <- Control()
+  ctrl[["stochastic_death_interval"]] <- NULL
+  expect_false("stochastic_death_interval" %in% names(ctrl))
+  p <- base_parameters("FF16")
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  expect_no_error(stochastic_runner(p, Environment("FF16"), ctrl))
+  expect_identical(Control(values = unclass(ctrl))$stochastic_death_interval, 0.05)
 })
 
 test_that("a tolerance the stepper cannot use is refused", {

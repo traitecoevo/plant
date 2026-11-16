@@ -556,6 +556,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["vulnerability_curve_ncontrol"] = Rcpp::wrap(x.vulnerability_curve_ncontrol);
   ret["ci_abs_tol"] = Rcpp::wrap(x.ci_abs_tol);
   ret["ci_niter"] = Rcpp::wrap(x.ci_niter);
+  ret["stochastic_death_interval"] = Rcpp::wrap(x.stochastic_death_interval);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -630,6 +631,8 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("ci_abs_tol")) ret.ci_abs_tol = Rcpp::as<double >(xl["ci_abs_tol"]);
   // ret.ci_niter = Rcpp::as<decltype(retci_niter) >(xl["ci_niter"]);
   if (xl.containsElementNamed("ci_niter")) ret.ci_niter = Rcpp::as<double >(xl["ci_niter"]);
+  // ret.stochastic_death_interval = Rcpp::as<decltype(retstochastic_death_interval) >(xl["stochastic_death_interval"]);
+  if (xl.containsElementNamed("stochastic_death_interval")) ret.stochastic_death_interval = Rcpp::as<double >(xl["stochastic_death_interval"]);
   // A Control saved before node_density_coordinate replaced the boolean
   // node_density_in_birth_date carries the boolean: read it as the explicit
   // coordinate it named, not as "auto".

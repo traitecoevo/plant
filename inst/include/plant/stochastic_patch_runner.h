@@ -2,6 +2,7 @@
 #ifndef PLANT_PLANT_STOCHASTIC_PATCH_RUNNER_H_
 #define PLANT_PLANT_STOCHASTIC_PATCH_RUNNER_H_
 
+#include <cmath>
 #include <odelia/ode_solver.hpp>
 #include <plant/stochastic_patch.h>
 #include <plant/stochastic_utils.h>
@@ -35,7 +36,10 @@ public:
   size_t run_next();
   void advance(double time_);
 
-  double time() const { return patch.time(); }
+  // The solver's time, as SCM reads it. The patch's own time is wherever the
+  // solver last evaluated it, which on a leg's final stage can round one ulp
+  // away from the time the leg landed on, and run_next() compares exactly.
+  double time() const { return solver.time(); }
   void reset();
   bool complete() const;
 
@@ -51,12 +55,17 @@ public:
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
 private:
-  bool deaths();
+  void land(double t);
+  void draw_deaths();
 
   parameters_type parameters;
   patch_type patch;
   Schedule schedule;
   odelia::ode::Solver<patch_type> solver;
+  double death_interval;
+  // Draws taken so far on the death-check grid; the next is at
+  // (death_checks + 1) * death_interval.
+  size_t death_checks;
 };
 
 template <typename T, typename E>
@@ -65,8 +74,12 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
                                                    Control c)
     : parameters(p), patch(parameters, e, c),
       schedule(make_empty_stochastic_schedule(parameters)),
-      solver(patch, make_ode_control(c)) {
+      solver(patch, make_ode_control(c)),
+      death_interval(c.stochastic_death_interval), death_checks(0) {
   parameters.validate();
+  if (!(death_interval > 0.0 && std::isfinite(death_interval))) {
+    util::stop("stochastic_death_interval must be positive and finite");
+  }
   solver.set_collect(false);
   // Its patch declares no tolerance scales, so the solver never reads them.
   if (c.ode_tol_scale_soil != 1.0) {
@@ -119,24 +132,57 @@ size_t StochasticPatchRunner<T, E>::run_next() {
   return intro.species.front();
 }
 
+// Integrates to `time_`, drawing deaths at every point of the death-check grid
+// on the way and at the end of the patch's lifetime. When deaths are drawn
+// does not depend on when seeds arrive. The `patch` member snapshot is
+// refreshed once, by the caller (run_next).
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::advance(double time_) {
-  solver.advance_adaptive({solver.time(), time_});
-  // deaths() acts on the solver's live system in place (see below). If any
-  // individual died the ODE system shrank, so re-pull its now-smaller state
-  // into the solver. The `patch` member snapshot is refreshed once, by the
-  // caller (run_next), rather than copied in and back out around the deaths.
-  if (deaths()) {
-    solver.set_state_from_system();
+  double t = solver.time();
+  // Skip the grid points the run has already passed (reset() integrates to
+  // the first arrival without drawing, as nothing is alive before it), and any
+  // that rounds onto t.
+  const double passed = std::floor(t / death_interval);
+  if (passed > static_cast<double>(death_checks)) {
+    death_checks = static_cast<size_t>(passed);
+  }
+  bool drawn_at_end = false;
+  while (t < time_) {
+    const double t_check = (death_checks + 1) * death_interval;
+    if (!(t_check > t)) {
+      ++death_checks;
+      continue;
+    }
+    const bool check = t_check <= time_;
+    const double t_next = check ? t_check : time_;
+    solver.advance_adaptive({t, t_next});
+    land(t_next);
+    if (check) {
+      ++death_checks;
+      draw_deaths();
+    }
+    drawn_at_end = check && t_next == time_;
+    t = t_next;
+  }
+  if (complete() && !drawn_at_end) {
+    draw_deaths();
   }
 }
 
-// Apply stochastic deaths to the solver's owned system in place. Mirrors the way
-// SCM operates on solver.get_system_ref() directly instead of round-tripping
-// through the `patch` member -- avoids two full Patch copies per step.
-template <typename T, typename E> bool StochasticPatchRunner<T, E>::deaths() {
-  const auto ret = solver.get_system_ref().deaths();
-  return std::any_of(ret.begin(), ret.end(), [](size_t i) { return i > 0; });
+template <typename T, typename E>
+void StochasticPatchRunner<T, E>::land(double t) {
+  solver.get_system_ref().set_time(t);
+}
+
+// Acts on the solver's own system, as SCM does, rather than round-tripping
+// through the `patch` member. Every draw re-syncs the solver, not only one in
+// which somebody died: the draw also resets each survivor's accumulated hazard
+// in the system, and without the re-sync the solver would carry on from its
+// own copy, so the next draw would count this interval's hazard again.
+template <typename T, typename E>
+void StochasticPatchRunner<T, E>::draw_deaths() {
+  solver.get_system_ref().deaths();
+  solver.set_state_from_system();
 }
 
 template <typename T, typename E>
@@ -151,6 +197,7 @@ bool StochasticPatchRunner<T, E>::complete() const {
 template <typename T, typename E> void StochasticPatchRunner<T, E>::reset() {
   patch.reset();
   schedule.reset();
+  death_checks = 0;
   solver.get_system_ref() = patch;
   solver.reset();
   if (schedule.size() > 0) {
@@ -180,6 +227,7 @@ template <typename T, typename E> void StochasticPatchRunner<T, E>::reset() {
       } else {
         solver.advance_fixed({solver.time(), t});
       }
+      land(t);
       patch = solver.get_system();
     }
   }
