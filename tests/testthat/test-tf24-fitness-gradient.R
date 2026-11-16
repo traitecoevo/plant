@@ -70,7 +70,7 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
   pinned$ode_times <- solver$ode_times
   pinned$ode_step_sizes <- solver$ode_step_sizes
   # lma and omega set the seed height, a root a difference reads at the root
-  # tolerance: at offspring_production_tol = 1e-8 their columns fail this test,
+  # tolerance: at offspring_height_tol = 1e-8 their columns fail this test,
   # so it also guards that tolerance. a_d0's difference is flat from 1e-3 to
   # 1e-4 and rounds below it, so it takes 1e-4. Every other column is
   # differenced at 1e-5, where the truncation error on hmat is 6e-5 against

@@ -54,7 +54,7 @@ struct Control {
 
   // Tolerance and iteration cap of the root-finds for a newborn's height (the
   // height whose live mass is the seed mass) and the light compensation point.
-  double offspring_production_tol;
+  double offspring_height_tol;
   size_t offspring_production_iterations;
 
   double node_gradient_eps;

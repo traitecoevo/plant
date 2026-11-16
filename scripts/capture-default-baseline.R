@@ -10,7 +10,7 @@
 ## helper, so the test and the capture run the same code. The helper runs
 ## through run(), so the capture needs a build that has it (#428 onwards). All
 ## six cases were last captured when the seed-height root tolerance
-## (Control$offspring_production_tol) went from 1e-8 to 1e-12, which moved
+## (Control$offspring_height_tol) went from 1e-8 to 1e-12, which moved
 ## them deliberately.
 
 args <- commandArgs(trailingOnly = TRUE)

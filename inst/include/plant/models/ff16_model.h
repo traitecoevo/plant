@@ -1314,7 +1314,7 @@ double FF16_Model<S>::height_seed(void) const {
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = height_given_mass_leaf(pars.omega);
 
-  const double tol = this->control.offspring_production_tol;
+  const double tol = this->control.offspring_height_tol;
   const size_t max_iterations = this->control.offspring_production_iterations;
 
   auto target = [&] (double x) mutable -> S {

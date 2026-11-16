@@ -11,14 +11,14 @@
 # it is the default, so a looser default cannot weaken the referee; the
 # gradient does not need it. The seed's height is a bisection iterate in the
 # forward run and the exact root's derivative on the differentiated path
-# (implicit function theorem). A difference at `offspring_production_tol = 1e-8`
+# (implicit function theorem). A difference at `offspring_height_tol = 1e-8`
 # differentiates the iterate, whose stopping point moves with the trait
 # differently from the root: measured on this stand, d(mass)/d(lma) through
 # the FF16 trade-off function was off by 6.8e-4 at a relative step of 1e-4 and by 1.8e-4 at
 # 1e-5, while the sweep's answer did not move with the tolerance at all. At
 # 1e-12 the two agree to 2.5e-8.
 referee_control <- function(...) {
-  Control(node_density_coordinate = "birth_date", offspring_production_tol = 1e-12,
+  Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
           ...)
 }
 
