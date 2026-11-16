@@ -260,8 +260,8 @@ resume_scenario <- function(x, from) {
   }
   pending <- from$events
   if (length(pending$time) > 0L) {
-    ## An events list replaces p's schedule as the source of introductions, so
-    ## the introductions in it are rebuilt from the schedule just set.
+    ## An events list naming introductions replaces p's schedule as their
+    ## source, so the introductions in it are rebuilt from the schedule just set.
     keep <- pending$type != "node_introduction"
     actions <- Events(time = pending$time[keep], type = pending$type[keep],
                       target = pending$target[keep],

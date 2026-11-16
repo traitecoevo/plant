@@ -321,6 +321,19 @@ ff16_run <- function(ev = NULL, max_lifetime = 20) {
   solver
 }
 
+test_that("an events list naming no introduction takes p's", {
+  ## So a harvest list means the same here as in the stochastic solver, whose
+  ## events cannot name introductions. It used to introduce nothing.
+  harvest_only <- ff16_run(function(p) events(harvest(time = 10, fraction = 0.5)))
+  with_default <- ff16_run(function(p) {
+    events(node_introductions(p), harvest(time = 10, fraction = 0.5))
+  })
+  expect_gt(length(harvest_only$patch$ode_state), 0)
+  expect_identical(harvest_only$patch$ode_state, with_default$patch$ode_state)
+  expect_identical(harvest_only$event_log, with_default$event_log)
+  expect_identical(harvest_only$events$time, with_default$events$time)
+})
+
 total_density <- function(solver) {
   sum(exp(solver$patch$species[[1]]$log_densities))
 }
