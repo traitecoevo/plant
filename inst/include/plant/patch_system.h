@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_PATCH_BASE_H_
-#define PLANT_PLANT_PATCH_BASE_H_
+#ifndef PLANT_PLANT_PATCH_SYSTEM_H_
+#define PLANT_PLANT_PATCH_SYSTEM_H_
 
 #include <numeric>
 #include <vector>
@@ -49,7 +49,7 @@ namespace plant {
 //   * check_loaded_nodes()   -- a check on the nodes load_state() introduced,
 //                               before their state is loaded.
 template <typename Derived, typename T, typename E, typename S>
-class PatchBase {
+class PatchSystem {
 public:
   using value_type = typename T::value_type;
 
@@ -122,8 +122,10 @@ public:
     return odelia::ode::ode_size(species.begin(), species.end()) +
       environment.ode_size();
   }
-  // The nodes' share of the system: zero on a patch with no nodes, whatever
-  // state the environment carries.
+  // The species' share of the system, whatever state the environment carries.
+  // Not a count of nodes: a deterministic species carries states with no
+  // cohort (the open establishment interval, the top layer), so has_nodes()
+  // is what says whether any node is held.
   size_t node_ode_size() const { return ode_size() - environment.ode_size(); }
   double ode_time() const { return time(); }
 
@@ -158,7 +160,7 @@ public:
   }
 
 protected:
-  PatchBase(parameters_type p, environment_type e, Control c)
+  PatchSystem(parameters_type p, environment_type e, Control c)
     : parameters(p), area(p.patch_area), environment(e), control(c) {}
 
   // The state `it` points to, read in the system's layout, and the time; no

@@ -3,7 +3,7 @@
 #define PLANT_PLANT_PATCH_H_
 
 #include <plant/parameters.h>
-#include <plant/patch_base.h>
+#include <plant/patch_system.h>
 #include <plant/species.h>
 #include <plant/util.h>
 #include <plant/clamp_sites.h>
@@ -153,8 +153,8 @@ inline double climate_extreme_survival(double intensity, double duration,
 }
 
 template <typename T, typename E>
-class Patch : public PatchBase<Patch<T,E>, T, E, Species<T,E>> {
-  typedef PatchBase<Patch<T,E>, T, E, Species<T,E>> base_type;
+class Patch : public PatchSystem<Patch<T,E>, T, E, Species<T,E>> {
+  typedef PatchSystem<Patch<T,E>, T, E, Species<T,E>> base_type;
   friend base_type;
 public:
   using typename base_type::value_type;
@@ -213,7 +213,7 @@ public:
   // members.
   template <typename, typename> friend class Patch;
 
-  // PatchBase's competition profile and its vertical derivative at z, for R,
+  // PatchSystem's competition profile and its vertical derivative at z, for R,
   // which takes only doubles: value first, then slope.
   std::vector<double> r_compute_competition_and_slope(double z) const {
     const with_slope<value_type> fs =
@@ -321,7 +321,7 @@ public:
   std::shared_ptr<Disturbance_Regime> survival_weighting;
 
   // * ODE interface
-  // The size, time, state and rates are PatchBase's, which owns the layout. The
+  // The size, time, state and rates are PatchSystem's, which owns the layout. The
   // rates are computed when they are asked for (before_ode_rates), not when a
   // state is loaded, which is what makes them always those of the state loaded,
   // however the caller arrived at it.
@@ -595,7 +595,7 @@ private:
   using base_type::species;
   using base_type::control;
 
-  // PatchBase's hooks. A loaded state is checked and its field built; the rates
+  // PatchSystem's hooks. A loaded state is checked and its field built; the rates
   // wait until they are asked for; and a field read from outside moves nothing.
   void after_set_ode_state() {
     // Catch a runaway size-density equation (non-finite cohort density or
@@ -1982,7 +1982,8 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     // The environment only: no individual changes, so the competition profile
     // is untouched and the nodes keep their state. The rates are stale
     // afterwards, but the solver recomputes them when it re-reads the system
-    // (Patch::ode_rates computes), so there is nothing to do here.
+    // (ode_rates computes them, through before_ode_rates), so there is nothing
+    // to do here.
     if (event.target_index >= environment.n_resources()) {
       util::stop("Resource " + util::to_string(event.target_index + 1) +
                  " does not exist: this environment has " +

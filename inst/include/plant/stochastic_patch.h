@@ -3,7 +3,7 @@
 #define PLANT_PLANT_STOCHASTIC_PATCH_H_
 
 #include <plant/parameters.h>
-#include <plant/patch_base.h>
+#include <plant/patch_system.h>
 #include <plant/stochastic_species.h>
 #include <plant/util.h>
 #include <plant/with_slope.h>
@@ -21,8 +21,8 @@ namespace plant {
 // bet there.
 template <typename T, typename E>
 class StochasticPatch
-  : public PatchBase<StochasticPatch<T,E>, T, E, StochasticSpecies<T,E>> {
-  typedef PatchBase<StochasticPatch<T,E>, T, E, StochasticSpecies<T,E>> base_type;
+  : public PatchSystem<StochasticPatch<T,E>, T, E, StochasticSpecies<T,E>> {
+  typedef PatchSystem<StochasticPatch<T,E>, T, E, StochasticSpecies<T,E>> base_type;
   friend base_type;
 public:
   using typename base_type::value_type;
@@ -72,7 +72,7 @@ private:
   void compute_environment();
   void compute_rates();
 
-  // PatchBase's hooks. A loaded state is the rates' state too: they are
+  // PatchSystem's hooks. A loaded state is the rates' state too: they are
   // computed here, where the deterministic patch computes them when they are
   // asked for. The environment is always this patch's own, and an individual
   // carries nothing that loading its state could leave inconsistent.

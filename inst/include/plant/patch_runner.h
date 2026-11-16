@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_PATCH_RUNNER_BASE_H_
-#define PLANT_PLANT_PATCH_RUNNER_BASE_H_
+#ifndef PLANT_PLANT_PATCH_RUNNER_H_
+#define PLANT_PLANT_PATCH_RUNNER_H_
 
 #include <vector>
 #include <odelia/ode_solver.hpp>
@@ -30,7 +30,7 @@ namespace plant {
 //   * prepare_schedule(x)  -- adjusts a schedule set from R before it is taken.
 //   * schedule_changed()   -- what follows setting the schedule from R.
 template <typename Derived, typename P>
-class PatchRunnerBase {
+class PatchRunner {
 public:
   typedef P                                patch_type;
   typedef typename P::parameters_type      parameters_type;
@@ -70,7 +70,7 @@ protected:
   // The schedule is made from the runner's own copy of the parameters, by
   // `schedule_from`, once that copy and the patch exist.
   template <typename ScheduleFrom>
-  PatchRunnerBase(parameters_type p, environment_type e, Control c,
+  PatchRunner(parameters_type p, environment_type e, Control c,
                   ScheduleFrom schedule_from)
     : parameters(p), patch(parameters, e, c),
       schedule(schedule_from(parameters)),
@@ -109,7 +109,8 @@ protected:
   odelia::ode::Solver<patch_type> solver;
 
 private:
-  // A schedule is set on a patch with no nodes, which is what resetting gives.
+  // A schedule is set on a patch holding no nodes: one reset to empty, not one
+  // started or initialised from an exported state.
   void refuse_if_started() const {
     if (patch.has_nodes()) {
       util::stop("Cannot set schedule without resetting first");

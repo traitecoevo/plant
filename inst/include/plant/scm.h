@@ -6,7 +6,7 @@
 #include <plant/census_gradient.h>
 #include <odelia/ode_solver.hpp>
 #include <plant/patch.h>
-#include <plant/patch_runner_base.h>
+#include <plant/patch_runner.h>
 #include <plant/scm_utils.h>
 
 #include <odelia/sweep.hpp>
@@ -80,8 +80,8 @@ void clear_recorded_refusal(Patch& patch) {
 // computations); the SCM is the time-stepping/scheduling layer on top of it.
 // Most r_* members are thin facades that expose the C++ API to R via RcppR6.
 template <typename T, typename E>
-class SCM : public PatchRunnerBase<SCM<T, E>, Patch<T, E>> {
-  typedef PatchRunnerBase<SCM<T, E>, Patch<T, E>> base_type;
+class SCM : public PatchRunner<SCM<T, E>, Patch<T, E>> {
+  typedef PatchRunner<SCM<T, E>, Patch<T, E>> base_type;
   friend base_type;
 public:
   // ---- Type aliases ------------------------------------------------------
@@ -190,7 +190,7 @@ public:
   // Whether the last run was run_mutant_constant()'s, which the gradient refuses.
   bool ran_in_constant_field = false;
   // True once every scheduled node introduction has been consumed; the
-  // solver's time. Both PatchRunnerBase's.
+  // solver's time. Both PatchRunner's.
   using base_type::complete;
   using base_type::time;
 
@@ -454,7 +454,7 @@ public:
   // ---- R interface -------------------------------------------------------
 
   // Run / parameters / state access: r_parameters(), r_patch(), r_get_state(),
-  // r_schedule() and the schedule setters are PatchRunnerBase's.
+  // r_schedule() and the schedule setters are PatchRunner's.
 
   // Every diagnostic below reads the LIVE system rather than r_patch(), and the
   // reason is narrower than r_patch() being a snapshot: it is live for the tallies
@@ -605,7 +605,7 @@ private:
   using base_type::schedule;
   using base_type::solver;
 
-  // PatchRunnerBase's hooks: the run starts where its parameters say, which a
+  // PatchRunner's hooks: the run starts where its parameters say, which a
   // schedule built in R does not know; and a new schedule waits for the next
   // run, which resets.
   void prepare_schedule(Schedule& x) const {

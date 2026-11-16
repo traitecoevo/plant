@@ -4,7 +4,7 @@
 
 #include <cmath>
 #include <odelia/ode_solver.hpp>
-#include <plant/patch_runner_base.h>
+#include <plant/patch_runner.h>
 #include <plant/stochastic_patch.h>
 #include <plant/stochastic_utils.h>
 
@@ -13,7 +13,7 @@ namespace plant {
 // The name here is likely to change.
 //
 // The interface mirrors that of SCM, and the two share their state, their
-// schedule handling and their solver reset through PatchRunnerBase.
+// schedule handling and their solver reset through PatchRunner.
 //
 // One thing that is different though is that we need to take care in
 // tracking who is who; deaths are going to make it hard to plot sizes
@@ -24,8 +24,8 @@ namespace plant {
 // the patch somehow?
 template <typename T, typename E>
 class StochasticPatchRunner
-  : public PatchRunnerBase<StochasticPatchRunner<T, E>, StochasticPatch<T, E>> {
-  typedef PatchRunnerBase<StochasticPatchRunner<T, E>, StochasticPatch<T, E>>
+  : public PatchRunner<StochasticPatchRunner<T, E>, StochasticPatch<T, E>> {
+  typedef PatchRunner<StochasticPatchRunner<T, E>, StochasticPatch<T, E>>
     base_type;
   friend base_type;
 public:
@@ -43,7 +43,7 @@ public:
   void advance(double time_);
 
   // time(), complete(), r_parameters(), r_patch(), r_get_state(), r_schedule()
-  // and the schedule setters are PatchRunnerBase's, as SCM's are.
+  // and the schedule setters are PatchRunner's, as SCM's are.
   using base_type::time;
   using base_type::complete;
   void reset();
@@ -57,7 +57,7 @@ private:
   using base_type::schedule;
   using base_type::solver;
 
-  // PatchRunnerBase's hooks: a schedule set from R is taken as it is, and
+  // PatchRunner's hooks: a schedule set from R is taken as it is, and
   // takes effect at once.
   void prepare_schedule(Schedule&) const {}
   void schedule_changed() { reset(); }
@@ -103,15 +103,17 @@ size_t StochasticPatchRunner<T, E>::run_next() {
   const double t0 = time();
   auto& patch_solver = solver.get_system_ref();
 
-  double t_end;
-  const schedule_entry& intro = this->take_entry(t0, t_end);
   // The stochastic tower only knows about node introductions; an instant
   // carrying any other event type belongs to the deterministic solver until
-  // this runner is migrated onto the shared queue too (#601).
-  if (!intro.actions.empty()) {
+  // this runner is migrated onto the shared queue too (#601). Refused before
+  // the entry is taken, so the refusal leaves the schedule where it was.
+  const schedule_entry& next = schedule.next();
+  if (util::identical(t0, next.time) && !next.actions.empty()) {
     util::stop("The stochastic solver does not yet apply scheduled events "
                "other than node introductions");
   }
+  double t_end;
+  const schedule_entry& intro = this->take_entry(t0, t_end);
 
   // Arrival times are drawn from a continuous distribution, so an introduction
   // here names one species; the loop is what makes that an observation rather
