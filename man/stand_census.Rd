@@ -10,7 +10,7 @@ stand_census(x)
 stand_fitness(x)
 }
 \arguments{
-\item{x}{A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+\item{x}{A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
 }
 \value{
@@ -26,7 +26,7 @@ smallest cohort is in the sum.
 }
 \details{
 \code{stand_fitness} reports, for a model that declares its fitness
-differentiable (FF16 and TF24), each species' net reproduction ratio and offspring
+differentiable (FF16, TF24 and TF24f), each species' net reproduction ratio and offspring
 production, named \code{"<species>.net_reproduction_ratio"} and
 \code{"<species>.offspring_production"}. They are the same numbers as
 a run's \code{net_reproduction_ratios} and \code{offspring_production},

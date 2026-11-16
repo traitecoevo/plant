@@ -5,9 +5,10 @@
 #
 # Two stands. On the one test-model-tf24f.R runs (five years, hmat 5, a birth
 # rate of 20, the default soil) the position stays near the middle of the
-# feasible interval. Under dry pulses it is held at the interval's dry end for
-# about half of each year, and the interval itself moves as the soil dries, so
-# the collar's rows there are the ends' rows.
+# feasible interval. Under dry pulses, at a gain high enough to reach it, the
+# position is held at the interval's dry end through each dry spell, and the
+# interval itself moves as the soil dries, so the collar's rows there are the
+# end's rows.
 
 tf24f_gradient_parameters <- function(model = "TF24f", k_acclim = 1,
                                       lifetime = 5, lma = 0.0825) {
@@ -94,14 +95,15 @@ test_that("TF24f's stand gradient is the pinned-step central difference", {
   expect_lt(max(errors), 1e-4)
 })
 
-test_that("the gradient holds where the collar is held at its dry end", {
-  # Under dry pulses the position sits at the barrier's balance by the dry end
-  # for about half of each year, and the collar there follows the end as the
-  # soil dries. The stem curve (stem_P50) and the stem's conductance (K_s) move
-  # that end; lma does not. Each column agrees to 1e-5; held to 1e-4.
+test_that("the gradient holds where the barrier holds the collar at its dry end", {
+  # Under dry pulses at k_acclim = 10 the position climbs to the dry end of the
+  # interval within a dry spell and the barrier holds it there, while the end
+  # itself moves as the soil dries: the collar's rows are then the end's. The
+  # stem curve (stem_P50) and the stem's conductance (K_s) move that end; lma
+  # does not. Each column agrees to 1e-5; held to 1e-4.
   lifetime <- 10
   errors <- tf24f_gradient_errors(
-    tf24f_gradient_parameters(lifetime = lifetime, lma = 0.07),
+    tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07),
     function() tf24f_dry_pulses(lifetime),
     "1.offspring_production", c("lma", "stem_P50", "K_s"))
   expect_lt(max(errors), 1e-4)
