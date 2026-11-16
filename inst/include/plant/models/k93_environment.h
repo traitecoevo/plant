@@ -41,7 +41,8 @@ public:
 
   virtual Rcpp::List r_get_state() const
   {
-    return Rcpp::List::create(_["light_availability"] = time); //      light_availability);
+    return Rcpp::List::create(
+              _["light_availability"] = light_availability.r_get_state());
   }
 
   // Core functions

@@ -17,14 +17,15 @@ solver_by_hand <- function(p, env = NULL, ctrl = control(), events = NULL,
 }
 
 ## What that entry point returned when asked to collect, from a collected
-## deterministic runner.
-collected_by_hand <- function(solver) {
+## deterministic runner, and the control it ran under, which tidy() adds.
+collected_by_hand <- function(solver, ctrl = control()) {
   results <- tidy_patch(lapply(solver$history, "[[", "state"))
   results[["offspring_production"]] <- solver$patch$offspring_production
   results[["net_reproduction_ratios"]] <- solver$patch$net_reproduction_ratios
   results[["p"]] <- solver$parameters
   results[["events"]] <- solver$events
   results[["event_log"]] <- solver$event_log
+  results[["control"]] <- ctrl
   results
 }
 
@@ -76,14 +77,15 @@ test_that("record keeps what tidy() and a gradient read", {
   expect_identical(tidy(res), collected_by_hand(solver_by_hand(p, collect = TRUE)))
   expect_named(tidy(res), c("steps", "n_spp", "species", "env",
                             "offspring_production", "net_reproduction_ratios",
-                            "p", "events", "event_log"))
+                            "p", "events", "event_log", "control"))
   expect_identical(tidy(res)$p, res$scenario$p)
   ev <- events(node_introductions(p), harvest(time = 5, fraction = 0.3))
   harvested <- run(p, control = control(node_density_coordinate = "birth_date"),
                    events = ev, record = "steps")
   by_hand <- solver_by_hand(p, ctrl = control(node_density_coordinate = "birth_date"),
                             events = ev, collect = TRUE)
-  expect_identical(tidy(harvested), collected_by_hand(by_hand))
+  expect_identical(tidy(harvested),
+                   collected_by_hand(by_hand, control(node_density_coordinate = "birth_date")))
   expect_true("harvest" %in% tidy(harvested)$event_log$type)
   expect_error(tidy(run(p)), "record = \"steps\"")
   expect_error(tidy(run(p, until = 0, record = "steps")), "no step yet")
@@ -231,6 +233,7 @@ test_that("a stochastic run is the runner's by hand, under the same seed", {
   res <- run(p, method = "stochastic", record = "steps")
   expect_s3_class(res, "plant_run")
   expect_identical(res$method, "stochastic")
+  collected[["control"]] <- control()
   expect_identical(tidy(res), collected)
   expect_true(res$complete)
   expect_null(res$offspring_production)

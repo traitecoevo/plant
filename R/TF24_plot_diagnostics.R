@@ -17,7 +17,7 @@
 #' @param results A tidied TF24 run, i.e. the output of
 #'   `tidy(run(p, ..., record = "steps"))` for a TF24 strategy/environment. Carries the
 #'   tidied patch state (`results$species`) and the environment series
-#'   (`results$env$soil_moist`, `soil_depth`, `soil_moist_cumulative_flux`).
+#'   (`results$env$soil_moist`, `soil_psi`, `soil_depth`, `soil_moist_cumulative_flux`).
 #' @param x,y Numeric vectors giving the rainfall time series — time (years) and
 #'   rainfall rate (m yr^-1) — as supplied to the environment's extrinsic
 #'   "rainfall" driver.
@@ -58,11 +58,10 @@ TF24_plot_diagnostics <- function(results, x, y) {
     ggplot2::theme_bw() +
     ggplot2::theme(text = ggplot2::element_text(size = 20)) -> size_distribution
 
-  # Soil water potential by depth over time
-  results$env$soil_moist %>%
+  # Soil water potential by depth over time, as the environment computes it
+  results$env$soil_psi %>%
     dplyr::mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-    dplyr::mutate(psi_soil = 1.78e-3 * (.data$soil_moist / 0.428)^-6.57) %>%
-    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$psi_soil, group = .data$soil_depth, colour = .data$soil_depth)) +
+    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$soil_psi, group = .data$soil_depth, colour = .data$soil_depth)) +
     ggplot2::geom_point(na.rm = TRUE) +
     ggplot2::geom_line(na.rm = TRUE) +
     ggplot2::theme_bw() +
@@ -74,7 +73,6 @@ TF24_plot_diagnostics <- function(results, x, y) {
   # Soil moisture by depth over time
   results$env$soil_moist %>%
     dplyr::mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-    dplyr::mutate(psi_soil = 1.78e-3 * (.data$soil_moist / 0.428)^-6.57) %>%
     ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$soil_moist, group = .data$soil_depth, colour = .data$soil_depth)) +
     ggplot2::geom_point(na.rm = TRUE) +
     ggplot2::geom_line(na.rm = TRUE) +

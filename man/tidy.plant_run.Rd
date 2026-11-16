@@ -21,10 +21,13 @@ For a deterministic run, a list: the tidied patch at every step,
   \code{\link{tidy_patch}} gives them); then the run's
   \code{offspring_production} and \code{net_reproduction_ratios}; \code{p},
   the solver's parameters (carrying any refined schedule); \code{events},
-  the events it was given; and \code{event_log}, what each event did.
+  the events it was given; \code{event_log}, what each event did; and
+  \code{control}, the run's \code{Control}, which says how its crowns cast
+  shade (\code{\link{canopy_profile}} reads it) where the strategies in
+  \code{p} do not.
   For a stochastic run, \code{time}, \code{species} (an array per species,
-  \code{[variable, time, individual]}, with an \code{is_alive} attribute)
-  and \code{env}. For a single plant, a tibble of its state at each
+  \code{[variable, time, individual]}, with an \code{is_alive} attribute),
+  \code{env} and \code{control}. For a single plant, a tibble of its state at each
   reported time, as \code{\link{tidy_individual}} gives it.
 }
 \description{

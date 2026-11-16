@@ -930,6 +930,17 @@ public:
 
   // convert soil moisture to soil water potential
   S psi_from_soil_moist(S soil_moist_, size_t layer) const {
+    return psi_from_soil_moist_noting<true>(soil_moist_, layer);
+  }
+
+  // The same potential with no clamp counted, for a record of the state: reading
+  // the state must not change what the run reports it clamped.
+  S psi_from_soil_moist_unnoted(S soil_moist_, size_t layer) const {
+    return psi_from_soil_moist_noting<false>(soil_moist_, layer);
+  }
+
+  template <bool Note>
+  S psi_from_soil_moist_noting(S soil_moist_, size_t layer) const {
     using std::max;
     using std::min;
     using std::pow;
@@ -937,7 +948,7 @@ public:
     // diverges to +inf as theta->0, so an empty layer would otherwise yield a
     // non-finite potential. At/below theta_r the potential is large but finite
     // and the plant's root vulnerability curve has already shut uptake to ~0.
-    if (soil_moist_ < S(soil_moist_residual)) {
+    if (Note && soil_moist_ < S(soil_moist_residual)) {
       note_clamp(CLAMP_SOIL_MOISTURE_FLOOR);
     }
     const S t = max(soil_moist_, S(soil_moist_residual));
@@ -952,7 +963,7 @@ public:
     // corrupts the soil feedback. Root conductivity is already negligible at the
     // ceiling (see soil_psi_max_), so the cap keeps every downstream
     // calculation finite without changing uptake.
-    if (psi > S(soil_psi_max_)) {
+    if (Note && psi > S(soil_psi_max_)) {
       note_clamp(CLAMP_SOIL_POTENTIAL_CEILING);
     }
     return min(psi, S(soil_psi_max_));
@@ -1152,6 +1163,13 @@ public:
     auto const &soil_moist_list = get_soil_water_state();
     auto rcpp_soil_moist_vec = Rcpp::NumericVector(soil_moist_list.begin(), soil_moist_list.end());
 
+    // Each layer's water potential from its own retention curve, floor and cap.
+    Rcpp::NumericVector rcpp_soil_psi_vec(soil_moist_list.size());
+    for (size_t i = 0; i < soil_moist_list.size(); ++i) {
+      rcpp_soil_psi_vec[i] = odelia::util::to_passive(
+        psi_from_soil_moist_unnoted(S(soil_moist_list[i]), i));
+    }
+
     auto const &soil_moist_cumulative_flux_list = get_soil_water_state_cumulative_flux();
     auto rcpp_soil_moist_vec_cumulative_flux = Rcpp::NumericVector(soil_moist_cumulative_flux_list.begin(), soil_moist_cumulative_flux_list.end());
 
@@ -1166,6 +1184,7 @@ public:
 
         _["light_availability"] = light_availability.r_get_state(),
         _["soil_moist"] = rcpp_soil_moist_vec,
+        _["soil_psi"] = rcpp_soil_psi_vec,
         _["soil_depth"] = rcpp_soil_depth_vec,
         _["soil_layer_width"] = rcpp_soil_width_vec,
         _["soil_moist_cumulative_flux"] = rcpp_soil_moist_vec_cumulative_flux

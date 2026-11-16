@@ -71,8 +71,9 @@ TF24_H_ANCHOR <- 1
 TF24_K_s_from_whole_stem <- function(K_s, D_c = 0.2, theta_c = 0,
                                     L_tip = 0.02,
                                     H_anchor = TF24_H_ANCHOR, eta = 12) {
-  eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
-  L_top <- H_anchor * eta_c
+  s <- TF24_Model()
+  s$pars$eta <- eta
+  L_top <- H_anchor * canopy_profile(s, u = 1)$eta_c
   beta <- 2 * D_c + theta_c
   # R_L = L_eff / (K_s * theta), so matching R_L at H_anchor across the two models
   # means K_s_tip / K_s = L_eff(beta) / L_eff(0). Widening SHORTENS the effective

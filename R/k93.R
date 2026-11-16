@@ -21,8 +21,14 @@ K93_Parameters <- function() {
 #' @importFrom rlang .data
 #' @rdname expand_state
 K93_expand_state <- function(results) {
-
-  # currently not doing anything
-  
+  ## K93's size is stem diameter, so it has no heartwood or leaf columns: its
+  ## expansion is the stem's diameter and basal area, in m and m^2.
+  data <- split(results$species, results$species$species)
+  for (i in seq_len(results$n_spp)) {
+    d <- data[[i]]
+    stem <- K93_strategy_expand_allometry(results$p$strategies[[i]], d$height)
+    data[[i]] <- dplyr::bind_cols(d, stem)
+  }
+  results$species <- dplyr::bind_rows(data)
   results
 }

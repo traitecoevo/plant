@@ -10,7 +10,7 @@ TF24_plot_diagnostics(results, x, y)
 \item{results}{A tidied TF24 run, i.e. the output of
 `tidy(run(p, ..., record = "steps"))` for a TF24 strategy/environment. Carries the
 tidied patch state (`results$species`) and the environment series
-(`results$env$soil_moist`, `soil_depth`, `soil_moist_cumulative_flux`).}
+(`results$env$soil_moist`, `soil_psi`, `soil_depth`, `soil_moist_cumulative_flux`).}
 
 \item{x, y}{Numeric vectors giving the rainfall time series — time (years) and
 rainfall rate (m yr^-1) — as supplied to the environment's extrinsic

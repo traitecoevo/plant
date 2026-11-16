@@ -31,7 +31,10 @@
 # `models` is keyed by model id (FF16, K93, ...). Each has title and header (the
 # model's C++ header), and optionally extends (the model it subclasses, whose
 # entries it inherits) and unfilled (slot: why this model supplies no such
-# quantity).
+# quantity). A model that extends none also has size and size_units (what its
+# size state, named height in every output, measures) and competitive_size and
+# competitive_size_units (the size it competes through, the A_l slot), which
+# model_size() reads; a model that extends one inherits them.
 #
 # A model's own entries carry `model:` and an id `<model>.<name>` (FF16.lma),
 # since models share names; a shared-layer entry has neither. A subclass
@@ -90,14 +93,26 @@ models:
   FF16:
     title: 'FF16: Falster et al. 2011, 2016, 2018'
     header: inst/include/plant/models/ff16_model.h
+    size: height
+    size_units: m
+    competitive_size: leaf area
+    competitive_size_units: m²
   K93:
     title: 'K93: Kohyama 1993'
     header: inst/include/plant/models/k93_model.h
+    size: stem diameter
+    size_units: cm
+    competitive_size: basal area
+    competitive_size_units: cm²
     unfilled:
       w: 'K93 declares no census_metrics(), so a census of it is refused at compile time (DeterministicPatchRunner::metrics_of) and it has no per-individual quantity for a stand total to sum.'
   TF24:
     title: 'TF24: Towers et al. 2024, with storage, flexible allometry and a soil column'
     header: inst/include/plant/models/tf24_model.h
+    size: height
+    size_units: m
+    competitive_size: leaf area
+    competitive_size_units: m²
   TF24f:
     title: 'TF24f: TF24 with a lagged hydraulic operating point'
     header: inst/include/plant/models/tf24f_model.h
