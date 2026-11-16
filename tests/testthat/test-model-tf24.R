@@ -47,7 +47,7 @@ test_that("Defaults", {
     stem_P50 = 2.8887256653360196,
     # Terminal-segment conductivity: the old whole-stem 1, back-derived so
     # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
-    K_s = TF24_K_s_from_whole_stem(1),
+    K_s = 0.33577377016801868,
     stem_c = 2.04,
     stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
     psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
