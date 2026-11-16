@@ -25,7 +25,7 @@ Control::Control() {
   // PPA layer-boundary smoothing fraction (see Control header).
   ppa_layer_smoothing = 0.3;
 
-  // The seed-height root-find bisects to this. Its error moves in steps as a
+  // The seed-height root-find stops at this. Its error moves in steps as a
   // trait moves, and fitness magnifies it (an elasticity of ~250 in FF16), so at
   // 1e-8 a difference of fitness at a relative step of 1e-4 jumps by ~0.2.
   offspring_height_tol = 1e-12;

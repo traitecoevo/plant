@@ -94,7 +94,7 @@ test_that("run() grows an individual to sizes", {
 
     ## Then, do the search for a single case:
     i <- 3L
-    tmp <- grow_individual_bisect(res$runner,
+    tmp <- grow_individual_to_size(res$runner,
                              heights[[i]], "height",
                              res$t0[[i]], res$t1[[i]], res$y0[i,])
 

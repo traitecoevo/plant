@@ -793,10 +793,10 @@ test_that("Medlyn stomatal model", {
 # fixes the supply-side stomatal conductance gc and returns the ci at which
 # CO2 demand equals supply, i.e. the root of
 #   assim_colimited(ci) * umol_to_mol  -  gc * (ca - ci) / (atm_kpa * kPa_to_Pa) = 0
-# over ci in (gamma*, ca]. It is currently solved by bisection (util::uniroot)
-# to an absolute tolerance of 1e-7 Pa. These tests pin the *contract* (what ci
-# must satisfy) independently of the *method*, so they remain a valid safety net
-# if the solver is later refactored for speed.
+# over ci in (gamma*, ca]. phylloptim solves it by a safeguarded Newton solve
+# stopping at ci_root_tol, with TOMS748 (util::uniroot_smooth) as its fallback.
+# These tests pin the *contract* (what ci must satisfy) independently of the
+# *method*, so they hold however the solve is done.
 test_that("psi_stem_to_ci supply=demand solve", {
   vcmax_25 = 100
   jmax_25 = vcmax_25 * 167
@@ -856,8 +856,9 @@ test_that("psi_stem_to_ci supply=demand solve", {
   # --- 1. the returned ci is the root of the supply=demand residual ----------
   # assim_minus_stom_cond_CO2 recomputes gc from (psi_stem, psi_upstream) using
   # exactly the same expression psi_stem_to_ci solves, so the residual at the
-  # returned ci must be ~0. The bisection tol is 1e-7 Pa in ci and the residual
-  # slope is O(1e-6) per Pa, so the residual is well below 1e-9.
+  # returned ci must be ~0. The solve places ci to ci_root_tol (a few 1e-12 Pa
+  # at these ci) and the residual slope is O(1e-6) per Pa, so the residual is
+  # well below 1e-9.
   l <- set_phys(make_leaf(), psi_soil = psi_soil)
   psi_stem <- psi_soil + 1
   ci <- l$psi_stem_to_ci(psi_stem, psi_soil)
@@ -916,13 +917,13 @@ test_that("psi_stem_to_ci supply=demand solve", {
 #   find_root_crit == 0 (root_zero_E): total soil uptake E_up_(x) == 0
 #   find_root_crit == 1 (root_crit)  : E_up_(x) == stem demand at psi_crit, i.e.
 #                                       E_column(x) = E_up_(x) - transpiration(psi_crit, -x) == 0
-# over x in [-psi_crit, wettest_soil_layer]. It is currently solved by bisection
-# (util::uniroot) to an absolute tolerance of 1e-4 in x, and sits inside the
-# golden-section collar optimisation -- so it dominates the per-layer
+# over x in [-psi_crit, wettest_soil_layer]. phylloptim solves it by TOMS748
+# to bracket_tol, returning the final bracket's midpoint for root_crit == 0 and
+# its wet end for root_crit == 1, and it sits inside the collar solve -- so it
+# dominates the per-layer
 # E_from_Soil_to_Root_Collar arithmetic that is the top hot-spot in the
 # 15-layer driver. These tests pin the *contract* (what x must satisfy)
-# independently of the *method*, so they remain a valid safety net if the solver
-# is later swapped for a faster root finder (Brent/TOMS748, ...).
+# independently of the *method*, so they hold however the solve is done.
 test_that("find_root_psi soil->collar continuity solve", {
   vcmax_25 = 100
   jmax_25 = vcmax_25 * 167
@@ -1076,10 +1077,10 @@ test_that("find_root_psi soil->collar continuity solve", {
   expect_error(l$E_from_Soil_to_Root_Collar(2.0, -psi_soil))
 
   # --- 8. regression guard: hardcoded reference roots for the standard scenario.
-  # These pin the physical answer independently of the build/method; both the
-  # bisection and a superlinear bracketing solver converge here to the same
-  # collar potentials within the 1e-4 continuity tolerance (the value is NOT
-  # bit-identical across methods, hence the loose tolerance).
+  # These pin the physical answer independently of the build/method: any
+  # bracketing solver converges here to the same collar potentials within the
+  # 1e-4 continuity tolerance (the value is NOT bit-identical across methods,
+  # hence the loose tolerance).
   # Sign flipped with the representation; the magnitudes are unchanged, which is
   # the point of #25 being a representation change and not a model change.
   expect_equal(root0, 0.4387473787, tolerance = 1e-3)

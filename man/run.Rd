@@ -133,7 +133,7 @@ Seed R's random number generator to repeat one.
 
 A single plant is grown by \code{run(individual, times = )}, which reports
 it at each time, or \code{run(individual, sizes = )}, which grows it to
-each size and bisects for the time it is reached. A plant grown on its own
+each size and finds the time it is reached by a root-find. A plant grown on its own
 sees the environment it is given, not a patch's shading.
 }
 \seealso{
