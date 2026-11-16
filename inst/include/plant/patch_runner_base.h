@@ -24,8 +24,9 @@ namespace plant {
 // derived class (SCM's events, pinned schedules and recordings; the stochastic
 // runner's draws of establishment and death).
 //
-// The hooks a derived class may declare (the base calls them on the derived
-// type, so a derived declaration hides the default here):
+// The hooks each derived class declares, which the base calls on the derived
+// type. There are no defaults, so a hook misspelt or left out is a compile
+// error rather than a silent no-op:
 //   * prepare_schedule(x)  -- adjusts a schedule set from R before it is taken.
 //   * schedule_changed()   -- what follows setting the schedule from R.
 template <typename Derived, typename P>
@@ -101,10 +102,6 @@ protected:
     schedule.pop();
     return entry;
   }
-
-  // The defaults for the hooks described above.
-  void prepare_schedule(Schedule&) const {}
-  void schedule_changed() {}
 
   parameters_type parameters;
   patch_type patch;

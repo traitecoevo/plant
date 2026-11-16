@@ -34,11 +34,11 @@ namespace plant {
 // per individual with discrete deaths), introduction, and everything the
 // deterministic patch alone does (disturbance, recorded fields, rebinding to
 // another scalar, auxiliary variables). As in SpeciesBase, nothing dispatches at
-// run time: the hooks below resolve through the CRTP downcast, and a derived
-// class that does not declare one gets the base's.
+// run time: the hooks below resolve through the CRTP downcast.
 //
-// The hooks a derived class may declare (the base calls them on the derived
-// type, so a derived declaration hides the default here):
+// The hooks each derived class declares, which the base calls on the derived
+// type. There are no defaults, so a hook misspelt or left out is a compile
+// error rather than a silent no-op:
 //   * after_set_ode_state()  -- what follows loading a state: building the
 //                               field the rates will be taken in, at least.
 //   * before_ode_rates()     -- what the rates need computing first, if the
@@ -218,12 +218,6 @@ protected:
       out.push_back(consumed / area);
     }
   }
-
-  // The defaults for the hooks described above.
-  void after_set_ode_state() {}
-  void before_ode_rates() {}
-  bool environment_is_given() const { return false; }
-  void check_loaded_nodes() const {}
 
   parameters_type parameters;
   double area;

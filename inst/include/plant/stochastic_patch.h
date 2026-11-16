@@ -72,12 +72,17 @@ private:
   void compute_environment();
   void compute_rates();
 
-  // A loaded state is the rates' state too: they are computed here, where the
-  // deterministic patch computes them when they are asked for.
+  // PatchBase's hooks. A loaded state is the rates' state too: they are
+  // computed here, where the deterministic patch computes them when they are
+  // asked for. The environment is always this patch's own, and an individual
+  // carries nothing that loading its state could leave inconsistent.
   void after_set_ode_state() {
     compute_environment();
     compute_rates();
   }
+  void before_ode_rates() {}
+  bool environment_is_given() const { return false; }
+  void check_loaded_nodes() const {}
 
   // Scratch for compute_rates(), which the solver calls on every derivatives
   // evaluation. A member reserved once in reset() and cleared (not freed) after

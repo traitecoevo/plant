@@ -57,7 +57,9 @@ private:
   using base_type::schedule;
   using base_type::solver;
 
-  // PatchRunnerBase's hook: a schedule set from R takes effect at once.
+  // PatchRunnerBase's hooks: a schedule set from R is taken as it is, and
+  // takes effect at once.
+  void prepare_schedule(Schedule&) const {}
   void schedule_changed() { reset(); }
 
   void land(double t);

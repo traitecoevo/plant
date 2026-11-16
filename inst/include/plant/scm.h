@@ -605,11 +605,13 @@ private:
   using base_type::schedule;
   using base_type::solver;
 
-  // PatchRunnerBase's hook: the run starts where its parameters say, which a
-  // schedule built in R does not know.
+  // PatchRunnerBase's hooks: the run starts where its parameters say, which a
+  // schedule built in R does not know; and a new schedule waits for the next
+  // run, which resets.
   void prepare_schedule(Schedule& x) const {
     x.set_start_time(parameters.initial_time);
   }
+  void schedule_changed() {}
 
   // One environment serves every species, so its tally has no species of its own;
   // it lands on the first row rather than being dropped or duplicated. Private
