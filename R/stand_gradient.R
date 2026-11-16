@@ -11,6 +11,13 @@ census_backend <- function(solver) {
                 undifferentiable = census_undifferentiable_tf24,
                 trait_gradient = census_trait_gradient_tf24,
                 control = gradient_control_tf24),
+    TF24f = list(metric_names = census_metric_names_tf24f,
+                 census = census_tf24f,
+                 state_adjoint = census_state_adjoint_tf24f,
+                 trait_names = census_trait_names_tf24f,
+                 undifferentiable = census_undifferentiable_tf24f,
+                 trait_gradient = census_trait_gradient_tf24f,
+                 control = gradient_control_tf24f),
     FF16 = list(metric_names = census_metric_names_ff16,
                 census = census_ff16,
                 state_adjoint = census_state_adjoint_ff16,
@@ -25,7 +32,7 @@ census_backend <- function(solver) {
                  "leaf with the thermal-damage layer on, and a gradient ",
                  "without it would describe TF24 rather than TF24t"),
     stop("No census is declared for the ", type, " model, so it has no ",
-         "stand gradient; TF24 and FF16 declare one"))
+         "stand gradient; FF16, TF24 and TF24f declare one"))
 }
 
 # Every metric the run reports, named, with each one's kind ("census" or
@@ -47,14 +54,14 @@ stand_metric_table <- function(solver) {
 ##' smallest cohort is in the sum.
 ##'
 ##' \code{stand_fitness} reports, for a model that declares its fitness
-##' differentiable (FF16 and TF24), each species' net reproduction ratio and offspring
+##' differentiable (FF16, TF24 and TF24f), each species' net reproduction ratio and offspring
 ##' production, named \code{"<species>.net_reproduction_ratio"} and
 ##' \code{"<species>.offspring_production"}. They are the same numbers as
 ##' a run's \code{net_reproduction_ratios} and \code{offspring_production},
 ##' reported under the names \code{\link{stand_gradient}} differentiates them
 ##' by.
 ##'
-##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector, one entry per metric.
 ##' @export
@@ -93,7 +100,7 @@ stand_metrics_of_kind <- function(solver, kind) {
 ##' integrand only where the height is the coordinate integrated over; on the
 ##' birth-date coordinate the weights are constants.
 ##'
-##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A numeric matrix, metrics by ODE state entries.
 ##' @export
@@ -116,7 +123,7 @@ stand_census_state_adjoint <- function(x) {
 ##' support. \code{stand_gradient} records them and
 ##' \code{stand_gradient_compare} refuses a pair that disagrees.
 ##'
-##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector of length five.
 ##' @export
@@ -141,7 +148,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' reading of the traits at that state, which is not a sensitivity of the state
 ##' and so no sweep produces it.
 ##'
-##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the TF24 or FF16 model, on the
+##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @param metrics Metric names to differentiate; defaults to every metric the
 ##'   model declares: the census metrics (\code{\link{stand_census}}) and, for

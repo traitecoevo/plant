@@ -157,6 +157,50 @@ Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::Determini
   return control_of(*obj_);
 }
 
+// ---- TF24f ---------------------------------------------------------------
+
+// [[Rcpp::export]]
+Rcpp::CharacterVector census_metric_names_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_) {
+  return metric_names_of(*obj_);
+}
+
+// [[Rcpp::export]]
+std::vector<double> census_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_) {
+  return obj_->census();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>>
+census_state_adjoint_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_) {
+  return state_adjoint_of(*obj_);
+}
+
+// The gradient's columns: each species' differentiable parameters in
+// ad_parameters() order, species-major, which is the order the trait adjoints
+// accumulate in. Each name carries its species index, as "1.lma".
+// [[Rcpp::export]]
+std::vector<std::string>
+census_trait_names_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_patch().trait_adjoint_names();
+}
+
+// [[Rcpp::export]]
+Rcpp::CharacterVector census_undifferentiable_tf24f() {
+  return undifferentiable_of<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > >();
+}
+
+// [[Rcpp::export]]
+Rcpp::List
+census_trait_gradient_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_,
+                           Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
+  return trait_gradient_of(*obj_, which_metrics);
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector gradient_control_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_) {
+  return control_of(*obj_);
+}
+
 // ---- FF16 ----------------------------------------------------------------
 
 // [[Rcpp::export]]

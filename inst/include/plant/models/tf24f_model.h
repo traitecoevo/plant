@@ -44,6 +44,48 @@ public:
   typedef std::shared_ptr<TF24f_Model> ptr;
   TF24f_Model();
 
+  // Another TF24f's values at this scalar, which rebind() uses. TF24's
+  // constructor copies the leaf and the table; this adds what TF24f holds.
+  template <class S1>
+  TF24f_Model(tf24_strategy_from_t tag, const TF24f_Model<S1>& src)
+      : base_type(tag, src) {
+    assign_tracking_from(src);
+  }
+
+  // Another TF24f's values, written into this one. Declared here, so it hides
+  // TF24's: a TF24f patch is brought to each width through this.
+  template <class S1>
+  void assign_from(const TF24f_Model<S1>& src) {
+    base_type::assign_from(src);
+    assign_tracking_from(src);
+  }
+
+  // ⚠️ THIS STRATEGY AT ANOTHER SCALAR, AS A TF24f. TF24's rebind returns a
+  // TF24_Model, so an inherited one would rebind a TF24f patch as a TF24 patch:
+  // no tracked state, and the leaf re-optimised at every evaluation.
+  template <class U>
+  TF24f_Model<U> rebind() const {
+    return TF24f_Model<U>(tf24_strategy_from_t{}, *this);
+  }
+
+  // TF24's census, read off the states TF24f shares with it.
+  static const auto& census_metrics() {
+    return base_type::template census_metrics_for<TF24f_Model<S>>();
+  }
+  // Each species' net reproduction ratio and offspring production are stand
+  // metrics, refereed for TF24f in test-tf24f-stand-gradient.R. Declared rather
+  // than inherited, because the flag says this model's channel was checked.
+  static constexpr bool differentiable_fitness = true;
+
+  // Every active value this strategy holds: TF24's, and the position's
+  // working, which carries the state's and the ends' rows into its rate.
+  template <class F>
+  void for_each_active(F&& f) {
+    base_type::for_each_active(f);
+    odelia::ode::visit_active(f, k_acclim, position_, marginal_, width_,
+                              seed_position_);
+  }
+
   // Scientific version — compound, because TF24f is an *approximation* of
   // TF24 and inherits its equations/parameters. The version is reported as
   // "<TF24 version>.<approximation_revision>" (e.g. "2.1"), so:
@@ -84,6 +126,14 @@ public:
   // initializing_ flag below.
   void set_initial_states(const TF24_Environment<S>& environment, Internals<S>& vars);
 
+  // The collar the leaf is billed at on a differentiated pass, with its rows,
+  // and the rows of the position's rate (the definition says how). At birth
+  // it is TF24's operating point, and the seed's position takes its rows.
+  S collar_on_tape(const Leaf::SupplyDraw<S>& draw,
+                   const phylloptim::leaf_pars<S>& in,
+                   const phylloptim::SupplyInputs<S>& supply, double slope,
+                   Leaf::HeldCoords<S>& held) override;
+
   // The collar potential at position z between the ends a and b. Written from
   // the nearer end, so the distance to that end keeps its precision.
   static double collar_at(double z, double a, double b) {
@@ -119,6 +169,14 @@ public:
   // interval: an optimum on an end has no finite logit.
   static constexpr double seed_margin = 1e-4;
 
+  // The step in z over which a differentiated pass differences the marginal
+  // for its slope in the position. Near an end a step in z is a step in the
+  // log of the distance to it, which is the coordinate the marginal is smooth
+  // in there. Against differences of runs pinned to the recorded steps, a step
+  // of 1e-2 leaves errors of 1e-4 in the columns whose traits move the ends,
+  // and 1e-3 or 1e-4 leaves 1e-6.
+  static constexpr double marginal_step = 1e-4;
+
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_collar_position = -1;
 
@@ -139,6 +197,47 @@ public:
   double seed_a_ = 0.0;
   double seed_b_ = 0.0;
   bool seed_open_ = false;
+
+  // What solve_leaf() found, for collar_on_tape to give its rows: the
+  // interval's ends, whether there was one, and whether the marginal there
+  // was a real derivative rather than phylloptim's 0.0 for no flow.
+  double bound_a_ = 0.0;
+  double bound_b_ = 0.0;
+  bool open_ = false;
+  bool marginal_feasible_ = false;
+  // The seed's position with its rows, where a differentiated pass placed it.
+  S seed_position_ = 0.0;
+  bool seed_on_tape_ = false;
+
+private:
+  template <class S1>
+  void assign_tracking_from(const TF24f_Model<S1>& src) {
+    k_acclim = S(odelia::util::to_passive(src.k_acclim));
+    // The working below is rewritten by the evaluation that reads it, so a
+    // rebind carries none of it.
+    initializing_ = false;
+    position_ = S(0.0);
+    marginal_ = S(0.0);
+    width_ = S(0.0);
+    seed_position_ = S(0.0);
+    seed_on_tape_ = false;
+    seed_open_ = false;
+    open_ = false;
+    marginal_feasible_ = false;
+    // TF24's assign_from ran TF24's refresh_indices, which misses the slot
+    // TF24f appends.
+    refresh_indices();
+  }
+
+  // The two ends of the interval at the caller's scalar, each a root with its
+  // rows in the traits and the soil.
+  struct ends_on_tape {
+    S a;
+    S b;
+  };
+  ends_on_tape interval_on_tape(double a, double b,
+                                const phylloptim::leaf_pars<S>& in,
+                                const phylloptim::SupplyInputs<S>& supply);
 };
 
 template <typename S>
@@ -225,7 +324,9 @@ bool TF24f_Model<S>::collar_interval(double& a, double& b) {
 // the leaf's algebra, the implicit-function theorem at the ci root-find, and
 // analytic spline derivatives for the transport.
 //
-// The leaf solves in double at every scalar, on the position's value.
+// The leaf solves in double at every scalar, on the position's value; a
+// differentiated pass gives the collar and the marginal their rows in
+// collar_on_tape, from what is recorded here.
 //
 // A function-try-block, so every exit of the body is covered: phylloptim's
 // infeasible_error becomes odelia's DomainError, a rejected step rather than a
@@ -244,7 +345,8 @@ void TF24f_Model<S>::solve_leaf() try {
     return;
   }
   double a, b;
-  if (!collar_interval(a, b)) {
+  open_ = collar_interval(a, b);
+  if (!open_) {
     // Shut: the leaf is at its own operating point, whatever the position.
     marginal_ = 0.0;
     width_ = 0.0;
@@ -252,7 +354,11 @@ void TF24f_Model<S>::solve_leaf() try {
   }
   const double collar =
       collar_at(odelia::util::to_passive(position_), a, b);
-  marginal_ = leaf.dprofit_droot_collar_psi(collar);
+  bool feasible = false;
+  marginal_ = leaf.dprofit_droot_collar_psi(collar, &feasible);
+  marginal_feasible_ = feasible;
+  bound_a_ = a;
+  bound_b_ = b;
   width_ = b - a;
   // The marginal moved the leaf; put its outputs back at the collar.
   leaf.template profit_at_collar_psi<curve>(collar, a, b);
@@ -279,6 +385,7 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
   // set_initial_states is non-virtual, so without this call TF24f seedlings
   // would be born with empty reserves and die immediately.
   base_type::set_initial_states(environment, vars);
+  seed_on_tape_ = false;
   this->net_mass_production_dt(environment, vars);
   // With no interval the leaf is shut wherever the position is: the middle.
   double z = 0.0;
@@ -293,7 +400,146 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
     const double seated = seed_margin + (1.0 - 2.0 * seed_margin) * u;
     z = std::log(seated / (1.0 - seated));
   }
-  vars.set_state(state_idx_collar_position, z);
+  if constexpr (std::is_same_v<S, double>) {
+    vars.set_state(state_idx_collar_position, z);
+  } else {
+    // The same value, with the rows of the optimum and of both ends where a
+    // differentiated pass recorded them: at an interior optimum the collar's
+    // are the implicit function theorem's. Where the record refused, or the
+    // position was held to [0, 1], the value alone.
+    vars.set_state(state_idx_collar_position,
+                   seed_on_tape_
+                       ? S(S(z) + (seed_position_ -
+                                   S(odelia::util::to_passive(seed_position_))))
+                       : S(z));
+  }
+}
+
+// The interval's two ends with their rows: the wet end is where uptake meets
+// the residual flux, the dry end where the soil delivers what the stem can
+// still carry. Each takes a supply draw at its own collar.
+//
+// ⚠️ WITH THE ENERGY BALANCE ON, the dry end can be the collar whose uptake is
+// the flux ceiling instead, a condition phylloptim's surface has no rows for
+// (it refuses TF24's own pin there). Refused here rather than differentiated
+// as the stem's end.
+template <typename S>
+typename TF24f_Model<S>::ends_on_tape TF24f_Model<S>::interval_on_tape(
+    double a, double b, const phylloptim::leaf_pars<S>& in,
+    const phylloptim::SupplyInputs<S>& supply) {
+  constexpr auto curve = phylloptim::Leaf::CostCurve::TF24_floor;
+  Leaf& leaf = this->leaf;
+  const Leaf::SupplyDraw<S> at_a = leaf.template supply_draw_at<S>(S(a), supply);
+  const Leaf::SupplyDraw<S> at_b = leaf.template supply_draw_at<S>(S(b), supply);
+  const double ceiling = leaf.flux_ceiling();
+  if (std::isfinite(ceiling) &&
+      odelia::util::to_passive(at_b.E_up.value) >= ceiling * (1.0 - 1e-9)) {
+    this->refuse("TF24f gradient: the dry end of the collar interval, " +
+                 util::format_double(b) + " MPa, is where uptake reaches the "
+                 "energy balance's flux ceiling, and that bound has no "
+                 "derivative rows");
+  }
+  return {leaf.template wet_bound_at<S>(a, at_a, in),
+          leaf.template dry_end_collar_at<curve, S>(b, at_b, in)};
+}
+
+// The collar solve_leaf() evaluated the leaf at, with its rows, and the rows
+// of the marginal M and of the interval's width, so that the position's rate
+// k [(b - a) M - 2 mu sinh z] is differentiated as compute_rates forms it.
+//
+// The collar is a + (b - a) u(z): its rows are the position's and the two
+// ends'. At a shut leaf it is the leaf's own collar, as TF24 places it.
+//
+// M's rows in the traits, the soil and the light come from the marginal at the
+// collar held; its row in the collar is a supplied slope, dM/dz over dpsi/dz,
+// with dM/dz a central difference of the double marginal in z at fixed ends.
+// The tape's own dM/dcollar is wrong by a factor of about eight (phylloptim's
+// profit_curvature_at_collar says why). Where no flow reaches the collar the
+// marginal is phylloptim's 0.0, a constant.
+template <typename S>
+S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
+                                 const phylloptim::leaf_pars<S>& in,
+                                 const phylloptim::SupplyInputs<S>& supply,
+                                 double slope, Leaf::HeldCoords<S>& held) {
+  using odelia::util::to_passive;
+  using std::exp;
+  using std::log;
+  constexpr auto curve = phylloptim::Leaf::CostCurve::TF24_floor;
+  Leaf& leaf = this->leaf;
+  if (initializing_) {
+    const S collar = base_type::collar_on_tape(draw, in, supply, slope, held);
+    if (seed_open_) {
+      const double u =
+          (to_passive(collar) - seed_a_) / (seed_b_ - seed_a_);
+      if (u >= 0.0 && u <= 1.0) {
+        const ends_on_tape ends = interval_on_tape(seed_a_, seed_b_, in, supply);
+        const S seated = seed_margin + (1.0 - 2.0 * seed_margin) *
+                                           ((collar - ends.a) / (ends.b - ends.a));
+        seed_position_ = log(seated / (1.0 - seated));
+        seed_on_tape_ = true;
+      }
+    }
+    return collar;
+  }
+  const double marginal = to_passive(marginal_);
+  if (!open_) {
+    marginal_ = S(marginal);
+    width_ = S(0.0);
+    return base_type::collar_on_tape(draw, in, supply, slope, held);
+  }
+  const double at = draw.at;
+  const double z = to_passive(position_);
+  const ends_on_tape ends = interval_on_tape(bound_a_, bound_b_, in, supply);
+  const S width = ends.b - ends.a;
+  width_ = width;
+  // From the nearer end, as collar_at writes it; the value is the collar the
+  // leaf was evaluated at.
+  const S live = z > 0.0 ? S(ends.b - width / (1.0 + exp(position_)))
+                         : S(ends.a + width / (1.0 + exp(-position_)));
+  const S collar = S(at) + (live - S(to_passive(live)));
+  if (!marginal_feasible_) {
+    marginal_ = S(marginal);
+    return collar;
+  }
+  const S M_held = leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in);
+  // dM/dz at fixed ends. The marginal moves the leaf, so its outputs are put
+  // back at the collar before anything reads them.
+  bool up_ok = false, down_ok = false;
+  const double up = leaf.dprofit_droot_collar_psi(
+      collar_at(z + marginal_step, bound_a_, bound_b_), &up_ok);
+  const double down = leaf.dprofit_droot_collar_psi(
+      collar_at(z - marginal_step, bound_a_, bound_b_), &down_ok);
+  leaf.template profit_at_collar_psi<curve>(at, bound_a_, bound_b_);
+  // One side is enough: next to an end with no flow, the far neighbour has no
+  // marginal to read.
+  double dM_dz = std::numeric_limits<double>::quiet_NaN();
+  if (up_ok && down_ok) {
+    dM_dz = (up - down) / (2.0 * marginal_step);
+  } else if (up_ok) {
+    dM_dz = (up - marginal) / marginal_step;
+  } else if (down_ok) {
+    dM_dz = (marginal - down) / marginal_step;
+  }
+  const double dpsi_dz =
+      (bound_b_ - bound_a_) / (2.0 + std::exp(z) + std::exp(-z));
+  const double dM_dcollar = dM_dz / dpsi_dz;
+  if (!std::isfinite(dM_dcollar)) {
+    this->refuse("TF24f gradient: the marginal profit's slope at the tracked "
+                 "collar " + util::format_double(at) + " MPa is " +
+                 util::format_double(dM_dcollar) +
+                 ", so the position's rate has no row in the collar");
+    marginal_ = S(marginal);
+    return collar;
+  }
+  const odelia::input_and_derivative<S> rows[]{{M_held, 1.0},
+                                               {collar, dM_dcollar}};
+  const odelia::supply_report report =
+      odelia::supply_derivatives<S>(marginal, rows, marginal_);
+  if (!report.whole) {
+    this->refuse("TF24f gradient: the position's rate cannot be recorded at "
+                 "the collar " + util::format_double(at) + " MPa: " + report.why);
+  }
+  return collar;
 }
 
 template <typename S>

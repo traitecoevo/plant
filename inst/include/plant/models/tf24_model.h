@@ -201,7 +201,14 @@ public:
   // carries (#516). At rest both departures are exactly zero and exp(0) is
   // exactly one, so these are the height-only expressions bit for bit.
   static const auto& census_metrics() {
-    using strategy = TF24_Model<S>;
+    return census_metrics_for<TF24_Model<S>>();
+  }
+
+  // The same list typed for `strategy`, a model deriving from this one, whose
+  // census reads TF24's quantities: census_metric is typed by the model, so a
+  // derived model cannot take this one's list as it stands.
+  template <class strategy>
+  static const auto& census_metrics_for() {
     static constexpr std::array<census_metric<strategy>, 3> metrics{{
       {"leaf_area",
        [](const strategy& p, const Internals<S>& vars) -> S {
@@ -567,6 +574,18 @@ public:
   // already driven and solved; nothing here re-supplies it.
   void record_leaf_outputs(const S& PPFD_int, const std::vector<S>& psi_soil,
                            const S& conductance_max, double NIR_per_PPFD_int);
+  // The collar record_leaf_outputs bills the leaf at, carrying its rows: the
+  // operating point the solve placed, closed by the condition its kind names.
+  // Virtual because TF24f evaluates the leaf at a collar it tracks rather than
+  // one it solved for. Only a differentiated pass calls it.
+  virtual S collar_on_tape(const Leaf::SupplyDraw<S>& draw,
+                           const phylloptim::leaf_pars<S>& in,
+                           const phylloptim::SupplyInputs<S>& supply,
+                           double slope, Leaf::HeldCoords<S>& held) {
+    (void)supply;
+    return leaf.template operating_collar<phylloptim::Leaf::CostCurve::TF24_floor,
+                                          S>(draw, in, slope, &held);
+  }
   // Two steps of record_leaf_outputs, and the marginal its curvature guard
   // reports (tf24_leaf.h says what each does).
   phylloptim::leaf_pars<S> leaf_pars_on_tape(const S& PPFD_int,
