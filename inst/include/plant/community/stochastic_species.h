@@ -84,6 +84,19 @@ public:
   // Returns {individuals drawn for, individuals removed}.
   template <typename Pr>
   std::pair<size_t, size_t> remove(Pr pr);
+  // Arrival times in (from, to) on `area`: a Poisson process whose rate is
+  // the strategy's birth rate per unit area, the same curve the deterministic
+  // solver's inflow reads. Drawn exactly, by thinning: on each piece between
+  // the rate's knots (one piece when it is constant), candidates arrive at the
+  // piece's largest rate, by exponential gaps, and each is kept with
+  // probability rate / that. Between its knots a varying rate is a cubic, so
+  // four values fix it, and its largest is at an end or at a turning point of
+  // that cubic; the spline being monotone there is not assumed. Strictly
+  // ascending, which a schedule needs, since one species is introduced once
+  // at a time.
+  std::vector<double> draw_arrivals(double from, double to, double area) const;
+  // More arrivals than this from one draw is refused rather than allocated.
+  static constexpr double max_arrivals = 1e7;
   value_type establishment_probability(const E& environment) {
     return new_node.establishment_probability(environment);
   }
@@ -276,6 +289,101 @@ size_t StochasticSpecies<T,E>::deaths() {
     }
   }
   return died;
+}
+
+template <typename T, typename E>
+std::vector<double>
+StochasticSpecies<T,E>::draw_arrivals(double from, double to,
+                                      double area) const {
+  const auto& s = *this->strategy;
+  const bool varies = s.is_variable_birth_rate;
+  auto rate = [&](double t) {
+    return odelia::util::to_passive(s.birth_rate_at(t));
+  };
+  // The largest rate on [a, b]: the cubic through the rate at a, a + h/3,
+  // a + 2h/3 and b, written in s = 3 (t - a) / h by forward differences, is
+  // y0 + A s + B s^2 + C s^3; its turning points are where A + 2 B s + 3 C s^2
+  // vanishes, and the rate is read there rather than off the fit.
+  auto largest = [&](double a, double b) {
+    const double h = b - a;
+    const double y0 = rate(a), y1 = rate(a + h / 3), y2 = rate(a + 2 * h / 3),
+                 y3 = rate(b);
+    double top = std::max(std::max(y0, y1), std::max(y2, y3));
+    if (!varies) {
+      return top;
+    }
+    const double d1 = y1 - y0, d2 = y2 - 2 * y1 + y0,
+                 d3 = y3 - 3 * y2 + 3 * y1 - y0;
+    const double A = d1 - d2 / 2 + d3 / 3, B = d2 / 2 - d3 / 2, C = d3 / 6;
+    std::vector<double> roots;
+    if (C != 0.0) {
+      const double disc = 4 * B * B - 12 * A * C;
+      if (disc >= 0.0) {
+        roots.push_back((-2 * B + std::sqrt(disc)) / (6 * C));
+        roots.push_back((-2 * B - std::sqrt(disc)) / (6 * C));
+      }
+    } else if (B != 0.0) {
+      roots.push_back(-A / (2 * B));
+    }
+    for (const double r : roots) {
+      if (r > 0.0 && r < 3.0) {
+        top = std::max(top, rate(a + r * h / 3));
+      }
+    }
+    return top;
+  };
+
+  std::vector<double> edges = {from};
+  if (varies) {
+    for (const double k : s.extrinsic_drivers.knots("birth_rate", from, to)) {
+      edges.push_back(k);
+    }
+  }
+  edges.push_back(to);
+  std::vector<double> ret;
+  for (size_t i = 1; i < edges.size(); ++i) {
+    const double a = edges[i - 1], b = edges[i];
+    if (!(b > a)) {
+      continue;
+    }
+    const double bound = largest(a, b);
+    if (!std::isfinite(bound)) {
+      util::stop("The birth rate is not finite, so no arrivals can be drawn");
+    }
+    if (!(bound > 0.0)) {
+      continue;
+    }
+    const double per_year = area * bound;
+    double t = a;
+    for (;;) {
+      t += exp_rand() / per_year;
+      if (!(t < b)) {
+        break;
+      }
+      if (varies) {
+        const double r = rate(t);
+        // The bound is the cubic's largest, so this is rounding at most; more
+        // would make the draw an approximation, silently.
+        if (r > bound * (1.0 + 1e-9)) {
+          util::stop("The birth rate exceeds its bound between knots, so "
+                     "arrivals cannot be drawn exactly");
+        }
+        if (!(unif_rand() * bound < r)) {
+          continue;
+        }
+      }
+      // A gap below the time's rounding would repeat it.
+      if (!ret.empty() && !(t > ret.back())) {
+        continue;
+      }
+      ret.push_back(t);
+      if (static_cast<double>(ret.size()) > max_arrivals) {
+        util::stop("More than " + util::to_string(max_arrivals) +
+                   " arrivals in one draw; lower patch_area or the birth rate");
+      }
+    }
+  }
+  return ret;
 }
 
 template <typename T, typename E>

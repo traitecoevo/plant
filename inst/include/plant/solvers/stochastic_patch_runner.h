@@ -13,6 +13,9 @@ namespace plant {
 
 // The name here is likely to change.
 //
+// Its arrivals are drawn by draw_arrivals(), from each species' birth rate and
+// the patch's area; a schedule set from R gives them instead, one per time.
+//
 // The interface mirrors that of DeterministicPatchRunner, and the two share
 // their state, their
 // schedule handling and their solver reset through PatchRunner.
@@ -42,6 +45,7 @@ public:
 
   void run();
   size_t run_next();
+  void draw_arrivals();
 
   // time(), complete(), r_parameters(), r_patch(), r_get_state(), r_schedule()
   // and the schedule setters are PatchRunner's, as DeterministicPatchRunner's are.
@@ -121,6 +125,27 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
   if (c.ode_tol_scale_soil != 1.0) {
     util::warning("The stochastic runner ignores ode_tol_scale_soil");
   }
+}
+
+// Each species' arrivals over the schedule's span, drawn from its birth rate
+// and the patch's area, in place of its introductions; the schedule's other
+// events stay. Set as a schedule from R is, so its parameters record the times.
+template <typename T, typename E>
+void StochasticPatchRunner<T, E>::draw_arrivals() {
+  if (!(parameters.patch_area > 0.0 && std::isfinite(parameters.patch_area))) {
+    util::stop("patch_area must be positive and finite to draw arrivals");
+  }
+  Schedule drawn = schedule;
+  if (!std::isfinite(drawn.get_max_time())) {
+    util::stop("Arrivals are drawn up to the schedule's max_time, which must "
+               "be finite");
+  }
+  for (size_t i = 0; i < patch.size(); ++i) {
+    drawn.set_times(patch.at_species(i).draw_arrivals(
+                      0.0, drawn.get_max_time(), parameters.patch_area),
+                    i);
+  }
+  this->r_set_schedule(drawn);
 }
 
 template <typename T, typename E> void StochasticPatchRunner<T, E>::run() {

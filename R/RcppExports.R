@@ -5945,6 +5945,10 @@ StochasticPatchRunner___FF16__FF16_Env__reset <- function(obj_) {
     invisible(.Call('_plant_StochasticPatchRunner___FF16__FF16_Env__reset', PACKAGE = 'plant', obj_))
 }
 
+StochasticPatchRunner___FF16__FF16_Env__draw_arrivals <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatchRunner___FF16__FF16_Env__draw_arrivals', PACKAGE = 'plant', obj_))
+}
+
 StochasticPatchRunner___FF16__FF16_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_StochasticPatchRunner___FF16__FF16_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
@@ -5991,6 +5995,10 @@ StochasticPatchRunner___TF24__TF24_Env__run_next <- function(obj_) {
 
 StochasticPatchRunner___TF24__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_StochasticPatchRunner___TF24__TF24_Env__reset', PACKAGE = 'plant', obj_))
+}
+
+StochasticPatchRunner___TF24__TF24_Env__draw_arrivals <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatchRunner___TF24__TF24_Env__draw_arrivals', PACKAGE = 'plant', obj_))
 }
 
 StochasticPatchRunner___TF24__TF24_Env__set_node_schedule_times <- function(obj_, times) {
@@ -6041,6 +6049,10 @@ StochasticPatchRunner___TF24f__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_StochasticPatchRunner___TF24f__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
+StochasticPatchRunner___TF24f__TF24_Env__draw_arrivals <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatchRunner___TF24f__TF24_Env__draw_arrivals', PACKAGE = 'plant', obj_))
+}
+
 StochasticPatchRunner___TF24f__TF24_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_StochasticPatchRunner___TF24f__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
@@ -6087,6 +6099,10 @@ StochasticPatchRunner___TF24t__TF24_Env__run_next <- function(obj_) {
 
 StochasticPatchRunner___TF24t__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_StochasticPatchRunner___TF24t__TF24_Env__reset', PACKAGE = 'plant', obj_))
+}
+
+StochasticPatchRunner___TF24t__TF24_Env__draw_arrivals <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatchRunner___TF24t__TF24_Env__draw_arrivals', PACKAGE = 'plant', obj_))
 }
 
 StochasticPatchRunner___TF24t__TF24_Env__set_node_schedule_times <- function(obj_, times) {
@@ -6137,6 +6153,10 @@ StochasticPatchRunner___TF24w__TF24_Env__reset <- function(obj_) {
     invisible(.Call('_plant_StochasticPatchRunner___TF24w__TF24_Env__reset', PACKAGE = 'plant', obj_))
 }
 
+StochasticPatchRunner___TF24w__TF24_Env__draw_arrivals <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatchRunner___TF24w__TF24_Env__draw_arrivals', PACKAGE = 'plant', obj_))
+}
+
 StochasticPatchRunner___TF24w__TF24_Env__set_node_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_StochasticPatchRunner___TF24w__TF24_Env__set_node_schedule_times', PACKAGE = 'plant', obj_, times))
 }
@@ -6183,6 +6203,10 @@ StochasticPatchRunner___K93__K93_Env__run_next <- function(obj_) {
 
 StochasticPatchRunner___K93__K93_Env__reset <- function(obj_) {
     invisible(.Call('_plant_StochasticPatchRunner___K93__K93_Env__reset', PACKAGE = 'plant', obj_))
+}
+
+StochasticPatchRunner___K93__K93_Env__draw_arrivals <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatchRunner___K93__K93_Env__draw_arrivals', PACKAGE = 'plant', obj_))
 }
 
 StochasticPatchRunner___K93__K93_Env__set_node_schedule_times <- function(obj_, times) {

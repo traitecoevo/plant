@@ -1,78 +1,25 @@
-## This might yet move into the compiled code if we need it there.
-##
-## Generate a vector of arrival times.
-##
-## This will be slow, but fairly easy to get right.
-##' @importFrom stats rexp rpois runif splinefun
-stochastic_arrival_times <- function(max_time, species, delta_t = 0.1, patch_area = 1) {
-  ret <- numeric(0)
-  t0 <- 0.0
-  t1 <- t0 + delta_t
-
-  # first calculate average arrival rate in this interval
-  if (species$is_variable_birth_rate) {
-    interpolated <- splinefun(species$birth_rate_x, species$birth_rate_y)
-  } else {
-    rate <- species$birth_rate_y
-  }
-
-  while (t0 < max_time) {
-    # first calculate average arrival rate in this interval
-    if (species$is_variable_birth_rate) {
-      x = seq(t0, t1, len = 10)
-      rate = mean(interpolated(x))
-    }
-
-    # now calculate actual number arriving, given the rate
-    n <- rpois(1,  delta_t * rate * patch_area)
-
-    # now generate arrival times in this interval, from a uniform distribution
-    t <- sort(runif(n, t0, t1))
-    ret <- c(ret, t)
-
-    # update for next iteration
-    t0 <- t1
-    t1 <- t1 + delta_t
-  }
-
-  ret[ret < max_time]
-}
-
-
-stochastic_schedule <- function(p) {
-  patch_area <- p$patch_area
-  max_time  <- p$max_patch_lifetime
-  n_species <- length(p$strategies)
-
-  sched <- Schedule(n_species)
-  sched$max_time <- max_time
-
-  for (i in 1:n_species) {
-    species <- p$strategies[[i]]
-    ## patch_area must be passed by name: it is the *fourth* argument of
-    ## stochastic_arrival_times(), and positionally it would land in `delta_t`.
-    ## That silently dropped area-scaling of the arrival rate (the expected
-    ## number of arrivals came out as max_time * birth_rate, whatever the area)
-    ## and set the binning interval to the area, which for a large patch left
-    ## only a handful of bins for a variable birth rate to be averaged over.
-    times <- stochastic_arrival_times(max_time, species, patch_area = patch_area)
-    sched$set_times(times, i)
-  }
-
-  sched
-}
-
-## The stochastic runner for p, with each species' arrivals drawn at random
-## from its birth rate and p$patch_area (stochastic_schedule()), and `events`
-## (an Events, or NULL) beside them.
+## The stochastic runner for p, with each species' arrivals drawn (in C++,
+## from the strategy's birth rate and p$patch_area) and `events` (an Events,
+## or NULL) beside them. As in the deterministic solver, an events list naming
+## introductions replaces the drawn arrivals: one arrival per time, and none
+## drawn.
 stochastic_runner <- function(p, env, ctrl, events = NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
-  sched <- stochastic_schedule(p)
-  if (!is.null(events)) {
+  given <- !is.null(events) && length(events$time) > 0L
+  if (given && any(events$type == "node_introduction")) {
+    sched <- Schedule(length(p$strategies))
+    sched$max_time <- p$max_patch_lifetime
     sched$add_events(events)
+    obj$schedule <- sched
+    return(obj)
   }
-  obj$schedule <- sched
+  if (given) {
+    sched <- obj$schedule
+    sched$add_events(events)
+    obj$schedule <- sched
+  }
+  obj$draw_arrivals()
   obj
 }
 

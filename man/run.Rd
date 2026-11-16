@@ -126,14 +126,15 @@ characteristics, or \code{"stochastic"}, the finite population of
 individuals, arriving at random and each establishing and dying by chance.
 The stochastic run takes the scenario's \code{p}, \code{env} and
 \code{control} and runs the whole lifetime. Arrivals are drawn from each
-species' birth rate and \code{p$patch_area}, not from
+species' birth rate (the curve the deterministic run's inflow reads) and
+\code{p$patch_area}, as a Poisson process in continuous time, not from
 \code{p$node_schedule_times}; the result's \code{scenario$p} carries the
-times drawn. It has no fitness integral, so
+times drawn. Introductions named in \code{events} replace them, one arrival
+per time. It has no fitness integral, so
 its result's fitness values are \code{NULL}, and it refuses \code{until},
 \code{from}, \code{refine_schedule} and \code{record = "states"}. It takes
 \code{events}' harvests, resource pulses and climate extremes, drawing each
-individual's removal by chance, but refuses node introductions there, since
-its arrivals are drawn. Its deaths are drawn every
+individual's removal by chance. Its deaths are drawn every
 \code{control$stochastic_death_interval} years.
 Seed R's random number generator to repeat one.
 

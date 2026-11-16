@@ -66,14 +66,15 @@ print.plant_scenario <- function(x, ...) {
 ##' individuals, arriving at random and each establishing and dying by chance.
 ##' The stochastic run takes the scenario's \code{p}, \code{env} and
 ##' \code{control} and runs the whole lifetime. Arrivals are drawn from each
-##' species' birth rate and \code{p$patch_area}, not from
+##' species' birth rate (the curve the deterministic run's inflow reads) and
+##' \code{p$patch_area}, as a Poisson process in continuous time, not from
 ##' \code{p$node_schedule_times}; the result's \code{scenario$p} carries the
-##' times drawn. It has no fitness integral, so
+##' times drawn. Introductions named in \code{events} replace them, one arrival
+##' per time. It has no fitness integral, so
 ##' its result's fitness values are \code{NULL}, and it refuses \code{until},
 ##' \code{from}, \code{refine_schedule} and \code{record = "states"}. It takes
 ##' \code{events}' harvests, resource pulses and climate extremes, drawing each
-##' individual's removal by chance, but refuses node introductions there, since
-##' its arrivals are drawn. Its deaths are drawn every
+##' individual's removal by chance. Its deaths are drawn every
 ##' \code{control$stochastic_death_interval} years.
 ##' Seed R's random number generator to repeat one.
 ##'
@@ -289,8 +290,8 @@ no_more_arguments <- function(...) {
 
 ## The stochastic solver under run(). It runs the whole lifetime and reports no
 ## fitness, so whatever needs a stopping point, a resume or a recording for
-## gradients is refused by name. It takes a run's harvests, pulses and climate
-## extremes, but not its introductions: arrivals are drawn from the birth rates.
+## gradients is refused by name. It takes a run's events as the deterministic
+## solver does: introductions named there replace the drawn arrivals.
 run_stochastic <- function(x, until, from, record, refine_schedule) {
   refused <- c(until = !is.null(until), from = !is.null(from),
                refine_schedule = isTRUE(refine_schedule),
@@ -298,11 +299,6 @@ run_stochastic <- function(x, until, from, record, refine_schedule) {
   if (any(refused)) {
     stop("The stochastic solver runs the whole lifetime; it cannot take ",
          paste(names(refused)[refused], collapse = ", "), call. = FALSE)
-  }
-  if (!is.null(x$events) && any(x$events$type == "node_introduction")) {
-    stop("The stochastic solver draws its arrivals from the birth rates and ",
-         "p$patch_area, so its events cannot hold node introductions: leave ",
-         "node_introductions(p) out of events()", call. = FALSE)
   }
   obj <- stochastic_runner(x$p, x$env, x$control, x$events)
   steps <- NULL

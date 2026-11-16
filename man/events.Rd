@@ -114,8 +114,8 @@ node introduced at that instant starts life in the post-event environment.
 The stochastic solver (\code{run(method = "stochastic")}) takes the same
 harvests, pulses and climate extremes, drawing each individual's removal by
 chance, so that each matches the deterministic event in expectation. Its
-arrivals are drawn from the birth rates, so its events must leave out
-\code{node_introductions(p)}.
+arrivals are drawn from the birth rates; introductions named in its events
+replace them, one arrival per time.
 
 Because an event is also a stop time for the integrator, adding one changes
 the adaptive step sequence. A run with events legitimately differs from one
@@ -152,6 +152,7 @@ ev <- events(
   events_default(p),
   harvest(time = 20, fraction = 0.3)
 )
-## The stochastic solver draws its own arrivals, so leave them out:
-ev_stochastic <- events(harvest(time = 20, fraction = 0.3))
+## The same run plus a harvest, in either solver; the stochastic one draws
+## its arrivals from the birth rates:
+ev_harvest <- events(harvest(time = 20, fraction = 0.3))
 }

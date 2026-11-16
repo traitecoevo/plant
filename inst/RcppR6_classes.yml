@@ -1161,6 +1161,9 @@ StochasticPatchRunner:
       name_cpp: r_run_next
     reset:
       return_type: void
+    # Each species' arrivals, drawn from its birth rate and the patch's area.
+    draw_arrivals:
+      return_type: void
     # Named to mirror DeterministicPatchRunner (set_node_schedule_times); same Schedule concept.
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
