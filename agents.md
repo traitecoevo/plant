@@ -226,7 +226,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 
 | File | Responsibility |
 |---|---|
-| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, and FF16's stand report |
+| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state |
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`). These are `switch()` statements that must list every model; the schedule helpers are found by name from the `Parameters` object's template types, so they need no row. |
 | [run.R](R/run.R) | `run()`, the one verb (#428), for a patch by either solver (`method =`) and for a single plant (`run(individual, times = )`): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
