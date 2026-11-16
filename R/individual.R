@@ -2,7 +2,7 @@
 ## run() on an Individual calls.
 
 ## Grows `individual` to each of `sizes` (increasing) of the state `size_name`,
-## bisecting for the time each is reached. Returns time (NA for a size not
+## finding the time each is reached by a root-find. Returns time (NA for a size not
 ## reached), state (the ODE state at those times), individual (the plant at
 ## each), trajectory (every step taken) and env. `time_max` stops an
 ## unreachable size from running forever; `warn` warns when sizes are dropped,
@@ -12,7 +12,7 @@ individual_grow_to_sizes <- function(individual, sizes, size_name, env,
   obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
   
   polish <- function(i) {
-    grow_individual_bisect(obj$runner, sizes[[i]], size_name,
+    grow_individual_to_size(obj$runner, sizes[[i]], size_name,
                       obj$t0[[i]], obj$t1[[i]], obj$y0[i, ])
   }
   res <- lapply(seq_along(sizes), polish)
@@ -189,7 +189,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 
 ##' @noRd
 ##' @importFrom stats uniroot
-grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
+grow_individual_to_size <- function(runner, size, size_name, t0, t1, y0) {
 
   
   # TODO(#483): size index uses index from 0

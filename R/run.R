@@ -75,7 +75,7 @@ print.plant_scenario <- function(x, ...) {
 ##'
 ##' A single plant is grown by \code{run(individual, times = )}, which reports
 ##' it at each time, or \code{run(individual, sizes = )}, which grows it to
-##' each size and bisects for the time it is reached. A plant grown on its own
+##' each size and finds by a root-find the time it is reached. A plant grown on its own
 ##' sees the environment it is given, not a patch's shading.
 ##'
 ##' @param x What to run: a scenario, a \code{Parameters} object, a

@@ -9,7 +9,7 @@
 #
 # ⚠️ THE REFEREE RUNS AT A TIGHT SEED-HEIGHT ROOT TOLERANCE, set here although
 # it is the default, so a looser default cannot weaken the referee; the
-# gradient does not need it. The seed's height is a bisection iterate in the
+# gradient does not need it. The seed's height is a root-find's iterate in the
 # forward run and the exact root's derivative on the differentiated path
 # (implicit function theorem). A difference at `offspring_height_tol = 1e-8`
 # differentiates the iterate, whose stopping point moves with the trait
