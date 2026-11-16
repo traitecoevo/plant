@@ -23,6 +23,11 @@ struct TypeInfo {
 };
 
 const TypeInfo type_info[] = {
+  // No parameters: the stochastic runner places these on its death-check grid,
+  // and a run's events cannot ask for one (validate_event_params). Named here
+  // so that a schedule holding them still reads back out.
+  {EventType::DeathCheck,       "death_check",       0,
+   EventTarget::Patch,       true,  false, false},
   // amount. The resource is named by target_index, and belongs to the
   // environment rather than to any one species, so a pulse cannot be narrowed
   // to one species.
@@ -161,6 +166,10 @@ void validate_event_params(const std::string& at, EventType type,
     }
   };
   switch (type) {
+  case EventType::DeathCheck:
+    util::stop(at + " cannot be scheduled: the stochastic runner places death "
+               "checks every Control$stochastic_death_interval");
+    break;
   case EventType::ResourcePulse:
     nonneg(q.at(0), "amount");
     break;

@@ -123,14 +123,65 @@ void Schedule::set_all_events(const std::vector<Event>& events_) {
 }
 
 void Schedule::add_action(const Event& e) {
-  std::vector<schedule_entry>::iterator it = entry_at(e.time_introduction());
-  std::vector<Event>::iterator a = it->actions.begin();
-  while (a != it->actions.end() &&
+  insert_by_rank(entry_at(e.time_introduction())->actions, e);
+  reset();
+}
+
+void Schedule::insert_by_rank(std::vector<Event>& actions, const Event& e) {
+  std::vector<Event>::iterator a = actions.begin();
+  while (a != actions.end() &&
          event_type_rank(a->type) <= event_type_rank(e.type)) {
     ++a;
   }
-  it->actions.insert(a, Event(e.time_introduction(), e.target_index, e.type,
-                              e.target, e.params));
+  actions.insert(a, Event(e.time_introduction(), e.target_index, e.type,
+                          e.target, e.params));
+}
+
+// A merge of two ascending sequences: the schedule's instants, with this type's
+// actions taken off, and the new events.
+void Schedule::replace_actions(EventType type,
+                               const std::vector<Event>& events_) {
+  for (size_t i = 0; i < events_.size(); ++i) {
+    if (events_[i].type != type) {
+      Rcpp::stop("replace_actions: every event must be of the type replaced");
+    }
+    if (i > 0 && events_[i].time_introduction() <
+                 events_[i - 1].time_introduction()) {
+      Rcpp::stop("replace_actions: events must be ascending by time");
+    }
+  }
+  std::vector<schedule_entry> merged;
+  merged.reserve(schedule.size() + events_.size());
+  std::vector<Event>::const_iterator e = events_.begin();
+  // The new events before `time`, each on an instant of its own; two at one
+  // time share one.
+  auto add_new_before = [&](double time) {
+    while (e != events_.end() && e->time_introduction() < time) {
+      const double t = e->time_introduction();
+      if (merged.empty() || !util::identical(merged.back().time, t)) {
+        merged.push_back(schedule_entry{t, {}, {}, {t}});
+      }
+      insert_by_rank(merged.back().actions, *e);
+      ++e;
+    }
+  };
+  for (schedule_entry& entry : schedule) {
+    add_new_before(entry.time);
+    entry.actions.erase(
+      std::remove_if(entry.actions.begin(), entry.actions.end(),
+                     [type](const Event& a) { return a.type == type; }),
+      entry.actions.end());
+    while (e != events_.end() &&
+           util::identical(e->time_introduction(), entry.time)) {
+      insert_by_rank(entry.actions, *e);
+      ++e;
+    }
+    if (!entry.species.empty() || !entry.actions.empty()) {
+      merged.push_back(std::move(entry));
+    }
+  }
+  add_new_before(std::numeric_limits<double>::infinity());
+  schedule.swap(merged);
   reset();
 }
 

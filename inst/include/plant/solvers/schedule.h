@@ -29,12 +29,21 @@ namespace plant {
 // the name that reads correctly there.
 //
 // The enumerator order is also the order in which events sharing a time are
-// applied, so do not reorder casually. Environment events come first (they set
+// applied, so do not reorder casually. A death check comes first: it settles
+// the hazard accumulated over the interval ending at this instant, so the
+// individuals it removes died before anything else scheduled here, and the
+// rest act only on those still alive. Environment events come next (they set
 // the external conditions), removals next, and node introduction last so that
 // a newborn's initial conditions are computed against the post-event
 // environment.
+//
+// DeathCheck is the stochastic runner's, which places one on every point of
+// its death-check grid (Control::stochastic_death_interval). The deterministic
+// solver carries mortality as a continuous hazard on density, so it has
+// nothing to draw and refuses one.
 enum class EventType {
-  ResourcePulse = 0,
+  DeathCheck = 0,
+  ResourcePulse,
   ClimateExtreme,
   Harvest,
   NodeIntroduction
@@ -149,6 +158,11 @@ public:
   // One action that is not an introduction, at its instant after the actions of
   // its rank already there.
   void add_action(const Event& e);
+  // Every action of `type` replaced by `events`, which are all of that type and
+  // ascending by time. An instant left with nothing on it goes. One pass over
+  // the schedule, where add_action() searches it for each event, so a grid of
+  // thousands of points costs what the schedule's length does.
+  void replace_actions(EventType type, const std::vector<Event>& events_);
   void reset();
 
   // Where the walk is, where its interval ends, and moving past it. `next()`
@@ -209,6 +223,8 @@ public:
 
 private:
   void insert(double time, size_t species_index);
+  // `e` among `actions`, after those of its rank and below.
+  static void insert_by_rank(std::vector<Event>& actions, const Event& e);
   std::vector<schedule_entry>::iterator entry_at(double time);
 
   size_t n_species;
