@@ -2349,8 +2349,13 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
     at += sp.open_ode_size();
     // The top layer's block follows the species' nodes. Its individual holds the
     // same bounded states as a node's; it is checked once it carries density.
+    // A non-finite density is refused first: tested only as "> 0", a NaN layer
+    // would read as an empty one and its pool would go unchecked.
     if (sp.top_ode_size() > 0) {
       const size_t density_at = at + individual_type::ode_size();
+      if (!util::is_finite(y[density_at])) {
+        return false;
+      }
       if (y[density_at] > 0.0) {
         for (const size_t i : bounded) {
           if (!inside(y[at + i])) {

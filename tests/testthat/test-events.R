@@ -519,8 +519,8 @@ test_that("a state declared non-negative must be inside its domain", {
     empty <- y; empty[[at]] <- 0
     expect_true(patch$ode_state_valid(empty))
   }
-  ## A state the model does not declare is not this check's: a height of NaN
-  ## passes here and is caught by the per-stage finiteness check.
+  ## A state the model does not declare is not this check's, so a height of NaN
+  ## passes it.
   unbounded <- y; unbounded[[match("height", states)]] <- NaN
   expect_true(patch$ode_state_valid(unbounded))
 
@@ -535,6 +535,7 @@ test_that("a state declared non-negative must be inside its domain", {
   top <- sp$size * length(states) + 2
   expect_equal(sp$ode_size, top + n_individual + 5)
   expect_equal(y[[top + n_individual + 1]], sp$top_layer$density)
+  expect_equal(sp$top_layer$density, 0)
   carrying <- y; carrying[[top + n_individual + 1]] <- 1
   expect_true(patch$ode_state_valid(carrying))
   for (value in outside) {
@@ -543,6 +544,11 @@ test_that("a state declared non-negative must be inside its domain", {
     ## With no density the layer's pool is not read.
     idle <- y; idle[[top + storage]] <- value
     expect_true(patch$ode_state_valid(idle))
+  }
+  ## A non-finite density is refused, or a NaN layer would read as an empty one.
+  for (value in c(NaN, NA, Inf)) {
+    bad <- y; bad[[top + n_individual + 1]] <- value
+    expect_false(patch$ode_state_valid(bad))
   }
 })
 
