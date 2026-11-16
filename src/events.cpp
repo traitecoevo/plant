@@ -68,10 +68,15 @@ const TargetName target_names[] = {
 
 const size_t n_target_names = sizeof(target_names) / sizeof(target_names[0]);
 
+// The ones a run's events may ask for: not the stochastic runner's own death
+// checks.
 std::string known_type_names() {
   std::string ret;
   for (size_t i = 0; i < n_type_info; ++i) {
-    ret += std::string(i > 0 ? ", " : "") + type_info[i].name;
+    if (type_info[i].type == EventType::DeathCheck) {
+      continue;
+    }
+    ret += std::string(ret.empty() ? "" : ", ") + type_info[i].name;
   }
   return ret;
 }

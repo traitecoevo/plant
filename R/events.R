@@ -82,7 +82,8 @@ events <- function(...) {
 ## stochastic runner's death check first (it settles the interval just ended),
 ## then environment (it sets the conditions), then removals, then node
 ## introduction last so a newborn starts in the post-event environment.
-## Kept in step with the C++ enum by the round-trip test in test-events.R.
+## Kept in step with the C++ enum by hand; test-events.R checks the order the
+## queue applies the types a run's events can hold.
 event_type_order <- function() {
   c("death_check", "resource_pulse", "climate_extreme", "harvest",
     "node_introduction")

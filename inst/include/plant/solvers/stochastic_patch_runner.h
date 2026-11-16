@@ -59,32 +59,30 @@ private:
   using base_type::solver;
 
   // PatchRunner's hooks: a schedule set from R gets this runner's death checks
-  // in place of any it carries, and takes effect at once. Its last check is at
-  // its max_time, so one without a finite max_time is refused before it is
-  // taken.
-  void prepare_schedule(Schedule& x) const {
-    if (x.size() > 0 && !std::isfinite(x.get_max_time())) {
-      util::stop("The stochastic runner needs a schedule with a finite "
-                 "max_time, where its last death check falls");
-    }
-  }
-  void schedule_changed() {
-    place_death_checks();
-    reset();
-  }
+  // in place of any it carries, on the copy and before it is taken, so a
+  // schedule refused here leaves the runner as it was. It then takes effect at
+  // once.
+  void prepare_schedule(Schedule& x) const { place_death_checks(x); }
+  void schedule_changed() { reset(); }
 
-  // The death-check grid, on the schedule: a check at every multiple of
-  // death_interval strictly after the first introduction and before the end
-  // of the patch's lifetime, and one at the end. Nothing is alive before the
-  // first introduction, and a check there would still split the leg that
-  // integrates the environment up to it.
-  void place_death_checks();
+  // The death-check grid, on `x`: a check at every multiple of death_interval
+  // strictly after the first introduction and before the schedule's max_time,
+  // and one at max_time. Nothing is alive before the first introduction, and a
+  // check there would still split the leg that integrates the environment up
+  // to it.
+  void place_death_checks(Schedule& x) const;
+  // Whether this runner applies everything at `entry`: its death checks and
+  // introductions, so far.
+  static bool applies(const schedule_entry& entry);
   // Takes the next entry, applies it and integrates to the one after.
   const schedule_entry& step();
   void land(double t);
   void draw_deaths();
 
   double death_interval;
+  // Ten million checks is an interval of 1e-5 yr (about five minutes) over a
+  // 100-year patch, and a few gigabytes of schedule.
+  static constexpr double max_death_checks = 1e7;
 };
 
 template <typename T, typename E>
@@ -99,6 +97,11 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
   parameters.validate();
   if (!(death_interval > 0.0 && std::isfinite(death_interval))) {
     util::stop("stochastic_death_interval must be positive and finite");
+  }
+  if (!(parameters.max_patch_lifetime / death_interval <= max_death_checks)) {
+    util::stop("stochastic_death_interval is too small for this patch's "
+               "lifetime: it would place more than " +
+               util::to_string(max_death_checks) + " death checks");
   }
   solver.set_collect(false);
   // Its patch declares no tolerance scales, so the solver never reads them.
@@ -119,13 +122,21 @@ template <typename T, typename E> void StochasticPatchRunner<T, E>::run() {
 // draws deaths. Stepping arrival to arrival is what R collects a row for.
 template <typename T, typename E>
 size_t StochasticPatchRunner<T, E>::run_next() {
+  // An entry this runner cannot apply ends the walk before it, so a call that
+  // reaches one is refused here, before anything moves, and is refused again
+  // on every retry.
+  if (!applies(schedule.next())) {
+    util::stop("The stochastic solver does not yet apply scheduled events "
+               "other than node introductions and its death checks");
+  }
   // Its death checks all follow the first introduction, so a walk that has
   // begun stands at one.
   if (schedule.next().species.empty()) {
     util::stop("The stochastic runner stands at no introduction");
   }
   const schedule_entry& first = step();
-  while (!complete() && schedule.next().species.empty()) {
+  while (!complete() && schedule.next().species.empty() &&
+         applies(schedule.next())) {
     step();
   }
   patch = solver.get_system_ref();
@@ -141,19 +152,7 @@ const schedule_entry& StochasticPatchRunner<T, E>::step() {
   const double t0 = time();
   auto& patch_solver = solver.get_system_ref();
 
-  // The stochastic tower draws deaths and introduces nodes; an instant
-  // carrying any other event type belongs to the deterministic solver until
-  // this runner applies those too (#601). Refused before the entry is taken,
-  // so the refusal leaves the schedule where it was.
-  const schedule_entry& next = schedule.next();
-  if (util::identical(t0, next.time)) {
-    for (const auto& a : next.actions) {
-      if (a.type != EventType::DeathCheck) {
-        util::stop("The stochastic solver does not yet apply scheduled events "
-                   "other than node introductions and its death checks");
-      }
-    }
-  }
+  // run_next() steps only onto entries this runner applies.
   double t_end;
   const schedule_entry& entry = this->take_entry(t0, t_end);
 
@@ -183,20 +182,53 @@ const schedule_entry& StochasticPatchRunner<T, E>::step() {
   return entry;
 }
 
+// The stochastic tower draws deaths and introduces nodes; an instant carrying
+// any other event type belongs to the deterministic solver until this runner
+// applies those too (#601).
 template <typename T, typename E>
-void StochasticPatchRunner<T, E>::place_death_checks() {
+bool StochasticPatchRunner<T, E>::applies(const schedule_entry& entry) {
+  return std::all_of(entry.actions.begin(), entry.actions.end(),
+                     [](const ScheduleEvent& a) {
+                       return a.type == EventType::DeathCheck;
+                     });
+}
+
+template <typename T, typename E>
+void StochasticPatchRunner<T, E>::place_death_checks(Schedule& x) const {
   std::vector<ScheduleEvent> checks;
-  const std::vector<ScheduleEvent> events = schedule.get_events();
-  const auto first = std::find_if(
-    events.begin(), events.end(),
-    [](const ScheduleEvent& e) { return e.is_node_introduction(); });
-  if (first != events.end()) {
-    const double t_first = first->time_introduction();
-    const double t_max = schedule.get_max_time();
+  const double t_max = x.get_max_time();
+  std::vector<double> arrivals;
+  for (const ScheduleEvent& e : x.get_events()) {
+    if (e.is_node_introduction()) {
+      arrivals.push_back(e.time_introduction());
+    }
+  }
+  if (!arrivals.empty()) {
     if (!std::isfinite(t_max)) {
       util::stop("The stochastic runner needs a schedule with a finite "
                  "max_time, where its last death check falls");
     }
+    // The runner's own setter takes times unchecked, and a time outside the
+    // patch's life would put a check before the first arrival or none after
+    // the last.
+    for (const double t : arrivals) {
+      if (!(t >= 0.0 && t <= t_max)) {
+        util::stop("Arrival time " + util::to_string(t) + " is outside [0, " +
+                   util::to_string(t_max) + "], the patch's lifetime");
+      }
+    }
+    // Every check is held on the schedule, so an interval far below the run's
+    // length is refused rather than allocated. Bounding the grid from zero
+    // rather than from the first arrival also bounds the index k below, which
+    // starts near t_first / death_interval.
+    const double n_checks = t_max / death_interval;
+    if (!(n_checks <= max_death_checks)) {
+      util::stop("stochastic_death_interval " + util::to_string(death_interval) +
+                 " would place " + util::to_string(n_checks) +
+                 " death checks; at most " + util::to_string(max_death_checks) +
+                 " are allowed");
+    }
+    const double t_first = arrivals.front();
     // Multiples computed as k * interval, each from k, so a long grid does not
     // accumulate rounding and every point is the same double however it is
     // reached.
@@ -213,7 +245,7 @@ void StochasticPatchRunner<T, E>::place_death_checks() {
     }
     checks.emplace_back(t_max, 0, EventType::DeathCheck, EventTarget::Patch);
   }
-  schedule.replace_actions(EventType::DeathCheck, checks);
+  x.replace_actions(EventType::DeathCheck, checks);
 }
 
 template <typename T, typename E>

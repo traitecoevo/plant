@@ -3,7 +3,7 @@
 #include <plant/parameters.h>
 #include <plant/util.h>
 #include <Rcpp.h>
-#include <algorithm> // find, lower_bound, remove
+#include <algorithm> // all_of, find, lower_bound, remove
 #include <cmath> // log2, exp2
 #include <limits> // std::numeric_limits
 
@@ -273,11 +273,25 @@ void Schedule::r_set_max_time(double x) {
   if (x < 0) {
     Rcpp::stop("max_time must be nonnegative");
   }
+  // A schedule read from a stochastic runner ends in its death checks, which
+  // the runner places again whenever it takes a schedule; those past the new
+  // end go rather than blocking it. Anything else must fall within it.
+  auto only_checks = [](const schedule_entry& e) {
+    return e.species.empty() &&
+      std::all_of(e.actions.begin(), e.actions.end(), [](const Event& a) {
+        return a.type == EventType::DeathCheck;
+      });
+  };
+  std::vector<schedule_entry>::iterator end = schedule.end();
+  while (end != schedule.begin() && (end - 1)->time > x && only_checks(*(end - 1))) {
+    --end;
+  }
   // Guarded on emptiness: this is called on a freshly built schedule, before any
   // time is set, where there is no final scheduled time to be at least.
-  if (!schedule.empty() && x < schedule.back().time) {
+  if (end != schedule.begin() && x < (end - 1)->time) {
     Rcpp::stop("max_time must be at least the final scheduled time");
   }
+  schedule.erase(end, schedule.end());
   max_time = x;
   reset();
 }
