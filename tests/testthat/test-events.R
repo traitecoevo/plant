@@ -471,7 +471,7 @@ test_that("the patch declares its state domain to the solver", {
   ## A sane state is accepted.
   expect_true(patch$ode_state_valid(y))
 
-  ## Only the environment block is checked. It is the trailing part of the ODE
+  ## The environment block must be finite. It is the trailing part of the ODE
   ## vector, and it is where integrator overshoot shows up.
   n_env <- Environment("TF24")$ode_size
   expect_gt(n_env, 0)
@@ -489,6 +489,67 @@ test_that("the patch declares its state domain to the solver", {
   solver_ff <- DeterministicPatchRunner("FF16", "FF16_Env")(ff, Environment("FF16"), empty_events(),
                                     control())
   expect_true(solver_ff$patch$ode_state_valid(c(-Inf, 1, 2)))
+})
+
+test_that("a state declared non-negative must be inside its domain", {
+  ## TF24 declares its storage pool non-negative. The check asks whether each
+  ## value is inside [0, Inf), so a NaN is refused along with a negative: asked
+  ## as "is it below zero", a NaN passes, because NaN < 0 is false.
+  storage_stand <- function(ctrl) {
+    p <- testing_parameters("TF24")
+    p$max_patch_lifetime <- 0.5
+    p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+    run(p, Environment("TF24"), ctrl)$solver$patch
+  }
+  outside <- c(NaN, NA, Inf, -Inf, -1e-9)
+
+  patch <- storage_stand(Control())
+  y <- patch$ode_state
+  expect_true(patch$ode_state_valid(y))
+  sp <- patch$species[[1]]
+  states <- sp$new_node$ode_names
+  storage <- match("storage", states)
+  ## The oldest cohort's pool and the youngest's, so the walk over the nodes is
+  ## pinned as well as the test on each.
+  for (at in c(storage, (sp$size - 1) * length(states) + storage)) {
+    for (value in outside) {
+      bad <- y; bad[[at]] <- value
+      expect_false(patch$ode_state_valid(bad))
+    }
+    empty <- y; empty[[at]] <- 0
+    expect_true(patch$ode_state_valid(empty))
+  }
+  ## A state the model does not declare is not this check's, so a height of NaN
+  ## passes it.
+  unbounded <- y; unbounded[[match("height", states)]] <- NaN
+  expect_true(patch$ode_state_valid(unbounded))
+
+  ## The top layer's individual holds the same pool, checked once the layer
+  ## carries density. Its block follows the nodes and the open interval's two
+  ## integrals: the individual's states (a node's, less its seed output and its
+  ## log density), then the density.
+  patch <- storage_stand(Control(absorb_epsilon = 0.05))
+  y <- patch$ode_state
+  sp <- patch$species[[1]]
+  n_individual <- length(states) - 2
+  top <- sp$size * length(states) + 2
+  expect_equal(sp$ode_size, top + n_individual + 5)
+  expect_equal(y[[top + n_individual + 1]], sp$top_layer$density)
+  expect_equal(sp$top_layer$density, 0)
+  carrying <- y; carrying[[top + n_individual + 1]] <- 1
+  expect_true(patch$ode_state_valid(carrying))
+  for (value in outside) {
+    bad <- carrying; bad[[top + storage]] <- value
+    expect_false(patch$ode_state_valid(bad))
+    ## With no density the layer's pool is not read.
+    idle <- y; idle[[top + storage]] <- value
+    expect_true(patch$ode_state_valid(idle))
+  }
+  ## A non-finite density is refused, or a NaN layer would read as an empty one.
+  for (value in c(NaN, NA, Inf)) {
+    bad <- y; bad[[top + n_individual + 1]] <- value
+    expect_false(patch$ode_state_valid(bad))
+  }
 })
 
 # --- Review of #632 (@elijahmagistrado / GPT 5.6 Sol) -------------------------

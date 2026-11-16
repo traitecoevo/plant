@@ -2333,12 +2333,15 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   if (bounded.empty()) {
     return true;
   }
+  // Asked as "is it inside", so a NaN fails: NaN < 0.0 is false, and a test
+  // for being outside lets it through.
+  const auto inside = [](double v) { return v >= 0.0 && util::is_finite(v); };
   const size_t stride = node_type::ode_size();
   size_t at = 0;
   for (const auto& sp : species) {
     for (size_t k = 0; k < sp.size(); ++k, at += stride) {
       for (const size_t i : bounded) {
-        if (y[at + i] < 0.0) {
+        if (!inside(y[at + i])) {
           return false;
         }
       }
@@ -2346,11 +2349,16 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
     at += sp.open_ode_size();
     // The top layer's block follows the species' nodes. Its individual holds the
     // same bounded states as a node's; it is checked once it carries density.
+    // A non-finite density is refused first: tested only as "> 0", a NaN layer
+    // would read as an empty one and its pool would go unchecked.
     if (sp.top_ode_size() > 0) {
       const size_t density_at = at + individual_type::ode_size();
+      if (!util::is_finite(y[density_at])) {
+        return false;
+      }
       if (y[density_at] > 0.0) {
         for (const size_t i : bounded) {
-          if (y[at + i] < 0.0) {
+          if (!inside(y[at + i])) {
             return false;
           }
         }
