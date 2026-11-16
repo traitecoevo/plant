@@ -178,8 +178,8 @@ public:
   static constexpr double marginal_step = 1e-4;
 
   // How far, in MPa, the slope's probes keep from a kink in uptake (see
-  // collar_on_tape). phylloptim's marginal is noisy, to 1e-3 relative, within
-  // about 1e-6 MPa of one; this keeps a factor of ten clear of that.
+  // collar_on_tape). phylloptim's marginal has been seen noisy, to 1e-3
+  // relative, within about 1e-6 MPa of one; this keeps a factor of ten clear.
   static constexpr double kink_clearance = 1e-5;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
@@ -513,8 +513,9 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
   // balance, where its flow changes sign. The marginal's slope jumps there,
   // and phylloptim's marginal is noisy close to one: a probe that landed on a
   // layer's potential read 4% low, and put an error of 4% into an invader's
-  // gradient. So a stencil reaching a kink is taken from the collar's own side,
-  // and a collar near one is refused.
+  // gradient. So a stencil that would reach a kink is taken from the side away
+  // from it, without the marginal at the collar, which may itself sit in that
+  // noise.
   double below = std::numeric_limits<double>::infinity();
   double above = std::numeric_limits<double>::infinity();
   const std::vector<double>& soil = leaf.supply_psi_soil();
@@ -529,14 +530,6 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
         below = std::min(below, -d);
       }
     }
-  }
-  if (below <= kink_clearance || above <= kink_clearance) {
-    this->refuse("TF24f gradient: the tracked collar " + util::format_double(at) +
-                 " MPa is within " + util::format_double(kink_clearance) +
-                 " MPa of a soil layer's potential or gravity balance, where "
-                 "uptake has a kink and the marginal profit has no slope");
-    marginal_ = S(marginal);
-    return collar;
   }
   const S M_held = leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in);
   // dM/dz at fixed ends. The marginal moves the leaf, so its outputs are put
@@ -566,14 +559,16 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
       dM_dz = (marginal - down) / h;
     }
   } else {
-    // Second order from one side, the side the kink is not on.
-    const double side = clear(-2.0 * h) ? -1.0 : clear(2.0 * h) ? 1.0 : 0.0;
-    bool near_ok = false, far_ok = false;
+    // Second order from the side away from the kink, by the quadratic through
+    // the three points one, two and three steps out, read back at the collar.
+    const double side = clear(-3.0 * h) ? -1.0 : clear(3.0 * h) ? 1.0 : 0.0;
+    bool ok1 = false, ok2 = false, ok3 = false;
     if (side != 0.0) {
-      const double near = marginal_at(side * h, near_ok);
-      const double far = marginal_at(side * 2.0 * h, far_ok);
-      if (near_ok && far_ok) {
-        dM_dz = side * (4.0 * near - far - 3.0 * marginal) / (2.0 * h);
+      const double m1 = marginal_at(side * h, ok1);
+      const double m2 = marginal_at(side * 2.0 * h, ok2);
+      const double m3 = marginal_at(side * 3.0 * h, ok3);
+      if (ok1 && ok2 && ok3) {
+        dM_dz = -side * (2.5 * m1 - 4.0 * m2 + 1.5 * m3) / h;
       }
     }
   }
