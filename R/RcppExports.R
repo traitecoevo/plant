@@ -6884,6 +6884,34 @@ node_schedule_times_default <- function(max_time) {
     .Call('_plant_node_schedule_times_default', PACKAGE = 'plant', max_time)
 }
 
+FF16_canopy_profile <- function(s, u) {
+    .Call('_plant_FF16_canopy_profile', PACKAGE = 'plant', s, u)
+}
+
+TF24_canopy_profile <- function(s, u) {
+    .Call('_plant_TF24_canopy_profile', PACKAGE = 'plant', s, u)
+}
+
+TF24f_canopy_profile <- function(s, u) {
+    .Call('_plant_TF24f_canopy_profile', PACKAGE = 'plant', s, u)
+}
+
+TF24t_canopy_profile <- function(s, u) {
+    .Call('_plant_TF24t_canopy_profile', PACKAGE = 'plant', s, u)
+}
+
+TF24w_canopy_profile <- function(s, u) {
+    .Call('_plant_TF24w_canopy_profile', PACKAGE = 'plant', s, u)
+}
+
+K93_canopy_profile <- function(s, u) {
+    .Call('_plant_K93_canopy_profile', PACKAGE = 'plant', s, u)
+}
+
+K93_strategy_expand_allometry <- function(s, height) {
+    .Call('_plant_K93_strategy_expand_allometry', PACKAGE = 'plant', s, height)
+}
+
 FF16_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
     .Call('_plant_FF16_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
 }

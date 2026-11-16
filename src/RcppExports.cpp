@@ -19221,6 +19221,90 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_canopy_profile
+Rcpp::List FF16_canopy_profile(plant::FF16_Model<double> s, Rcpp::NumericVector u);
+RcppExport SEXP _plant_FF16_canopy_profile(SEXP sSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::FF16_Model<double> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_canopy_profile(s, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_canopy_profile
+Rcpp::List TF24_canopy_profile(plant::TF24_Model<double> s, Rcpp::NumericVector u);
+RcppExport SEXP _plant_TF24_canopy_profile(SEXP sSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::TF24_Model<double> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_canopy_profile(s, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24f_canopy_profile
+Rcpp::List TF24f_canopy_profile(plant::TF24f_Model<double> s, Rcpp::NumericVector u);
+RcppExport SEXP _plant_TF24f_canopy_profile(SEXP sSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::TF24f_Model<double> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24f_canopy_profile(s, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24t_canopy_profile
+Rcpp::List TF24t_canopy_profile(plant::TF24t_Model<double> s, Rcpp::NumericVector u);
+RcppExport SEXP _plant_TF24t_canopy_profile(SEXP sSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::TF24t_Model<double> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24t_canopy_profile(s, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24w_canopy_profile
+Rcpp::List TF24w_canopy_profile(plant::TF24w_Model<double> s, Rcpp::NumericVector u);
+RcppExport SEXP _plant_TF24w_canopy_profile(SEXP sSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::TF24w_Model<double> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24w_canopy_profile(s, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// K93_canopy_profile
+Rcpp::List K93_canopy_profile(plant::K93_Model s, Rcpp::NumericVector u);
+RcppExport SEXP _plant_K93_canopy_profile(SEXP sSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::K93_Model >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(K93_canopy_profile(s, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// K93_strategy_expand_allometry
+Rcpp::List K93_strategy_expand_allometry(plant::K93_Model s, Rcpp::NumericVector height);
+RcppExport SEXP _plant_K93_strategy_expand_allometry(SEXP sSEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::K93_Model >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type height(heightSEXP);
+    rcpp_result_gen = Rcpp::wrap(K93_strategy_expand_allometry(s, height));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_strategy_expand_allometry
 Rcpp::List FF16_strategy_expand_allometry(plant::FF16_Model<double> s, Rcpp::NumericVector height, Rcpp::NumericVector area_heartwood, Rcpp::NumericVector mass_heartwood);
 RcppExport SEXP _plant_FF16_strategy_expand_allometry(SEXP sSEXP, SEXP heightSEXP, SEXP area_heartwoodSEXP, SEXP mass_heartwoodSEXP) {
@@ -21111,6 +21195,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24w_oderunner_individual_internals", (DL_FUNC) &_plant_TF24w_oderunner_individual_internals, 1},
     {"_plant_strategy_scientific_version", (DL_FUNC) &_plant_strategy_scientific_version, 1},
     {"_plant_node_schedule_times_default", (DL_FUNC) &_plant_node_schedule_times_default, 1},
+    {"_plant_FF16_canopy_profile", (DL_FUNC) &_plant_FF16_canopy_profile, 2},
+    {"_plant_TF24_canopy_profile", (DL_FUNC) &_plant_TF24_canopy_profile, 2},
+    {"_plant_TF24f_canopy_profile", (DL_FUNC) &_plant_TF24f_canopy_profile, 2},
+    {"_plant_TF24t_canopy_profile", (DL_FUNC) &_plant_TF24t_canopy_profile, 2},
+    {"_plant_TF24w_canopy_profile", (DL_FUNC) &_plant_TF24w_canopy_profile, 2},
+    {"_plant_K93_canopy_profile", (DL_FUNC) &_plant_K93_canopy_profile, 2},
+    {"_plant_K93_strategy_expand_allometry", (DL_FUNC) &_plant_K93_strategy_expand_allometry, 2},
     {"_plant_FF16_strategy_expand_allometry", (DL_FUNC) &_plant_FF16_strategy_expand_allometry, 4},
     {"_plant_TF24_strategy_expand_allometry", (DL_FUNC) &_plant_TF24_strategy_expand_allometry, 4},
     {"_plant_TF24f_strategy_expand_allometry", (DL_FUNC) &_plant_TF24f_strategy_expand_allometry, 4},

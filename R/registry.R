@@ -274,6 +274,15 @@ registry_read <- function(path) {
         fail(sprintf("model '%s' leaves '%s' unfilled with no reason", id, u))
       }
     }
+    sizes <- c("size", "size_units", "competitive_size", "competitive_size_units")
+    if (is.null(m$extends)) {
+      absent <- sizes[!vapply(sizes, function(f) {
+        is.character(m[[f]]) && length(m[[f]]) == 1L && nzchar(m[[f]])
+      }, logical(1))]
+      if (length(absent) > 0L) {
+        fail(sprintf("model '%s' extends none but lacks %s", id, toString(absent)))
+      }
+    }
     seen <- id
     parent <- m$extends
     while (!is.null(parent)) {
@@ -472,10 +481,13 @@ registry_resolve_links <- function(raw) {
   list(parameters = parameters, links = links, linked = linked)
 }
 
-## The models, one row each: title, header, the model it extends (NA for none)
-## and the slots it leaves unfilled, with why.
+## The models, one row each: title, header, the model it extends (NA for none),
+## what its size and competitive size are (NA where inherited) and the slots it
+## leaves unfilled, with why.
 registry_models <- function(models) {
-  out <- registry_frame(models, c("title", "header", "extends"))
+  out <- registry_frame(models, c("title", "header", "extends", "size",
+                                  "size_units", "competitive_size",
+                                  "competitive_size_units"))
   out$unfilled <- lapply(models, function(m) unlist(m$unfilled))
   names(out$unfilled) <- NULL
   out

@@ -117,11 +117,20 @@ parameters_export <- function(p, prefix) {
   f
 }
 
+# A run's species rows, one piece per species in strategy order. `species` is
+# stored as character, so splitting on it directly orders "1", "10", "11", "2",
+# ..., and from the tenth species on a piece would meet another's strategy.
+split_by_species <- function(results) {
+  levels <- as.character(seq_len(results$n_spp))
+  split(results$species,
+        factor(as.character(results$species$species), levels = levels))
+}
+
 # Each model's expand_state: the derived size and mass columns, computed by the
 # strategy's own C++ allometry (src/strategy_expand.cpp) so the formulas live in
 # one place, bound onto each species' rows.
 expand_state_by_allometry <- function(results, allometry) {
-  data <- split(results$species, results$species$species)
+  data <- split_by_species(results)
   for (i in seq_len(results$n_spp)) {
     d <- data[[i]]
     allom <- allometry(results$p$strategies[[i]], d$height, d$area_heartwood,

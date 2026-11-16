@@ -71,8 +71,76 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     Rcpp::_["mass_above_ground"] = mass_above_ground);
 }
 
+// The crown a strategy's CanopyShape gives, on the unit crown u = z / H: Q, the
+// fraction of the leaf area above u (the shade the plant casts, under the
+// shading model the strategy resolves from its control), and q, its density in
+// u (-dQ/du). Q_and_q at H = 1 reads both from the shape's own profile. eta_c is
+// the leaf-area-weighted mean of u.
+template <typename S>
+Rcpp::List canopy_profile_impl(S s, const Rcpp::NumericVector& u) {
+  s.prepare_strategy();
+  const R_xlen_t n = u.size();
+  Rcpp::NumericVector Q(n), q(n);
+  for (R_xlen_t i = 0; i < n; ++i) {
+    const std::pair<double, double> Qq = s.canopy_shape.Q_and_q(u[i], u[i], 1.0);
+    Q[i] = Qq.first;
+    q[i] = Qq.second;
+  }
+  return Rcpp::List::create(
+    Rcpp::_["Q"]     = Q,
+    Rcpp::_["q"]     = q,
+    Rcpp::_["eta_c"] = CanopyShape<double>::eta_c(s.pars.eta));
+}
+
 } // namespace
 } // namespace plant
+
+// [[Rcpp::export]]
+Rcpp::List FF16_canopy_profile(plant::FF16_Model<double> s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
+// [[Rcpp::export]]
+Rcpp::List TF24_canopy_profile(plant::TF24_Model<double> s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
+// [[Rcpp::export]]
+Rcpp::List TF24f_canopy_profile(plant::TF24f_Model<double> s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
+// [[Rcpp::export]]
+Rcpp::List TF24t_canopy_profile(plant::TF24t_Model<double> s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
+// [[Rcpp::export]]
+Rcpp::List TF24w_canopy_profile(plant::TF24w_Model<double> s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
+// [[Rcpp::export]]
+Rcpp::List K93_canopy_profile(plant::K93_Model s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
+// K93's size is stem diameter in cm, and its competitive size the basal area in
+// cm^2; as FF16's and TF24's stem columns, in m and m^2.
+// [[Rcpp::export]]
+Rcpp::List K93_strategy_expand_allometry(plant::K93_Model s,
+                                         Rcpp::NumericVector height) {
+  s.prepare_strategy();
+  const R_xlen_t n = height.size();
+  Rcpp::NumericVector diameter_stem(n), area_stem(n);
+  for (R_xlen_t i = 0; i < n; ++i) {
+    diameter_stem[i] = height[i] / 100.0;
+    area_stem[i]     = s.size_to_basal_area(height[i]) / 1.0e4;
+  }
+  return Rcpp::List::create(
+    Rcpp::_["area_stem"]     = area_stem,
+    Rcpp::_["diameter_stem"] = diameter_stem);
+}
 
 // [[Rcpp::export]]
 Rcpp::List FF16_strategy_expand_allometry(plant::FF16_Model<double> s,

@@ -144,7 +144,8 @@ test_that("collect returns a well-formed, non-empty trajectory (#498)", {
     ## Regression guard for #498: the collector used to read a removed `state`
     ## accessor and silently returned empty output, which `expect_silent` could
     ## not catch. Assert the trajectory is actually populated.
-    expect_setequal(names(res), c("time", "species", "env"))
+    expect_setequal(names(res), c("time", "species", "env", "control"))
+    expect_s3_class(res$control, "Control")
     expect_gt(length(res$time), 1)
     expect_false(is.unsorted(res$time))          # patch age is non-decreasing
     expect_length(res$species, 1)
