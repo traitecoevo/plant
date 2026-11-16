@@ -22,7 +22,7 @@ environment_type <- function(type) {
 ##'
 ##' The version is returned as a string. It is usually a single integer
 ##' (\code{"1"}), but may be compound for a model defined relative to another:
-##' \code{TF24f} is a fast approximation of \code{TF24}, so its version is
+##' \code{TF24f} is an approximation of \code{TF24}, so its version is
 ##' \code{"<TF24 version>.<approximation revision>"} (e.g. \code{"2.1"}); the
 ##' major component auto-tracks \code{TF24}, so a \code{TF24} scientific change
 ##' also invalidates \code{TF24f}. \code{TF24t} is compound the same way,

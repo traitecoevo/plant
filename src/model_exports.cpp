@@ -108,7 +108,7 @@ plant::Internals<double> TF24w_oderunner_individual_internals(
 
 // Scientific version of a model, read from the `scientific_version` constant
 // declared on each model class (see inst/include/plant/models/*_model.h).
-// Returned as a string so it can carry a compound version: TF24f is a fast
+// Returned as a string so it can carry a compound version: TF24f is an
 // approximation of TF24, so its version is "<TF24 version>.<revision>" (e.g.
 // "2.1") -- the major component auto-tracks TF24 (a TF24 science change
 // invalidates TF24f too), the minor is TF24f's own approximation revision.
