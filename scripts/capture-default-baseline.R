@@ -8,12 +8,10 @@
 ##   Rscript scripts/capture-default-baseline.R [out.rds]
 ## The cases are built by default_baseline_cases(), defined in the test's
 ## helper, so the test and the capture run the same code. The helper runs
-## through run(), so the capture needs a build that has it (#428 onwards). The
-## recorded height-coordinate cases come from the commit before #661
-## (9f04309b), captured when the helper still used the API of that commit; to
-## re-capture from a build that old, use the helper as it stood at that commit.
-## The birth-date cases were re-captured when establishment came to be averaged
-## over each cohort's cell, which moved them by design.
+## through run(), so the capture needs a build that has it (#428 onwards). All
+## six cases were last captured when the seed-height root tolerance
+## (Control$offspring_production_tol) went from 1e-8 to 1e-12, which moved
+## them deliberately.
 
 args <- commandArgs(trailingOnly = TRUE)
 out <- if (length(args) > 0) args[[1]] else

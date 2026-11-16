@@ -1,10 +1,8 @@
 ## The continuous patch's features (#519) are opt-in, so a run that uses none of
 ## them must not move. Two checks: in-build invariances that hold on every
 ## platform, and a recorded baseline (scripts/capture-default-baseline.R),
-## compared where it was recorded. The height-coordinate cases are from the
-## build before the features; the two birth-date cases were re-blessed when
-## establishment came to be averaged over each cohort's cell, which moves them
-## by design.
+## compared where it was recorded. It is re-blessed only for a deliberate change
+## to the default path, last when the seed-height root tolerance went to 1e-12.
 
 test_that("default runs reproduce the recorded baseline", {
   skip_on_cran()

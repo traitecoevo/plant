@@ -7,10 +7,11 @@
 # the percent level; pinning the recorded times and sizes onto the perturbed runs
 # removes that.
 #
-# ⚠️ THE REFEREE RUNS AT A TIGHT SEED-HEIGHT ROOT TOLERANCE, and the gradient
-# does not need it. The seed's height is a bisection iterate in the forward run
-# and the exact root's derivative on the differentiated path (implicit function
-# theorem). A difference at the default `offspring_production_tol = 1e-8`
+# ⚠️ THE REFEREE RUNS AT A TIGHT SEED-HEIGHT ROOT TOLERANCE, set here although
+# it is the default, so a looser default cannot weaken the referee; the
+# gradient does not need it. The seed's height is a bisection iterate in the
+# forward run and the exact root's derivative on the differentiated path
+# (implicit function theorem). A difference at `offspring_production_tol = 1e-8`
 # differentiates the iterate, whose stopping point moves with the trait
 # differently from the root: measured on this stand, d(mass)/d(lma) through
 # the FF16 trade-off function was off by 6.8e-4 at a relative step of 1e-4 and by 1.8e-4 at

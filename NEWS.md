@@ -13,7 +13,7 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **A newborn's height is found to a root tolerance of 1e-12, where it was 1e-8 (`Control$offspring_production_tol`).** The seed-height root-find's error moves in steps as a trait moves, and fitness magnifies it: in FF16 a seed-height error of 4e-9 m moved log R0 by 4e-5. So a difference of fitness at a relative step of 1e-4 jumped by about 0.2, often enough to put false sign changes into a selection gradient (#653). Results move by at most 7e-9 relative in offspring production (K93 not at all), runs take no measurable longer, and no `scientific_version` changes. Migration:
+* **A newborn's height is found to a root tolerance of 1e-12, where it was 1e-8 (`Control$offspring_production_tol`).** The seed-height root-find's error moves in steps as a trait moves, and fitness magnifies it: on #653's FF16 stand, a 3.9 cm seedling, log R0 moved by 6,400 per metre of seed-height error (an elasticity of about 250), so errors of up to 4e-9 m moved it by up to 4e-5. So a difference of fitness at a relative step of 1e-4 jumped by about 0.2, often enough to put false sign changes into a selection gradient (#653). Results move by at most 7e-9 relative in offspring production (K93 not at all), runs take no measurable longer, and no `scientific_version` changes. Migration:
   * a result pinned or cached before this change differs in about the eighth figure -> re-run, or pass `offspring_production_tol = 1e-8` to `control()` to reproduce it
   * code that set `offspring_production_tol = 1e-12` to referee a gradient can drop it
 
