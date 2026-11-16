@@ -90,7 +90,7 @@ test_that("expand_state() pairs each species with its own strategy", {
   sp <- expand_state(tidy(run(p, record = "steps")))$species
   sp <- sp[!is.na(sp$height), ]
   by_species <- tapply(sp$mass_leaf / sp$area_leaf, as.integer(sp$species), mean)
-  expect_equal(unname(by_species), lma, tolerance = 1e-12)
+  expect_equal(as.vector(by_species), lma, tolerance = 1e-12)
 })
 
 test_that("K93's run gives stem sizes and records its competition field", {
