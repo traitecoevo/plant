@@ -90,7 +90,6 @@ reference:
   - sample_size_distribution
   - interpolate_to_heights
   - interpolate_to_times
-  - plot_size_distribution
   - seq_log
   - util_colour_set_opacity
 

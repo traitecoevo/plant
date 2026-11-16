@@ -137,7 +137,7 @@ test_that("implausibly dense initial conditions are rejected", {
                "non-finite densities")
 })
 
-test_that("seeded runs work with tidy outputs and plot_size_distribution", {
+test_that("seeded runs work with tidy outputs", {
   x <- "FF16"
   p0 <- testing_parameters(x)
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
@@ -151,8 +151,7 @@ test_that("seeded runs work with tidy outputs and plot_size_distribution", {
                     "species") %in% names(res$species)))
   expect_true(any(res$species$time == 0 & !is.na(res$species$density)))
 
-  # the standard plotting and aggregation helpers consume it unchanged
-  expect_s3_class(plot_size_distribution(res$species), "ggplot")
+  # the standard aggregation helpers consume it unchanged
   totals <- integrate_over_size_distribution(FF16_expand_state(res)$species)
   expect_true(all(is.finite(totals$area_leaf)))
   expect_true(all(is.finite(totals$density)))

@@ -226,7 +226,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 
 | File | Responsibility |
 |---|---|
-| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, and FF16's stand report |
+| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state |
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`). These are `switch()` statements that must list every model; the schedule helpers are found by name from the `Parameters` object's template types, so they need no row. |
 | [run.R](R/run.R) | `run()`, the one verb (#428), for a patch by either solver (`method =`) and for a single plant (`run(individual, times = )`): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
@@ -235,7 +235,6 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [individual.R](R/individual.R) | The internal growers behind `run(individual, ...)`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
 | [tidy_outputs.R](R/tidy_outputs.R) | `tidy_patch`, `tidy_species`, `tidy_env`, `interpolate_to_{times,heights}`, `integrate_over_size_distribution` |
-| [tidy_plots.R](R/tidy_plots.R) | Plotting helpers (`plot_size_distribution`) |
 | [logging.R](R/logging.R) | `plant_log_console()`, deprecated: plant writes nothing to a log |
 | [zzz.R](R/zzz.R) | `.onLoad`, which wraps `Leaf()` so a misspelt argument name is refused rather than partially matched |
 | [benchmark.R](R/benchmark.R) | `run_plant_benchmarks` |

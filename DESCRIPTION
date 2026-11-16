@@ -44,13 +44,7 @@ Suggests:
     here,
     numDeriv,
     RcppR6 (>= 0.2.3),
-    knitr,
-    rmarkdown,
-    bench,
-    ggplot2,
-    ggridges,
-    patchwork,
-    kableExtra
+    bench
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia@v0.11.2,
