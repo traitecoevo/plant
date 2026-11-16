@@ -14,8 +14,10 @@
 ## grown on a fine grid of ages, independently of both solvers.
 ##
 ## Both solvers are held to that reference. The deterministic one, on a dense
-## schedule so that reading the stand off its cohorts (a trapezium over them) is
-## accurate enough to test, to a relative 1e-3 in either density coordinate.
+## schedule so that reading the stand off its cohorts is accurate enough to
+## test, to a relative 1e-3 in either density coordinate, each quantity on its
+## own. (One expect_equal() over the three would scale its tolerance by their
+## mean, which the seed output dominates, and pass a density several-fold out.)
 ## The stochastic one to within four standard errors, which follow from the
 ## process rather than from repeated runs: arrivals are a Poisson process and,
 ## with nothing competing, each plant establishes and survives independently of
@@ -26,8 +28,10 @@
 ##
 ## Surviving every death check is exactly exp(-H), however often the checks
 ## come, so the stand at a check time carries no discretisation error. The run's
-## end is a check time, and a coarse interval is checked to show this. Seed is
-## not compared there, because a plant that dies goes on accruing seed until the
+## end is a check time, which the survivors' hazards, reset to zero there, show
+## directly. A run with checks 2.5 yr apart is compared too, though at these
+## errors it would catch only a gross dependence on the interval. Seed is not
+## compared there, because a plant that dies goes on accruing seed until the
 ## check that finds it.
 
 ## A strategy whose plants do not affect one another, at birth rate `b`.
@@ -108,6 +112,7 @@ stochastic_stand <- function(x, s, t_max, area, death_interval, seed) {
   expect_equal(res$time, t_max)
   plants <- res$solver$patch$state$species[[1]]
   alive <- attr(plants, "is_alive")
+  expect_true(all(plants["mortality", alive] == 0))
   height <- plants["height", alive]
   seed_made <- s$pars$S_D * plants["fecundity", ]
   list(n = length(alive),
@@ -129,8 +134,11 @@ test_that("without competition both solvers are the one-plant expectation", {
     expect_lt(expected[["density"]], 0.95 * b * t_max)
 
     for (coordinate in c("height", "birth_date")) {
-      expect_equal(deterministic_stand(x, s, t_max, coordinate), expected,
-                   tolerance = 1e-3, info = paste(x, coordinate))
+      det <- deterministic_stand(x, s, t_max, coordinate)
+      for (q in names(expected)) {
+        expect_equal(det[[q]], expected[[q]], tolerance = 1e-3,
+                     info = paste(x, coordinate, q))
+      }
     }
 
     sto <- stochastic_stand(x, s, t_max, area = 10, death_interval = 0.05,
@@ -140,7 +148,7 @@ test_that("without competition both solvers are the one-plant expectation", {
     z <- (sto$value - expected) / sto$se
     expect_true(all(abs(z) < 4), info = paste(x, toString(signif(z, 3))))
 
-    ## Checks every 2.5 yr, of which the end is one: no bias in who is alive.
+    ## Checks every 2.5 yr, of which the end is one.
     coarse <- stochastic_stand(x, s, t_max, area = 10, death_interval = 2.5,
                                seed = 2)
     keep <- c("density", "height")

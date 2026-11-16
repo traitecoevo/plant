@@ -18,7 +18,8 @@
 ##
 ##   quantity     plants per m2 (density), and per m2 totals of height and of
 ##                competition_effect (what each plant contributes to the
-##                environment: leaf area in FF16 and TF24, basal area in K93);
+##                environment: leaf area in FF16 and TF24, k_I times basal
+##                area in K93);
 ##                for TF24 also the mean soil moisture over its layers
 ##   det          the deterministic value, cohorts every 0.05 yr
 ##   det_error    how far it moves from cohorts twice as far apart, a bound on
@@ -27,12 +28,19 @@
 ##                converged and the gap says nothing about the stochastic one.
 ##   mean, se     the stochastic mean over `reps` independent patches
 ##   rel_gap      (mean - det) / det
-##   z            (mean - det) / se
+##   z            (mean - det) / se; with as few as 20 patches it follows a t
+##                distribution on reps - 1 degrees of freedom, not a normal
 ##
 ## Each stochastic patch is its own run ending at the patch age, which is a
 ## death-check time. Replicates are sized so that every area holds about the
 ## same number of plants in total, and run in parallel, each with its own seed.
 ## "quick" runs a small version, to check the script runs.
+##
+## One known difference between the solvers is not a matter of patch size. The
+## stochastic patch sums the competition above a height over its plants oldest
+## first and stops at the first that is not taller, which is exact only while
+## older plants are taller. Where a model's cohorts cross, as TF24's can, a gap
+## that does not close with area may be that approximation.
 
 suppressPackageStartupMessages(library(plant))
 
@@ -82,7 +90,7 @@ deterministic_stand <- function(x, ages, spacing) {
   ## Integer multiples, so each age is a schedule time exactly. The last
   ## cohort is one interval short of the end, which has no step of its own.
   p$node_schedule_times <- list(seq_len(round(t_max / spacing)) * spacing - spacing)
-  ## Carried in birth date, the stand is read off the cohorts by a trapezium
+  ## Carried in birth date, the stand is read off the cohorts by integrating
   ## over birth dates, which never cross. Over height it is not to be trusted
   ## where cohorts overtake one another, as TF24's do.
   ctrl <- model_control(x)
@@ -151,10 +159,16 @@ for (x in names(settings)) {
         seed <- seed + reps
         runs <- parallel::mclapply(seeds, function(sd)
           stochastic_stand(x, age, area, interval, sd), mc.cores = cores)
-        failed <- vapply(runs, inherits, logical(1), "try-error")
+        ## A run that threw comes back as a try-error, and one whose worker
+        ## was killed (out of memory, say) as NULL, which rbind() would drop
+        ## while the standard error still counted it.
+        failed <- vapply(runs, function(r) is.null(r) || inherits(r, "try-error"),
+                         logical(1))
         if (any(failed)) {
+          first <- runs[[which(failed)[1]]]
           stop(sum(failed), " stochastic runs failed: ",
-               conditionMessage(attr(runs[[which(failed)[1]]], "condition")))
+               if (is.null(first)) "a worker was lost"
+               else conditionMessage(attr(first, "condition")))
         }
         m <- do.call(rbind, runs)
         for (q in names(d)) {
