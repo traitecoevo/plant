@@ -197,6 +197,12 @@ public:
   double seed_a_ = 0.0;
   double seed_b_ = 0.0;
   bool seed_open_ = false;
+  // Whether the interval's dry end is the energy balance's flux ceiling rather
+  // than the stem's end, as the leaf classified it when the interval was solved:
+  // the last interval's, the seed's, and the tracked evaluation's.
+  bool cold_ = false;
+  bool seed_cold_ = false;
+  bool bound_cold_ = false;
 
   // What solve_leaf() found, for collar_on_tape to give its rows: the
   // interval's ends, whether there was one, and whether the marginal there
@@ -223,6 +229,9 @@ private:
     seed_on_tape_ = false;
     seed_open_ = false;
     open_ = false;
+    cold_ = false;
+    seed_cold_ = false;
+    bound_cold_ = false;
     marginal_feasible_ = false;
     // TF24's assign_from ran TF24's refresh_indices, which misses the slot
     // TF24f appends.
@@ -235,7 +244,7 @@ private:
     S a;
     S b;
   };
-  ends_on_tape interval_on_tape(double a, double b,
+  ends_on_tape interval_on_tape(double a, double b, bool cold,
                                 const phylloptim::leaf_pars<S>& in,
                                 const phylloptim::SupplyInputs<S>& supply);
 };
@@ -306,6 +315,7 @@ bool TF24f_Model<S>::collar_interval(double& a, double& b) {
           phylloptim::Leaf::CostCurve::TF24_floor>(a, b)) {
     return false;
   }
+  cold_ = leaf.dry_bound_kind() == phylloptim::Leaf::OperatingPointKind::BoundaryCold;
   a = leaf.polish_bracket_bound(a, leaf.supply_psi_soil(), 0);
   b = leaf.polish_bracket_bound(b, leaf.supply_psi_soil(), 1);
   if (!(b > a)) {
@@ -341,11 +351,13 @@ void TF24f_Model<S>::solve_leaf() try {
     // leaves the leaf at the optimum set_initial_states reads. The
     // curve-typed form, for the reason TF24_Model::solve_leaf gives.
     seed_open_ = collar_interval(seed_a_, seed_b_);
+    seed_cold_ = cold_;
     leaf.template find_root_collar_psi_for<curve>();
     return;
   }
   double a, b;
   open_ = collar_interval(a, b);
+  bound_cold_ = cold_;
   if (!open_) {
     // Shut: the leaf is at its own operating point, whatever the position.
     marginal_ = 0.0;
@@ -422,18 +434,16 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
 // ⚠️ WITH THE ENERGY BALANCE ON, the dry end can be the collar whose uptake is
 // the flux ceiling instead, a condition phylloptim's surface has no rows for
 // (it refuses TF24's own pin there). Refused here rather than differentiated
-// as the stem's end.
+// as the stem's end; `cold` is the leaf's own classification of that end.
 template <typename S>
 typename TF24f_Model<S>::ends_on_tape TF24f_Model<S>::interval_on_tape(
-    double a, double b, const phylloptim::leaf_pars<S>& in,
+    double a, double b, bool cold, const phylloptim::leaf_pars<S>& in,
     const phylloptim::SupplyInputs<S>& supply) {
   constexpr auto curve = phylloptim::Leaf::CostCurve::TF24_floor;
   Leaf& leaf = this->leaf;
   const Leaf::SupplyDraw<S> at_a = leaf.template supply_draw_at<S>(S(a), supply);
   const Leaf::SupplyDraw<S> at_b = leaf.template supply_draw_at<S>(S(b), supply);
-  const double ceiling = leaf.flux_ceiling();
-  if (std::isfinite(ceiling) &&
-      odelia::util::to_passive(at_b.E_up.value) >= ceiling * (1.0 - 1e-9)) {
+  if (cold) {
     this->refuse("TF24f gradient: the dry end of the collar interval, " +
                  util::format_double(b) + " MPa, is where uptake reaches the "
                  "energy balance's flux ceiling, and that bound has no "
@@ -472,7 +482,7 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
       const double u =
           (to_passive(collar) - seed_a_) / (seed_b_ - seed_a_);
       if (u >= 0.0 && u <= 1.0) {
-        const ends_on_tape ends = interval_on_tape(seed_a_, seed_b_, in, supply);
+        const ends_on_tape ends = interval_on_tape(seed_a_, seed_b_, seed_cold_, in, supply);
         const S seated = seed_margin + (1.0 - 2.0 * seed_margin) *
                                            ((collar - ends.a) / (ends.b - ends.a));
         seed_position_ = log(seated / (1.0 - seated));
@@ -489,7 +499,7 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
   }
   const double at = draw.at;
   const double z = to_passive(position_);
-  const ends_on_tape ends = interval_on_tape(bound_a_, bound_b_, in, supply);
+  const ends_on_tape ends = interval_on_tape(bound_a_, bound_b_, bound_cold_, in, supply);
   const S width = ends.b - ends.a;
   width_ = width;
   // From the nearer end, as collar_at writes it; the value is the collar the
@@ -501,7 +511,11 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
     marginal_ = S(marginal);
     return collar;
   }
-  const S M_held = leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in);
+  // Placed once at the collar and read by the marginal here and by the billing
+  // after, which adds only the collar's channel.
+  leaf.template place_held_coords<S>(collar, draw, in, held);
+  const S M_held =
+      leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in, held);
   // dM/dz at fixed ends. The marginal moves the leaf, so its outputs are put
   // back at the collar before anything reads them.
   bool up_ok = false, down_ok = false;

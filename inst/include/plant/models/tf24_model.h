@@ -577,14 +577,18 @@ public:
   // The collar record_leaf_outputs bills the leaf at, carrying its rows: the
   // operating point the solve placed, closed by the condition its kind names.
   // Virtual because TF24f evaluates the leaf at a collar it tracks rather than
-  // one it solved for. Only a differentiated pass calls it.
+  // one it solved for. Only a differentiated pass calls it. `slope` is the
+  // interior curvature, NaN at any other kind. `held` is handed on to
+  // billed_outputs_at: an override that places it places it at the collar it
+  // returns, and leaves the leaf there.
   virtual S collar_on_tape(const Leaf::SupplyDraw<S>& draw,
                            const phylloptim::leaf_pars<S>& in,
                            const phylloptim::SupplyInputs<S>& supply,
                            double slope, Leaf::HeldCoords<S>& held) {
     (void)supply;
     return leaf.template operating_collar<phylloptim::Leaf::CostCurve::TF24_floor,
-                                          S>(draw, in, slope, &held);
+                                          S>(draw, in, slope, &held,
+                                             curvature_floor());
   }
   // Two steps of record_leaf_outputs, and the marginal its curvature guard
   // reports (tf24_leaf.h says what each does).
