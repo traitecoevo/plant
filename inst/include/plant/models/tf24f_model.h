@@ -543,35 +543,40 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
     return leaf.dprofit_droot_collar_psi(collar_at(z + dz, bound_a_, bound_b_),
                                          &ok);
   };
+  // Next to an end a step in z is a small fraction of kink_clearance in the
+  // collar, so where no stencil keeps clear the step widens tenfold, twice.
+  // With none usable the slope stays NaN, and is refused below.
   double dM_dz = std::numeric_limits<double>::quiet_NaN();
-  if (usable({h, -h})) {
-    bool up_ok = false, down_ok = false;
-    const double up = marginal_at(h, up_ok);
-    const double down = marginal_at(-h, down_ok);
-    // One side is enough: next to an end with no flow, the far neighbour has
-    // no marginal to read.
-    if (up_ok && down_ok) {
-      dM_dz = (up - down) / (2.0 * h);
-    } else if (up_ok) {
-      dM_dz = (up - marginal) / h;
-    } else if (down_ok) {
-      dM_dz = (marginal - down) / h;
+  for (double step = h; step <= 100.0 * h; step *= 10.0) {
+    if (usable({step, -step})) {
+      bool up_ok = false, down_ok = false;
+      const double up = marginal_at(step, up_ok);
+      const double down = marginal_at(-step, down_ok);
+      // One side is enough: next to an end with no flow, the far neighbour
+      // has no marginal to read.
+      if (up_ok && down_ok) {
+        dM_dz = (up - down) / (2.0 * step);
+      } else if (up_ok) {
+        dM_dz = (up - marginal) / step;
+      } else if (down_ok) {
+        dM_dz = (marginal - down) / step;
+      }
+      break;
     }
-  } else {
     // Second order from the side away from the kink, by the quadratic through
     // the three points one, two and three steps out, read back at the collar.
-    // With no usable side the slope stays NaN, and is refused below.
-    const double side = usable({-h, -2.0 * h, -3.0 * h})  ? -1.0
-                        : usable({h, 2.0 * h, 3.0 * h}) ? 1.0
-                                                         : 0.0;
-    bool ok1 = false, ok2 = false, ok3 = false;
+    const double side = usable({-step, -2.0 * step, -3.0 * step})  ? -1.0
+                        : usable({step, 2.0 * step, 3.0 * step}) ? 1.0
+                                                                  : 0.0;
     if (side != 0.0) {
-      const double m1 = marginal_at(side * h, ok1);
-      const double m2 = marginal_at(side * 2.0 * h, ok2);
-      const double m3 = marginal_at(side * 3.0 * h, ok3);
+      bool ok1 = false, ok2 = false, ok3 = false;
+      const double m1 = marginal_at(side * step, ok1);
+      const double m2 = marginal_at(side * 2.0 * step, ok2);
+      const double m3 = marginal_at(side * 3.0 * step, ok3);
       if (ok1 && ok2 && ok3) {
-        dM_dz = -side * (2.5 * m1 - 4.0 * m2 + 1.5 * m3) / h;
+        dM_dz = -side * (2.5 * m1 - 4.0 * m2 + 1.5 * m3) / step;
       }
+      break;
     }
   }
   leaf.template profit_at_collar_psi<curve>(at, bound_a_, bound_b_);
