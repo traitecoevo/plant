@@ -59,12 +59,10 @@ Every file below names each model by hand. Search each one for the parent's name
 |---|---|
 | `inst/include/plant.h` | `#include <plant/models/<name>_model.h>` |
 | `inst/RcppR6_classes.yml` | The `<Name>_Model:` block, and the new pair in every `templates:` list that names the parent (eleven for TF24t: `IndividualRunner`, `Individual`, `Parameters`, `Node`, `Species`, `Patch`, `DeterministicPatchRunner`, `StochasticSpecies`, `StochasticPatch`, `StochasticPatchRunner`, `OdeRunner`). An own environment adds its own block. |
-| `src/<name>_node.cpp` | The `schedule_default` and `make_schedule` exports for `Parameters<<Name>, <Env>>` (copy `src/tf24t_node.cpp`). |
-| `src/individual_runner.cpp` | `<Name>_oderunner_individual_internals`. |
+| `src/model_exports.cpp` | The model's entries in each of its three sections: the `schedule_default` and `make_schedule` exports for `Parameters<<Name>, <Env>>` (copy TF24t's), `<Name>_oderunner_individual_internals`, and the model's arm in `strategy_scientific_version()`, which R's `model_version()` reads. |
 | `src/strategy_expand.cpp` | `<Name>_strategy_expand_allometry`. |
-| `src/strategy_version.cpp` | The model's arm in `strategy_scientific_version()`, which R's `model_version()` reads. |
 | `R/<name>.R` | `<Name>_Individual()`, `<Name>_Parameters()` and `<Name>_expand_state()` (copy `R/tf24t.R`). |
-| `R/strategy_support.R` | Every `switch()` that has an arm per model: `environment_type()`, `Environment()`, `expand_state`. The node-schedule helpers need no arm: they are found by the names `src/<name>_node.cpp` exports. |
+| `R/strategy_support.R` | Every `switch()` that has an arm per model: `environment_type()`, `Environment()`, `expand_state`. The node-schedule helpers need no arm: they are found by the names their exports in `src/model_exports.cpp` carry. |
 | `R/default_parameters.R` | The `default_hyperpar()` arm, and for an own model its entry in the `attr(f, "traits")` switch below it, whose fallback lists TF24's traits. A TF24 subclass shares `frozen_TF24_hyperpar`. A new trade-off function belongs in the fieldtrial package, with only a frozen testing copy here. |
 | `R/stand_gradient.R` | The census arm: declare one, or refuse the model with a message saying why. |
 | `tests/testthat/test-model-version.R` | The model in `models`, a test of its compound version, and any top-level scientific fields in `top_level_science`; then accept the new snapshot in `_snaps/model-version.md`. |

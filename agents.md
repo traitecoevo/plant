@@ -401,7 +401,7 @@ Each model carries a **scientific version** separate from the package `Version`:
 a `static constexpr int scientific_version` on the model class in
 [inst/include/plant/models/](inst/include/plant/models/), surfaced to R as
 `model_version(type)` / `model_id(type)` (`"FF16@v1"`) via
-[src/strategy_version.cpp](src/strategy_version.cpp) and
+[src/model_exports.cpp](src/model_exports.cpp) and
 [R/strategy_support.R](R/strategy_support.R). Downstream tools (notably
 `logpile`, which content-addresses archived simulations) read it to decide when
 to re-run: **reruns follow scientific changes, not software releases.**
@@ -424,7 +424,7 @@ Rules:
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
 - **TF24t and TF24w are compound versions the same way**: `"<TF24 version>.<thermal revision>"`, bumped through `thermal_revision` in `tf24t_model.h` for a change to the thermal-damage layer, and `"<TF24 version>.<private water revision>"`, bumped through `private_water_revision` in `tf24w_model.h` for a change to the private-water model.
-- A bump is deliberate: it invalidates that model's `logpile` cache and forces reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R) fails when a default changes without a bump (snapshot of each model's default `pars`/`control`); pure equation changes are not auto-detected and rely on review. **The drift guard skips on CRAN**, so in an invocation that sets that flag a bump has no live gate at all: check it ran before believing one. Adding a new model → add its constant and a dispatch arm in `src/strategy_version.cpp`.
+- A bump is deliberate: it invalidates that model's `logpile` cache and forces reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R) fails when a default changes without a bump (snapshot of each model's default `pars`/`control`); pure equation changes are not auto-detected and rely on review. **The drift guard skips on CRAN**, so in an invocation that sets that flag a bump has no live gate at all: check it ran before believing one. Adding a new model → add its constant and a dispatch arm in `src/model_exports.cpp`.
 
 ---
 

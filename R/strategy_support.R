@@ -43,7 +43,7 @@ environment_type <- function(type) {
 ##' @rdname model_version
 ##' @export
 # if you add a new model, add its `scientific_version` constant to the model
-# header and a dispatch arm to strategy_scientific_version() in src/strategy_version.cpp
+# header and a dispatch arm to strategy_scientific_version() in src/model_exports.cpp
 model_version <- function(type) {
   strategy_scientific_version(type)
 }
@@ -103,7 +103,7 @@ make_schedule <- function(p) {
 }
 
 # The C++ helpers exported once per <Model, Environment> pair, from
-# src/<model>_node.cpp, are named for the pair; this finds the one for `p`.
+# src/model_exports.cpp, are named for the pair; this finds the one for `p`.
 parameters_export <- function(p, prefix) {
   cl <- class(p)[[1]]
   types <- regmatches(cl, regexec("^Parameters<([^,>]+),([^,>]+)>$", cl))[[1]]
