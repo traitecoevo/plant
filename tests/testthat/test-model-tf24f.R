@@ -156,10 +156,11 @@ test_that("narea calculation", {
   expect_equal(sl, cmp)
 })
 
-# TF24f is the fast-acclimating variant of TF24 (#525): instead of solving the
-# stem/root water-potential optimisation afresh every step (as TF24 does), it
-# carries an extra ODE state `opt_root_psi_state` that relaxes towards the
-# optimum at rate `k_acclim`, using the exact gradient of profit in that potential.
+# TF24f is TF24 with a plastic hydraulic operating point: instead of solving the
+# leaf's optimal root-collar potential afresh at every step (as TF24 does), it
+# carries an extra ODE state `collar_position`, the logit of the collar's
+# position between the wet and dry ends of its feasible interval, which climbs
+# the exact gradient of profit at the gain `k_acclim`.
 #
 # We do NOT re-pin a full demographic regression here -- that is TF24's job, and
 # the two strategies share all of that machinery. Instead this integration test
@@ -169,76 +170,136 @@ test_that("narea calculation", {
 # directly-optimised result. The short patch + low hmat configuration matches
 # test-model-tf24.R so the cross-strategy comparison in (3) is like-for-like.
 
+tf24f_stand <- function(strat, lifetime = 5, lma = 0.0825, k_acclim = NULL) {
+  p <- testing_parameters(strat)
+  p$max_patch_lifetime <- lifetime
+  p <- add_strategies(p, trait_matrix(c(lma, 5), c("lma", "hmat")),
+                      hyperpar = default_hyperpar(strat), birth_rate = list(20))
+  if (!is.null(k_acclim)) {
+    s <- p$strategies[[1]]
+    s$k_acclim <- k_acclim
+    p$strategies[[1]] <- s
+  }
+  p
+}
+
+# A five-layer soil under a rain that moves the feasible interval through the
+# year: dry pulses, where profit still rises at the interval's dry end for half
+# of each year, or a seasonal rain, where shaded plants sit at its wet end.
+tf24f_soil <- function(strat, rain, lifetime = 10) {
+  env <- Environment(strat)
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.2, 5))
+  x <- seq(0, lifetime, length.out = if (rain == "dry pulses") 400 else 100)
+  y <- if (rain == "dry pulses") 0.3 * pmax(sin(2 * pi * x), 0)
+       else 0.25 * sin(2 * pi * x) + 1
+  env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
+  env
+}
+
 test_that("acclimation runs, is active, and converges to TF24", {
 
-  mk <- function(strat) {
-    p0 <- testing_parameters(strat)
-    p0$max_patch_lifetime <- 5
-    add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                   hyperpar = default_hyperpar(strat), birth_rate = list(20))
+  # (1) The acclimation state is part of the ODE system (TF24 has no such
+  #     state), and a full patch runs end-to-end to a finite, positive
+  #     offspring count.
+  expect_true("collar_position" %in% TF24f_Individual()$ode_names)
+  at_gain <- function(k) {
+    run(tf24f_stand("TF24f", k_acclim = k), Environment("TF24f"),
+        Control())$offspring_production
   }
-  set_k_acclim <- function(p, k) {
-    s <- p$strategies[[1]]
-    s$k_acclim <- k
-    p$strategies[[1]] <- s
-    p
-  }
-
-  # (1) The acclimation state is part of the ODE system (TF24 has no 6th state),
-  #     and a full patch runs end-to-end to a finite, positive offspring count.
-  expect_true("opt_root_psi_state" %in% TF24f_Individual()$ode_names)
-  pf <- mk("TF24f")
-  slow <- run(set_k_acclim(pf, 1),  Environment("TF24f"), Control())$offspring_production
-  fast <- run(set_k_acclim(pf, 10), Environment("TF24f"), Control())$offspring_production
+  slow <- at_gain(0.01)
+  fast <- at_gain(10)
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
 
   # (2) Acclimation is genuinely active: the gain k_acclim materially changes
-  #     fitness, so the tracked psi is feeding back into the demography rather
-  #     than being a no-op.
+  #     fitness, so the tracked position is feeding back into the demography
+  #     rather than being a no-op.
   #
-  #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
-  #     sit on one side of its maximum: a pair straddling it can sit at the same
-  #     height on either side and differ by little with the feedback fully live.
-  #     Where the maximum sits moves with the model and the coordinate. Measured
-  #     here at hmat = 5, max_patch_lifetime = 5, on the birth-date coordinate
-  #     TF24f defaults to:
+  #     ⚠️ Offspring production is NOT monotone in k_acclim, so a pair of gains
+  #     can sit at the same height on either side of a turning point and differ
+  #     by little with the feedback fully live. Measured here at hmat = 5,
+  #     max_patch_lifetime = 5, on the birth-date coordinate TF24f defaults to:
   #
-  #       k_acclim    0.001    0.01     0.1      1       10      100
-  #       offspring   418.7   420.9   437.5   428.8   345.3   332.4
+  #       k_acclim    0.01     0.1      1       10      100
+  #       offspring   367.4   314.4   320.4   330.0   330.7
   #
-  #     The rising limb is shallow (4.5% from 0.001 to the peak) and the falling
-  #     one steep, so the contrast is taken on the falling limb.
-  expect_gt(abs(fast - slow) / slow, 0.1)
+  #     A plant that barely adjusts keeps the position it was born with, and
+  #     differs from one that tracks by 11%.
+  expect_gt(abs(fast - slow) / slow, 0.05)
 
-  # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
-  #     TF24f tracks the optimum that TF24 computes directly each step, so its
-  #     offspring production converges onto TF24's.
+  # (3) As the acclimation gain grows, TF24f tracks the optimum that TF24
+  #     computes directly each step, so its offspring production converges
+  #     onto TF24's. Measured gap against TF24 as the gain rises:
   #
-  #     Asserted at k_acclim = 100 rather than at the k = 10 used above, so the
-  #     assertion demonstrates convergence rather than merely tolerating the
-  #     residual tracking lag. Measured gap against TF24 as the gain rises:
+  #       k_acclim     1       3       10      30      100
+  #       rel. gap   3.1%    0.98%   0.26%   0.083%  0.024%
   #
-  #       k_acclim     10      30     100     300    1000
-  #       rel. gap  0.113%  0.054%  0.041%  0.013%  0.002%
-  #
-  #     TF24 is integrated to 1e-6 here. At the default tolerance its own
-  #     time-integration error is about 0.2%, larger than the lag at k = 100.
-  #
-  #     Monotone to zero, which is what makes this a tracking lag and not a
-  #     structural divergence between the two strategies. Note that the gap
-  #     closing monotonically in k is compatible with offspring production
-  #     itself being non-monotone in k (see assertion 2): the former is about
-  #     TF24f approaching TF24, the latter about where each sits.
+  #     TF24 is integrated to 1e-6 here. Monotone to zero from k = 1, which is
+  #     what makes this a tracking lag and not a structural divergence between
+  #     the two strategies.
   tight <- Control()
   tight$ode_tol_rel <- 1e-6
   tight$ode_tol_abs <- 1e-6
-  tf24 <- run(mk("TF24"), Environment("TF24"), tight)$offspring_production
-  converged <- run(set_k_acclim(pf, 100), Environment("TF24f"),
-                   Control())$offspring_production
-  expect_equal(converged, tf24, tolerance = 1e-2)
+  tf24 <- run(tf24f_stand("TF24"), Environment("TF24"), tight)$offspring_production
+  converged <- at_gain(100)
+  expect_equal(converged, tf24, tolerance = 1e-3)
   # ...and the approach is monotone: a higher gain is never further away.
   expect_lt(abs(converged - tf24), abs(fast - tf24))
+})
+
+test_that("under drought the collar stays in its interval and follows TF24", {
+  # Under dry pulses profit still rises at the dry end of the feasible interval
+  # for about half of each year, and the interval itself moves by megapascals
+  # as the soil dries and rewets. The position is the collar's place between
+  # the ends, so it moves with them, and the barrier holds it a short step
+  # inside the dry end: a finite position throughout, near logit(1 - 1e-4),
+  # where no state held in MPa stayed inside the interval. Measured gap in
+  # offspring production against TF24 (27.38):
+  #
+  #   k_acclim     1      10      30     100
+  #   rel. gap   4.0%    4.9%    1.6%   0.45%
+  lifetime <- 10
+  at_gain <- function(k) {
+    run(tf24f_stand("TF24f", lifetime, lma = 0.07, k_acclim = k),
+        tf24f_soil("TF24f", "dry pulses"), Control(), record = "steps")
+  }
+  tf24 <- run(tf24f_stand("TF24", lifetime, lma = 0.07),
+              tf24f_soil("TF24", "dry pulses"), Control())$offspring_production
+  slow <- at_gain(1)
+  position <- tidy(slow)$species$collar_position
+  position <- position[!is.na(position)]
+  expect_true(all(is.finite(position)))
+  expect_gt(max(position), 8)
+  expect_lt(max(position), 12)
+  expect_equal(slow$offspring_production, tf24, tolerance = 0.08)
+  expect_equal(at_gain(30)$offspring_production, tf24, tolerance = 0.03)
+})
+
+test_that("offspring production is smooth in a trait at the interval's ends", {
+  # Under a seasonal rain shaded plants sit at the wet end of the interval,
+  # where no water flows. A state clamped to that end read the no-flow marginal,
+  # an exact zero beside a finite value, so offspring production jumped as a
+  # trait moved: its response to lma, differenced over runs pinned to the
+  # recorded steps, went from -1566 to -301,097 between relative steps of 1e-7
+  # and 1e-6. A smooth model gives the same response at every step.
+  lifetime <- 10
+  ctrl <- Control()
+  env <- function() tf24f_soil("TF24f", "seasonal")
+  base <- run(tf24f_stand("TF24f", lifetime, lma = 0.07), env(), ctrl,
+              record = "states")$solver
+  pinned <- base$parameters
+  pinned$ode_times <- base$ode_times
+  pinned$ode_step_sizes <- base$ode_step_sizes
+  pinned$ode_soil_input_slopes <- base$ode_soil_input_slopes
+  pinned$ode_soil_substep_ends <- base$ode_soil_substep_ends
+  response <- function(rel) {
+    q <- pinned
+    q$strategies[[1]]$pars$lma <- q$strategies[[1]]$pars$lma * (1 + rel)
+    (run(q, env(), ctrl)$offspring_production -
+       base$patch$offspring_production) / rel
+  }
+  expect_equal(response(1e-6), response(1e-4), tolerance = 1e-3)
 })
 
 # Water mass-balance: the transpiration integrated up the stem side of every
