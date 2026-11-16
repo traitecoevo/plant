@@ -1785,16 +1785,16 @@ parameters:
     source: 'TF24f_Model default; must be finite and non-negative'
     placeholder: true
     code: plant::TF24f_Model::k_acclim
-  TF24f.bound_curvature:
+  TF24f.bound_relaxation_rate:
     model: TF24f
     section: tf24f_tracking
-    symbol: '\Lambda'
-    units: 'µmol m⁻² s⁻¹ MPa⁻²'
+    symbol: 'r_{\rm b}'
+    units: 'yr⁻¹'
     class: constant
-    meaning: 'curvature of profit continued past the collar bracket, which draws a tracked state that has left the bracket back to it at $k_{\rm acclim}\Lambda$ per year'
-    source: 'chosen so the state sits on the bracket: on a stand under dry pulses 1e3, 1e4 and 1e5 give offspring production within 5e-4 of each other, at a cost rising with it'
+    meaning: 'rate at which a tracked collar potential outside the feasible bracket relaxes to the collar the leaf operates at; independent of $k_{\rm acclim}$, so a high gain adds no stiffness'
+    source: 'measured on a stand under dry pulses at $k_{\rm acclim}$ 1, 10 and 100: offspring production at 1e3 is within 7e-6 of 1e4''s, at no more cost than no relaxation'
     placeholder: false
-    code: plant::TF24f_Model::bound_curvature
+    code: plant::TF24f_Model::bound_relaxation_rate
     literal: 1.0e+3
 
   # --- TF24t: thermal damage and acclimation ------------------------------------------
@@ -3661,14 +3661,14 @@ equations:
     section: tf24f_tracking
     title: Gradient ascent on the collar potential
     latex: |
-      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \left( \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}} - \Lambda \, (\psi_{\rm r} - \tilde\psi_{\rm r}) \right)
+      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \, \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}} - r_{\rm b} \, (\psi_{\rm r} - \tilde\psi_{\rm r})
     code: plant::TF24f_Model::compute_rates
     also: [plant::TF24f_Model::solve_leaf]
-    reads: [TF24f.k_acclim, TF24f.bound_curvature, 'phylloptim:foc_collar']
+    reads: [TF24f.k_acclim, TF24f.bound_relaxation_rate, 'phylloptim:foc_collar']
     writes: []
     kind: derivative
     overstorey: theory/models/tf24.qmd
-    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$. Past the bracket profit is continued as a quadratic of curvature $\Lambda$, so a state outside it is drawn back to the collar the leaf operates at; inside, $\psi_{\rm r} = \tilde\psi_{\rm r}$ and the term is zero. Without it the state drifted on while the optimum was pinned at the dry end, and lagged behind after rain. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the marginal then does not depend on the state, and $\Lambda$ draws the state to the shut collar. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
+    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$. A state outside the bracket relaxes to the collar the leaf operates at, at rate $r_{\rm b}$; inside, $\psi_{\rm r} = \tilde\psi_{\rm r}$ and the term is zero. Without it the state drifted on while the optimum was pinned at the dry end, and lagged behind after rain. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the marginal then does not depend on the state, and $r_{\rm b}$ draws the state to the shut collar. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
   TF24f.collar_initial:
     model: TF24f
     section: tf24f_tracking

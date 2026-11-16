@@ -74,12 +74,12 @@ public:
   // large k recovers the quasi-steady-state (TF24) optimum.
   S k_acclim = 1.0;
 
-  // The curvature (profit per MPa^2) of profit continued past the collar
-  // interval, which draws a tracked state that has left it back at
-  // k_acclim * bound_curvature per year. Measured on a stand under dry pulses:
-  // 1e3, 1e4 and 1e5 give offspring production within 5e-4 of each other, so
-  // the state then sits on the interval, and the run's cost grows with it.
-  static constexpr double bound_curvature = 1e3;
+  // The rate (yr^-1) at which a tracked state outside the collar interval
+  // relaxes to the collar the leaf operates at. It does not scale with
+  // k_acclim, so the run is no stiffer at a high gain. Measured on a stand under
+  // dry pulses at k_acclim 1, 10 and 100: offspring production at 1e3 is within
+  // 7e-6 of 1e4's, and the run costs no more than with no relaxation.
+  static constexpr double bound_relaxation_rate = 1e3;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_opt_root_psi_state = -1;
@@ -89,6 +89,9 @@ public:
   // establishment_probability), where the tracked state has not been read yet.
   S tracked_root_psi_ = 0.0;
   S dprofit_dpsi_ = 0.0;
+  // The collar the leaf was evaluated at: the tracked state, held inside the
+  // interval, or the shut leaf's own collar.
+  S leaf_collar_ = 0.0;
   // When true, solve_leaf() runs the base optimiser (Leaf::optimise on the seated
   // curve) rather than the tracked evaluation; used by set_initial_states to read
   // the optimum.
@@ -136,7 +139,14 @@ void TF24f_Model<S>::compute_rates(const TF24_Environment<S>& environment,
   }
   tracked_root_psi_ = vars.state(state_idx_opt_root_psi_state);
   base_type::compute_rates(environment, vars);
-  vars.set_rate(state_idx_opt_root_psi_state, k_acclim * dprofit_dpsi_);
+  // Gradient ascent, and outside the interval a relaxation to the collar the
+  // leaf operates at, which is zero inside it. With the marginal alone, the
+  // state went on drifting while the optimum was pinned at the dry end, and
+  // lagged far behind once it left: under drought the leaf then stayed at the
+  // dry end after rain.
+  vars.set_rate(state_idx_opt_root_psi_state,
+                k_acclim * dprofit_dpsi_ -
+                    bound_relaxation_rate * (tracked_root_psi_ - leaf_collar_));
 }
 
 // Track instead of optimise: evaluate the leaf at the tracked collar psi and
@@ -178,15 +188,8 @@ void TF24f_Model<S>::solve_leaf() try {
   const double used =
       open ? std::min(std::max(tracked_root_psi_, bound_a), dry)
            : this->leaf.opt_root_psi_;
-  // Past the interval the leaf stays where `used` puts it, and profit is
-  // continued as a quadratic of curvature `bound_curvature`, so the state is
-  // drawn back to the collar the leaf operates at. With the marginal at the
-  // bound alone, the state went on drifting while the optimum was pinned
-  // there, and lagged far behind once it left: under drought the leaf then
-  // stayed at the dry end after rain. Inside the interval the rate is the
-  // marginal, unchanged.
-  dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used) -
-                  bound_curvature * (tracked_root_psi_ - used);
+  dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used);
+  leaf_collar_ = used;
   // restore operating-point outputs
   if (open) {
     this->leaf.template profit_at_collar_psi<
