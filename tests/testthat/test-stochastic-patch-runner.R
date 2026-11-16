@@ -403,3 +403,27 @@ test_that("the death-check interval must be positive and finite", {
                  "stochastic_death_interval must be positive and finite")
   }
 })
+
+test_that("a refused event leaves the stochastic schedule where it was", {
+  ## The stochastic runner applies node introductions only. Refusing anything
+  ## else must not take the entry, or a caller that catches the error and
+  ## steps again would skip it rather than be refused again.
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p$fitness_weighting <- "none"
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
+  p$node_schedule_times <- list(c(0, 1, 2))
+  ev <- events(node_introductions(p), harvest(time = 1, fraction = 0.3))
+  scm <- run(p, events = ev, until = 0)$solver
+  schedule <- scm$schedule
+
+  set.seed(1)
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())
+  obj$schedule <- schedule
+  obj$run_next()
+  remaining <- obj$schedule$remaining
+  msg <- "does not yet apply scheduled events"
+  expect_error(obj$run_next(), msg)
+  expect_identical(obj$schedule$remaining, remaining)
+  expect_error(obj$run_next(), msg)
+})

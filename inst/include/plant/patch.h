@@ -3,6 +3,7 @@
 #define PLANT_PLANT_PATCH_H_
 
 #include <plant/parameters.h>
+#include <plant/patch_system.h>
 #include <plant/species.h>
 #include <plant/util.h>
 #include <plant/clamp_sites.h>
@@ -20,6 +21,7 @@
 #include <sstream>
 #include <map>
 #include <memory>
+#include <numeric> // std::accumulate
 #include <string>
 #include <utility> // std::pair
 
@@ -151,17 +153,29 @@ inline double climate_extreme_survival(double intensity, double duration,
 }
 
 template <typename T, typename E>
-class Patch {
+class Patch : public PatchSystem<Patch<T,E>, T, E, Species<T,E>> {
+  typedef PatchSystem<Patch<T,E>, T, E, Species<T,E>> base_type;
+  friend base_type;
 public:
-  using value_type = typename T::value_type;
-
-  typedef T                 strategy_type;
-  typedef E                 environment_type;
-  typedef Individual<T,E>   individual_type;
-  typedef Node<T,E>         node_type;
-  typedef Species<T,E>      species_type;
-  typedef Parameters<T,E>   parameters_type;
+  using typename base_type::value_type;
+  using typename base_type::strategy_type;
+  using typename base_type::environment_type;
+  using typename base_type::individual_type;
+  using typename base_type::species_type;
+  using typename base_type::parameters_type;
+  typedef Node<T,E>                   node_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
+
+  using base_type::size;
+  using base_type::time;
+  using base_type::height_max;
+  using base_type::compute_competition;
+  using base_type::compute_competition_and_slope;
+  using base_type::at_species;
+  using base_type::ode_size;
+  using base_type::node_ode_size;
+  using base_type::set_ode_state;
+  using base_type::ode_state;
 
   Patch(parameters_type p, environment_type e, plant::Control c);
   void reset();
@@ -198,20 +212,9 @@ public:
   // Every scalar's Patch is one class, so a rebind reaches the rebound patch's
   // members.
   template <typename, typename> friend class Patch;
-  size_t size() const {return species.size();}
 
-  //Try using pointer in place of object itself
-  double time() const {return environment.time;}
-  double get_area() const { return area;}
-  value_type height_max() const;
-
-  value_type compute_competition(double height) const;
-
-  // The competition profile and its vertical derivative at z, from one pass over
-  // the species. The first entry equals compute_competition(z) bit for bit.
-  with_slope<value_type>
-  compute_competition_and_slope(double z) const;
-  // The same pair for R, which takes only doubles: value first, then slope.
+  // PatchSystem's competition profile and its vertical derivative at z, for R,
+  // which takes only doubles: value first, then slope.
   std::vector<double> r_compute_competition_and_slope(double z) const {
     const with_slope<value_type> fs =
       compute_competition_and_slope(z);
@@ -314,34 +317,18 @@ public:
   std::pair<size_t, double> scale_node_densities(size_t species_index,
                                                  Select select);
 
-  // Open to better ways to test whether nodes have been introduced
-  int node_ode_size() const {
-    int node_ode_size = ode_size() - environment.ode_size();
-    return(node_ode_size);
-  }
-
-  const species_type& at_species(size_t species_index) const {
-    return species[species_index];
-  }
-
   // Patch disturbance
   std::shared_ptr<Disturbance_Regime> survival_weighting;
 
   // * ODE interface
-  // Caluclate size of ode system (number of equations). Is constantly changing as 
-  // new nodes are introduced into size-density distreibution 
-  size_t ode_size() const;
-  // How many auxiallary variables are we tracking. These are being collected but
+  // The size, time, state and rates are PatchSystem's, which owns the layout. The
+  // rates are computed when they are asked for (before_ode_rates), not when a
+  // state is loaded, which is what makes them always those of the state loaded,
+  // however the caller arrived at it.
+  //
+  // How many auxiliary variables are we tracking. These are being collected but
   // are not part of core ode system
   size_t aux_size() const;
-  double ode_time() const;
-
-  // Retrieve ode state from patch and save into the ode solver
-  template <typename It> It ode_state(It it) const;
-  // Compute rates of change at the state currently loaded and save them into the
-  // ode solver. Computing here rather than in set_ode_state is what makes the
-  // rates always those of that state, however the caller arrived at it.
-  template <typename It> It ode_rates(It it);
   // Retrieve auxillary variables and save into the ode solver
   template <typename It> It ode_aux(It it) const;
   // Hand them back, in the order ode_aux wrote them
@@ -426,10 +413,6 @@ public:
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
   Rcpp::List r_get_state() const;
-
-  // Set state of patch, based on estimate of future state estimated by the solver,
-  // computing the environment as it goes.
-  template <typename It> It set_ode_state(It it, double time);
 
   // One rate evaluation's extent, so every species that keeps a choice can reach
   // what the run chose here. Opened by the walk around the whole evaluation, which
@@ -576,9 +559,6 @@ public:
   double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
   double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
 
-  parameters_type r_parameters() const {return parameters;}
-  environment_type r_environment() const {return environment;}
-  std::vector<species_type> r_species() const {return species;}
   // The per-node competition (light) error for one species: the per-step
   // sample collect_competition_errors() accumulates. Exposed so a test can
   // rebuild the refinement signal by hand. It is scaled by the total
@@ -594,13 +574,9 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
                    const std::vector<double>& light_availability);
-  species_type r_at(util::index species_index) const {
-    return species[species_index.check_bounds(size())];
-  }
   // This is only here because it wraps a private function.
   void r_compute_environment() {compute_environment();}
 
-  void add_strategies(std::vector<strategy_type> strategies);
   void overwrite_strategies(std::vector<strategy_type> strategies);
   // Become the patch these parameters describe, in the environment and under
   // the control this one has: their strategies, their regime, and the state
@@ -613,6 +589,30 @@ public:
   void overwrite_parameters(const parameters_type& p);
 
 private:
+  using base_type::parameters;
+  using base_type::area;
+  using base_type::environment;
+  using base_type::species;
+  using base_type::control;
+
+  // PatchSystem's hooks. A loaded state is checked and its field built; the rates
+  // wait until they are asked for; and a field read from outside moves nothing.
+  void after_set_ode_state() {
+    // Catch a runaway size-density equation (non-finite cohort density or
+    // environment state) before it feeds into competition, resource uptake, or
+    // physiology below and surfaces as an opaque downstream error (issue #550).
+    check_finite_ode_state();
+    // Build the field the rates will be taken in.
+    compute_environment();
+  }
+  void before_ode_rates() { compute_rates(); }
+  bool environment_is_given() const { return field_given(); }
+  // Every node load_state() makes is a copy of the boundary node, so they all
+  // carry the same birth date and the ODE state does not restore it (it is
+  // bookkeeping, not a state variable). Fine for the height coordinate; fatal
+  // for the birth-date one, which uses these times as its quadrature grid.
+  void check_loaded_nodes() const { check_birth_dates_distinct(); }
+
   // A patch whose species take the prepared strategies given, rather than
   // preparing the ones in the parameters. rebind's only route in.
   Patch(parameters_type p, environment_type e, plant::Control c,
@@ -742,14 +742,6 @@ private:
   // the layer. A no-op with control.absorb_epsilon zero.
   void absorb_tall();
 
-  parameters_type parameters;
-
-  double area;
-  environment_type environment;
-  std::vector<species_type> species;
-
-  Control control;
-
   // Per-species running max of the competition error per node, accumulated
   // across the run via collect_competition_errors(). Entries start at -Inf and
   // ignore NA contributions, matching apply(., 2, max, na.rm=TRUE) in R.
@@ -758,10 +750,7 @@ private:
 
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
-  : parameters(p),
-    area(p.patch_area),
-    environment(e),
-    control(c) {
+  : base_type(p, e, c) {
 
   parameters.validate();
   validate_ode_tolerances(control);
@@ -780,7 +769,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
                                 control.ppa_layer_optical_depth,
                                 control.ppa_layer_smoothing);
 
-  add_strategies(parameters.strategies);
+  this->add_strategies(parameters.strategies);
 
   reset();
 }
@@ -788,10 +777,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
                   const std::vector<strategy_type_ptr>& prepared)
-  : parameters(p),
-    area(p.patch_area),
-    environment(e),
-    control(c) {
+  : base_type(p, e, c) {
 
   parameters.validate();
   validate_ode_tolerances(control);
@@ -909,7 +895,7 @@ void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
 template <typename T, typename E>
 void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
   species.clear();
-  add_strategies(strategies);
+  this->add_strategies(strategies);
 }
 
 template <typename T, typename E>
@@ -923,16 +909,6 @@ void Patch<T,E>::overwrite_parameters(const parameters_type& p) {
   check_retirement_coordinate();
   area = parameters.patch_area;
   overwrite_strategies(parameters.strategies);
-}
-
-template <typename T, typename E>
-void Patch<T,E>::add_strategies(std::vector<strategy_type> strategies) {
-  for (auto i = 0; i < strategies.size(); ++i) {
-		auto s = strategies[i];
-    s.control = control; // Overwrite to take the patch control object 
-    auto spec = Species<T,E>(s);
-    species.push_back(spec);
-  }
 }
 
 template <typename T, typename E>
@@ -983,20 +959,16 @@ void Patch<T,E>::set_initial_state() {
   const size_t n_species = species.size();
   util::check_length(parameters.n_initial_cohorts.size(), n_species);
 
-  size_t total_nodes = 0;
-  for (size_t i = 0; i < n_species; ++i) {
-    for (size_t j = 0; j < parameters.n_initial_cohorts[i]; ++j) {
-      species[i].introduce_new_node();
-    }
-    total_nodes += parameters.n_initial_cohorts[i];
-  }
+  this->introduce_nodes_by_count(parameters.n_initial_cohorts);
+  const size_t total_nodes =
+    std::accumulate(parameters.n_initial_cohorts.begin(),
+                    parameters.n_initial_cohorts.end(), size_t(0));
 
-  // Load the flat ODE state (all nodes, then environment).
+  // Load the flat ODE state (all nodes, then environment), without the field
+  // and the checks set_ode_state() adds: those follow the birth bookkeeping.
   util::check_length(parameters.initial_state.size(), ode_size());
-  auto it = parameters.initial_state.begin();
-  it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
-  it = environment.set_ode_state(it);
-  environment.time = parameters.initial_time;
+  this->write_ode_state(parameters.initial_state.begin(),
+                        parameters.initial_time);
 
   // Restore birth bookkeeping per node, sliced per species from the flat
   // parameter vectors. Skipped (left at defaults) when not supplied, e.g. a
@@ -1192,41 +1164,6 @@ void Patch<T,E>::check_finite_ode_state() const {
                  "max_patch_lifetime or less extreme environmental drivers.");
     }
   }
-}
-
-template <typename T, typename E>
-typename Patch<T,E>::value_type Patch<T,E>::height_max() const {
-  value_type ret = 0.0;
-  for (size_t i = 0; i < species.size(); ++i) {
-    const value_type h = species[i].height_max();
-    if (h > ret) {
-      ret = h;
-    }
-  }
-  return ret;
-}
-
-// The pair's first entry, which is what the pair is built to be. Nothing on the
-// field's path arrives here -- that takes the split reduction and closes it -- so
-// this is an accessor, and an accessor paying one extra crown evaluation per node
-// is better than a second loop that can disagree with the one below it.
-template <typename T, typename E>
-typename Patch<T,E>::value_type
-Patch<T,E>::compute_competition(double height) const {
-  return compute_competition_and_slope(height).value;
-}
-
-template <typename T, typename E>
-with_slope<typename Patch<T,E>::value_type>
-Patch<T,E>::compute_competition_and_slope(double z) const {
-  with_slope<value_type> sum{0.0, 0.0};
-  for (size_t i = 0; i < species.size(); ++i) {
-    const with_slope<value_type> fs =
-      species[i].compute_competition_and_slope(z);
-    sum.value += fs.value / area;
-    sum.slope += fs.slope / area;
-  }
-  return sum;
 }
 
 template <typename T, typename E>
@@ -1639,14 +1576,7 @@ void Patch<T,E>::compute_rates() {
   // clear left active values on a Patch across a tape reset.
   std::vector<value_type> resource_depletion;
   resource_depletion.reserve(env.n_resources());
-  for (size_t i = 0; i < env.n_resources(); i++) {
-    value_type resource_consumed = std::accumulate(
-      species.begin(), species.end(), value_type(0.0),
-      [i](const value_type& r, const species_type& s) -> value_type {
-        return r + s.consumption_rate(i);  // accumulates r from zero
-      });
-    resource_depletion.push_back(resource_consumed / area);
-  }
+  this->append_resource_depletion(resource_depletion);
   // A given field is exogenous: nothing the species take moves it.
   if (!field_given()) {
     if constexpr (HasPrivateWater<T>) {
@@ -2052,7 +1982,8 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     // The environment only: no individual changes, so the competition profile
     // is untouched and the nodes keep their state. The rates are stale
     // afterwards, but the solver recomputes them when it re-reads the system
-    // (Patch::ode_rates computes), so there is nothing to do here.
+    // (ode_rates computes them, through before_ode_rates), so there is nothing
+    // to do here.
     if (event.target_index >= environment.n_resources()) {
       util::stop("Resource " + util::to_string(event.target_index + 1) +
                  " does not exist: this environment has " +
@@ -2144,61 +2075,15 @@ void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
                            const std::vector<double>& light_availability) {
-  const size_t n_species = species.size();
-  util::check_length(n.size(), n_species);
-  reset();
-  for (size_t i = 0; i < n_species; ++i) {
-    for (size_t j = 0; j < n[i]; ++j) {
-      species[i].introduce_new_node();
-    }
-  }
-  util::check_length(state.size(), ode_size());
-  // Every node here is a copy of the boundary node, so they all carry the same
-  // birth date and the ODE state does not restore it (it is bookkeeping, not a
-  // state variable). Fine for the height coordinate; fatal for the birth-date
-  // one, which uses these times as its quadrature grid.
-  check_birth_dates_distinct();
-  set_ode_state(state.begin(), time);
+  this->load_state(time, state, n);
   environment.r_init_interpolators(light_availability);
 }
 
 // ODE interface
 template <typename T, typename E>
-size_t Patch<T,E>::ode_size() const {
-  return odelia::ode::ode_size(species.begin(), species.end()) + environment.ode_size();
-}
-
-template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
   return odelia::ode::aux_size(species.begin(), species.end()) +
     environment.aux_size();
-}
-
-template <typename T, typename E>
-double Patch<T,E>::ode_time() const {
-  return time();
-}
-
-template <typename T, typename E>
-template <typename It>
-It Patch<T,E>::set_ode_state(It it, double time) {
-
-  // Set ode states
-  it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
-  it = environment.set_ode_state(it);
-
-  // update time
-  environment.time = time;
-
-  // Catch a runaway size-density equation (non-finite cohort density or
-  // environment state) before it feeds into competition, resource uptake, or
-  // physiology below and surfaces as an opaque downstream error (issue #550).
-  check_finite_ode_state();
-
-  // Build the field the rates will be taken in.
-  compute_environment();
-
-  return it;
 }
 
 template <typename T, typename E>
@@ -2210,44 +2095,11 @@ It Patch<T,E>::set_state_and_boundary(It it, double time) {
 }
 
 template <typename T, typename E>
-template <typename It>
-It Patch<T,E>::ode_state(It it) const {
-  it = odelia::ode::ode_state(species.begin(), species.end(), it);
-  it = environment.ode_state(it);
-  return it;
-}
-
-template <typename T, typename E>
-Rcpp::List Patch<T, E>::r_get_state() const
-{
-
-  // Aseemble commkunity state, icnluding auxiallry variables
-  Rcpp::List community_state;
-  for (size_t i = 0; i < species.size(); ++i)
-  {
-    community_state.push_back(species[i].r_get_state());
-  }
-
+Rcpp::List Patch<T, E>::r_get_state() const {
   return Rcpp::List::create(_["time"] = time(),
                             _["patch_density"] = r_density(time()),
-                            _["species"] = community_state,
+                            _["species"] = this->r_species_states(),
                             _["env"] = environment.r_get_state());
-}
-
-template <typename T, typename E>
-template <typename It>
-It Patch<T,E>::ode_rates(It it) {
-  compute_rates();
-  it = odelia::ode::ode_rates(species.begin(), species.end(), it);
-  if (field_given()) {
-    for (size_t k = 0; k < environment.ode_size(); ++k) {
-      *it = 0.0;
-      ++it;
-    }
-    return it;
-  }
-  it = environment.ode_rates(it);
-  return it;
 }
 
 template <typename T, typename E>
