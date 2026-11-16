@@ -80,7 +80,6 @@ test_that("Multiple individuals", {
     expect_equal(sp$is_alive, rep(TRUE, n))
 
     hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
-    expect_error(sp$heights <- rev(hh), "must be decreasing")
     sp$heights <- hh
     expect_equal(sp$heights, hh)
 
@@ -138,10 +137,8 @@ test_that("competition counts every taller individual, in any order", {
     for (i in 1:3) {
       sp$introduce_new_node()
     }
-    m <- matrix(sp$ode_state, sp$individual_at(1)$ode_size)
     hh <- c(2, 5, 3)
-    m[1, ] <- hh
-    sp$ode_state <- m
+    sp$heights <- hh
     sp$compute_rates(env)
     expect_equal(sp$height_max, 5, info = x)
 

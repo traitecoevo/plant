@@ -64,8 +64,8 @@ public:
 
   value_type height_max() const;
   value_type compute_competition(double height) const;
-  // The same sum and its vertical derivative, from one pass over the living
-  // individuals. `value` equals compute_competition(height) bit for bit.
+  // The same sum and its vertical derivative, the living individuals ordered
+  // for this one height.
   with_slope<value_type>
   compute_competition_and_slope(double height) const;
   // The living individuals, tallest first, those of equal height in order of
@@ -454,9 +454,6 @@ std::vector<double> StochasticSpecies<T,E>::r_heights() const {
 template <typename T, typename E>
 void StochasticSpecies<T,E>::r_set_heights(std::vector<double> heights) {
   util::check_length(heights.size(), size());
-  if (!util::is_decreasing(heights.begin(), heights.end())) {
-    util::stop("height must be decreasing (ties allowed)");
-  }
   size_t i = 0;
   for (auto& n : nodes) {
     if (n.alive) {

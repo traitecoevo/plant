@@ -152,6 +152,10 @@ void StochasticPatch<T,E>::compute_environment() {
       }
     };
     environment.compute_environment(f, this->height_max());
+    // Kept for its capacity; the pointers would outlive a change to the plants.
+    for (auto& order : tallest_first) {
+      order.clear();
+    }
   } else {
     environment.clear_environment();
   }
