@@ -127,6 +127,36 @@ test_that("Multiple individuals", {
   }
 })
 
+## Individuals are held in order of arrival, and a younger one can be the
+## taller; the competition above a height must count it all the same.
+test_that("competition counts every taller individual, in any order", {
+  for (x in names(strategy_types)) {
+    env <- Environment(x)
+    s <- strategy_types[[x]]()
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
+    for (i in 1:3) {
+      sp$introduce_new_node()
+    }
+    m <- matrix(sp$ode_state, sp$individual_at(1)$ode_size)
+    hh <- c(2, 5, 3)
+    m[1, ] <- hh
+    sp$ode_state <- m
+    sp$compute_rates(env)
+    expect_equal(sp$height_max, 5, info = x)
+
+    ind <- sp$individuals
+    for (z in c(0.5, 2.5, 4)) {
+      expected <- sum(vapply(ind[hh > z], function(p) p$compute_competition(z),
+                             numeric(1)))
+      expect_gt(expected, 0)
+      expect_equal(sp$compute_competition(z), expected, tolerance = 1e-14,
+                   info = paste(x, z))
+    }
+    expect_equal(sp$compute_competition(5), 0, info = x)
+  }
+})
+
 test_that("establishment probability", {
   for (x in names(strategy_types)) {
     env <- Environment(x)

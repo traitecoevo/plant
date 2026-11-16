@@ -177,39 +177,30 @@ void StochasticSpecies<T,E>::introduce_new_node(const E& environment) {
 }
 
 
-// If a species contains no individuals, we return zero
-// (c.f. Species).  Otherwise we return the height of the largest
-// individual (always the first in the list).
+// The height of the tallest living individual, or zero if there is none (c.f.
+// Species). Individuals are kept in order of arrival, which is not an order of
+// height in a model whose plants can overtake older ones, so every one is read.
 template <typename T, typename E>
 typename StochasticSpecies<T,E>::value_type
 StochasticSpecies<T,E>::height_max() const {
+  value_type ret = 0.0;
   for (auto& n : nodes) {
-    if (n.alive) {
-      return n.height();
+    if (n.alive && n.height() > ret) {
+      ret = n.height();
     }
   }
-  return value_type(0.0);
+  return ret;
 }
 
-// Leaf area above `height`: the sum over living individuals taller than it.
-// Individuals are kept in order of arrival, oldest first, and the sum stops at
-// the first living one that is not taller than `height`. That is exact while
-// older individuals are taller, which a model whose cohorts can cross does not
-// guarantee. Zero for an empty species.
+// Leaf area above `height`: the sum over every living individual taller than
+// it, in order of arrival. Zero for an empty species.
 template <typename T, typename E>
 typename StochasticSpecies<T,E>::value_type
 StochasticSpecies<T,E>::compute_competition(double height) const {
-  if (size() == 0 || height_max() < height) {
-    return value_type(0.0);
-  }
   value_type tot = 0.0;
   for (auto& n : nodes) {
-    if (n.alive) {
-      if (n.height() > height) {
-        tot += n.compute_competition(height);
-      } else {
-        break;
-      }
+    if (n.alive && n.height() > height) {
+      tot += n.compute_competition(height);
     }
   }
   return tot;
@@ -218,20 +209,13 @@ StochasticSpecies<T,E>::compute_competition(double height) const {
 template <typename T, typename E>
 with_slope<typename StochasticSpecies<T,E>::value_type>
 StochasticSpecies<T,E>::compute_competition_and_slope(double height) const {
-  if (size() == 0 || height_max() < height) {
-    return {value_type(0.0), value_type(0.0)};
-  }
   with_slope<value_type> sum{0.0, 0.0};
   for (auto& n : nodes) {
-    if (n.alive) {
-      if (n.height() > height) {
-        const with_slope<value_type> fs =
-          n.compute_competition_and_slope(height);
-        sum.value += fs.value;
-        sum.slope += fs.slope;
-      } else {
-        break;
-      }
+    if (n.alive && n.height() > height) {
+      const with_slope<value_type> fs =
+        n.compute_competition_and_slope(height);
+      sum.value += fs.value;
+      sum.slope += fs.slope;
     }
   }
   return sum;
