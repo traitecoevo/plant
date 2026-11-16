@@ -1,4 +1,4 @@
-#include <plant/fp_contract.h>
+#include <plant/numerics/fp_contract.h>
 #include <plant/control.h>
 #include <plant/util.h>
 #include <phylloptim/leaf_model.hpp>

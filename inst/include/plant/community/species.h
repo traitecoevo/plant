@@ -8,14 +8,14 @@
 #include <tuple>
 #include <utility>
 #include <plant/util.h>
-#include <plant/canopy_shape.h>
-#include <plant/environment.h>
+#include <plant/models/canopy_shape.h>
+#include <plant/models/environment.h>
 #include <odelia/ode_interface.hpp>
-#include <plant/node.h>
-#include <plant/species_base.h>
-#include <plant/census.h>
+#include <plant/community/node.h>
+#include <plant/community/species_base.h>
+#include <plant/gradients/census.h>
 #include <odelia/drivers.hpp>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 
 namespace plant {
 

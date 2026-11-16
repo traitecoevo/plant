@@ -2,8 +2,8 @@
 #ifndef PLANT_PLANT_K93_ENVIRONMENT_H_
 #define PLANT_PLANT_K93_ENVIRONMENT_H_
 
-#include <plant/environment.h>
-#include <plant/resource_spline.h>
+#include <plant/models/environment.h>
+#include <plant/models/resource_spline.h>
 
 using namespace Rcpp;
 

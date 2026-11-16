@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/events.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/solvers/events.h>
 #include <Rcpp.h>
 
 namespace plant {

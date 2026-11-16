@@ -2,11 +2,11 @@
 #ifndef NODE
 #define NODE
 
-#include <plant/environment.h>
-#include <plant/gradient.h>
-#include <plant/individual.h>
+#include <plant/models/environment.h>
+#include <plant/numerics/gradient.h>
+#include <plant/community/individual.h>
 #include <odelia/ode_interface.hpp>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 #include <limits> // std::numeric_limits
 
 namespace plant {

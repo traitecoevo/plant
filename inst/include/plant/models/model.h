@@ -7,12 +7,12 @@
 #include <string>
 #include <utility>
 #include <plant/control.h>
-#include <plant/internals.h>
+#include <plant/community/internals.h>
 #include <plant/util.h>
-#include <plant/uniroot.h>
+#include <plant/numerics/uniroot.h>
 #include <RcppCommon.h> // NA_REAL
-#include <plant/extrinsic_drivers.h>
-#include <plant/pars_table.h>
+#include <plant/models/extrinsic_drivers.h>
+#include <plant/models/pars_table.h>
 
 
 namespace plant {

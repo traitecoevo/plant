@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/stem_hydraulics.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/models/stem_hydraulics.h>
 #include <Rcpp.h>
 
 // Test-only entry point for the closed-form stem path integral. Reachable as

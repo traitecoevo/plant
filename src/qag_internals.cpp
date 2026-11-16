@@ -1,5 +1,5 @@
-#include <plant/fp_contract.h>
-#include <plant/qag_internals.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/numerics/qag_internals.h>
 #include <plant/util.h>
 
 #include <algorithm> // min_element, max_element

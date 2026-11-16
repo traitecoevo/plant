@@ -4,11 +4,11 @@
 
 #include <plant/control.h>
 #include <odelia/ode_interface.hpp>
-#include <plant/internals.h>
+#include <plant/community/internals.h>
 #include <plant/util.h>
 #include <unordered_map>
 #include <Rcpp.h>
-#include <plant/extrinsic_drivers.h>
+#include <plant/models/extrinsic_drivers.h>
 
 using namespace Rcpp;
 

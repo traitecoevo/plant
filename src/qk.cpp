@@ -1,6 +1,6 @@
-#include <plant/fp_contract.h>
-#include <plant/qk.h>
-#include <plant/qk_rules.h>
+#include <plant/numerics/fp_contract.h>
+#include <plant/numerics/qk.h>
+#include <plant/numerics/qk_rules.h>
 
 #include <plant/util.h> // check_length
 #include <plant/util_post_rcpp.h> // RFunctionWrapper

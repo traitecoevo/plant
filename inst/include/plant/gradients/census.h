@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <string>
 #include <vector>
-#include <plant/internals.h>
+#include <plant/community/internals.h>
 
 namespace plant {
 

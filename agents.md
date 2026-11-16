@@ -30,7 +30,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
 └───────────────────────────▲─────────────────────────────────┘
                             │   RcppR6 + Rcpp generated bindings
 ┌───────────────────────────▼─────────────────────────────────┐
-│  C++ core  (inst/include/plant/*.h  +  src/*.cpp)            │
+│  C++ core  (inst/include/plant/**/*.h  +  src/*.cpp)         │
 │  - templated class hierarchy: Model, Environment,            │
 │    Individual, Node, Species, Patch,                         │
 │    DeterministicPatchRunner, Stochastic*                     │
@@ -84,27 +84,29 @@ Parameters<T,E>                     model configuration (strategies, schedule, �
 Schedule                            the queue of scheduled events: introductions, pulses, harvests, extremes
 ```
 
+The headers in `inst/include/plant/` are grouped by role: `numerics/` (quadrature, root-finding, finite differences, the value-and-slope pair, and `fp_contract.h`'s floating-point settings), `models/` (the model interface, environments and every concrete model), `community/` (individual, node, species and patch, for both solvers), `solvers/` (the runners, the schedule and events), `disturbances/` (the patch-age regimes) and `gradients/` (the stand census and its reverse-mode helpers). `util.h`, `util_post_rcpp.h`, `control.h` and `parameters.h` stay at the top, beside the generated `RcppR6_*.hpp`, and `inst/include/plant.h` includes them all.
+
 Key headers to know:
 
 | Concern | Header |
 |---|---|
-| Biological model interface | [model.h](inst/include/plant/model.h) |
+| Biological model interface | [model.h](inst/include/plant/models/model.h) |
 | Concrete models | [models/ff16_model.h](inst/include/plant/models/ff16_model.h), [models/tf24_model.h](inst/include/plant/models/tf24_model.h) (with its parameters in `tf24_pars.h` and its definitions in `tf24_allometry.h`, `tf24_leaf.h` and `tf24_rates.h`), [models/k93_model.h](inst/include/plant/models/k93_model.h) |
 | Environments | [models/ff16_environment.h](inst/include/plant/models/ff16_environment.h) (and tf24/k93 variants) |
-| Single plant | [individual.h](inst/include/plant/individual.h), per-plant state in [internals.h](inst/include/plant/internals.h) |
-| Cohort / species / patch | [node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h), [patch.h](inst/include/plant/patch.h) |
-| Deterministic solver | [deterministic_patch_runner.h](inst/include/plant/deterministic_patch_runner.h), helpers in [schedule_utils.h](inst/include/plant/schedule_utils.h) |
-| Stochastic solver | [stochastic_patch_runner.h](inst/include/plant/stochastic_patch_runner.h), `stochastic_patch.h`, `stochastic_species.h` |
-| What the two solvers share | [species_base.h](inst/include/plant/species_base.h), [patch_system.h](inst/include/plant/patch_system.h) (the ODE system's layout), [patch_runner.h](inst/include/plant/patch_runner.h); a change to one solver's ODE interface, competition or schedule handling belongs here, so the other cannot miss it |
+| Single plant | [individual.h](inst/include/plant/community/individual.h), per-plant state in [internals.h](inst/include/plant/community/internals.h) |
+| Cohort / species / patch | [node.h](inst/include/plant/community/node.h), [species.h](inst/include/plant/community/species.h), [patch.h](inst/include/plant/community/patch.h) |
+| Deterministic solver | [deterministic_patch_runner.h](inst/include/plant/solvers/deterministic_patch_runner.h), helpers in [schedule_utils.h](inst/include/plant/solvers/schedule_utils.h) |
+| Stochastic solver | [stochastic_patch_runner.h](inst/include/plant/solvers/stochastic_patch_runner.h), `stochastic_patch.h`, `stochastic_species.h` |
+| What the two solvers share | [species_base.h](inst/include/plant/community/species_base.h), [patch_system.h](inst/include/plant/community/patch_system.h) (the ODE system's layout), [patch_runner.h](inst/include/plant/solvers/patch_runner.h); a change to one solver's ODE interface, competition or schedule handling belongs here, so the other cannot miss it |
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
 | Disturbance | [disturbances/weibull_disturbance.h](inst/include/plant/disturbances/weibull_disturbance.h), `no_disturbance.h` |
-| Leaf-level physiology | [leaf_model.h](inst/include/plant/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
-| Numerics | [qag.h](inst/include/plant/qag.h)/[qk.h](inst/include/plant/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/uniroot.h), [gradient.h](inst/include/plant/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
+| Leaf-level physiology | [leaf_model.h](inst/include/plant/models/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
+| Numerics | [qag.h](inst/include/plant/numerics/qag.h)/[qk.h](inst/include/plant/numerics/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/numerics/uniroot.h), [gradient.h](inst/include/plant/numerics/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
 
 ### The `Model` contract
 
 A Model defines how a plant grows, dies, and reproduces. When subclassing
-`Model<E>` (see [model.h](inst/include/plant/model.h) and FF16 as the
+`Model<E>` (see [model.h](inst/include/plant/models/model.h) and FF16 as the
 reference), the key overridable surface is:
 
 - `static size_t state_size()` and `static std::vector<std::string> state_names()`
@@ -141,7 +143,7 @@ The numeric defaults every run uses are set in one place, the C++ `Control()` co
 TF24's leaf gas-exchange and hydraulics sub-model is **not in this repository**. It
 is the standalone header-only [`phylloptim`](https://github.com/traitecoevo/phylloptim)
 package, reached through `LinkingTo` and a compatibility shim at
-[inst/include/plant/leaf_model.h](inst/include/plant/leaf_model.h) that aliases
+[inst/include/plant/models/leaf_model.h](inst/include/plant/models/leaf_model.h) that aliases
 `plant::Leaf = phylloptim::Leaf`. Consequences worth
 knowing before you go looking for a leaf bug here:
 
@@ -605,7 +607,7 @@ follow-up [#470] (LTO).
   computing the light each plant experiences means summing the shading of every
   other plant, i.e. O(n²) per timestep for n individuals. Instead
   `Patch::compute_environment()` builds a *resource spline*
-  ([resource_spline.h](inst/include/plant/resource_spline.h)) **once** per
+  ([resource_spline.h](inst/include/plant/models/resource_spline.h)) **once** per
   timestep by evaluating cumulative competition at a fixed set of heights; each
   individual then queries the environment with an O(1) spline lookup
   (`get_environment_at_height`). Cost becomes O(n) to build + O(1) per query.
@@ -615,7 +617,7 @@ follow-up [#470] (LTO).
   guesses from the mean spacing and steps to the right span. ([#435])
 - **Finite-difference gradient: a copy, and deliberately not a scratch.**
   `Individual::growth_rate_gradient()`
-  ([individual.h](inst/include/plant/individual.h)) needs a mutable `Individual` to
+  ([individual.h](inst/include/plant/community/individual.h)) needs a mutable `Individual` to
   perturb height on, and copy-constructs one per call. A `thread_local` scratch was
   tried and removed: three arrangements measured within 1.5%, and the function has
   since moved to `Individual` and become scalar-templated, so a cached scratch would
@@ -648,7 +650,7 @@ will see in the code:
 - **Integer index slots instead of string-map lookups.** State/aux/rate access
   in the hot path uses fixed integer constants (`HEIGHT_INDEX`,
   `MORTALITY_INDEX`, `*_AUX_INDEX` `constexpr`s in the model headers, and the
-  cached `*_aux_index` members in [individual.h](inst/include/plant/individual.h))
+  cached `*_aux_index` members in [individual.h](inst/include/plant/community/individual.h))
   rather than `std::map<std::string,int>::at("name")`. **These constants must
   stay in sync with the order of `state_names()`/`aux_names()`** — there are
   comments saying so at each declaration. Named string access is kept for the
@@ -658,7 +660,7 @@ will see in the code:
   slots: `competition_effect` (= `area_leaf(height)`) and `height_inverse`
   (= `1/height`). The competition and assimilation paths read these instead of
   recomputing `area_leaf` and the division every call.
-- **Eta-specialised canopy shape.** [canopy_shape.h](inst/include/plant/canopy_shape.h)
+- **Eta-specialised canopy shape.** [canopy_shape.h](inst/include/plant/models/canopy_shape.h)
   (`CanopyShape`, shared by FF16/TF24/K93) selects a multiplication-chain
   implementation of `u^eta` *once* in `prepare_strategy()` for common integer
   `eta` (1,2,4,8,10,12), avoiding the libm `pow()` slow path per quadrature
@@ -763,7 +765,7 @@ of its gradient — is the tuple's size, so a metric is added without touching t
 reduction, the reverse pass or `odelia`. Four steps:
 
 1. **Write the metric** as a struct in `namespace census_metric`
-   ([inst/include/plant/species.h](inst/include/plant/species.h)), with a
+   ([inst/include/plant/community/species.h](inst/include/plant/community/species.h)), with a
    templated `operator()(const Model&, const Individual&)` returning
    `typename Individual::value_type`, and a `name()`. It reads the strategy and
    one cohort and nothing else; a metric with a height cut of its own applies
@@ -772,7 +774,7 @@ reduction, the reverse pass or `odelia`. Four steps:
 2. **Add its name to `tf24_census`**, the tuple below the metrics in the same
    file. That is the one-word change: `census()`,
    `census_state_adjoint()` and `census_trait_gradient()` in
-   [inst/include/plant/deterministic_patch_runner.h](inst/include/plant/deterministic_patch_runner.h) all fold over the tuple,
+   [inst/include/plant/solvers/deterministic_patch_runner.h](inst/include/plant/solvers/deterministic_patch_runner.h) all fold over the tuple,
    and `census_metric_names_tf24()` reports it, so the new row appears in the
    value, in the seed and in the gradient with no further edit.
 3. **Rebuild.** No export signature changes and no new symbol reaches R, so

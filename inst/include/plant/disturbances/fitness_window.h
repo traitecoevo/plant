@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <algorithm>
-#include <plant/disturbance_regime.h>
+#include <plant/disturbances/disturbance_regime.h>
 #include <plant/util.h>
 
 namespace plant {

@@ -927,7 +927,7 @@ DeterministicPatchRunner:
       - environment: "E"
       - events: "plant::Events"
       - control: "plant::Control"
-  # Order mirrors the public API grouping in inst/include/plant/deterministic_patch_runner.h.
+  # Order mirrors the public API grouping in inst/include/plant/solvers/deterministic_patch_runner.h.
   methods:
     # Simulation lifecycle
     run:

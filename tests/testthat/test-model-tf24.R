@@ -71,7 +71,7 @@ test_that("Defaults", {
                       log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
     # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
-    # meaning. See plant/stem_hydraulics.h.
+    # meaning. See plant/models/stem_hydraulics.h.
     D_c = 0.2,
     theta_c = 0,
     L_tip = 0.02,
@@ -338,7 +338,7 @@ test_that("offspring arrival", {
 })
 
 test_that("the height-linear parameters reproduce the pre-path-integral results", {
-  # The stem path integral (plant/stem_hydraulics.h) replaced a resistance
+  # The stem path integral (plant/models/stem_hydraulics.h) replaced a resistance
   # strictly linear in height. Setting D_c, theta_c and L_tip to zero and K_s
   # back to its old whole-stem value of 1, with no storage relaxation offset,
   # must recover that model exactly -- end-to-end through a full deterministic run, not

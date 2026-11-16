@@ -2,10 +2,10 @@
 #ifndef PLANT_PLANT_TF24_ENVIRONMENT_H_
 #define PLANT_PLANT_TF24_ENVIRONMENT_H_
 
-#include <plant/clamp_sites.h>
-#include <plant/environment.h>
-#include <plant/resource_spline.h>
-#include <plant/leaf_model.h>
+#include <plant/gradients/clamp_sites.h>
+#include <plant/models/environment.h>
+#include <plant/models/resource_spline.h>
+#include <plant/models/leaf_model.h>
 #include <array>
 #include <limits>
 #include <cmath>

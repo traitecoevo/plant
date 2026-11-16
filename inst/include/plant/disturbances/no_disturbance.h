@@ -3,7 +3,7 @@
 #define PLANT_PLANT_NO_DISTURBANCE_H_
 
 #include <vector>
-#include <plant/disturbance_regime.h>
+#include <plant/disturbances/disturbance_regime.h>
 
 namespace plant {
 

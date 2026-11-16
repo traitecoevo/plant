@@ -2,9 +2,9 @@
 #ifndef PLANT_PLANT_STOCHASTIC_NODE_H_
 #define PLANT_PLANT_STOCHASTIC_NODE_H_
 
-#include <plant/individual.h>
+#include <plant/community/individual.h>
 #include <odelia/ode_interface.hpp>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 
 namespace plant {
 

@@ -8,7 +8,7 @@
 #include <odelia/ode_interface.hpp>
 #include <odelia/implicit_node.hpp>
 #include <odelia/tangent.hpp>
-#include <plant/canopy_shape.h>
+#include <plant/models/canopy_shape.h>
 #include <plant/util.h>
 #include <array>
 #include <algorithm> // std::max, for the resource-availability floor (#253)

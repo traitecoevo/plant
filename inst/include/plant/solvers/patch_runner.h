@@ -5,7 +5,7 @@
 #include <vector>
 #include <odelia/ode_solver.hpp>
 #include <plant/control.h>
-#include <plant/schedule.h>
+#include <plant/solvers/schedule.h>
 #include <plant/util.h>
 
 namespace plant {

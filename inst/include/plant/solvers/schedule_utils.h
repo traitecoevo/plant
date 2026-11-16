@@ -2,8 +2,8 @@
 #ifndef PLANT_PLANT_SCHEDULE_UTILS_H_
 #define PLANT_PLANT_SCHEDULE_UTILS_H_
 
-#include <plant/schedule.h>
-#include <plant/events.h>
+#include <plant/solvers/schedule.h>
+#include <plant/solvers/events.h>
 
 namespace plant {
 

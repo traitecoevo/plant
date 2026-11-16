@@ -8,7 +8,7 @@
 #include <plant/control.h>
 #include <plant/parameters.h>
 #include <plant/util.h>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 
 namespace plant {
 

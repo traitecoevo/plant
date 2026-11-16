@@ -7,11 +7,11 @@
 
 #include <plant/control.h>
 #include <plant/models/ff16_model.h>
-#include <plant/schedule.h>
-#include <plant/schedule_utils.h> // Unfortunately needed for setup_node_schedule
+#include <plant/solvers/schedule.h>
+#include <plant/solvers/schedule_utils.h> // Unfortunately needed for setup_node_schedule
 
 #include <memory>
-#include <plant/disturbance_regime.h>
+#include <plant/disturbances/disturbance_regime.h>
 #include <plant/disturbances/no_disturbance.h>
 #include <plant/disturbances/weibull_disturbance.h>
 #include <plant/disturbances/fitness_window.h>

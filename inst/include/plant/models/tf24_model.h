@@ -2,17 +2,17 @@
 #ifndef PLANT_PLANT_TF24_MODEL_H_
 #define PLANT_PLANT_TF24_MODEL_H_
 
-#include <plant/census.h>
-#include <plant/model.h>
+#include <plant/gradients/census.h>
+#include <plant/models/model.h>
 #include <odelia/ode_util.hpp>
 #include <plant/models/tf24_environment.h>
-#include <plant/census_gradient.h>
-#include <plant/qag.h>
-#include <plant/leaf_model.h>
-#include <plant/canopy_shape.h>
-#include <plant/stem_hydraulics.h>
+#include <plant/gradients/census_gradient.h>
+#include <plant/numerics/qag.h>
+#include <plant/models/leaf_model.h>
+#include <plant/models/canopy_shape.h>
+#include <plant/models/stem_hydraulics.h>
 #include <odelia/implicit_node.hpp>
-#include <plant/with_slope.h>
+#include <plant/numerics/with_slope.h>
 #include <array>
 // cstdio/cstdlib for the environment-gated curvature comparison in
 // record_leaf_outputs, and nothing else here.
@@ -866,7 +866,7 @@ public:
   // on D_c is the packing limit: under a conserved lumen fraction, widening is
   // paid for by proportionally fewer conduits, so sapwood-specific conductivity
   // scales as D^2 and not the D^4 of Hagen-Poiseuille. See
-  // plant/stem_hydraulics.h.
+  // plant/models/stem_hydraulics.h.
   //
   // What it implies: leaf-specific resistance grows as H^(1-beta) rather than
   // linearly with height. beta = 0 is the linear case; the default beta = 0.4
