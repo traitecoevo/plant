@@ -337,9 +337,7 @@ public:
     if (f1 < 0.0) {
       return NA_REAL;
     } else {
-      const double tol = control().offspring_height_tol;
-      const size_t max_iterations = control().offspring_production_iterations;
-      return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
+      return util::uniroot(target, 0.0, 1.0, control().offspring_height_tol);
     }
   }
 

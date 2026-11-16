@@ -418,7 +418,6 @@ Control:
     - ppa_layer_optical_depth: double
     - ppa_layer_smoothing: double
     - offspring_height_tol: double
-    - offspring_production_iterations: int
     - node_gradient_eps: double
     - node_gradient_direction: int
     - node_gradient_richardson: bool

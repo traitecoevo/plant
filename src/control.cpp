@@ -29,7 +29,6 @@ Control::Control() {
   // trait moves, and fitness magnifies it (an elasticity of ~250 in FF16), so at
   // 1e-8 a difference of fitness at a relative step of 1e-4 jumps by ~0.2.
   offspring_height_tol = 1e-12;
-  offspring_production_iterations = 1000;
 
   node_gradient_eps = 1e-6;
   node_gradient_direction = -1;
