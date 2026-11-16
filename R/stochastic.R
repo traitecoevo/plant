@@ -63,11 +63,16 @@ stochastic_schedule <- function(p) {
 }
 
 ## The stochastic runner for p, with each species' arrivals drawn at random
-## from its birth rate and p$patch_area (stochastic_schedule()).
-stochastic_runner <- function(p, env, ctrl) {
+## from its birth rate and p$patch_area (stochastic_schedule()), and `events`
+## (an Events, or NULL) beside them.
+stochastic_runner <- function(p, env, ctrl, events = NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
-  obj$schedule <- stochastic_schedule(p)
+  sched <- stochastic_schedule(p)
+  if (!is.null(events)) {
+    sched$add_events(events)
+  }
+  obj$schedule <- sched
   obj
 }
 

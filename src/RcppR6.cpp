@@ -1288,6 +1288,10 @@ plant::Schedule Schedule__copy(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_copy();
 }
 // [[Rcpp::export]]
+void Schedule__add_events(plant::RcppR6::RcppR6<plant::Schedule> obj_, plant::Events events) {
+  obj_->r_add_events(events);
+}
+// [[Rcpp::export]]
 size_t Schedule__size__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->size();
 }
@@ -6811,6 +6815,11 @@ void StochasticPatchRunner___FF16__FF16_Env__schedule__set(plant::RcppR6::RcppR6
   obj_->r_set_schedule(value);
 }
 
+// [[Rcpp::export]]
+plant::EventLog StochasticPatchRunner___FF16__FF16_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_event_log();
+}
+
 
 // [[Rcpp::export]]
 plant::StochasticPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > StochasticPatchRunner___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
@@ -6859,6 +6868,11 @@ plant::Schedule StochasticPatchRunner___TF24__TF24_Env__schedule__get(plant::Rcp
 // [[Rcpp::export]]
 void StochasticPatchRunner___TF24__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
   obj_->r_set_schedule(value);
+}
+
+// [[Rcpp::export]]
+plant::EventLog StochasticPatchRunner___TF24__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_event_log();
 }
 
 
@@ -6911,6 +6925,11 @@ void StochasticPatchRunner___TF24f__TF24_Env__schedule__set(plant::RcppR6::RcppR
   obj_->r_set_schedule(value);
 }
 
+// [[Rcpp::export]]
+plant::EventLog StochasticPatchRunner___TF24f__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_event_log();
+}
+
 
 // [[Rcpp::export]]
 plant::StochasticPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > StochasticPatchRunner___TF24t__TF24_Env__ctor(plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
@@ -6959,6 +6978,11 @@ plant::Schedule StochasticPatchRunner___TF24t__TF24_Env__schedule__get(plant::Rc
 // [[Rcpp::export]]
 void StochasticPatchRunner___TF24t__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
   obj_->r_set_schedule(value);
+}
+
+// [[Rcpp::export]]
+plant::EventLog StochasticPatchRunner___TF24t__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_event_log();
 }
 
 
@@ -7011,6 +7035,11 @@ void StochasticPatchRunner___TF24w__TF24_Env__schedule__set(plant::RcppR6::RcppR
   obj_->r_set_schedule(value);
 }
 
+// [[Rcpp::export]]
+plant::EventLog StochasticPatchRunner___TF24w__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_event_log();
+}
+
 
 // [[Rcpp::export]]
 plant::StochasticPatchRunner<plant::K93_Model,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Model,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
@@ -7059,6 +7088,11 @@ plant::Schedule StochasticPatchRunner___K93__K93_Env__schedule__get(plant::RcppR
 // [[Rcpp::export]]
 void StochasticPatchRunner___K93__K93_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_, plant::Schedule value) {
   obj_->r_set_schedule(value);
+}
+
+// [[Rcpp::export]]
+plant::EventLog StochasticPatchRunner___K93__K93_Env__event_log__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->r_event_log();
 }
 
 

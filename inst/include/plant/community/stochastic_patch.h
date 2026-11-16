@@ -4,6 +4,8 @@
 
 #include <plant/parameters.h>
 #include <plant/community/patch_system.h>
+#include <plant/solvers/schedule.h>
+#include <plant/solvers/events.h>
 #include <plant/community/stochastic_species.h>
 #include <plant/util.h>
 #include <plant/numerics/with_slope.h>
@@ -44,6 +46,14 @@ public:
   void introduce_new_node_and_update(size_t species_index);
 
   std::vector<size_t> deaths();
+  // A scheduled event other than a death check or an introduction, which the
+  // runner applies itself. The same contract as Patch::apply_event, drawn per
+  // individual: a harvest removes each living individual in its size band with
+  // probability `fraction` (1 removes them all), a climate extreme each in its
+  // target with probability 1 - survival, and a resource pulse acts on the
+  // environment as it does there. A removal reports {fraction applied,
+  // individuals drawn for, individuals removed per unit area}.
+  EventRecord apply_event(const ScheduleEvent& event);
 
   // * R interface
   void r_set_state(double time,
@@ -188,6 +198,82 @@ std::vector<size_t> StochasticPatch<T,E>::deaths() {
     compute_rates();
   }
   return ret;
+}
+
+template <typename T, typename E>
+EventRecord StochasticPatch<T,E>::apply_event(const ScheduleEvent& event) {
+  EventRecord rec;
+  rec.time = this->time();
+  rec.type = event.type;
+  rec.target = event.target;
+  rec.target_index = event.target_index;
+  rec.requested = event.params;
+
+  std::vector<size_t> targets;
+  if (event.target == EventTarget::Species) {
+    targets.push_back(event.target_index);
+  } else {
+    for (size_t i = 0; i < species.size(); ++i) {
+      targets.push_back(i);
+    }
+  }
+  auto remove = [&](double fraction, auto pr) {
+    size_t drawn = 0, removed = 0;
+    for (size_t i : targets) {
+      const auto r = species[i].remove(pr);
+      drawn += r.first;
+      removed += r.second;
+    }
+    rec.applied = {fraction, static_cast<double>(drawn),
+                   static_cast<double>(removed) / area};
+    compute_environment();
+    compute_rates();
+  };
+
+  switch (event.type) {
+  case EventType::DeathCheck:
+  case EventType::NodeIntroduction:
+    util::stop("Death checks and introductions are the stochastic runner's "
+               "to apply");
+    break;
+
+  case EventType::ResourcePulse:
+    if (event.target_index >= environment.n_resources()) {
+      util::stop("Resource " + util::to_string(event.target_index + 1) +
+                 " does not exist: this environment has " +
+                 util::to_string(environment.n_resources()) + " resources");
+    }
+    rec.applied = environment.add_resource_pulse(event.target_index,
+                                                 event.params.at(0));
+    // The environment's rates read its pools.
+    compute_rates();
+    break;
+
+  case EventType::Harvest: {
+    const double fraction = event.params.at(0);
+    const double size_min = event.params.at(1);
+    const double size_max = event.params.at(2);
+    if (!(fraction >= 0.0 && fraction <= 1.0)) {
+      util::stop("Harvest fraction must be in [0, 1]");
+    }
+    remove(fraction, [&](double size) {
+      return (size >= size_min && size <= size_max) ? fraction : 0.0;
+    });
+    break;
+  }
+
+  case EventType::ClimateExtreme: {
+    const double duration = event.params.at(1);
+    if (!util::is_finite(duration) || duration < 0.0) {
+      util::stop("Climate extreme duration must be finite and non-negative");
+    }
+    const double phi = climate_extreme_survival(
+      event.params.at(0), duration, event.params.at(2), event.params.at(3));
+    remove(1.0 - phi, [&](double) { return 1.0 - phi; });
+    break;
+  }
+  }
+  return rec;
 }
 
 template <typename T, typename E>

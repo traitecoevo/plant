@@ -488,31 +488,6 @@ test_that("a schedule the stochastic runner cannot take leaves it as it was", {
   unchanged()
 })
 
-test_that("an event between arrivals is refused where it falls, every time", {
-  ## The walk from one arrival to the next stops before an entry it cannot
-  ## apply, so the run stands at the harvest and each call is refused there.
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- 5
-  p$fitness_weighting <- "none"
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
-  p$node_schedule_times <- list(c(0, 1, 2))
-  ev <- events(node_introductions(p), harvest(time = 1.5, fraction = 0.3))
-  schedule <- run(p, events = ev, until = 0)$solver$schedule
-
-  set.seed(1)
-  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())
-  obj$schedule <- schedule
-  obj$run_next()
-  obj$run_next()
-  expect_identical(obj$time, 1.5)
-  expect_identical(obj$patch$state$time, 1.5)
-  remaining <- obj$schedule$remaining
-  msg <- "does not yet apply scheduled events"
-  expect_error(obj$run_next(), msg)
-  expect_identical(obj$schedule$remaining, remaining)
-  expect_error(obj$run_next(), msg)
-})
-
 test_that("the deterministic runner refuses a stochastic runner's schedule", {
   ## A death check has nothing to draw in a solver that carries mortality on
   ## density, and would still split the leg it falls in.
@@ -527,29 +502,183 @@ test_that("the deterministic runner refuses a stochastic runner's schedule", {
   det <- DeterministicPatchRunner("FF16", "FF16_Env")(
     p, Environment("FF16"), empty_events(), Control())
   expect_error(det$schedule <- obj$schedule, "death checks")
+  ## A whole-cohort harvest is refused on this path too, before any run.
+  s <- det$schedule
+  s$add_events(events(harvest(time = 1, fraction = 1)))
+  expect_error(det$schedule <- s, "for the deterministic solver")
 })
 
-test_that("a refused event leaves the stochastic schedule where it was", {
-  ## The stochastic runner applies node introductions and its own death
-  ## checks only. Refusing anything else must not take the entry, or a caller
-  ## that catches the error and steps again would skip it rather than be
-  ## refused again.
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- 5
-  p$fitness_weighting <- "none"
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
-  p$node_schedule_times <- list(c(0, 1, 2))
-  ev <- events(node_introductions(p), harvest(time = 1, fraction = 0.3))
-  solver <- run(p, events = ev, until = 0)$solver
-  schedule <- solver$schedule
+## A stand dense enough that a removal draws for dozens of individuals.
+events_stand <- function() {
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 3
+  suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                  birth_rate = 30))
+}
 
+test_that("a harvest of fraction 1 removes everyone alive", {
+  ## The deterministic solver refuses this, since a cohort's density would go
+  ## to -Inf; removing the last individual is routine here.
+  p <- events_stand()
   set.seed(1)
-  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), Control())
-  obj$schedule <- schedule
-  obj$run_next()
-  remaining <- obj$schedule$remaining
-  msg <- "does not yet apply scheduled events"
-  expect_error(obj$run_next(), msg)
-  expect_identical(obj$schedule$remaining, remaining)
-  expect_error(obj$run_next(), msg)
+  res <- run(p, method = "stochastic", record = "steps",
+             events = events(harvest(time = 2.5, fraction = 1)))
+  log <- res$event_log
+  expect_identical(log$type, "harvest")
+  expect_identical(log$time, 2.5)
+  applied <- log$applied[[1]]
+  expect_identical(applied[[1]], 1)
+  expect_gt(applied[[2]], 0)
+  ## Everyone drawn for is removed, reported per unit area.
+  expect_identical(applied[[3]], applied[[2]] / p$patch_area)
+
+  ## The row at the first arrival after the harvest holds nobody alive.
+  st <- tidy(res)
+  ia <- attr(st$species, "is_alive")[[1]]
+  after <- which(st$time > 2.5)[[1]]
+  expect_gt(sum(ia[after - 1, ], na.rm = TRUE), 0)
+  expect_identical(sum(ia[after, ], na.rm = TRUE), 0L)
+})
+
+test_that("a harvest draws for its size band, with probability fraction", {
+  p <- events_stand()
+  applied <- function(ev) {
+    set.seed(3)
+    run(p, method = "stochastic", events = ev)$event_log$applied[[1]]
+  }
+  all <- applied(events(harvest(time = 2.5, fraction = 0.5)))
+  none <- applied(events(harvest(time = 2.5, fraction = 0.5, size_min = 1e3)))
+  ## A band nobody is in draws for nobody.
+  expect_identical(none[2:3], c(0, 0))
+  ## Each individual drawn for is removed with probability 0.5: within four
+  ## binomial standard deviations (seeded, so this cannot flake).
+  drawn <- all[[2]]
+  expect_gt(drawn, 20)
+  expect_lt(abs(all[[3]] * p$patch_area - 0.5 * drawn),
+            4 * sqrt(0.25 * drawn))
+})
+
+test_that("a climate extreme draws against the deterministic survival", {
+  p <- events_stand()
+  extreme <- function(...) events(climate_extreme(time = 2.5, ...))
+  stochastic <- function(ev) {
+    set.seed(4)
+    run(p, method = "stochastic", events = ev)$event_log$applied[[1]]
+  }
+  ## The fraction killed is the deterministic solver's, from the same dose.
+  det <- run(p, events = events(node_introductions(p),
+                                climate_extreme(time = 2.5, intensity = 45,
+                                                sensitivity = 50)))
+  st <- stochastic(extreme(intensity = 45, sensitivity = 50))
+  expect_identical(st[[1]], det$event_log$applied[[1]][[1]])
+  expect_gt(st[[1]], 0)
+  expect_lt(st[[1]], 1)
+  ## Below its threshold an extreme kills nobody, and draws for nobody.
+  expect_identical(stochastic(extreme(intensity = 30))[2:3], c(0, 0))
+  ## A dose that leaves no survival removes everyone drawn for.
+  lethal <- stochastic(extreme(intensity = 1000, sensitivity = 1e4))
+  expect_gt(lethal[[2]], 0)
+  expect_identical(lethal[[3]] * p$patch_area, lethal[[2]])
+})
+
+test_that("a resource pulse reaches the stochastic patch's soil, even before the first arrival", {
+  p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Model()),
+                                      patch_area = 1)
+  p$max_patch_lifetime <- 2
+  ctrl <- stochastic_control("TF24")
+  depth <- 0.01
+  rainfall <- function(res) {
+    res$solver$patch$environment$get_soil_water_state_cumulative_flux()[[1]]
+  }
+  set.seed(5)
+  res <- run(p, Environment("TF24"), ctrl, method = "stochastic",
+             events = events(rainfall_pulse(time = c(1e-3, 1.5), depth = depth)))
+  set.seed(5)
+  dry <- run(p, Environment("TF24"), ctrl, method = "stochastic")
+  expect_lt(1e-3, res$scenario$p$node_schedule_times[[1]][[1]])
+  log <- res$event_log
+  expect_identical(log$time, c(1e-3, 1.5))
+  ## Each reports {accepted, shed}, and together they make up the depth.
+  for (a in log$applied) {
+    expect_equal(sum(a), depth)
+  }
+  expect_gt(log$applied[[1]][[1]], 0)
+  ## The pulses reach the state the solver carries on from, not only the log:
+  ## the run's cumulative rainfall holds both. The continuous accumulator moves
+  ## at the ODE tolerance, since the pulses also split the legs.
+  expect_equal(rainfall(res) - rainfall(dry), 2 * depth, tolerance = 1e-4)
+})
+
+test_that("an event before the first arrival on an empty FF16 patch is applied", {
+  ## FF16's environment carries no state, so the leg to it is the fixed step
+  ## an empty system takes.
+  p <- events_stand()
+  set.seed(6)
+  res <- run(p, method = "stochastic",
+             events = events(climate_extreme(time = 1e-3, intensity = 1000)))
+  expect_lt(1e-3, res$scenario$p$node_schedule_times[[1]][[1]])
+  expect_identical(res$event_log$time, 1e-3)
+  expect_identical(res$event_log$applied[[1]][2:3], c(0, 0))
+  expect_true(res$complete)
+})
+
+test_that("at a shared instant, a harvest acts before the arrival there", {
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 2
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
+                                       birth_rate = 1))
+  set.seed(2)
+  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  obj$set_node_schedule_times(list(c(0.1, 0.2, 1)))
+  s <- obj$schedule
+  s$add_events(events(harvest(time = 1, fraction = 1)))
+  obj$schedule <- s
+  while (!obj$complete) obj$run_next()
+  ## Everyone who arrived before is removed, and the arrival at the harvest's
+  ## own instant is not.
+  alive <- attr(obj$patch$state$species[[1]], "is_alive")
+  expect_identical(alive, c(FALSE, FALSE, TRUE))
+  expect_identical(obj$event_log$applied[[1]][[2]], 2)
+})
+
+test_that("a harvest aimed at one species leaves the others", {
+  p <- base_parameters("FF16")
+  p$max_patch_lifetime <- 3
+  p <- suppressMessages(add_strategies(p, trait_matrix(c(0.0825, 0.1), "lma"),
+                                       birth_rate = list(30, 30)))
+  set.seed(7)
+  res <- run(p, method = "stochastic", record = "steps",
+             events = events(harvest(time = 2.5, fraction = 1, species = 2)))
+  st <- tidy(res)
+  after <- which(st$time > 2.5)[[1]]
+  alive <- function(i, row) {
+    sum(attr(st$species, "is_alive")[[i]][row, ], na.rm = TRUE)
+  }
+  expect_gt(alive(2, after - 1), 0)
+  expect_identical(alive(2, after), 0L)
+  expect_gt(alive(1, after), 0)
+})
+
+test_that("a pulse into a pool the environment does not have is refused before the run", {
+  ## FF16 has no resource pools. Refused when the schedule is set, so the
+  ## runner is left as it was, rather than when the run reaches the pulse.
+  p <- events_stand()
+  set.seed(8)
+  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  size <- obj$schedule$size
+  s <- obj$schedule
+  s$add_events(events(resource_pulse(time = 1.5, resource = 1, amount = 1)))
+  expect_error(obj$schedule <- s, "does not exist")
+  expect_equal(obj$schedule$size, size)
+  expect_error(run(p, method = "stochastic",
+                   events = events(resource_pulse(time = 1.5, resource = 1,
+                                                  amount = 1))),
+               "does not exist")
+})
+
+test_that("a stochastic run refuses node introductions in its events", {
+  p <- events_stand()
+  expect_error(run(p, method = "stochastic",
+                   events = events(node_introductions(p))),
+               "leave node_introductions\\(p\\) out")
 })

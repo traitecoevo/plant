@@ -186,10 +186,12 @@ void validate_event_params(const std::string& at, EventType type,
     break;
   case EventType::Harvest: {
     finite(q.at(0), "fraction");
-    if (q.at(0) < 0.0 || q.at(0) >= 1.0) {
+    // A fraction of 1 is the stochastic solver's to take, where removing the
+    // last individual is routine; the deterministic runner refuses it before
+    // its run (require_partial_harvests).
+    if (q.at(0) < 0.0 || q.at(0) > 1.0) {
       util::stop(at + " has fraction " + util::to_string(q.at(0)) +
-                 ", which must be in [0, 1): removing all of a cohort would "
-                 "take its density to -Inf.");
+                 ", which must be in [0, 1]");
     }
     nonneg(q.at(1), "size_min");
     // size_max is Inf by default, which is the whole point of the default, so
@@ -243,6 +245,18 @@ void Events::validate() {
                  event_type_target_list(t));
     }
     validate_event_params(at, t, params[i]);
+  }
+}
+
+void require_partial_harvests(const std::vector<ScheduleEvent>& events) {
+  for (const ScheduleEvent& e : events) {
+    if (e.type == EventType::Harvest && !(e.params.at(0) < 1.0)) {
+      util::stop("The harvest at t = " + util::to_string(e.time_introduction()) +
+                 " has fraction " + util::to_string(e.params.at(0)) +
+                 ", which must be in [0, 1) for the deterministic solver: "
+                 "removing all of a cohort would take its density to -Inf. "
+                 "The stochastic solver takes a fraction of 1.");
+    }
   }
 }
 

@@ -4,6 +4,7 @@
 
 #include <plant/solvers/schedule.h>
 #include <plant/solvers/events.h>
+#include <algorithm>
 
 namespace plant {
 
@@ -35,7 +36,10 @@ Schedule make_schedule(const Parameters& p) {
 // As above, but with the schedule taken from an explicit event list rather
 // than from p.node_schedule_times. An empty list means "no events supplied",
 // and falls back to the parameters -- which is what keeps every existing
-// caller on exactly the path it was on before events existed (#522).
+// caller on exactly the path it was on before events existed (#522). A list
+// that names no introduction takes p's beside its actions, so a harvest list
+// means the same here as in the stochastic solver, whose events cannot name
+// introductions; one that names any replaces p's.
 template <typename Parameters>
 Schedule make_schedule(const Parameters& p, const Events& events) {
   if (events.size() == 0) {
@@ -45,7 +49,13 @@ Schedule make_schedule(const Parameters& p, const Events& events) {
   Schedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_start_time(p.initial_time);
-  ret.set_all_events(to_schedule_events(events, p.size()));
+  const std::vector<ScheduleEvent> evs = to_schedule_events(events, p.size());
+  ret.set_all_events(evs);
+  if (std::none_of(evs.begin(), evs.end(), [](const ScheduleEvent& e) {
+        return e.is_node_introduction();
+      })) {
+    ret.set_times(p.node_schedule_times);
+  }
   // A GRID the caller chose, which is the same type a run's own schedule is:
   // an empty size list means every time is stepped TO rather than stepped BY.
   ret.r_set_ode_steps(p.ode_times, {}, {}, {});

@@ -321,6 +321,19 @@ ff16_run <- function(ev = NULL, max_lifetime = 20) {
   solver
 }
 
+test_that("an events list naming no introduction takes p's", {
+  ## So a harvest list means the same here as in the stochastic solver, whose
+  ## events cannot name introductions. It used to introduce nothing.
+  harvest_only <- ff16_run(function(p) events(harvest(time = 10, fraction = 0.5)))
+  with_default <- ff16_run(function(p) {
+    events(node_introductions(p), harvest(time = 10, fraction = 0.5))
+  })
+  expect_gt(length(harvest_only$patch$ode_state), 0)
+  expect_identical(harvest_only$patch$ode_state, with_default$patch$ode_state)
+  expect_identical(harvest_only$event_log, with_default$event_log)
+  expect_identical(harvest_only$events$time, with_default$events$time)
+})
+
 total_density <- function(solver) {
   sum(exp(solver$patch$species[[1]]$log_densities))
 }
@@ -374,9 +387,16 @@ test_that("harvest respects its size band", {
 })
 
 test_that("removing an entire cohort is refused rather than silently infinite", {
-  ## Caught when the schedule is built, not partway through a run.
-  expect_error(harvest(time = 10, fraction = 1) |> events(),
-               "which must be in \\[0, 1\\)")
+  ## A fraction of 1 is the stochastic solver's (test-stochastic-patch-runner.R).
+  ## The deterministic one refuses it when its runner is built, not partway
+  ## through a run, and a fraction above 1 is refused as an event.
+  ev <- harvest(time = 10, fraction = 1) |> events()
+  p <- testing_parameters("FF16")
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  expect_error(run(p, events = events(node_introductions(p), ev), until = 0),
+               "which must be in \\[0, 1\\) for the deterministic solver")
+  expect_error(harvest(time = 10, fraction = 1.5) |> events(),
+               "which must be in \\[0, 1\\]")
 })
 
 test_that("a climate extreme accrues dose only above its threshold", {

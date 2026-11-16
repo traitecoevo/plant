@@ -613,12 +613,14 @@ private:
   // which this solver has nothing to draw from, so it is refused here rather
   // than at the first check part-way through a run.
   void prepare_schedule(Schedule& x) const {
-    for (const auto& e : x.get_events()) {
+    const std::vector<ScheduleEvent> events = x.get_events();
+    for (const auto& e : events) {
       if (e.type == EventType::DeathCheck) {
         util::stop("This schedule holds the stochastic runner's death checks, "
                    "which the deterministic solver does not take");
       }
     }
+    require_partial_harvests(events);
     x.set_start_time(parameters.initial_time);
   }
   void schedule_changed() {}
@@ -702,6 +704,7 @@ DeterministicPatchRunner<T, E>::DeterministicPatchRunner(parameters_type p, envi
 
   parameters.validate();
   check_fitness_window();
+  require_partial_harvests(schedule.get_events());
 
   collect = false;
   collect_refinement_errors = false;

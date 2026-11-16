@@ -13,6 +13,8 @@
 
 namespace plant {
 
+class Events;
+
 // What an event *does* when the solver reaches its time (issue #628).
 //
 // Every event in the schedule used to be a node introduction; the tag is what
@@ -203,6 +205,9 @@ public:
                        std::vector<std::vector<double> > input_slopes,
                        std::vector<std::vector<double> > substep_ends);
   void r_clear_ode_steps();
+  // A run's events added to what is here: introductions join their instants,
+  // everything else its actions. Checked against the species and max_time.
+  void r_add_events(const Events& events);
   // The steps a recorded run took. Its introductions' rows are left out, because
   // a run makes its introductions from this schedule.
   template <class Rows> void set_ode_steps(const Rows& rows) {

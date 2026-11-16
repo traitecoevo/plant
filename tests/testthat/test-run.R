@@ -255,7 +255,7 @@ test_that("a stochastic run refuses what it cannot do", {
   expect_error(run(p, method = "stochastic", record = "states"), "states")
   expect_error(run(p, method = "stochastic",
                    events = events(node_introductions(p), harvest(time = 2, fraction = 0.3))),
-               "events")
+               "node introductions")
   expect_error(run(p, method = "stochastic", from = run(p)), "from")
   res <- run(p, method = "stochastic")
   expect_error(export_patch_state(res), "deterministic")

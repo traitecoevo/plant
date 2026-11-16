@@ -1,5 +1,6 @@
 #include <plant/numerics/fp_contract.h>
 #include <plant/solvers/schedule.h>
+#include <plant/solvers/events.h>
 #include <plant/parameters.h>
 #include <plant/util.h>
 #include <Rcpp.h>
@@ -263,6 +264,22 @@ void Schedule::r_set_times(std::vector<double> times_,
     Rcpp::stop("Times cannot be greater than max_time");
   }
   set_times(times_, species_index.check_bounds(n_species));
+}
+
+// On a copy, swapped in once every event is in, so one refused part-way (a
+// species introduced twice at one time) leaves this schedule as it was.
+void Schedule::r_add_events(const Events& events) {
+  validate_event_horizon(events, max_time);
+  Schedule ret = *this;
+  for (const Event& e : to_schedule_events(events, n_species)) {
+    if (e.is_node_introduction()) {
+      ret.insert(e.time_introduction(), e.target_index);
+    } else {
+      ret.add_action(e);
+    }
+  }
+  ret.reset();
+  *this = ret;
 }
 
 std::vector<double> Schedule::r_times(util::index species_index) const {
