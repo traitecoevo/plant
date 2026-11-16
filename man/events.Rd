@@ -132,9 +132,12 @@ compares across the two.
 
 \code{events_default(p)} is the schedule a run gets when no events
   are supplied: the node introductions from \code{p$node_schedule_times} and
-  nothing else. Start from it when adding events to an otherwise ordinary
-  run — \code{events(events_default(p), harvest(...))} — or pass it
-  on its own, which reproduces the default run exactly.
+  nothing else. Pass it on its own to reproduce the default run exactly. An
+  events list that names no introduction takes \code{p}'s, so
+  \code{events(harvest(...))} is the default run plus a harvest, in both
+  solvers; one that names any introduction replaces \code{p}'s, so
+  \code{events(events_default(p), harvest(...))} is the same run
+  deterministically.
 
 \code{harvest} covers removal generally, not only the forestry
   sense: leave the size band at its defaults and it is an across-the-board
