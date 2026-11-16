@@ -1788,7 +1788,7 @@ parameters:
   TF24f.bound_relaxation_rate:
     model: TF24f
     section: tf24f_tracking
-    symbol: 'r_{\rm b}'
+    symbol: 'r_{\rm relax}'
     units: 'yr⁻¹'
     class: constant
     meaning: 'rate at which a tracked collar potential outside the feasible bracket relaxes to the collar the leaf operates at; independent of $k_{\rm acclim}$, so a high gain adds no stiffness'
@@ -3655,20 +3655,20 @@ equations:
     writes: []
     kind: closed_form
     overstorey: theory/models/tf24.qmd
-    note: 'Replaces TF24.leaf_operating_point: the leaf is evaluated at the tracked state $\psi_{\rm r}$, held inside the feasible bracket $[\psi_a, \psi_b]$, instead of at the optimum. The dry end is read a step inside, as phylloptim''s own solve reads it, because the bracket places it only to its tolerance and a leaf read exactly there can fall past the stem curve. Where the bracket is closed (shutdown) the leaf''s own operating point is used. So TF24f does not reproduce TF24 bit for bit; it lags the optimum.'
+    note: 'Replaces TF24.leaf_operating_point: the leaf is evaluated at the tracked state $\psi_{\rm r}$, held inside $[\psi_a, \psi_b^{-}]$, the feasible bracket with its dry end read a step inside (as phylloptim''s collar solve takes its first dry probe), because the bracket places it only to its tolerance and a leaf read exactly there can fall past the stem curve. Where the bracket is closed (shutdown) the leaf''s own operating point is used. So TF24f does not reproduce TF24 bit for bit; it lags the optimum.'
   TF24f.collar_tracking:
     model: TF24f
     section: tf24f_tracking
     title: Gradient ascent on the collar potential
     latex: |
-      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \, \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}} - r_{\rm b} \, (\psi_{\rm r} - \tilde\psi_{\rm r})
+      \frac{{\rm d}\psi_{\rm r}}{{\rm d}t} = k_{\rm acclim} \, \frac{\partial J}{\partial \psi_{\rm r}}\bigg|_{\tilde\psi_{\rm r}} - r_{\rm relax} \, (\psi_{\rm r} - \tilde\psi_{\rm r})
     code: plant::TF24f_Model::compute_rates
     also: [plant::TF24f_Model::solve_leaf]
     reads: [TF24f.k_acclim, TF24f.bound_relaxation_rate, 'phylloptim:foc_collar']
     writes: []
     kind: derivative
     overstorey: theory/models/tf24.qmd
-    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$. A state outside the bracket relaxes to the collar the leaf operates at, at rate $r_{\rm b}$; inside, $\psi_{\rm r} = \tilde\psi_{\rm r}$ and the term is zero. Without it the state drifted on while the optimum was pinned at the dry end, and lagged behind after rain. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the marginal then does not depend on the state, and $r_{\rm b}$ draws the state to the shut collar. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
+    note: 'The page''s $\frac{{\rm d}\psi}{{\rm d}t} = k_{\rm acclim} \frac{{\rm d}P}{{\rm d}\psi}$, with $P$ phylloptim''s objective $J$ on the TF24_floor curve and the derivative exact (phylloptim''s dprofit_droot_collar_psi), taken at the clamped $\tilde\psi_{\rm r}$. A state outside the bracket relaxes to the collar the leaf operates at, at rate $r_{\rm relax}$; inside, $\psi_{\rm r} = \tilde\psi_{\rm r}$ and the term is zero. Without it the state drifted on while the optimum was pinned at the dry end, and lagged behind after rain. It is 0 at phylloptim''s no-gradient exits: no flow, a stem that cannot carry what the soil delivers, and a failed point. Where the bracket is closed (shutdown) it is taken at the leaf''s shut collar instead of $\tilde\psi_{\rm r}$, and need not be 0 there (with $g_{\min} > 0$ a shut leaf still loses water), so the marginal then does not depend on the state, and $r_{\rm relax}$ draws the state to the shut collar. The page''s use_ad_gradient = false (a finite difference) no longer exists (#745). State opt_root_psi_state.'
   TF24f.collar_initial:
     model: TF24f
     section: tf24f_tracking

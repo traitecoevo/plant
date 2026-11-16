@@ -17,8 +17,9 @@ namespace plant {
 // root-collar water potential. Instead of TF24's per-step golden-section
 // optimisation, solve_leaf() evaluates the leaf at the tracked state and the
 // state relaxes toward its optimum by gradient ascent on carbon profit
-// (dpsi/dt = k_acclim * d(profit)/d(psi)); the state is initialised at its optimum at
-// birth. The states shared with TF24 are computed by the inherited
+// (dpsi/dt = k_acclim * d(profit)/d(psi), with a relaxation to the leaf's
+// collar while the state is outside the feasible interval); the state is
+// initialised at its optimum at birth. The states shared with TF24 are computed by the inherited
 // compute_rates, so TF24f does NOT reproduce TF24 bit-for-bit -- it tracks the
 // optimum with a (gain-dependent) lag and is faster.
 template <typename S = double>
@@ -152,12 +153,10 @@ void TF24f_Model<S>::compute_rates(const TF24_Environment<S>& environment,
 // Track instead of optimise: evaluate the leaf at the tracked collar psi and
 // supply d(profit)/d(psi) for the gradient-ascent rate. The tracked state is
 // clamped into the feasible interval here (phylloptim refuses a collar outside
-// it), and the gradient is formed about the clamped value `used`. This keeps the
-// gradient meaningful even when the tracked state has drifted outside the
-// interval (e.g. an uninitialised state at 0, or a wet bound that a drying soil
-// moves past the state during shutdown), pulling it back inside, and the final
-// evaluate leaves the leaf outputs at the operating point that compute_rates'
-// aux reads expect. The gradient is exact: forward-mode AD over the leaf's
+// it), and the gradient is formed about the clamped value `used`. The marginal
+// there does not by itself bring a state outside back (compute_rates adds the
+// relaxation that does), and the final evaluate leaves the leaf outputs at the
+// operating point that compute_rates' aux reads expect. The gradient is exact: forward-mode AD over the leaf's
 // algebra, the implicit-function theorem at the ci root-find, and analytic
 // spline derivatives for the transport.
 // A function-try-block, so every exit of the body is covered: phylloptim's
@@ -182,14 +181,18 @@ void TF24f_Model<S>::solve_leaf() try {
   const bool open = this->leaf.template prepare_collar_solve<
       phylloptim::Leaf::CostCurve::TF24_floor>(bound_a, bound_b);
   // The dry end is the bracket's, placed only to its tolerance, and a leaf
-  // read exactly there can fall past the stem curve's domain; phylloptim's own
-  // solve reads a step inside it, and so does this.
+  // read exactly there can fall past the stem curve's domain; phylloptim's
+  // collar solve takes its first dry probe a step inside it, and so does this.
   const double dry = bound_b - 1e-6 * (bound_b - bound_a);
   const double used =
       open ? std::min(std::max(tracked_root_psi_, bound_a), dry)
            : this->leaf.opt_root_psi_;
   dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used);
-  leaf_collar_ = used;
+  // Inside the interval the collar IS the state, so the relaxation in
+  // compute_rates is an exact zero in its derivative as well as its value.
+  leaf_collar_ = (open && used == odelia::util::to_passive(tracked_root_psi_))
+                     ? tracked_root_psi_
+                     : S(used);
   // restore operating-point outputs
   if (open) {
     this->leaf.template profit_at_collar_psi<
