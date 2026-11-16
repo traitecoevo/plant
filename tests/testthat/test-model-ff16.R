@@ -217,29 +217,3 @@ test_that("offspring arrival", {
   expect_false(isTRUE(all.equal(height$patch$offspring_production,
                                 out$patch$offspring_production)))
 })
-
-test_that("Report generation", {
-  # The report's plotting stack is a Suggests, so a tree without it is a tree
-  # that cannot answer this rather than one that fails it.
-  skip_if_not_installed("ggridges")
-
-  p0 <- testing_parameters("FF16")
-  env <- Environment("FF16")
-  ctrl <- Control()
-  
-  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177, 16.51006))
-
-  # test report generation
-  out <- tidy(run(p2, env, ctrl, record = "steps"))
-
-  unlink("tmp", recursive = TRUE)
-  expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = TRUE), "Report for FF16 stand saved at tmp/tmp.html")
-  expect_true(file.exists("tmp/tmp.html"))
-
-  # don't overwrite output if already exists 
-  expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = FALSE), "Report for FF16 stand already exists at tmp/tmp.html")  
-  expect_true(file.exists("tmp/tmp.html"))
-
-  unlink("tmp", recursive = TRUE)
-
-})

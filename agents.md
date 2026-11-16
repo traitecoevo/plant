@@ -235,7 +235,6 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [individual.R](R/individual.R) | The internal growers behind `run(individual, ...)`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
 | [tidy_outputs.R](R/tidy_outputs.R) | `tidy_patch`, `tidy_species`, `tidy_env`, `interpolate_to_{times,heights}`, `integrate_over_size_distribution` |
-| [tidy_plots.R](R/tidy_plots.R) | Plotting helpers (`plot_size_distribution`) |
 | [logging.R](R/logging.R) | `plant_log_console()`, deprecated: plant writes nothing to a log |
 | [zzz.R](R/zzz.R) | `.onLoad`, which wraps `Leaf()` so a misspelt argument name is refused rather than partially matched |
 | [benchmark.R](R/benchmark.R) | `run_plant_benchmarks` |
