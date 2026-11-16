@@ -226,7 +226,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #
   #     The turning point is near 0.1, so the contrast is taken on the falling
   #     limb below it, where the two differ by 14%.
-  expect_gt(abs(at_gain(0.1) - at_gain(0.01)) / at_gain(0.01), 0.1)
+  barely <- at_gain(0.01)
+  expect_gt(abs(at_gain(0.1) - barely) / barely, 0.1)
 
   # (3) As the acclimation gain grows, TF24f tracks the optimum that TF24
   #     computes directly each step, so its offspring production converges
