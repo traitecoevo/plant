@@ -2768,7 +2768,7 @@ equations:
     kind: closed_form
     fills: H_0
     overstorey: theory/models/ff16.qmd
-    note: 'The page says only that seed mass determines the initial height. The live mass of the newborn (coarse roots included, no heartwood) equals the seed mass; prepare_strategy solves it by bisection, and on an active scalar seed_geometry declares the same residual through implicit_value, so $H_0$ carries the traits'' derivatives.'
+    note: 'The page says only that seed mass determines the initial height. The live mass of the newborn (coarse roots included, no heartwood) equals the seed mass; prepare_strategy solves it by TOMS748, and on an active scalar seed_geometry declares the same residual through implicit_value, so $H_0$ carries the traits'' derivatives.'
   FF16.competition:
     model: FF16
     section: ff16_competition
@@ -3476,7 +3476,7 @@ equations:
     writes: []
     kind: closed_form
     fills: H_0
-    note: 'The live mass of a newborn on its allometry, coarse roots included and no storage, equals the seed mass; solved by bisection in prepare_strategy and, on an active scalar, declared through implicit_value. set_initial_states writes it onto the height state at birth. Not on an Overstorey page.'
+    note: 'The live mass of a newborn on its allometry, coarse roots included and no storage, equals the seed mass; solved by TOMS748 in prepare_strategy and, on an active scalar, declared through implicit_value. set_initial_states writes it onto the height state at birth. Not on an Overstorey page.'
   TF24.competition:
     model: TF24
     section: tf24_competition
