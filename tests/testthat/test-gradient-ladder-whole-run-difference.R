@@ -60,11 +60,10 @@ reference_stand <- function(regime) {
 # construction (ladder_zero_outside_every_rate), and the sweep carries it as a
 # fitness column.
 #
-# ⚠️ ASSERTED BOTH WAYS, because the alternative is what this rung did while
-# passing at 13: `reference_compare` drops a reference row whose column the sweep
-# does not carry -- which is right, names change -- and has no way to notice a
-# column the REFERENCE does not carry. Forty of forty-eight were refereed and
-# nothing said so.
+# ⚠️ ASSERTED BOTH WAYS: `reference_compare` drops a reference row whose column
+# the sweep does not carry -- which is right, names change -- and has no way to
+# notice a column the REFERENCE does not carry, so a reference missing columns
+# would pass with nothing said.
 reference_uncaptured_columns <- function() {
   c("TF24_floor_lambda_o", "recruitment_decay")
 }
@@ -112,10 +111,8 @@ reference_compare <- function(regime, rows) {
 # has nothing to referee on them. Named rather than inferred: a regime that stops
 # answering and one that never answered both arrive refused.
 #
-# Empty since the storage pool's charge and drain form came back: `shaded` and
-# `clamped` sat here while the pool integrated past its own ceiling, and the
-# reference has carried 280 rows for each of them all along. Kept rather than
-# deleted, because what it asserts now is that nothing is refused.
+# Empty, and kept rather than deleted, because what it asserts is that nothing
+# is refused.
 reference_range_gap <- character(0)
 
 test_that("the sweep agrees with a difference of whole runs, over five regimes", {
@@ -182,13 +179,13 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # the leaf boundary carries and are the last columns to resolve.
     tolerance <- pmax(3 * r$spread, 2e-3)
     over <- live & r$residual > tolerance
-    # ⚠️ THIS RUNG IS WHAT FOUND THE KNOT GRID, and the floor is what found it.
-    # `shaded` and `clamped` read 9.9e-03 and 8.0e-03 here while the light field
-    # was tabulated against knots at u_k * height_max whose positions were passivised:
-    # the canopy top is a cohort's height, so the grid moved with it and the
-    # gradient carried only the values and the slopes. Every other rung takes the
-    # field AS values and slopes, so none of them could see it. Widening this
-    # floor to pass would have buried it.
+    # ⚠️ THIS RUNG IS THE ONLY ONE THAT SEES THE KNOT GRID, through this floor.
+    # The light field is tabulated against knots at u_k * height_max, and the
+    # canopy top is a cohort's height, so the grid moves with it. With the knot
+    # positions passivised the gradient carries only the values and the slopes,
+    # and `shaded` and `clamped` read 9.9e-03 and 8.0e-03 here. Every other rung
+    # takes the field AS values and slopes, so none of them can see it. Widening
+    # this floor to pass would bury it.
     expect_equal(sum(over), 0L,
                  label = paste0(r$name, ": ", sum(over), " column(s) past the ",
                                 "reference's own spread, worst ",

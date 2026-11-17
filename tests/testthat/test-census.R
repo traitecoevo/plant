@@ -65,8 +65,7 @@ census_r <- function(species, pars, eta, include_boundary = TRUE,
 # One stand for every block below, on the birth-date coordinate the reverse
 # sweep transposes, and WRITTEN into the initial state rather than grown into.
 # Three cohorts at mutually non-commensurate birth dates, three scheduled
-# introductions and a patch lifetime of 2: six nodes and a live boundary node,
-# in 0.15 s.
+# introductions and a patch lifetime of 2: six nodes and a live boundary node.
 #
 # ⚠️ THE LIVE BOTTOM IS THE PREMISE EVERY CHECK HERE RESTS ON, and it is what a
 # grown distribution is expensive to reach. Where the boundary node's density has
@@ -328,13 +327,11 @@ test_that("the Control a gradient is taken at is the entries that move it", {
   # gradients taken at different floors are gradients of different functions for a
   # different reason, and both reasons belong in the same comparison.
   #
-  # ⚠️ ASKED BY NAME, WHICH IS WHAT MAKES THIS ABLE TO FAIL. The names came from
-  # R until deterministic_patch_runner.h carried them, so the first comparison
-  # was R's own list against
-  # itself, and the values were compared POSITIONALLY against a list built in the
-  # same order -- self-consistent either way. Measured on the form below: a value
-  # wired to the wrong Control field now FAILS, and a name changed in
-  # deterministic_patch_runner.h FAILS.
+  # ⚠️ ASKED BY NAME, WHICH IS WHAT MAKES THIS ABLE TO FAIL. A list of names kept
+  # in R, with values compared POSITIONALLY against a list built in the same
+  # order, is self-consistent either way. Asked by name, a value wired to the
+  # wrong Control field FAILS, and so does a name changed in
+  # deterministic_patch_runner.h.
   #
   # ⚠️ What it still cannot see is a swap among GSS_tol_abs, ci_abs_tol and
   # gradient_curvature_floor, because all three are 1e-3 at the defaults and a swap

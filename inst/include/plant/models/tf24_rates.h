@@ -75,7 +75,7 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // growth is gated on having ample reserves, and mortality reads the buffered
   // relative reserves rather than instantaneous net production -- so a trough
   // draws reserves down and death is gradual, instead of the growth cutoff and
-  // ~1e32 mortality spike that caused the #550 blow-up.
+  // ~1e32 mortality spike that overflows the size-density equations.
   // Read unclamped: a stage below empty keeps finite rates for the error
   // estimate, and non_negative_states() refuses a step that ends there.
   const S storage     = vars.state(state_idx_storage);
@@ -83,7 +83,7 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   using std::exp;
   using std::sqrt;
   const S r           = storage_max > 0.0 ? storage / storage_max : S(0.0);
-  // Reserve-gated growth (#517), following Daniel's intuition that a plant
+  // Reserve-gated growth, following Daniel's intuition that a plant
   // should not grow unless it has ample carbon in storage. Growth and
   // reproduction proceed at the *production* rate, but scaled by a smooth gate
   // G(r) that is ~0 at low relative reserves and ~1 near capacity (logistic
@@ -96,7 +96,7 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // sapwood-scaled capacity, storage is tiny relative to seedling productivity,
   // so a discharge-rate limit would choke establishment.
   const S G = 1.0 / (1.0 + exp(-(r - pars.a_st2) / storage_gate_width));
-  // Smooth positive part of net production (replaces the old hard net>0 cutoff).
+  // Smooth positive part of net production (rather than a hard net>0 cutoff).
   const S P = net_mass_production_dt_;
   const S Ppos =
     0.5 * (P + sqrt(P * P + storage_prod_eps * storage_prod_eps));
@@ -105,7 +105,7 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   const S fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
   const S fraction_allocation_growth_ = fraction_allocation_growth(height);
 
-  // --- Where the growth flux goes (#516) ------------------------------------
+  // --- Where the growth flux goes -------------------------------------------
   // Growth moves a plant ALONG its allometry, plasticity moves it OFF, and
   // rebuilding moves it back. Keeping those three separate is what makes the
   // resting model exact and the departed one interpretable.
@@ -155,8 +155,8 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // Rebuilding buys leaf area at unchanged height, and it buys the WHOLE
   // package -- leaf, fine root, and the sapwood and bark that supply it -- at
   // the ratio the plant prefers rather than the one it has. Buying leaf alone
-  // diluted the Huber value, and measured, that dilution dominated: plants
-  // finished under-built rather than over-built (#516).
+  // dilutes the Huber value, and that dilution dominates: plants finish
+  // under-built rather than over-built.
   const S rebuild_rel =
     rebuild_share * growth_flux * fraction_allocation_growth_ /
       (mass_live_per_area_leaf_at_height(height) * area_leaf_);
@@ -177,8 +177,7 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // without a test: sqrt(P^2 + eps^2) >= |P| makes Ppos and the drain both >= 0,
   // and G is a logistic so 1 - G >= 0. Their difference is the net flux exactly,
   // Ppos(1 - G) - (Ppos - P) = P - growth_flux, so the split itself moves
-  // nothing; what it buys is somewhere to limit each direction on its own
-  // (#609).
+  // nothing; what it buys is somewhere to limit each direction on its own.
   const S charge = Ppos * (1.0 - G);      // surplus the gate withheld
   const S drain  = Ppos - P;              // shortfall met from reserves
   // Each direction is limited by the room the other has: the charge fills
@@ -186,14 +185,14 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // the pool is a first-order filter on production, and both bounds follow from
   // the form with no scale left to choose -- at r = 0 the rate is charge >= 0,
   // at r = 1 it is -drain <= 0. It is also smooth where the net flux changes
-  // sign, where the old branch stepped the slope by (r + drain_ref)/r, unbounded
+  // sign, where a branch would step the slope by (r + drain_ref)/r, unbounded
   // as the reserves empty.
   //
-  // Narrowing the drain to r/(r + D) is the shape this replaced and the one a
-  // reader is most likely to restore, since it looks like the more faithful
-  // limiter. It puts an attracting fixed point at r ~ D whose relaxation time is
+  // Narrowing the drain to r/(r + D) is the shape a reader is most likely to
+  // reach for, since it looks like the more faithful limiter. It puts an
+  // attracting fixed point at r ~ D whose relaxation time is
   // storage_max D / drain -- under an hour for a seedling at D = 1e-3, against a
-  // solver stepping in days, and measured at 26 times the accepted steps.
+  // solver stepping in days, which multiplies the accepted steps many times over.
   //
   // The pool is capped by withholding the surplus rather than by spending it,
   // so production and the two flows no longer balance: at capacity the charge
@@ -207,10 +206,10 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
                 (charge * (1.0 - r) - drain * r) /
                     (1.0 + relaxation_rate * pars.storage_relaxation_offset));
 
-  // --- The two departures (#516) --------------------------------------------
+  // --- The two departures ---------------------------------------------------
   // Relative rates, so both are scale-free: the same withheld fraction thins a
   // seedling's canopy and an adult's by the same proportion, which is what
-  // keeps these parameters from repeating storage_prod_eps's mistake (#620) of
+  // keeps these parameters from repeating storage_prod_eps's mistake of
   // being an absolute constant against fluxes spanning six orders.
   //
   // Leaf area loses the turnover it did not replace and regains what rebuilding
@@ -242,17 +241,17 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
                   rebuild_rel * (exp(-sapwood_departure) - 1.0) +
                   pars.a_sw * sapwood_marginal_);
 
-  // Instantaneous mortality rate, now driven by relative reserves r.
+  // Instantaneous mortality rate, driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
       mortality_dt(r, vars.state(MORTALITY_INDEX)));
 
 }
 
 // The leaf's outputs and the root mass, written as readings: their only
-// consumers are r_internals and ode_aux, both R-facing. Writing them at double alone was tried and measured at no
-// difference, because a store into a slot the vector already holds pushes a
-// statement and registers nothing -- it is a newly constructed active scalar
-// that costs a slot, not a write to a live one.
+// consumers are r_internals and ode_aux, both R-facing. Writing them at double
+// alone would save nothing, because a store into a slot the vector already
+// holds pushes a statement and registers nothing -- it is a newly constructed
+// active scalar that costs a slot, not a write to a live one.
 template <typename S>
 void TF24_Model<S>::write_leaf_readings(Internals<S>& vars,
                                            const S& area_leaf_) {
@@ -294,9 +293,9 @@ S TF24_Model<S>::sapwood_marginal_return(
   if (odelia::util::to_passive(pars.a_sw) > 0.0 &&
       maintenance_flux_ > 0.0) {
     const S mass_sapwood_now = mass_sapwood_;
-    // Read, do not recompute: #617 replaced the height-linear denominator with
-    // a path integral, and a recomputed copy here would still have been on the
-    // old relation -- wrong by a factor 0.35 at 16 m, and silent.
+    // Read, do not recompute: a recomputed copy here falls silently out of step
+    // whenever the denominator's relation changes -- a height-linear copy of the
+    // path integral is wrong by a factor 0.35 at 16 m.
     const S kmax_now = leaf_specific_conductance_max_;
     const S conv = pars.a_bio * pars.a_y;
     // psi enters kmax and sapwood mass both as exp(psi), so d/dpsi of each is
@@ -306,7 +305,7 @@ S TF24_Model<S>::sapwood_marginal_return(
     //     replacement_sapwood * k_s * m_s,  replacement_sapwood ∝ exp(-psi/a_pl2)
     // against m_s ∝ exp(psi), so the charge falls as exp((1 - 1/a_pl2) * psi) --
     // steeply, a_pl2 being well below one. Differentiating the UNGATED cost
-    // instead drops a term worth +6.8 kg/yr of 13.1 at the default, and moved
+    // instead drops a term worth +6.8 kg/yr of 13.1 at the default, and moves
     // the controller's zero from 1.35x the pipe-model ratio down to 1.05x.
     // Respiration carries no such gate, so it keeps the plain exp(psi).
     const S charged_sapwood_turnover =
@@ -477,16 +476,16 @@ S TF24_Model<S>::mortality_growth_independent_dt() const {
   return pars.d_I;
 }
 
-// Storage-dependent growth mortality (#517), following Stefaniak et al. 2026
+// Storage-dependent growth mortality, following Stefaniak et al. 2026
 // (Eq 6). Bounded in [a_dG1*exp(-a_dG2), a_dG1] for r in [0,1]: full reserves
 // (r=1) give near-zero excess mortality; empty reserves (r=0) give the finite
-// maximum a_dG1. This boundedness is what removes the #550 ODE overflow.
+// maximum a_dG1. This boundedness is what keeps the ODE from overflowing.
 template <typename S>
 S TF24_Model<S>::mortality_storage_dependent_dt(const S& relative_reserves) const {
   return pars.a_dG1 * exp(-pars.a_dG2 * relative_reserves);
 }
 
-// NSC storage capacity: scales with sapwood mass (per Daniel, #517). mass_sapwood
+// NSC storage capacity: scales with sapwood mass (per Daniel). mass_sapwood
 // = area_sapwood(area_leaf, departure) * height * eta_c * rho.
 template <typename S>
 S TF24_Model<S>::storage_capacity(const S& area_leaf_, const S& height,

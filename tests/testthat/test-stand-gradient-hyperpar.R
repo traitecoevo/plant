@@ -1,6 +1,6 @@
 # A trait's column is the total derivative as the trait moves through the
 # hyperparameter function that built the strategy; hyperpar = NULL gives the
-# partials, with every derived parameter fixed. For lma the partial was 2.4
+# partials, with every derived parameter fixed. For lma the partial is 2.4
 # to 4 times the total.
 
 hyperpar_parameters <- function(lifetime = 3) {
@@ -69,7 +69,7 @@ test_that("the total agrees with a difference of the trait through add_strategie
   h <- 1e-3 * 0.0825
   fd <- (census_at(0.0825 + h) - census_at(0.0825 - h)) / (2 * h)
   # Measured 3e-5 to 8e-5 across two steps, which is the difference's own noise;
-  # the partial was 2.4 to 3.4 times off.
+  # the partial is 2.4 to 3.4 times off.
   expect_equal(tot$gradient[names(fd), "1.lma"], fd, tolerance = 1e-3)
 })
 

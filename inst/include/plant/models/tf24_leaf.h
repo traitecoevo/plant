@@ -262,7 +262,7 @@ void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
     }
     // Named rather than braced: the rows cross as a span, which borrows storage
     // instead of owning it, so a stack array is what holds them here -- and is
-    // what the span was for, since a braced list built a vector per call.
+    // what the span is for, since a braced list would build a vector per call.
     const odelia::input_and_derivative<S> rows[]{{from, 1.0}};
     const odelia::supply_report report =
         odelia::supply_derivatives<S>(value, rows, into);
@@ -313,14 +313,14 @@ S TF24_Model<S>::update_leaf_specific_conductance_max(
   // then bit-identical to the height-linear code it replaces.
   const S stem_path_length = stem_hydraulics::effective_path_length(
       S(height * eta_c), pars.L_tip, stem_path_exponent());
-  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta (#516). Supply per unit leaf area
+  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta. Supply per unit leaf area
   // follows the Huber value the plant actually carries, so a stem that keeps its
   // conducting area while the canopy thins supplies each remaining leaf better.
-  // That is the acclimation half of #516, and it is also what the sapwood
-  // controller differentiates: psi enters here as exp(psi), which is why
+  // That is the acclimation half of flexible allometry, and it is also what the
+  // sapwood controller differentiates: psi enters here as exp(psi), which is why
   // d(kmax)/d(psi) is just kmax. Stored so the controller reads the SAME value
   // rather than recomputing it -- recomputing it is how the two silently drift
-  // apart when the denominator changes, as it did in #617.
+  // apart when the denominator changes.
   S leaf_specific_conductance_max =
     pars.K_s * sapwood_per_leaf_area(sapwood_departure) / stem_path_length;
   leaf_specific_conductance_max_ = leaf_specific_conductance_max;
@@ -496,8 +496,8 @@ S TF24_Model<S>::solve_leaf_over_crown(
     // crown (q integrates to one). PPFD_int_at then applies pars.k_I * PPFD_above,
     // exactly reproducing TF24's established average_radiation.
     //
-    // Each point's light is floored at 1e-4 first (the original rationale was
-    // never recorded; preserved as-is). Counted here, because this is where the
+    // Each point's light is floored at 1e-4 first; the floor has no stated
+    // physical basis. Counted here, because this is where the
     // floor binds: the crown weights sum to one, so a mean of floored values
     // cannot fall below the floor itself.
     const auto floored = [this](const auto& light) {
@@ -565,7 +565,7 @@ S TF24_Model<S>::solve_leaf_over_crown(
   return PPFD_int_used;
 }
 
-// --- How much would more conducting area be worth? (#516) ------------------
+// --- How much would more conducting area be worth? -------------------------
 // d(profit)/d(kmax) at the operating point the leaf just found.
 //
 // ⚠️ THIS COSTS TWO FURTHER LEAF SOLVES, and there is no way around it. The
@@ -627,7 +627,7 @@ void TF24_Model<S>::measure_dprofit_dkmax(
   }
 }
 
-// --- Is the marginal leaf paying for itself? (#516) ------------------------
+// --- Is the marginal leaf paying for itself? -------------------------------
 // The gate reads this rather than the reserve pool, following Manzoni et al.
 // 2015: maximising a season's carbon gain over leaf area gives dG/dL = 0, i.e.
 // shed once a leaf stops covering its own upkeep. That criterion fires while
@@ -685,7 +685,7 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
 
   // psi_soil (MPa, a positive magnitude): the patch column's, computed once
   // per soil state and cached in the environment -- or, in TF24w, this
-  // cohort's own column (#681).
+  // cohort's own column.
   const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
 
   const S leaf_specific_conductance_max =
@@ -743,11 +743,10 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
   // 0.25, the objective understates the carbon kept by 2.3% at lambda_o = 1e4,
   // 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
   //
-  // On TF24_floor `carbon()` is `profit_ + lambda_o * transpiration_`, bit for
-  // bit what this summed before phylloptim billed it, and `profit_` itself at the
-  // default price. No second canopy integral is needed: it reads the stored
-  // `profit_` and `transpiration_`, which the DeepCrown branch integrated against
-  // the same weights, and it is linear in both.
+  // On TF24_floor `carbon()` is `profit_ + lambda_o * transpiration_`, and
+  // `profit_` itself at the default price. No second canopy integral is needed:
+  // it reads the stored `profit_` and `transpiration_`, which the DeepCrown
+  // branch integrated against the same weights, and it is linear in both.
   S profit_ = leaf.carbon();
   if constexpr (!std::is_same_v<S, double>) {
     record_leaf_outputs(PPFD_int_used, psi_soil,
@@ -800,7 +799,7 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
 // a dead run. phylloptim raises its own infeasible_error, which derives from
 // std::runtime_error and NOT from odelia::util::DomainError -- they are siblings
 // -- so odelia's stepper cannot recognise it, and the throw kills the whole solve
-// having taken zero steps (#608 measured exactly this). Translating it lets odelia
+// having taken zero steps. Translating it lets odelia
 // shrink and retry, and it stops only if the minimum step still cannot reach a
 // feasible probe, reporting phylloptim's own message when it does.
 //
@@ -813,7 +812,7 @@ void TF24_Model<S>::solve_leaf() {
   try {
     if (recorded.kind == Leaf::OperatingPointKind::Unsolved) {
       // THE CURVE-TYPED FORM, which names the curve the surface below reads.
-      // (find_root_collar_psi() now solves the seated curve too.)
+      // (find_root_collar_psi() solves the seated curve too.)
       leaf.template find_root_collar_psi_for<
           phylloptim::Leaf::CostCurve::TF24_floor>();
     } else {

@@ -7,9 +7,9 @@
 # aggregate residual says.
 #
 # Six routes are known and the count is the routes found rather than a closed
-# set: two of the six were missed by an enumeration that declared itself
-# complete, so a seventh discovered later is a seventh switch and not a reason to
-# distrust the six.
+# set: an enumeration that declares itself complete can still miss one, so a
+# seventh discovered later is a seventh switch and not a reason to distrust the
+# six.
 #
 # Most routes already have their switch somewhere in the ladder, and saying where
 # is the point of this file.

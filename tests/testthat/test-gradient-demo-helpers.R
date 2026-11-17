@@ -17,8 +17,8 @@ test_that("gd_point() reads a value for every gradient column", {
 })
 
 test_that("gd_point() gives partials, and chaining them is stand_gradient()'s total", {
-  ## The guide sets the partial beside the total. When gd_point() took the
-  ## gradient through the trade-offs `p` carries, both columns were the total.
+  ## The guide sets the partial beside the total. A gd_point() that took the
+  ## gradient through the trade-offs `p` carries would make both columns the total.
   skip_on_cran()
   source(guide_helpers("gradient_demo_helpers.R"), local = TRUE)
   tr <- unlist(gd_traits())

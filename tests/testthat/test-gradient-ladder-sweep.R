@@ -139,11 +139,9 @@ test_that("a shut point answers, and the branch it took is what decides", {
 })
 
 test_that("a shut point's rows are numbers, and every one of them is finite", {
-  # The old form of this check asserted that no vector was produced at all, on
-  # the grounds that a refused row coming back as zeros is indistinguishable from
-  # an answer. That hazard has not gone away -- it has moved: the rows here ARE
-  # numbers now, so what has to hold is that they are finite and that the zeros
-  # among them are the structural ones.
+  # A refused row coming back as zeros is indistinguishable from an answer. The
+  # rows here ARE numbers, so what has to hold is that they are finite and that
+  # the zeros among them are the structural ones.
   #
   # Where a refusal is still reachable, `test-gradient-parity.R` carries the
   # absence-never-a-number check against a driver that genuinely refuses.
@@ -163,13 +161,13 @@ test_that("both output kinds answer at a shut point, which they did not before",
   # degeneracy except a jump of the argmax and an undefined objective, and the
   # uptake row is the one that ceases to exist.
   #
-  # At a shut point the question is now moot in the direction that matters --
+  # At a shut point the question is moot in the direction that matters --
   # BOTH answer. The rows are a substituted constant plus the bound's movement,
   # and neither output kind is missing. So this measures that all four adjoints come
   # back rather than that all four are refused together.
   #
-  # ⚠️ The independence requirement is not discharged HERE, and no longer needs
-  # to be: the block above discharges it on a fixture where the guard fires.
+  # ⚠️ The independence requirement is not discharged HERE, and need not
+  # be: the block above discharges it on a fixture where the guard fires.
   # What this one says is narrower and still worth saying -- at a shut point the
   # question is moot, because both kinds answer.
   shutdown <- ladder_patch_shutdown()

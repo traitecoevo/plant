@@ -111,8 +111,7 @@ test_that("the boundary's own term enters once per stage of every step", {
     # already visited, so every operating point it needs was found once already and
     # is placed rather than searched for -- but a record that quietly places nothing
     # searches again and returns the same numbers, because the search answers from
-    # the same state. This count is the only thing that separates the two, and
-    # nothing was reading it.
+    # the same state. This count is the only thing that separates the two.
     #
     # A floor rather than an equality: the sweep addresses five stages of every step
     # and each places one point per cohort, so this is expected to be several times

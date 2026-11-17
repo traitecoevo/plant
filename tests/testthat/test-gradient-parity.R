@@ -18,9 +18,9 @@
 # A refusal naming anything else is a regime that USED to answer, which is what
 # this file exists to catch.
 #
-# ⚠️ ONE ENTRY, AND IT IS THE SWEEP'S OWN. `shade-death` left this list when the
-# shut branches answered; the LIGHT FLOOR left it when the row it severs was
-# found to be exactly zero for the model as evaluated -- every light below the
+# ⚠️ ONE ENTRY, AND IT IS THE SWEEP'S OWN. The shut branches answer, so
+# `shade-death` is not here; nor is the LIGHT FLOOR, because the row it severs is
+# exactly zero for the model as evaluated -- every light below the
 # floor gives a bit-identical census, so the honest row is the zero rather than a
 # refusal, and what makes the zero readable is the clamp counter rather than a
 # name here.
@@ -34,9 +34,7 @@ parity_known_gaps <- ladder_range_refusal
 # stops answering and one that never answered both come back refused, and only
 # the name separates them.
 #
-# Empty since the storage pool's charge and drain form came back: `shaded` and
-# `clamped` sat here while the pool integrated past its own ceiling, and both
-# answer now. Kept rather than deleted, because what it asserts now is that every
+# Empty, and kept rather than deleted, because what it asserts is that every
 # driver answers, which is the reading a later refusal has to fail against.
 parity_range_gap <- character(0)
 
@@ -44,7 +42,8 @@ parity_range_gap <- character(0)
 #
 # The trajectory is read AFTER the sweep and costs nothing: stand_gradient's own
 # store_recording() has already kept it, where reading it first would run the
-# model twice. Counted rather than carried -- one driver's states are 67 MB.
+# model twice. Counted rather than carried -- one driver's states run to tens of
+# megabytes.
 parity_of <- function(solver) {
   g <- stand_gradient(solver, hyperpar = NULL)
   refused_metric <- stand_gradient_refused(g)
@@ -73,26 +72,14 @@ parity_of <- function(solver) {
 # `introductions` thins the default schedule, and it is a COST setting rather
 # than a regime one -- the default derives its introduction count from the patch
 # lifetime, so a driver pays for cohorts none of the checks below asks about.
-# Measured over all five, run and swept, against the three axes this file
-# reports: the verdict, the operating-point kinds reached, and the clamp sites
-# the SWEEP met. The counts are phylloptim 0.16's; later releases take far fewer
-# steps on these stands (seasonal a few hundred at either length), so the table
-# says what thinning costs each driver, not what a run costs now.
-#
-#   driver      steps 88 -> 20   seconds 88 -> 20   what moves at 20
-#   wet            422 ->  368     16.4 ->   3.8    nothing
-#   drought       2415 -> 1441     79.9 ->  12.1    nothing
-#   shaded       11810 -> 3250    318.6 ->  21.5    nothing
-#   clamped      11347 -> 3267    259.0 ->  17.6    nothing
-#   seasonal      6582 -> 3723    156.1 ->  13.0    LOSES determined and
-#                                                   hydraulic-shutdown
+# Thinned to twenty, wet, drought, shaded and clamped move on none of the three
+# axes this file reports: the verdict, the operating-point kinds reached, and
+# the clamp sites the SWEEP met.
 #
 # ⚠️ SEASONAL KEEPS ITS WHOLE SCHEDULE AND IS THE REASON THIS IS PER DRIVER.
-# It was measured on phylloptim 0.16, where it was this file's only route to a
-# hydraulic shutdown and the thinned run reached boundary-root-crit instead. On
-# 0.26 neither kind exists in these stands and it reaches boundary-dry; the
-# full schedule is kept so the dry end is reached on a recorded step. Every
-# other driver's verdict, kinds and clamp sites are the same at either length.
+# It reaches boundary-dry, and the full schedule is kept so the dry end is
+# reached on a recorded step. Every other driver's verdict, kinds and clamp
+# sites are the same at either length.
 parity_introductions <- c(wet = 20L, drought = 20L, seasonal = NA_integer_,
                           shaded = 20L, clamped = 20L)
 
@@ -102,8 +89,8 @@ parity_drivers <- lapply(ladder_reference_regimes(), function(d) {
 })
 
 # Each driver is run and swept ONCE. The sweep is the whole cost here -- the run
-# is free -- and three checks reading one sweep is the difference between a file
-# that costs a minute and one that costs four.
+# is free -- so the three checks below read one sweep rather than paying for
+# three.
 parity_cache <- new.env(parent = emptyenv())
 
 # What the answer is a function of, and nothing else: the compiled object, and the
@@ -170,8 +157,8 @@ test_that("no driver the forward model answers leaves the reverse unnamed", {
 
     entries <- r$gradient$gradient
     if (r$refused) {
-      # Named, always. A refusal a reader cannot name is the raw error the
-      # status channel replaced.
+      # Named, always. A refusal a reader cannot name is no better than a raw
+      # error.
       expect_true(is.character(r$reason) && nchar(r$reason) > 0)
 
       # Located as far as the grain allows. One recording spans six stages and
@@ -277,8 +264,8 @@ test_that("each driver reaches the branch it is here for", {
   # PINNED operating points (the collar's dry end) on the gradient's path, and
   # the shaded and clamped drivers put shut leaves (the wet bound) there; a run
   # that answered without ever reaching one would pass the gate while testing
-  # nothing. The drought driver used to pin at psi_crit, which is no longer a
-  # bound: its stem follows the soil, so it is interior throughout.
+  # nothing. The drought driver does not pin: psi_crit is not a bound and its
+  # stem follows the soil, so it is interior throughout.
   by_name <- stats::setNames(parity_shared(), vapply(parity_shared(),
                                                      function(r) r$name, ""))
   reach <- function(nm, kind) {
@@ -289,7 +276,7 @@ test_that("each driver reaches the branch it is here for", {
   expect_gt(reach("shaded", "boundary-soil"), 0)
   expect_gt(reach("clamped", "boundary-soil"), 0)
   # And the control has to be a control: the wet driver never leaves the branch
-  # the gradient was first built for, which is what makes it the one fixture a
+  # the gradient is built for, which is what makes it the one fixture a
   # regression shows up against cleanly.
   expect_equal(unname(reach("wet", "interior")), unname(sum(by_name[["wet"]]$kinds)))
 })
@@ -301,7 +288,7 @@ test_that("no state the sweep replays is one a row cannot attach to", {
   # numbers and records a trajectory the sweep then replays; the gradient comes
   # back not-a-number for every metric with no refusal declared, which the gate
   # above cannot see because there is nothing to name. The introduction condition
-  # was the source: -log(pr_estab) at an establishment probability of exactly
+  # is one source: -log(pr_estab) at an establishment probability of exactly
   # zero, which the shaded and clamped drivers reach and the other three do not.
   #
   # Asserted over the recorded states rather than over the gradient, because the

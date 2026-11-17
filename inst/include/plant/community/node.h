@@ -58,7 +58,8 @@ public:
   }
   // The next node has arrived, so this node's establishment is final: write it
   // into the state, where it stays. A node that nothing established on is
-  // retired on the sentinels a cohort born with no density used to carry.
+  // retired: its mortality takes establishment_failure_hazard and its density
+  // the finite zero that hazard gives.
   void fold_establishment(const value_type& e) {
     scaled_ = false;
     density_scale = value_type(1.0);
@@ -274,12 +275,12 @@ void Node<T,E>::compute_node_rates(const environment_type& environment,
   // `-d(growth)/d(height) - mortality`, which is non-zero for a dead cohort, so
   // without it the density DRIFTS OFF ITS FLOOR: exp(-establishment_failure_hazard)
   // is exactly zero, but integrating a positive rate up to -700 reaches 1e-305,
-  // which is a cohort that does not exist acquiring a density. The -Inf this
-  // sentinel replaced could not drift, so a finite one needs saying explicitly.
+  // which is a cohort that does not exist acquiring a density. A -Inf could not
+  // drift; a finite sentinel can, so the guard has to say so explicitly.
   //
   // ⚠️ A POSITIVE FINITE DENSITY, AND BOTH HALVES ARE LOAD-BEARING. `density > 0`
-  // is what the floor needs once log(0)'s -Inf was replaced by a finite
-  // sentinel; `is_finite(log_density)` is what an overflow to +Inf needs, which
+  // is what the floor needs, since the floor is a finite sentinel and not
+  // log(0)'s -Inf; `is_finite(log_density)` is what an overflow to +Inf needs, which
   // passes `> 0` and is not a density anything can be carried along.
   log_density_dt = (util::is_finite(log_density) && density > 0.0)
                      ? individual.log_density_rate(environment)

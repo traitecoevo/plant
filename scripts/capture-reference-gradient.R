@@ -1,15 +1,13 @@
 # The differenced reference the analytic leaf rows are refereed against.
 #
-# WHY THIS EXISTS AND WHY IT COMES FIRST. Report 10 replaces differenced leaf rows
-# with analytic ones. A change from differenced to analytic returns a finite,
-# plausible, wrong gradient when it is wrong, and the differenced implementation is
-# the only instrument that shares no assumption with the sweep -- so it is the
-# reference, and it stops existing the moment it is deleted. This captures it while
-# it is still there.
+# WHY THIS EXISTS. Analytic leaf rows in place of differenced ones return a finite,
+# plausible, wrong gradient when they are wrong, and the differenced implementation
+# is the only instrument that shares no assumption with the sweep -- so it is the
+# reference, and once that implementation is deleted it cannot be recaptured.
 #
 # WHAT IT IS. `ladder_run_difference_pair` rebuilds the strategy and re-runs a
 # stand where two species COMPETE, so the row it reads carries the belowground
-# coupling a single-species reference cannot see: rows six per cent out have agreed
+# coupling a single-species reference cannot see: a row six per cent out can agree
 # with a one-species reference to 1e-06.
 #
 # ⚠️ THE STEP IS NOT A DETAIL. A column whose sensitivity is an order below its
@@ -54,8 +52,8 @@ g17 <- function(x) formatC(x, format = "g", digits = 17)
 
 # ⚠️ THE SAME EXPRESSION THE WHOLE-RUN RUNG ASSERTS THIS FILE COVERS, so the
 # capture and the check cannot disagree about what a column is. Written two ways
-# they did: the rung read the strategy's registered parameters and this read the
-# names a patch carried, and seven columns sat uncaptured and unrefereed.
+# they do: one reading the strategy's registered parameters and the other the
+# names a patch carries leaves columns uncaptured and unrefereed.
 columns <- setdiff(names(TF24_Model()$pars),
                    names(census_undifferentiable("TF24")))
 cat(sprintf("columns %d   regimes %d   species 2\n",
@@ -106,7 +104,7 @@ for (rg in regimes) {
                  step = got$step, spread = got$spread, note = "",
                  stringsAsFactors = FALSE)
     }
-    # The columns are independent and there are 480 of them at nine runs each, so
+    # The columns are independent and each takes nine runs, so
     # they go out to separate processes -- but a forked worker that dies reports
     # only that all cores errored, so each carries its own condition back.
     got <- parallel::mclapply(columns,

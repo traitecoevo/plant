@@ -2,7 +2,7 @@
 # same trajectory, one column at a time.
 #
 # Split from the rest of the two-species checks because it is the expensive half -- a tangent column
-# is 4.8 s and this asks for twenty-two of them -- and because the claim is
+# is a pinned run of its own and this asks for twenty-two of them -- and because the claim is
 # different in kind. Those ask whether accumulation across cohorts and
 # species is right; this asks whether each column agrees with an independent
 # derivative of the same run, which is the contraction the whole rung rests on.
@@ -62,9 +62,8 @@ test_that("each shortlisted trait's own column is refereed", {
   # zero, so every shortlisted parameter is asked for as a coordinate direction:
   # one pinned run, one exact column of the census-by-trait Jacobian.
   #
-  # One bound for every column. There were two, the looser one held the pair of
-  # allometric constants, and it was the class the pair belongs to that was wrong
-  # rather than the pair -- so a second bound would now excuse the same shape again.
+  # One bound for every column. A looser second bound for a pair of columns
+  # excuses a defect in the class the pair belongs to.
   shared <- ladder_shared("two_by_two")
   stand <- shared$stand
   result <- shared$gradient

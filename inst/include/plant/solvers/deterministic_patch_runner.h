@@ -108,7 +108,7 @@ public:
 
   // ---- Construction ------------------------------------------------------
   // An empty `ev` means "no events supplied": the schedule then comes from
-  // p.node_schedule_times exactly as it always has (#522).
+  // p.node_schedule_times.
   DeterministicPatchRunner(parameters_type p, environment_type e, plant::Events ev, plant::Control c);
 
   // ---- Simulation lifecycle ----------------------------------------------
@@ -123,7 +123,7 @@ public:
   // run() does, so a sequence of these is a run() leg for leg; a finished one
   // is left where it is. What a caller driving a run from outside needs -- a
   // convergence test between legs, an export at a time of its choosing --
-  // without a Patch copy per step (#519).
+  // without a Patch copy per step.
   void run_to(double t);
 
   // A thinned record of the run: one summary per `snapshot_interval` years,
@@ -159,7 +159,7 @@ public:
   void run_mutant(parameters_type p);
   // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
   // one of them stands in ONE field, the resident's as it stands now, constant for
-  // the whole of their run (#519). Where run_mutant() reads a resident's
+  // the whole of their run. Where run_mutant() reads a resident's
   // recorded field step by step, a fixed point has a single field, so nothing
   // is recorded and nothing read back, and an invader takes its own steps. The
   // field is taken at the first call, from the state the resident has reached
@@ -170,12 +170,10 @@ public:
 
   // Run, keeping the state at each accepted step, and return one row per step.
   //
-  // A run pinned to this run's times and sizes DOES reproduce these states, bit for
-  // bit over 3381 steps, and pays 15% less because it attempts no step it will
-  // reject. This said the opposite -- that a rejected attempt moves patch state
-  // which is not ODE state, and a pinned run makes none -- and the states are
-  // measurably identical, so whatever a rejected attempt leaves behind is rebuilt
-  // from the state before anything reads it.
+  // A run pinned to this run's times and sizes reproduces these states bit for
+  // bit, and is cheaper because it attempts no step it will reject. A rejected
+  // attempt can move patch state that is not ODE state, but whatever it leaves
+  // behind is rebuilt from the state before anything reads it.
   // The record the run kept, read in place off the solver: one row per accepted
   // step carrying its time, the size that reached it and the state there. Not a
   // copy and not a re-pairing -- the solver holds exactly this.
@@ -339,7 +337,7 @@ public:
     // A private root-zone column couples cohorts through the patch -- the
     // mixing and land-transfer terms of Patch::private_water_exchange -- outside
     // the per-cohort block the recording describes, so its gradient would be a
-    // different function's (#681).
+    // different function's.
     if constexpr (HasPrivateWater<T>) {
       util::stop(std::string(entry) +
                  ": TF24w's private root-zone water is not differentiable. "
@@ -1204,7 +1202,7 @@ typename DeterministicPatchRunner<T, E>::recording DeterministicPatchRunner<T, E
   // Handed back as the solver holds it. The state, the time it was reached at and
   // the size that reached it are one record there, so nothing here pairs them and
   // nothing copies them -- projecting the three apart and rebuilding the same row
-  // was work whose only product was a chance to mispair.
+  // would be work whose only product is a chance to mispair.
   return solver.recording();
 }
 

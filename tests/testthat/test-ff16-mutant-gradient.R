@@ -1,5 +1,5 @@
 # The rare-mutant derivative on FF16: an invader's fitness differentiated by
-# its own traits in the residents' recorded field (plant#650, E2).
+# its own traits in the residents' recorded field.
 #
 # run_mutant() runs the invaders on the resident's steps, reading the field the
 # resident made at every rate evaluation, in the run and in its sweep alike: the
@@ -139,7 +139,7 @@ test_that("invaders do not shade each other, and an invader's birth rate reaches
 test_that("an invader introduced after the pinned run starts has a gradient", {
   # The invader's patch is empty, and FF16's environment carries no state, so
   # the pinned run steps with no state until its first cohort; the sweep passes
-  # those steps over (odelia 0.7.3).
+  # those steps over.
   solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
   p <- mutant_parameters(solver, 0.09)
   tt <- p$node_schedule_times[[1]]
@@ -159,7 +159,7 @@ test_that("an invader introduced after the pinned run starts has a gradient", {
 test_that("an invader of a resumed resident is born in the resident's canopy at the resume instant", {
   # The resident resumes at 6 and its first cohort after the resume is born at
   # 6 itself, in the field of the state the resident resumed from. Establishment
-  # reads it, so a_d0 is the column that shows the wrong canopy (it was 26 % off).
+  # reads it, so a_d0 is the column that shows the wrong canopy.
   p <- resident_parameters(lifetime = 12)
   p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))

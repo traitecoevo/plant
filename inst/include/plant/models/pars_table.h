@@ -63,8 +63,8 @@ constexpr std::size_t column_count(const Fields& fields,
 }
 
 // The fields that carry a column, filtered once at compile time; filtered per
-// call it was a string comparison against every excluded name for each field,
-// and the gradient asks for this list once per recording.
+// call it would be a string comparison against every excluded name for each
+// field, and the gradient asks for this list once per recording.
 template <std::size_t M, class Fields, std::size_t N>
 constexpr std::array<typename Fields::value_type, M>
 columns(const Fields& fields, const std::array<no_gradient, N>& excluded) {
