@@ -728,9 +728,10 @@ public:
   // which is what keeps them equal under a flat-top one.
   with_slope<S> compute_competition_and_slope(const S& z, const Internals<S>& vars) const {
     const S& area_leaf_ = vars.aux(aux_idx_competition_effect);
-    const S& height_inverse = vars.aux(aux_idx_height_inverse);
-    // Not skipped above the crown, as FF16 is: skipping the zero products here
-    // moves these rows in their last bits.
+    // A copy, and not skipped above the crown as FF16 is: binding it by
+    // reference or skipping the zero products moves these rows in their last
+    // bits, because both change the order the sweep sums adjoints in.
+    const S height_inverse = vars.aux(aux_idx_height_inverse);
     const S scale = pars.k_I * area_leaf_;
     const std::pair<S, S> Qq =
       canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
