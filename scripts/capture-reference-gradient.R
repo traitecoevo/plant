@@ -57,7 +57,7 @@ g17 <- function(x) formatC(x, format = "g", digits = 17)
 # they did: the rung read the strategy's registered parameters and this read the
 # names a patch carried, and seven columns sat uncaptured and unrefereed.
 columns <- setdiff(names(TF24_Model()$pars),
-                   names(census_undifferentiable_tf24()))
+                   names(census_undifferentiable("TF24")))
 cat(sprintf("columns %d   regimes %d   species 2\n",
             length(columns), length(regimes)))
 

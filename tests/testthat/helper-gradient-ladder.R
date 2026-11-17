@@ -1809,7 +1809,7 @@ ladder_trait_direction <- function(columns, name) {
 # every derivative it reports is a derivative at the state it actually reached.
 ladder_replay_floor <- function(stand, value) {
   reached <- ladder_trajectory_tangent(
-    stand, numeric(length(census_trait_names_tf24(stand))))$value
+    stand, numeric(length(census_trait_names(stand, "TF24"))))$value
   max(abs(reached - value) / abs(value))
 }
 

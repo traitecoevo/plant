@@ -352,40 +352,21 @@ public:
   // birth rate where it is one. The strategy is shared and the fields do not
   // move, so take them once per gradient evaluation.
   std::vector<S*> ad_parameters() {
-    std::vector<S*> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
-      ret.push_back(&(pars.*p.at));
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back(&birth_rate_);
-    }
-    return ret;
+    return pars_table::column_ptrs(
+        pars, has_birth_rate_column() ? &birth_rate_ : nullptr);
   }
 
   // The name each gradient column carries, one per ad_parameters() entry and in
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
-    std::vector<std::string> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
-      ret.push_back(p.name);
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back("birth_rate");
-    }
-    return ret;
+    return pars_table::column_names<FF16_Pars<S>>(has_birth_rate_column());
   }
 
   // The parameters no gradient exists for, each with the sentence that says
   // why, so a caller asking for one is refused in those words rather than told
   // the name is unknown.
-  static std::vector<std::pair<std::string, std::string>> undifferentiable_reasons() {
-    std::vector<std::pair<std::string, std::string>> ret;
-    for (const auto& n : FF16_Pars<S>::undifferentiable) {
-      ret.emplace_back(n.name, n.why);
-    }
-    return ret;
+  static std::vector<no_gradient> undifferentiable_reasons() {
+    return pars_table::undifferentiable<FF16_Pars<S>>();
   }
 
 

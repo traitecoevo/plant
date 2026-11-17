@@ -42,31 +42,14 @@ tf24f_gradient_errors <- function(p, env, metrics, traits, rel = 1e-5) {
   g <- stand_gradient(solver, metrics = metrics, traits = paste0("1.", traits),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-
-  pinned <- solver$parameters
-  pinned$ode_times <- solver$ode_times
-  pinned$ode_step_sizes <- solver$ode_step_sizes
-  pinned$ode_soil_input_slopes <- solver$ode_soil_input_slopes
-  pinned$ode_soil_substep_ends <- solver$ode_soil_substep_ends
+  pinned <- pin_steps(solver)
   metrics_of <- function(q) {
     s <- run(q, env(), ctrl)$solver
     c(stand_census(s), stand_fitness(s))[metrics]
   }
   expect_equal(metrics_of(pinned), g$value[metrics], tolerance = 1e-12)
   vapply(traits, function(name) {
-    set <- function(v) {
-      q <- pinned
-      if (name == "birth_rate") {
-        q$strategies[[1]]$birth_rate_y <- v
-      } else {
-        q$strategies[[1]]$pars[[name]] <- v
-      }
-      q
-    }
-    x <- if (name == "birth_rate") pinned$strategies[[1]]$birth_rate_y
-         else pinned$strategies[[1]]$pars[[name]]
-    h <- rel * abs(x)
-    fd <- (metrics_of(set(x + h)) - metrics_of(set(x - h))) / (2 * h)
+    fd <- central_difference(pinned, 1, name, NULL, metrics_of, rel = rel)
     abs(g$gradient[metrics, paste0("1.", name)] - fd) / abs(fd)
   }, numeric(length(metrics)))
 }
@@ -79,19 +62,24 @@ test_that("TF24f declares TF24's census and fitness", {
                  "1.net_reproduction_ratio", "1.offspring_production"))
   expect_identical(stand_fitness(solver)[["1.offspring_production"]],
                    solver$patch$offspring_production)
-  # The parameters with no column are TF24's, for TF24's reasons.
-  expect_identical(census_undifferentiable_tf24f(),
-                   census_undifferentiable_tf24())
+  # The parameters with no column are TF24's, for TF24's reasons, and the
+  # acclimation gain has a column of its own, before the birth rate.
+  expect_identical(census_undifferentiable("TF24f"),
+                   census_undifferentiable("TF24"))
+  columns <- census_trait_names(solver, "TF24f")
+  expect_equal(utils::tail(columns, 2), c("1.k_acclim", "1.birth_rate"))
+  expect_equal(setdiff(columns, census_trait_names(solver, "TF24")), "1.k_acclim")
 })
 
 test_that("TF24f's stand gradient is the pinned-step central difference", {
   # The seed (lma), the reproduction schedule (hmat), the stem curve, which
-  # moves both ends of the interval and the marginal (stem_P50), and the birth
-  # rate. Every column of both metrics agrees to 2e-6; held to 1e-4.
+  # moves both ends of the interval and the marginal (stem_P50), the
+  # acclimation gain, which reaches the position's rate alone, and the birth
+  # rate. Held to 1e-4.
   errors <- tf24f_gradient_errors(
     tf24f_gradient_parameters(), function() Environment("TF24f"),
     c("leaf_area", "1.offspring_production"),
-    c("lma", "hmat", "stem_P50", "birth_rate"))
+    c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate"))
   expect_lt(max(errors), 1e-4)
 })
 
@@ -105,7 +93,7 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   errors <- tf24f_gradient_errors(
     tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07),
     function() tf24f_dry_pulses(lifetime),
-    "1.offspring_production", c("lma", "stem_P50", "K_s"))
+    "1.offspring_production", c("lma", "stem_P50", "K_s", "k_acclim"))
   expect_lt(max(errors), 1e-4)
 })
 

@@ -71,16 +71,40 @@ ff16_parameters <- function(lifetime) {
 }
 
 # d(metric)/d(name) for species `species` by a centred difference of two runs at
-# x * (1 +- rel), where `measure(p)` runs p and returns its named metrics.
+# x * (1 +- rel), where `measure(p)` runs p and returns its named metrics. With
+# `metric` NULL, every metric `measure` returns, from the same two runs. The
+# birth rate is the name "birth_rate", the strategy's `birth_rate_y`; a name
+# that is not in `pars` is a field of the strategy itself, as TF24f's k_acclim.
 central_difference <- function(p, species, name, metric, measure, rel = 1e-4) {
-  x <- p$strategies[[species]]$pars[[name]]
+  field <- if (name == "birth_rate") "birth_rate_y" else name
+  in_pars <- name %in% names(p$strategies[[species]]$pars)
+  x <- if (in_pars) p$strategies[[species]]$pars[[name]] else
+    p$strategies[[species]][[field]]
   h <- rel * abs(x)
   at <- function(v) {
     q <- p
-    q$strategies[[species]]$pars[[name]] <- v
-    measure(q)[[metric]]
+    s <- q$strategies[[species]]
+    if (in_pars) s$pars[[name]] <- v else s[[field]] <- v
+    q$strategies[[species]] <- s
+    out <- measure(q)
+    if (is.null(metric)) out else out[[metric]]
   }
   (at(x + h) - at(x - h)) / (2 * h)
+}
+
+# A run's parameters with the steps it took pinned, so a perturbed run steps
+# where it stepped: the times and sizes, and the soil's sub-step record, which
+# is empty unless the soil sub-steps. A stand gradient is the derivative of the
+# run at those steps; a difference that lets the stepper choose again
+# differentiates the step-size controller as well, and scatters at the percent
+# level.
+pin_steps <- function(solver) {
+  p <- solver$parameters
+  p$ode_times <- solver$ode_times
+  p$ode_step_sizes <- solver$ode_step_sizes
+  p$ode_soil_input_slopes <- solver$ode_soil_input_slopes
+  p$ode_soil_substep_ends <- solver$ode_soil_substep_ends
+  p
 }
 
 # Soil layer widths grading geometrically from a thin surface layer, summing to

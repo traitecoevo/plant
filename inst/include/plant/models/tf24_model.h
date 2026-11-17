@@ -339,40 +339,21 @@ public:
   // gradient evaluation and hold them for the run rather than per block; the
   // strategy is shared and the fields do not move. Index against .size().
   std::vector<S*> ad_parameters() {
-    std::vector<S*> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
-      ret.push_back(&(pars.*p.at));
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back(&birth_rate_);
-    }
-    return ret;
+    return pars_table::column_ptrs(
+        pars, has_birth_rate_column() ? &birth_rate_ : nullptr);
   }
 
   // The name each gradient column carries, one per ad_parameters() entry and in
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
-    std::vector<std::string> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
-      ret.push_back(p.name);
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back("birth_rate");
-    }
-    return ret;
+    return pars_table::column_names<TF24_Pars<S>>(has_birth_rate_column());
   }
 
   // The parameters no gradient exists for, each with the sentence that says
   // why, so a caller asking for one is refused in those words rather than told
   // the name is unknown.
-  static std::vector<std::pair<std::string, std::string>> undifferentiable_reasons() {
-    std::vector<std::pair<std::string, std::string>> ret;
-    for (const auto& n : TF24_Pars<S>::undifferentiable) {
-      ret.emplace_back(n.name, n.why);
-    }
-    return ret;
+  static std::vector<no_gradient> undifferentiable_reasons() {
+    return pars_table::undifferentiable<TF24_Pars<S>>();
   }
 
 
@@ -590,6 +571,13 @@ public:
                                           S>(draw, in, slope, &held,
                                              curvature_floor());
   }
+  // One entry of the map from this strategy's parameters to the leaf's pack.
+  struct leaf_slot {
+    S TF24_Pars<S>::* at;
+    int slot;
+    const char* name;
+  };
+  static const std::array<leaf_slot, 13>& leaf_slots();
   // Two steps of record_leaf_outputs, and the marginal its curvature guard
   // reports (tf24_leaf.h says what each does).
   phylloptim::leaf_pars<S> leaf_pars_on_tape(const S& PPFD_int,
@@ -743,7 +731,17 @@ public:
   // which is what keeps them equal under a flat-top one.
   with_slope<S> compute_competition_and_slope(const S& z, const Internals<S>& vars) const {
     const S& area_leaf_ = vars.aux(aux_idx_competition_effect);
-    const S height_inverse = vars.aux(aux_idx_height_inverse);
+    const S& height_inverse = vars.aux(aux_idx_height_inverse);
+    if constexpr (odelia::CarriesAdjoint<S>) {
+      // Above the crown both are zero whatever scales them, and scaling a
+      // passive zero by active factors records statements for nothing. The
+      // signs are the ones the product below gives a positive scale.
+      using odelia::util::to_passive;
+      if (canopy_shape.smooth_profile() &&
+          to_passive(z) * to_passive(height_inverse) > 1.0) {
+        return {S(0.0), S(-0.0)};
+      }
+    }
     const S scale = pars.k_I * area_leaf_;
     const std::pair<S, S> Qq =
       canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
@@ -1412,6 +1410,18 @@ void TF24_Model<S>::construct_leaf() {
     // failure the whole (P50, c) reparameterisation was about avoiding.
     leaf.TF24_floor_lambda_o = pars.TF24_floor_lambda_o;
     leaf.set_model(phylloptim::Leaf::CostCurve::TF24_floor, true);
+    // Every parameter the gradient puts on the leaf's tape must be the one the
+    // leaf was built with; a slot seated from another member would answer for a
+    // leaf that does not exist.
+    const phylloptim::leaf_pars<double> seated = leaf.passive_pars();
+    for (const leaf_slot& e : leaf_slots()) {
+      if (!(seated[e.slot] == pars.*e.at)) {
+        util::stop(std::string("TF24: the leaf holds ") +
+                   util::format_double(seated[e.slot]) + " in the slot `" +
+                   e.name + "` fills, where the strategy holds " +
+                   util::format_double(pars.*e.at));
+      }
+    }
   } else {
     static_assert(std::is_same_v<S, double>,
                   "Leaf carries double; an active strategy must supply the leaf's "

@@ -84,6 +84,28 @@ test_that("a derived parameter is not a column of its own under a trade-off", {
                "1.k_l derived from the species' traits")
 })
 
+test_that("a trade-off deriving a parameter that is read and has no column is refused", {
+  run <- hyperpar_run(hyperpar_parameters(lifetime = 1))
+  # The same trade-off, also deriving one more parameter at the value the
+  # strategy holds, so the strategy is on it.
+  deriving <- function(name) {
+    hp <- default_hyperpar("TF24")
+    function(m, s, filter = TRUE) {
+      out <- hp(m, s, filter = filter)
+      out <- cbind(out, rep(s$pars[[name]], nrow(out)))
+      colnames(out)[ncol(out)] <- name
+      out
+    }
+  }
+  # g_min reaches the leaf and has no column, so its channel would be lost.
+  expect_error(stand_gradient(run$solver, traits = "1.lma",
+                              hyperpar = deriving("g_min")),
+               "derives 1.g_min .*chain rule cannot be completed")
+  # psi_crit reaches no equation, so the chain loses nothing by it.
+  expect_no_error(stand_gradient(run$solver, traits = "1.lma",
+                                 hyperpar = deriving("psi_crit")))
+})
+
 test_that("a strategy that is not on the trade-off is refused, not chained", {
   p <- hyperpar_parameters(lifetime = 1)
   p <- add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),

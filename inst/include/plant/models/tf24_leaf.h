@@ -40,6 +40,34 @@ S TF24_Model<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
 // constants rather than as zeros, which is what a bare fill() would have made
 // them -- a wrong VALUE, not merely a missing row, in any expression that
 // reads one.
+// The strategy's parameters the leaf reads with rows, and the slot of the leaf's
+// pack each fills: the one map between the two. leaf_pars_on_tape puts them on
+// the tape from here, and construct_leaf checks the leaf it seated against it,
+// so the two cannot disagree. A parameter the leaf is seated with and that has
+// no column (g_min, d, alpha_PAR, alpha_NIR) is not here.
+template <typename S>
+const std::array<typename TF24_Model<S>::leaf_slot, 13>&
+TF24_Model<S>::leaf_slots() {
+  using P = TF24_Pars<S>;
+  static const std::array<leaf_slot, 13> slots{{
+      {&P::vcmax_25, phylloptim::par_vcmax_25, "vcmax_25"},
+      {&P::stem_c, phylloptim::par_stem_c, "stem_c"},
+      {&P::stem_P50, phylloptim::par_stem_P50, "stem_P50"},
+      {&P::root_c, phylloptim::par_root_c, "root_c"},
+      {&P::root_P50, phylloptim::par_root_P50, "root_P50"},
+      {&P::TF24_beta2, phylloptim::par_TF24_beta2, "TF24_beta2"},
+      {&P::jmax_25, phylloptim::par_jmax_25, "jmax_25"},
+      {&P::phi_J, phylloptim::par_phi_J, "phi_J"},
+      {&P::curv_fact_elec_trans, phylloptim::par_curv_fact_elec_trans,
+       "curv_fact_elec_trans"},
+      {&P::curv_fact_colim, phylloptim::par_curv_fact_colim, "curv_fact_colim"},
+      {&P::TF24_cost_scale, phylloptim::par_TF24_cost_scale, "TF24_cost_scale"},
+      {&P::R_d_25, phylloptim::par_R_d_25, "R_d_25"},
+      {&P::TF24_floor_lambda_o, phylloptim::par_TF24_floor_lambda_o,
+       "TF24_floor_lambda_o"}}};
+  return slots;
+}
+
 template <typename S>
 phylloptim::leaf_pars<S> TF24_Model<S>::leaf_pars_on_tape(
     const S& PPFD_int, const S& conductance_max,
@@ -50,20 +78,10 @@ phylloptim::leaf_pars<S> TF24_Model<S>::leaf_pars_on_tape(
     in[i] = S(seated[i]);
   }
   // What THIS strategy owns, and therefore what carries rows.
-  in[phylloptim::par_vcmax_25] = pars.vcmax_25;
-  in[phylloptim::par_stem_c] = pars.stem_c;
-  in[phylloptim::par_stem_P50] = pars.stem_P50;
-  in[phylloptim::par_root_c] = pars.root_c;
-  in[phylloptim::par_root_P50] = pars.root_P50;
-  in[phylloptim::par_TF24_beta2] = pars.TF24_beta2;
-  in[phylloptim::par_jmax_25] = pars.jmax_25;
-  in[phylloptim::par_phi_J] = pars.phi_J;
-  in[phylloptim::par_curv_fact_elec_trans] = pars.curv_fact_elec_trans;
-  in[phylloptim::par_curv_fact_colim] = pars.curv_fact_colim;
-  in[phylloptim::par_TF24_cost_scale] = pars.TF24_cost_scale;
-  in[phylloptim::par_R_d_25] = pars.R_d_25;
+  for (const leaf_slot& e : leaf_slots()) {
+    in[e.slot] = pars.*e.at;
+  }
   in[phylloptim::par_kmax] = conductance_max;
-  in[phylloptim::par_TF24_floor_lambda_o] = pars.TF24_floor_lambda_o;
   // The intercepted PPFD this cohort stands in, and the one route every other cohort's
   // height and leaf area have into its carbon: the electron transport reads
   // this slot. Its VALUE is already seated -- optimise_at strips the same

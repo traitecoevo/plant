@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstddef>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -24,10 +25,13 @@ struct pars_field {
 };
 
 // A parameter with no gradient, and why. It is excluded by name rather than
-// given a silent zero, so asking for one errors in these words.
+// given a silent zero, so asking for one errors in these words. `read` is false
+// for a parameter no equation reads: a trade-off may derive one and the chain
+// rule loses nothing by its missing column, which it may not do for any other.
 struct no_gradient {
   const char* name;
   const char* why;
+  bool read = true;
 };
 
 namespace pars_table {
@@ -84,6 +88,41 @@ std::vector<S*> field_ptrs(P& p, const std::array<pars_field<P, S>, K>& fields) 
     ret.push_back(&(p.*f.at));
   }
   return ret;
+}
+
+// What a model's gradient hooks return, written once for every model: the
+// addresses and names of P's columns, then the birth rate's where it is one
+// (`birth_rate` null where it is not), and P's excluded parameters.
+template <class P, class S>
+std::vector<S*> column_ptrs(P& pars, S* birth_rate) {
+  std::vector<S*> ret;
+  ret.reserve(P::column_count + (birth_rate != nullptr ? 1 : 0));
+  for (const auto& p : P::ad_parameter_columns) {
+    ret.push_back(&(pars.*p.at));
+  }
+  if (birth_rate != nullptr) {
+    ret.push_back(birth_rate);
+  }
+  return ret;
+}
+
+template <class P>
+std::vector<std::string> column_names(bool birth_rate) {
+  std::vector<std::string> ret;
+  ret.reserve(P::column_count + (birth_rate ? 1 : 0));
+  for (const auto& p : P::ad_parameter_columns) {
+    ret.push_back(p.name);
+  }
+  if (birth_rate) {
+    ret.push_back("birth_rate");
+  }
+  return ret;
+}
+
+template <class P>
+std::vector<no_gradient> undifferentiable() {
+  return std::vector<no_gradient>(P::undifferentiable.begin(),
+                                  P::undifferentiable.end());
 }
 
 }  // namespace pars_table

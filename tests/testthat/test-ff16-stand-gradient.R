@@ -31,14 +31,6 @@ ff16_stand <- function(lifetime = 5, lma = 0.0825, birth_rate = 2,
   run(p, NULL, ctrl, record = "states", ...)$solver
 }
 
-# The perturbed run stepped exactly where the recorded one stepped.
-pinned <- function(solver) {
-  p <- solver$parameters
-  p$ode_times <- solver$ode_times
-  p$ode_step_sizes <- solver$ode_step_sizes
-  p
-}
-
 census_of <- function(ctrl = referee_control()) {
   function(p) stand_census(run(p, NULL, ctrl)$solver)
 }
@@ -51,7 +43,7 @@ test_that("FF16 declares the three census metrics and names its columns", {
   # Every parameter of FF16_Pars bar the one the model says it cannot
   # differentiate, each prefixed by its species.
   pars <- names(FF16_Model()$pars)
-  cannot <- names(census_undifferentiable_ff16())
+  cannot <- names(census_undifferentiable("FF16"))
   expect_setequal(cannot, "eta")
   # ... plus the birth rate, a column of its own for a constant rate.
   expect_setequal(colnames(g$gradient),
@@ -92,17 +84,21 @@ test_that("the FF16 census is the trapezium of density times the allometry", {
 
 test_that("the FF16 stand gradient is the pinned-step central difference", {
   solver <- ff16_stand(lifetime = 5)
-  g <- stand_gradient(solver, metrics = "mass_above_ground", hyperpar = NULL)
+  metrics <- c("leaf_area", "mass_above_ground", "area_stem")
+  g <- stand_gradient(solver, metrics = metrics, hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  p <- pinned(solver)
+  p <- pin_steps(solver)
   # One trait from each route a parameter takes into the stand: the allometry
   # (lma, a_l1, theta), the seed's residual (omega), the light field (k_I), the
   # leaf (a_p2), turnover (k_l), mortality (a_dG1, d_I) and establishment (a_d0).
+  # Each metric on its own scale: area_stem is far smaller than the other two.
   for (name in c("lma", "a_l1", "theta", "omega", "k_I", "a_p2", "k_l",
                  "a_dG1", "d_I", "a_d0")) {
-    fd <- central_difference(p, 1, name, "mass_above_ground", census_of())
-    expect_equal(g$gradient["mass_above_ground", paste0("1.", name)], fd,
-                 tolerance = 1e-5, label = name)
+    fd <- central_difference(p, 1, name, NULL, census_of())
+    for (m in metrics) {
+      expect_equal(g$gradient[m, paste0("1.", name)], fd[[m]],
+                   tolerance = 1e-5, label = paste(m, name))
+    }
   }
 })
 
@@ -116,7 +112,7 @@ test_that("respiration, turnover and net production differentiate in every param
   solver <- run(p, NULL, referee_control(), record = "states")$solver
   g <- stand_gradient(solver, metrics = "mass_above_ground", hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  q <- pinned(solver)
+  q <- pin_steps(solver)
   for (name in c("rho", "a_b1", "a_r1", "a_cr1", "r_s", "r_b", "r_r", "r_cr",
                  "k_b", "k_s", "k_r", "k_cr", "a_bio", "a_y")) {
     fd <- central_difference(q, 1, name, "mass_above_ground", census_of())
@@ -154,7 +150,7 @@ test_that("both crown integrals differentiate through the light and the leaf rat
     g <- stand_gradient(solver, metrics = "mass_above_ground",
                         traits = c("1.lma", "1.a_p1"), hyperpar = NULL)
     for (trait in c("lma", "a_p1")) {
-      fd <- central_difference(pinned(solver), 1, trait, "mass_above_ground",
+      fd <- central_difference(pin_steps(solver), 1, trait, "mass_above_ground",
                                census_of(ctrl))
       expect_equal(g$gradient["mass_above_ground", paste0("1.", trait)], fd,
                    tolerance = 1e-5, label = paste(model, trait))
@@ -166,7 +162,7 @@ test_that("two FF16 species carry each their own columns", {
   solver <- ff16_stand(lifetime = 5, lma = c(0.0825, 0.2))
   g <- stand_gradient(solver, metrics = "mass_above_ground",
                       traits = c("1.lma", "2.lma"), hyperpar = NULL)
-  p <- pinned(solver)
+  p <- pin_steps(solver)
   for (i in 1:2) {
     fd <- central_difference(p, i, "lma", "mass_above_ground", census_of())
     expect_equal(g$gradient["mass_above_ground", paste0(i, ".lma")], fd,

@@ -400,11 +400,11 @@ struct TF24_Pars {
                   "theta -- the path length does move with it, so a column here "
                   "would be a live number for the hydraulic half of a trait the "
                   "carbon budget does not yet follow"},
-      // No equation reads them.
-      no_gradient{"stem_b", "derived from (stem_P50, stem_c); phylloptim derives it itself, so setting it reaches nothing and a row here would describe a path the model does not take"},
-      no_gradient{"psi_crit", "derived from (stem_P50, stem_c), as above"},
-      no_gradient{"root_b", "derived from (root_P50, root_c), as above"},
-      no_gradient{"root_psi_crit", "derived from (root_P50, root_c), as above"}};
+      // No equation reads them, which the chain through a trade-off relies on.
+      no_gradient{"stem_b", "derived from (stem_P50, stem_c); phylloptim derives it itself, so setting it reaches nothing and a row here would describe a path the model does not take", false},
+      no_gradient{"psi_crit", "derived from (stem_P50, stem_c), as above", false},
+      no_gradient{"root_b", "derived from (root_P50, root_c), as above", false},
+      no_gradient{"root_psi_crit", "derived from (root_P50, root_c), as above", false}};
 
   // Every member above, in declaration order. field_ptrs() and both
   // ad_parameter_* projections read this, so a member reaches all of them or

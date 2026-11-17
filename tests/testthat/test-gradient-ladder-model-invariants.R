@@ -427,7 +427,7 @@ test_that("gradient columns are named per species", {
   # every named parameter, and unknown-parameter validation cannot see it. A
   # single-species suite never detects this.
   stand <- ladder_stand_two_by_two()
-  columns <- census_trait_names_tf24(stand)
+  columns <- census_trait_names(stand, "TF24")
   expect_equal(length(columns),
                2L * length(unique(sub("^[0-9]+[.]", "", columns))))
   expect_false(any(duplicated(columns)))

@@ -24,13 +24,6 @@ fitness_stand <- function(..., ctrl = fitness_control()) {
   run(fitness_parameters(...), NULL, ctrl, record = "states")$solver
 }
 
-pinned <- function(solver) {
-  p <- solver$parameters
-  p$ode_times <- solver$ode_times
-  p$ode_step_sizes <- solver$ode_step_sizes
-  p
-}
-
 # The stand's fitness metrics for a run of `p`.
 fitness_of <- function(p) stand_fitness(run(p, NULL, fitness_control())$solver)
 
@@ -63,7 +56,7 @@ test_that("the fitness gradient is the pinned-step central difference", {
                                           "1.offspring_production"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  p <- pinned(solver)
+  p <- pin_steps(solver)
   # Every route into the fecundity state: the reproduction schedule (hmat,
   # a_f1, a_f2), the per-seed cost (omega, a_f3), survival during dispersal
   # (S_D, a direct term and nothing else), growth and the light field (lma,
@@ -100,7 +93,7 @@ test_that("one species' fitness responds to the other's traits through the canop
                       traits = c("1.lma", "2.lma", "1.k_I", "2.k_I"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  p <- pinned(solver)
+  p <- pin_steps(solver)
   # A finer step than the one-species test: one species' fitness is strongly
   # curved in the other's lma, and at a relative step of 1e-4 the difference's
   # own truncation error is 2e-5 (it falls as the square of the step: 3e-7 at
@@ -127,7 +120,7 @@ test_that("the fitness gradient over a window is the pinned-step central differe
   expect_false(any(stand_gradient_refused(g)))
   expect_identical(g$value[["1.net_reproduction_ratio"]],
                    solver$patch$net_reproduction_ratios)
-  q <- pinned(solver)
+  q <- pin_steps(solver)
   for (name in c("hmat", "lma", "S_D")) {
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
       fd <- central_difference(q, 1, name, metric, fitness_of)

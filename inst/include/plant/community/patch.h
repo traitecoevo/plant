@@ -1056,8 +1056,8 @@ void Patch<T,E>::check_finite_ode_state() const {
   const double log_density_ceiling = 50.0;
   for (size_t i = 0; i < species.size(); ++i) {
     for (auto it = species[i].node_begin(); it != species[i].node_end(); ++it) {
-      if (!util::is_finite(it->get_density()) ||
-          it->get_log_density() > log_density_ceiling) {
+      if (!util::is_finite(it->density_value()) ||
+          it->log_density_value() > log_density_ceiling) {
         // The size-density characteristic equation integrates
         //   d(log density)/dt = -d(growth)/d(height) - mortality
         // (see Node::compute_rates). When growth rate falls steeply with size
@@ -2178,6 +2178,8 @@ size_t Patch<T,E>::nodes_at(size_t i, double time) const {
 // Derived rather than read off the recording: the schedule this patch is run
 // from says which species gain a node when, so a walk that jumps into the middle of a recording
 // works out the shape there instead of being handed a list of what happened.
+// The shape only: no field is built and no rate computed, since the state that
+// set_recorded_state loads next rebuilds both.
 template <typename T, typename E>
 void Patch<T,E>::reshape_to(double time) {
   bool moved = false;
@@ -2203,8 +2205,6 @@ void Patch<T,E>::reshape_to(double time) {
   }
   if (moved) {
     check_birth_dates_distinct();
-    compute_environment();
-    compute_rates();
   }
 }
 

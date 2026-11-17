@@ -147,6 +147,16 @@ public:
   value_type get_density() const {
     return scaled_ ? density * density_scale : density;
   }
+  // The same two values, read without recording: a check that only tests them
+  // would otherwise put a statement on an active tape at every stage.
+  double density_value() const {
+    using odelia::util::to_passive;
+    return scaled_ ? to_passive(density) * to_passive(density_scale)
+                   : to_passive(density);
+  }
+  double log_density_value() const {
+    return odelia::util::to_passive(log_density);
+  }
   // log(get_density()), on the sentinel where that is zero.
   value_type effective_log_density() const {
     if (!scaled_) {

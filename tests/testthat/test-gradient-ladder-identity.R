@@ -69,7 +69,7 @@ test_that("a sweep split at an interior step equals the whole sweep", {
   # The short fixture keeps all five introductions and a quarter of the steps, and the
   # comparison below is bit-identity, so nothing here is re-blessed.
   stand <- ladder_stand_introductions_short()
-  unsplit <- census_trait_gradient_tf24(stand)
+  unsplit <- census_trait_gradient(stand, "TF24")
   whole <- do.call(rbind, unsplit$gradient)
   expect_gt(sum(is.finite(whole)), 0)
   unsplit_segments <- unsplit$segments
@@ -125,7 +125,7 @@ test_that("the split identity holds where the recording has sixty-two segments",
   introductions <- ladder_introduction_rows(trajectory)
   expect_gt(length(introductions), 50L)
 
-  unsplit <- census_trait_gradient_tf24(stand)
+  unsplit <- census_trait_gradient(stand, "TF24")
   whole <- do.call(rbind, unsplit$gradient)
   expect_gt(sum(is.finite(whole)), 0)
   expect_gt(unsplit$segments, 50)

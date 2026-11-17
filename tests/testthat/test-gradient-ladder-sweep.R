@@ -42,7 +42,10 @@ test_that("a curvature the collar cannot stand on refuses instead of returning z
     got <- ladder_rhs_adjoint_tf24(folded, replace(numeric(n), match(label, nm), 1))
     expect_true(got$refused,
                 label = paste("an adjoint answered from rows that do not exist:", label))
-    expect_true(grepl("curvature", got$reason, fixed = TRUE))
+    # Plant's own guard, not phylloptim's backstop, whose message also
+    # mentions the curvature.
+    expect_true(grepl("TF24 gradient: the leaf's profit curvature", got$reason,
+                      fixed = TRUE))
     # Not-a-number rather than the zeros the tape would otherwise hand back, so a
     # caller ignoring the flag still cannot read a severance as an answer. This is
     # the whole reason the flag is not enough on its own.
@@ -91,7 +94,8 @@ test_that("a fold refuses every metric, and on this census nothing would be spar
   for (m in rownames(g$gradient)) {
     # The whole row goes, which is what makes one reason enough for it.
     expect_true(all(is.na(g$gradient[m, ])))
-    expect_true(grepl("curvature", g$refusal[[m]]$reason, fixed = TRUE))
+    expect_true(grepl("TF24 gradient: the leaf's profit curvature",
+                      g$refusal[[m]]$reason, fixed = TRUE))
     # Located, which a refusal carried as data could easily fail to be.
     expect_gte(g$refusal[[m]]$species, 0)
   }

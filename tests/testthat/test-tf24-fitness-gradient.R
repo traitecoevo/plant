@@ -43,7 +43,7 @@ test_that("TF24 reports its fitness under the names the gradient uses", {
   expect_equal(names(f), c("1.net_reproduction_ratio", "1.offspring_production"))
   expect_identical(f[["1.net_reproduction_ratio"]], solver$patch$net_reproduction_ratios)
   expect_identical(f[["1.offspring_production"]], solver$patch$offspring_production)
-  expect_false("S_D" %in% names(census_undifferentiable_tf24()))
+  expect_false("S_D" %in% names(census_undifferentiable("TF24")))
   g <- stand_gradient(solver, metrics = names(f), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   # The birth rate is the last column of the species' block.
@@ -51,24 +51,34 @@ test_that("TF24 reports its fitness under the names the gradient uses", {
   expect_true("1.S_D" %in% colnames(g$gradient))
 })
 
-test_that("TF24's fitness gradient is the pinned-step central difference", {
+test_that("TF24's fitness and census gradients are the pinned-step central difference", {
   solver <- fitness_stand_run(fitness_stand_parameters(10))
-  metrics <- c("1.net_reproduction_ratio", "1.offspring_production")
+  fitness <- c("1.net_reproduction_ratio", "1.offspring_production")
+  census <- c("leaf_area", "mass_above_ground", "area_stem")
+  metrics <- c(fitness, census)
   # Every route into the fecundity state: the reproduction schedule (hmat,
   # a_f1, a_f2), the per-seed cost (omega, a_f3), survival during dispersal,
   # growth and the light field (lma, k_I), mortality (d_I, a_dG1), the leaf
-  # (vcmax_25, stem_P50), establishment (a_d0) and the birth rate.
+  # (vcmax_25, stem_P50, and the leaf's own R_d_25, jmax_25, root_P50 and
+  # TF24_cost_scale, whose rows the leaf supplies), establishment (a_d0) and the
+  # birth rate.
   names <- c("hmat", "a_f1", "a_f2", "omega", "a_f3", "S_D", "lma", "k_I",
-             "d_I", "a_dG1", "vcmax_25", "stem_P50", "a_d0")
+             "d_I", "a_dG1", "vcmax_25", "stem_P50", "a_d0", "R_d_25",
+             "jmax_25", "root_P50", "TF24_cost_scale")
+  # The two that reach fecundity alone: the census reads no rate they move, so
+  # their census columns are exact zeros rather than differences.
+  fecundity_only <- c("a_f3", "S_D")
   g <- stand_gradient(solver, metrics = metrics,
                       traits = paste0("1.", c(names, "birth_rate")),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_gt(g$value[["1.net_reproduction_ratio"]], 1)
+  # The branch these rows are taken on: the stand's leaves sit interior.
+  kinds <- stats::setNames(census_operating_point_counts_tf24(solver)[[1]],
+                           census_operating_point_names_tf24())
+  expect_gt(kinds[["interior"]], 0)
 
-  pinned <- solver$parameters
-  pinned$ode_times <- solver$ode_times
-  pinned$ode_step_sizes <- solver$ode_step_sizes
+  pinned <- pin_steps(solver)
   # lma and omega set the seed height, a root a difference reads at the root
   # tolerance: at offspring_height_tol = 1e-8 their columns fail this test,
   # so it also guards that tolerance. a_d0's difference is flat from 1e-3 to
@@ -76,32 +86,21 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
   # differenced at 1e-5, where the truncation error on hmat is 6e-5 against
   # 5e-3 at 1e-4. All are held to 1e-4.
   rounding_floor <- "a_d0"
-  difference <- function(set, x, rel) {
-    h <- rel * abs(x)
-    up <- stand_fitness(fitness_stand_run(set(x + h), record = FALSE))
-    down <- stand_fitness(fitness_stand_run(set(x - h), record = FALSE))
-    (up - down) / (2 * h)
-  }
-  with_parameter <- function(name) function(v) {
-    q <- pinned
-    q$strategies[[1]]$pars[[name]] <- v
-    q
-  }
-  with_birth_rate <- function(v) {
-    q <- pinned
-    q$strategies[[1]]$birth_rate_y <- v
-    q
+  measure <- function(q) {
+    s <- fitness_stand_run(q, record = FALSE)
+    c(stand_fitness(s), stand_census(s))[metrics]
   }
   for (name in c(names, "birth_rate")) {
     rel <- if (name %in% rounding_floor) 1e-4 else 1e-5
-    fd <- if (name == "birth_rate") {
-      difference(with_birth_rate, pinned$strategies[[1]]$birth_rate_y, rel)
-    } else {
-      difference(with_parameter(name), pinned$strategies[[1]]$pars[[name]], rel)
-    }
+    fd <- central_difference(pinned, 1, name, NULL, measure, rel = rel)
     for (metric in metrics) {
-      expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd[[metric]]),
-                1e-4 * abs(fd[[metric]]), label = paste(metric, name))
+      got <- g$gradient[metric, paste0("1.", name)]
+      if (metric %in% census && name %in% fecundity_only) {
+        expect_identical(got, 0, label = paste(metric, name))
+      } else {
+        expect_lt(abs(got - fd[[metric]]), 1e-4 * abs(fd[[metric]]),
+                  label = paste(metric, name))
+      }
     }
   }
   # S_D multiplies the whole integral, so its column is the value over S_D.

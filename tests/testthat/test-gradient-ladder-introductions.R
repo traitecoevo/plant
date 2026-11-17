@@ -300,7 +300,7 @@ test_that("the initial reserve channel carries a row", {
   shared <- ladder_shared("introductions")
   stand <- shared$stand
   result <- shared$gradient
-  at <- which(ladder_bare_traits(census_trait_names_tf24(stand)) == "a_st3")
+  at <- which(ladder_bare_traits(census_trait_names(stand, "TF24")) == "a_st3")
   expect_gt(length(at), 0L)
   peak <- max(abs(result$gradient[, at]))
   message(sprintf("\n  a_st3 row peak: %.6e", peak))
@@ -425,7 +425,7 @@ test_that("seed height carries a row rather than a declaration", {
 
   shared <- ladder_shared("introductions")
   stand <- shared$stand
-  columns <- ladder_bare_traits(census_trait_names_tf24(stand))
+  columns <- ladder_bare_traits(census_trait_names(stand, "TF24"))
   expect_length(setdiff(eight, columns), 0L)
 
   result <- shared$gradient

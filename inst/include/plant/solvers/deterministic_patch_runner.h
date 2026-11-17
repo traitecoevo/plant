@@ -85,6 +85,17 @@ template <typename T, typename E>
 class DeterministicPatchRunner : public PatchRunner<DeterministicPatchRunner<T, E>, Patch<T, E>> {
   typedef PatchRunner<DeterministicPatchRunner<T, E>, Patch<T, E>> base_type;
   friend base_type;
+  // Both hooks are found by concept, so a member misspelt in a strategy would
+  // switch one off with every number finite: a solve that keeps its choices
+  // would search again on a replay, or a refusal would go unread. A strategy
+  // that declares the record must take part in it, and one that keeps choices
+  // has an inner solve that can refuse.
+  static_assert(!requires { typename T::solved_values; } || KeepsSolvedChoices<T>,
+                "a strategy declaring solved_values must define store_solved, "
+                "load_solved and end_solved");
+  static_assert(!KeepsSolvedChoices<T> || RecordsRefusal<T>,
+                "a strategy that keeps its inner solve's choices must record "
+                "its refusals (recorded_refusal)");
 public:
   // ---- Type aliases ------------------------------------------------------
   typedef T                strategy_type;
@@ -302,6 +313,25 @@ public:
                  "Clear p$initial_state, p$n_initial_cohorts, "
                  "p$initial_node_times, p$initial_patch_density and "
                  "p$initial_pr_patch_survival.");
+    }
+  }
+
+  // The sweep crosses an event as if it left the state's rows unchanged. That
+  // holds for a harvest or a climate extreme, a constant shift in log density,
+  // and for a pulse the layer takes whole. A pulse that fills a layer and sheds
+  // the rest sets the layer to saturation whatever it held, which the sweep
+  // would carry back as the state it replaced.
+  void require_transposable_events(const char* entry) const {
+    for (const EventRecord& rec : event_log) {
+      if (rec.type == EventType::ResourcePulse && rec.applied.size() > 1 &&
+          rec.applied[1] > 0.0) {
+        util::stop(std::string(entry) + ": the pulse at t = " +
+                   util::format_double(rec.time) + " filled layer " +
+                   util::to_string(static_cast<int>(rec.target_index + 1)) +
+                   " and shed " + util::format_double(rec.applied[1]) +
+                   ", and the reverse-mode gradient has no row for a capped "
+                   "pulse. Give pulses the layer can take whole.");
+      }
     }
   }
 
@@ -1485,6 +1515,7 @@ DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>&
   // keep_states kept them the first time, and either way it may run, so the
   // adjoints below are taken after it.
   store_recording();
+  require_transposable_events("census_trait_gradient");
 
   patch_type& live = solver.get_system_ref();
 

@@ -21,7 +21,8 @@
 # column instead makes every column whose whole row is at the difference's own
 # floor look infinitely wrong: `a_f2` reads 4e-15 against an exact zero, and a
 # ratio says that is a total disagreement where the honest reading is that both
-# are zero.
+# are zero. So each row the reference resolves is also held to its own scale,
+# which the per-metric residual alone cannot see.
 
 reference_rows <- function() {
   path <- testthat::test_path("reference", "reference-gradient.tsv")
@@ -102,6 +103,7 @@ reference_compare <- function(regime, rows) {
        # readings it chose between in the metric's own units, and normalising it
        # anywhere but here would be a second division that hides this one.
        spread = mine$spread / unname(scale[mine$metric]),
+       spread_raw = mine$spread,
        residual = abs(observed - mine$converged) /
          unname(scale[mine$metric]))
 }
@@ -125,7 +127,7 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
   # Asserted before any comparison, because a missing row is not a disagreement
   # -- it is a column nothing looked at, and the rung passes either way.
   carried <- setdiff(names(TF24_Model()$pars),
-                     names(census_undifferentiable_tf24()))
+                     names(census_undifferentiable("TF24")))
   expect_setequal(setdiff(carried, unique(rows$parameter)),
                   reference_uncaptured_columns())
 
@@ -193,6 +195,23 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
                                 r$column[[which.max(ifelse(live, r$residual, 0))]],
                                 " at ",
                                 signif(max(r$residual[live]), 3)))
+
+    # And each row the reference resolves, on its own scale. The check above
+    # divides by the metric's largest entry, so a small row passes it whatever
+    # the sweep says: a zero passes most of them. A row whose four steps agree to
+    # 1e-4 of its value is held to that, or to three times its spread.
+    resolved <- live & r$spread_raw < 1e-4 * abs(r$reference)
+    expect_gt(sum(resolved), 150)
+    own <- pmax(3 * r$spread_raw, 1e-4 * abs(r$reference))
+    gap <- abs(r$observed - r$reference)
+    off <- resolved & gap > own
+    expect_equal(sum(off), 0L,
+                 label = paste0(r$name, ": ", sum(off), " resolved row(s) past ",
+                                "their own scale, worst ",
+                                paste(r$metric, r$column)[[which.max(
+                                  ifelse(resolved, gap / own, 0))]],
+                                " at ", signif(max((gap / own)[resolved]), 3),
+                                " of its tolerance"))
   }
 
 })
