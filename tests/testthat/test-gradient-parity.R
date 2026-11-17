@@ -165,8 +165,8 @@ test_that("no driver the forward model answers leaves the reverse unnamed", {
       # every cohort in them, so a row it could not supply has nothing below the
       # species to name. The species survives only where the frame that raised it
       # knew one -- a refusal thrown from inside the recording does not.
-      expect_true(r$refusal$species == -1 || r$refusal$species >= 1)
-      if (r$refusal$species == -1) {
+      expect_true(is.na(r$refusal$species) || r$refusal$species >= 1)
+      if (is.na(r$refusal$species)) {
         message("      unlocated: raised inside the recording, which names no species")
       }
       # And an undefined metric must not read as a zero one -- the distinction

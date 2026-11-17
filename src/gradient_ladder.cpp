@@ -965,7 +965,7 @@ ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::DeterministicPa
 
 // The same gradient with the sweep stopped and resumed at each given recorded
 // step, counted from one. Composition over steps is associative, so this must
-// agree with census_trait_gradient_tf24 bit for bit.
+// agree with census_trait_gradient bit for bit.
 // [[Rcpp::export]]
 Rcpp::List
 census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,

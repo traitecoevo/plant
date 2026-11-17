@@ -21,8 +21,8 @@ a model that declares its fitness differentiable, each species'
 \code{"<species>.net_reproduction_ratio"} and
 \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
 The steps are recorded once for all the metrics asked for, and each
-further metric adds a walk back over them, about a tenth of the first
-metric's cost; asking for fewer traits saves nothing.}
+further metric adds only a walk back over them, a small part of the
+first metric's cost; asking for fewer traits saves nothing.}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable trait every species declares. A column is named for
@@ -35,8 +35,15 @@ partial derivatives. See the section on traits and parameters.}
 \value{
 A list with \code{value}, the metrics at the end of the run;
   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
-  metric holding the reason and where it was found, or \code{NULL} where the
-  metric answered; and \code{control}, the entries the gradient was taken at.
+  metric holding the reason and the species it was found in (\code{NA}
+  where it belongs to none), or \code{NULL} where the metric answered; and
+  \code{control}, the entries the gradient was taken at.
+
+  Refused outright, with an error: a run on the height coordinate, with the
+  absorbing top layer, in a constant field, or with a rain pulse that filled
+  a soil layer and shed the rest, which sets the layer whatever it held; and
+  a trade-off that derives a parameter an equation reads and that has no
+  column.
 }
 \description{
 Doubles in and doubles out: the active scalar is created and destroyed inside

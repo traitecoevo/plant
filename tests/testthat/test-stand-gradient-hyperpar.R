@@ -101,9 +101,10 @@ test_that("a trade-off deriving a parameter that is read and has no column is re
   expect_error(stand_gradient(run$solver, traits = "1.lma",
                               hyperpar = deriving("g_min")),
                "derives 1.g_min .*chain rule cannot be completed")
-  # psi_crit reaches no equation, so the chain loses nothing by it.
+  # root_psi_crit reaches no equation, so the chain loses nothing by it.
+  # (psi_crit would test nothing: the default trade-off derives it already.)
   expect_no_error(stand_gradient(run$solver, traits = "1.lma",
-                                 hyperpar = deriving("psi_crit")))
+                                 hyperpar = deriving("root_psi_crit")))
 })
 
 test_that("a strategy that is not on the trade-off is refused, not chained", {

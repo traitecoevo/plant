@@ -1511,8 +1511,10 @@ DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>&
   // solver itself. store_recording() repeats the run to get them unless
   // keep_states kept them the first time, and either way it may run, so the
   // adjoints below are taken after it.
-  store_recording();
+  // The run's own event log says whether the sweep can cross its events, so
+  // this is asked before a recording that may repeat the whole run.
   require_transposable_events("census_trait_gradient");
+  store_recording();
 
   patch_type& live = solver.get_system_ref();
 

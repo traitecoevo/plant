@@ -99,14 +99,15 @@ stand_census_state_adjoint <- function(x) {
 
 ##' The \code{Control} entries a census gradient depends on.
 ##'
-##' Four are tolerances of the solves inside a run (\code{GSS_tol_abs},
-##' \code{ci_abs_tol}, \code{node_gradient_eps}, \code{schedule_eps}), so two
-##' gradients taken at different values of one a model reads are gradients of
-##' different functions; not every model reads every one. The fifth,
-##' \code{gradient_curvature_floor}, moves no forward number and still decides
-##' which rows exist, by refusing a collar response the profit curvature is too
-##' small to support. The ODE tolerances and step bounds move the trajectory too
-##' and are the run's own \code{Control}, not listed here.
+##' A chosen subset, not every entry that moves a gradient. Two are tolerances
+##' of the leaf's inner solves (\code{GSS_tol_abs}, \code{ci_abs_tol}), one is
+##' a finite-difference step (\code{node_gradient_eps}) and one the schedule's
+##' refinement tolerance (\code{schedule_eps}); not every model reads every one.
+##' The fifth, \code{gradient_curvature_floor}, moves no forward number and
+##' still decides which rows exist, by refusing a collar response the profit
+##' curvature is too small to support. The ODE tolerances, the step bounds and
+##' \code{offspring_height_tol} move the trajectory too and are the run's own
+##' \code{Control}, not listed here.
 ##' \code{stand_gradient} records these and \code{stand_gradient_compare}
 ##' refuses a pair that disagrees.
 ##'
@@ -143,8 +144,8 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   \code{"<species>.net_reproduction_ratio"} and
 ##'   \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
 ##'   The steps are recorded once for all the metrics asked for, and each
-##'   further metric adds a walk back over them, about a tenth of the first
-##'   metric's cost; asking for fewer traits saves nothing.
+##'   further metric adds only a walk back over them, a small part of the
+##'   first metric's cost; asking for fewer traits saves nothing.
 ##' @param traits Column names to differentiate with respect to; defaults to
 ##'   every differentiable trait every species declares. A column is named for
 ##'   its species and its parameter, as \code{"1.lma"}.
@@ -153,8 +154,15 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   partial derivatives. See the section on traits and parameters.
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
-##'   metric holding the reason and where it was found, or \code{NULL} where the
-##'   metric answered; and \code{control}, the entries the gradient was taken at.
+##'   metric holding the reason and the species it was found in (\code{NA}
+##'   where it belongs to none), or \code{NULL} where the metric answered; and
+##'   \code{control}, the entries the gradient was taken at.
+##'
+##'   Refused outright, with an error: a run on the height coordinate, with the
+##'   absorbing top layer, in a constant field, or with a rain pulse that filled
+##'   a soil layer and shed the rest, which sets the layer whatever it held; and
+##'   a trade-off that derives a parameter an equation reads and that has no
+##'   column.
 ##'
 ##' @section Traits and parameters:
 ##' A column is the derivative as its trait moves through the construction that
