@@ -114,8 +114,7 @@ test_that("an invader's gradient holds where its collar meets a dry layer's pote
   # stay wet, so the collar crosses the top layer's potential, where uptake has
   # a kink. This invader's slope stencil reached one, and the marginal there:
   # its stem columns were 4% off, and moved with a last-bit change in its lma.
-  # Taken from the side away from the kink, they agree to 2e-4, which is the
-  # leaf's own noise next to the kink.
+  # With its probes kept clear of the kink they agree to 2e-5; held to 1e-4.
   lifetime <- 10
   p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
   solver <- run(p, tf24f_dry_pulses(lifetime), Control(), record = "states")$solver
@@ -134,7 +133,7 @@ test_that("an invader's gradient holds where its collar meets a dry layer's pote
     stand_fitness(solver)[[metric]]
   }
   fd <- (at(x + h) - at(x - h)) / (2 * h)
-  expect_lt(abs(g$gradient[metric, "1.stem_P50"] - fd), 1e-3 * abs(fd))
+  expect_lt(abs(g$gradient[metric, "1.stem_P50"] - fd), 1e-4 * abs(fd))
 })
 
 test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {
