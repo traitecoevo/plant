@@ -178,10 +178,11 @@ public:
   static constexpr double marginal_step = 1e-4;
 
   // How far, in MPa, the slope's probes keep from a kink in uptake (see
-  // collar_on_tape). Next to a layer's potential phylloptim's marginal has
-  // been seen to wander by 3e-4 of its value within about 1e-6 MPa; this
-  // keeps a factor of ten clear.
-  static constexpr double kink_clearance = 1e-5;
+  // collar_on_tape): twice the width of the noise in phylloptim's marginal
+  // next to a layer's potential, measured at 1.5e-6 MPa either side. Not
+  // wider: a drying layer's potential follows the collar, and the barrier
+  // holds a collar near the dry end, where the probes are 1e-8 MPa apart.
+  static constexpr double kink_clearance = 3e-6;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_collar_position = -1;
