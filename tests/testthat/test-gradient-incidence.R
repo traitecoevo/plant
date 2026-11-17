@@ -224,7 +224,10 @@ clamp_class <- list(
   # broad grid, mostly dark, hot or dry leaves. A stand never reaches it, the
   # shaded and clamped drivers' shut leaves included: a shut leaf sits at its wet
   # bound, where E_s is zero by construction rather than by the clamp.
-  stomatal_flux          = "never"
+  stomatal_flux          = "never",
+  # The leaf-to-air vapour deficit held at its floor where a leaf cooled by the
+  # energy balance reaches the dew point; these stands run without it.
+  vpd_leaf_floor         = "never"
 )
 
 test_that("every clamp site is classified, and by a measured incidence", {
