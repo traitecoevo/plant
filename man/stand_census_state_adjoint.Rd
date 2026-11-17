@@ -19,7 +19,7 @@ its fitness differentiable each species' net reproduction ratio and offspring
 production, named as \code{\link{stand_gradient}} names them -- and one
 column per ODE state entry, in the order
 \code{x$patch$ode_state} writes. This is what the reverse pass starts
-with. The cohort-height columns carry the trapezium weights as well as the
-integrand only where the height is the coordinate integrated over; on the
-birth-date coordinate the weights are constants.
+with. On the birth-date coordinate, the only one the gradient runs on, the
+trapezium weights are constants, so the cohort-height columns carry the
+integrand's response alone.
 }

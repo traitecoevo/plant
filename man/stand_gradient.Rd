@@ -20,8 +20,9 @@ model declares: the census metrics (\code{\link{stand_census}}) and, for
 a model that declares its fitness differentiable, each species'
 \code{"<species>.net_reproduction_ratio"} and
 \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
-Each metric costs one sweep of the recorded trajectory, so name the ones
-wanted.}
+The steps are recorded once for all the metrics asked for, and each
+further metric adds a walk back over them, about a tenth of the first
+metric's cost; asking for fewer traits saves nothing.}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable trait every species declares. A column is named for
@@ -53,7 +54,7 @@ and so no sweep produces it.
 A column is the derivative as its trait moves through the construction that
 built the strategy, which is what a difference through \code{add_strategies()}
 measures. The hyperparameter function derives some parameters from the traits
-(TF24's testing trade-offs, \code{default_hyperpar("TF24")}, set 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+(TF24's testing trade-offs, \code{default_hyperpar("TF24")}, which sets twelve parameters, among them \code{k_l}, \code{r_l}, \code{d_I},
 \code{a_f3} and the stem curve, from six traits including \code{lma}), so a
 trait's column is its own partial plus each derived parameter's partial times
 that parameter's derivative with respect to the trait. The function is
@@ -69,8 +70,9 @@ keep (FF16's \code{narea}), or built through another function, is refused
 rather than differentiated along a trade-off it does not lie on. Pass the
 function it was built with, or \code{hyperpar = NULL}.
 
-With \code{hyperpar = NULL} every parameter has a column, and each is a
-partial derivative with every other parameter fixed.
+With \code{hyperpar = NULL} every parameter the model can differentiate
+has a column, and each is a partial derivative with every other parameter
+fixed.
 
   A refused metric's whole row is \code{NaN}: a sum has no defined value with
   an undefined term, so refusal is metric-level and carries no localisation
@@ -91,8 +93,8 @@ derivative. A run of \code{x$run_mutant_constant()} is refused.
 An invasion that kept no states is run again, as an invasion, to keep them;
 set \code{x$keep_states <- TRUE} before it to save that run.
 Several invaders in \code{p} share one run and each has its own columns,
-but each metric is still one sweep, so a set of invaders costs about what
-running them one at a time does. An invader of a resumed resident starts at
+and the sweep's cost grows with their cohorts, so a set of invaders costs
+about what running them one at a time does. An invader of a resumed resident starts at
 the resume time, as \code{run_mutant} requires.
 }
 
@@ -112,7 +114,7 @@ trajectory's step placement rather than of the model, and it can be two
 orders larger than its neighbours. One measured cell was 211 times the
 median of its grid.
 
-⚠️ **Do not average such a grid, and do not form a covariance from one.** A
+Do not average such a grid, and do not form a covariance from one. A
 single outlying cell dominates any second moment, which is the first thing an
 active-subspace or sensitivity workflow computes, so the reduction inherits
 the step placement instead of the ecology. Treat a gradient far outside its
