@@ -104,10 +104,9 @@ struct Parameters {
   }
 
   // Owned, and shared with every copy of these parameters and with the patch
-  // that reads it. A raw pointer here was allocated on every validate() and
-  // freed nowhere, and the leak was load-bearing: the pointer is copied into
-  // each Parameters copy and aliased by the patch, so freeing it once would have
-  // left the others dangling.
+  // that reads it. Not a raw pointer: it is copied into each Parameters copy and
+  // aliased by the patch, so a raw one either leaks on every validate() or,
+  // freed once, leaves the others dangling.
   std::shared_ptr<Disturbance_Regime> disturbance;
 
   // Default strategy.

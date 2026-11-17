@@ -348,5 +348,6 @@ test_that("the top layer survives an export and a resume", {
 
 test_that("a gradient refuses the top layer", {
   s <- run(ff16(10), control = ctrl(absorb = 0.05), record = "states")$solver
-  expect_error(stand_gradient(s, metrics = "leaf_area", hyperpar = NULL), "not differentiable")
+  expect_error(stand_gradient(s, metrics = "leaf_area", hyperpar = NULL),
+               "the absorbing top layer is not differentiable")
 })

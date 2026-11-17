@@ -14,9 +14,6 @@
 #include <odelia/implicit_node.hpp>
 #include <plant/numerics/with_slope.h>
 #include <array>
-// cstdio/cstdlib for the environment-gated curvature comparison in
-// record_leaf_outputs, and nothing else here.
-#include <cstdio>
 #include <cstdlib>
 #include <string_view>
 #include <utility>
@@ -127,7 +124,7 @@ public:
   //
   // ⚠️ THE LEAF IS COPY-CONSTRUCTED, NOT DEFAULTED AND THEN ASSIGNED. A default
   // phylloptim::Leaf computes both vulnerability tables from incomplete gamma
-  // functions, about 60 times the cost of copying them, and assign_from() would
+  // functions, far dearer than copying them, and assign_from() would
   // overwrite them at once. The sweep rebinds the patch on the order of once
   // per recorded step, so each build it skips is one per step.
   template <class S1>
@@ -175,8 +172,8 @@ public:
 
   // TF24 carries reserves that feed back into growth, so its growth rate is not
   // a function of size alone and the height coordinate's compression term is a
-  // different derivative rather than a worse approximation of the right one
-  // (#590). The two coordinates' offspring production differ by several times
+  // different derivative rather than a worse approximation of the right one.
+  // The two coordinates' offspring production differ by several times
   // here, where FF16's and K93's agree to 5e-5 and 5.6e-7, so this is a
   // correctness default and not a performance one. TF24f, TF24t and TF24w
   // inherit it.
@@ -194,11 +191,11 @@ public:
   //
   // A table rather than a list built per call, for the reason
   // ad_parameter_fields is one: a census is read from several entry points and
-  // each was allocating its own copy of this.
+  // each would otherwise allocate its own copy of this.
   //
   // ⚠️ THE LEAF AREA IS THE ONE THE PLANT HAS, read from the departure state, not
   // the one its height implies, and the sapwood is likewise at the Huber value it
-  // carries (#516). At rest both departures are exactly zero and exp(0) is
+  // carries. At rest both departures are exactly zero and exp(0) is
   // exactly one, so these are the height-only expressions bit for bit.
   static const auto& census_metrics() {
     return census_metrics_for<TF24_Model<S>>();
@@ -256,7 +253,7 @@ public:
   static std::vector<std::string> non_negative_states() { return {"storage"}; }
 
   // Virtual so that a subclass can append its own readings (TF24w's per-column
-  // fluxes, #681): refresh_indices builds aux_index from this, and aux_size()
+  // fluxes): refresh_indices builds aux_index from this, and aux_size()
   // counts it, so one override reaches both.
   virtual std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
@@ -302,8 +299,8 @@ public:
       // Dimensionless and zero at break-even, so its sign says whether the last
       // leaf is paying for itself.
       "leaf_marginal_return",
-      // The marginal return of SAPWOOD area, in growth rather than production
-      // (#516). Dimensionless, and zero at the Huber value that maximises the
+      // The marginal return of SAPWOOD area, in growth rather than production.
+      // Dimensionless, and zero at the Huber value that maximises the
       // plant's growth rate, so its sign says which way the stem should move.
       // Zero unless sapwood acclimation is on (a_sw > 0), because computing it
       // costs two further leaf solves.
@@ -339,40 +336,21 @@ public:
   // gradient evaluation and hold them for the run rather than per block; the
   // strategy is shared and the fields do not move. Index against .size().
   std::vector<S*> ad_parameters() {
-    std::vector<S*> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
-      ret.push_back(&(pars.*p.at));
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back(&birth_rate_);
-    }
-    return ret;
+    return pars_table::column_ptrs(
+        pars, has_birth_rate_column() ? &birth_rate_ : nullptr);
   }
 
   // The name each gradient column carries, one per ad_parameters() entry and in
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
-    std::vector<std::string> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
-      ret.push_back(p.name);
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back("birth_rate");
-    }
-    return ret;
+    return pars_table::column_names<TF24_Pars<S>>(has_birth_rate_column());
   }
 
   // The parameters no gradient exists for, each with the sentence that says
   // why, so a caller asking for one is refused in those words rather than told
   // the name is unknown.
-  static std::vector<std::pair<std::string, std::string>> undifferentiable_reasons() {
-    std::vector<std::pair<std::string, std::string>> ret;
-    for (const auto& n : TF24_Pars<S>::undifferentiable) {
-      ret.emplace_back(n.name, n.why);
-    }
-    return ret;
+  static std::vector<no_gradient> undifferentiable_reasons() {
+    return pars_table::undifferentiable<TF24_Pars<S>>();
   }
 
 
@@ -510,8 +488,8 @@ public:
   // excess even when carbon is ample.
   //
   // This is what gives the Huber value a restoring force. Without it psi has
-  // only terms that push it around and none that return it, and measured, it
-  // drifted to leave plants hydraulically UNDER-built (#516).
+  // only terms that push it around and none that return it, and it drifts to
+  // leave plants hydraulically UNDER-built.
   //
   // ⚠️ psi >= 0 IS INVARIANT, and that is the reason this form needs no bound.
   // At psi = 0 the factor is 1, so the two replacement fractions coincide and
@@ -540,10 +518,10 @@ public:
   S net_mass_production_dt_A(const S& assimilation, const S& respiration,
                              const S& turnover) const;
 
-  // Takes the three #516 states beside the sizes: the sapwood departure moves
-  // the conductance handed to the leaf and the sapwood carried, and the leaf
-  // departure and the tracked marginal return set what turnover is charged. A
-  // plant on its allometry with no history passes zeros.
+  // Takes the three flexible-allometry states beside the sizes: the sapwood
+  // departure moves the conductance handed to the leaf and the sapwood carried,
+  // and the leaf departure and the tracked marginal return set what turnover is
+  // charged. A plant on its allometry with no history passes zeros.
   virtual S net_mass_production_dt(const TF24_Environment<S>& environment,
                                 const S& height, const S& area_leaf_,
                                 const S& height_inverse,
@@ -552,7 +530,7 @@ public:
                                 const S& tracked_marginal);
 
   // The soil water potentials the leaf's supply solve reads, one per layer.
-  // TF24 reads the patch's shared column; TF24w (#681) overrides this to hand
+  // TF24 reads the patch's shared column; TF24w overrides this to hand
   // over the cohort's own root-zone column, computed from its own water states
   // before the base compute_rates runs. Virtual for the reason solve_leaf is:
   // net_mass_production_dt is reused unchanged by the subclass.
@@ -577,15 +555,26 @@ public:
   // The collar record_leaf_outputs bills the leaf at, carrying its rows: the
   // operating point the solve placed, closed by the condition its kind names.
   // Virtual because TF24f evaluates the leaf at a collar it tracks rather than
-  // one it solved for. Only a differentiated pass calls it.
+  // one it solved for. Only a differentiated pass calls it. `slope` is the
+  // interior curvature, NaN at any other kind. `held` is handed on to
+  // billed_outputs_at: an override that places it places it at the collar it
+  // returns, and leaves the leaf there.
   virtual S collar_on_tape(const Leaf::SupplyDraw<S>& draw,
                            const phylloptim::leaf_pars<S>& in,
                            const phylloptim::SupplyInputs<S>& supply,
                            double slope, Leaf::HeldCoords<S>& held) {
     (void)supply;
     return leaf.template operating_collar<phylloptim::Leaf::CostCurve::TF24_floor,
-                                          S>(draw, in, slope, &held);
+                                          S>(draw, in, slope, &held,
+                                             curvature_floor());
   }
+  // One entry of the map from this strategy's parameters to the leaf's pack.
+  struct leaf_slot {
+    S TF24_Pars<S>::* at;
+    int slot;
+    const char* name;
+  };
+  static const std::array<leaf_slot, 13>& leaf_slots();
   // Two steps of record_leaf_outputs, and the marginal its curvature guard
   // reports (tf24_leaf.h says what each does).
   phylloptim::leaf_pars<S> leaf_pars_on_tape(const S& PPFD_int,
@@ -620,7 +609,7 @@ public:
                             const S& withheld_sapwood, const S& growth_flux,
                             const S& net_mass_production_dt_,
                             const S& darea_leaf_dmass_live_);
-  // Model-agnostic entry point used by Individual<TF24> (#266): reads the
+  // Model-agnostic entry point used by Individual<TF24>: reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know TF24's state/aux layout.
   S net_mass_production_dt(const TF24_Environment<S>& environment,
@@ -639,7 +628,7 @@ public:
 
   // The height above which this strategy allocates at least 1 - epsilon of its
   // maximum, a_f1, to reproduction: where a continuous patch's absorbing top
-  // layer sits (#519). Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
+  // layer sits. Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
   // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
   // The inverse of fraction_allocation_reproduction()'s logistic, and NaN where
   // the logistic does not rise with height (a_f2 <= 0) or hmat is not positive.
@@ -695,14 +684,14 @@ public:
 
   S mortality_dt(const S& relative_reserves, const S& cumulative_mortality) const;
   S mortality_growth_independent_dt()const ;
-  // Storage-dependent growth mortality (#517): rises smoothly as relative
+  // Storage-dependent growth mortality: rises smoothly as relative
   // reserves r = S/S_max deplete, bounded in [a_dG1*e^-a_dG2, a_dG1].
   S mortality_storage_dependent_dt(const S& relative_reserves) const;
   // NSC storage capacity S_max = a_st1 * mass_sapwood [kg NSC], at the
   // sapwood the plant carries.
   S storage_capacity(const S& area_leaf, const S& height,
                      const S& sapwood_departure) const;
-  // Initialise the storage state for a newly germinated individual (#517).
+  // Initialise the storage state for a newly germinated individual.
   void set_initial_states(const TF24_Environment<S>& environment, Internals<S>& vars);
   // Survival of seedlings during establishment, from the carbon a
   // seedling produces at birth size. This form works that carbon out.
@@ -726,7 +715,7 @@ public:
   // carries (area_leaf_carried), so nothing is recomputed per call.
   S compute_competition(const S& z, const S& area_leaf_,
                         const S& height_inverse) const;
-  // Model-agnostic entry point used by Individual<TF24> (#266): reads the
+  // Model-agnostic entry point used by Individual<TF24>: reads the
   // cached competition_effect and height_inverse aux slots itself.
   S compute_competition(const S& z, const Internals<S>& vars) const {
     return compute_competition(z, vars.aux(aux_idx_competition_effect),
@@ -739,6 +728,9 @@ public:
   // which is what keeps them equal under a flat-top one.
   with_slope<S> compute_competition_and_slope(const S& z, const Internals<S>& vars) const {
     const S& area_leaf_ = vars.aux(aux_idx_competition_effect);
+    // A copy, and not skipped above the crown as FF16 is: binding it by
+    // reference or skipping the zero products moves these rows in their last
+    // bits, because both change the order the sweep sums adjoints in.
     const S height_inverse = vars.aux(aux_idx_height_inverse);
     const S scale = pars.k_I * area_leaf_;
     const std::pair<S, S> Qq =
@@ -776,10 +768,9 @@ public:
       return {height_0, area_leaf_0};
     } else {
       // ⚠️ THE SLOPE IS READ, NOT TAKEN HERE. Taking it needs the strategy at a
-      // tangent, and a rebind CONSTRUCTS one -- whose Leaf member builds two
-      // vulnerability curves from an incomplete gamma per knot, which
-      // assign_from then overwrites with a copy. This runs per rate evaluation,
-      // so prepare_strategy takes the tangent once and this reads it.
+      // tangent, a rebind of the whole strategy, and this runs per rate
+      // evaluation, so prepare_strategy takes the tangent once and this reads
+      // it.
       const S h = odelia::implicit_value<S>(
         height_0, dmass_dheight_0,
         [this](const S& y) -> S {
@@ -920,13 +911,13 @@ public:
   // Embedded leaf hydraulic/photosynthesis sub-model, built in prepare_strategy()
   Leaf leaf;
 
-  // Width of the smooth reserve gate G(r) on growth (#517); small relative to
+  // Width of the smooth reserve gate G(r) on growth; small relative to
   // [0,1] so the switch about the growth threshold a_st2 is fairly sharp but
   // differentiable. storage_prod_eps smooths the positive-part of net production
-  // (replacing the old hard net>0 growth cutoff) for AD-readiness.
+  // (rather than a hard net>0 growth cutoff) for AD-readiness.
   double storage_gate_width = 0.1;
   double storage_prod_eps   = 1e-4;
-  // Width of the replacement gate, in units of the marginal leaf return (#516).
+  // Width of the replacement gate, in units of the marginal leaf return.
   double plasticity_gate_width = 0.02;
 
   // The clamp sites this strategy reaches; the list itself is shared with the
@@ -1112,7 +1103,7 @@ public:
   S leaf_carbon_;
   std::vector<S> leaf_soil_consumption_;
 
-  // Flexible allometry's working (#516), written by net_mass_production_dt and
+  // Flexible allometry's working, written by net_mass_production_dt and
   // read by compute_rates in the same evaluation.
   //
   // The marginal leaf's carbon balance; dimensionless, zero at break-even.
@@ -1388,26 +1379,36 @@ void TF24_Model<S>::construct_leaf() {
     // Not a constructor argument either. The leaf's own default is zero, so at
     // the default this writes the value the leaf already held.
     leaf.g_min = pars.g_min;
-    // Penman-Monteith leaf energy balance (#523): enable per pars (default off,
-    // backward-compatible) and pass the leaf-dimension trait. Wind speed is a
+    // Penman-Monteith leaf energy balance: enable per pars (default off) and
+    // pass the leaf-dimension trait. Wind speed is a
     // per-timestep driver, set from the environment before each set_physiology.
     //
-    // ⚠️ BOTH ARE SETTABLE AND REACH NOTHING IF THIS IS DROPPED. Moving the model
-    // body out of src/tf24_strategy.cpp and into this header lost the pair, and
-    // the symptom was Tleaf reporting the air temperature exactly on every run
-    // with the balance switched on -- an answer, not an error.
+    // ⚠️ BOTH ARE SETTABLE AND REACH NOTHING IF THIS IS DROPPED, and the symptom
+    // is Tleaf reporting the air temperature exactly on every run with the
+    // balance switched on -- an answer, not an error.
     leaf.use_energy_balance_ = (odelia::util::to_passive(pars.use_energy_balance) != 0.0);
     leaf.d_ = odelia::util::to_passive(pars.d);
     leaf.alpha_PAR_ = odelia::util::to_passive(pars.alpha_PAR);
     leaf.alpha_NIR_ = odelia::util::to_passive(pars.alpha_NIR);
     // ⚠️ SEATED ON TF24_floor, WHICH IS TF24 AT lambda_o = 0 -- and exactly, not
     // approximately: each term is TF24's own expression, so zeroing the price
-    // adds an exact zero to TF24's exact value. The default price IS zero, so no
-    // run moves; what changes is that the price now reaches the model at all.
-    // Without this the parameter is settable and inert, which is the silent
-    // failure the whole (P50, c) reparameterisation was about avoiding.
+    // adds an exact zero to TF24's exact value. The default price IS zero, so
+    // seating it moves no default run; it is what lets the price reach the model
+    // at all. Without this the parameter is settable and inert, a silent failure.
     leaf.TF24_floor_lambda_o = pars.TF24_floor_lambda_o;
     leaf.set_model(phylloptim::Leaf::CostCurve::TF24_floor, true);
+    // Every parameter the gradient puts on the leaf's tape must be the one the
+    // leaf was built with; a slot seated from another member would answer for a
+    // leaf that does not exist.
+    const phylloptim::leaf_pars<double> seated = leaf.passive_pars();
+    for (const leaf_slot& e : leaf_slots()) {
+      if (!(seated[e.slot] == pars.*e.at)) {
+        util::stop(std::string("TF24: the leaf holds ") +
+                   util::format_double(seated[e.slot]) + " in the slot `" +
+                   e.name + "` fills, where the strategy holds " +
+                   util::format_double(pars.*e.at));
+      }
+    }
   } else {
     static_assert(std::is_same_v<S, double>,
                   "Leaf carries double; an active strategy must supply the leaf's "

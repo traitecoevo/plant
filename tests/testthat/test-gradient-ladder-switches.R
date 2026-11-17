@@ -7,9 +7,9 @@
 # aggregate residual says.
 #
 # Six routes are known and the count is the routes found rather than a closed
-# set: two of the six were missed by an enumeration that declared itself
-# complete, so a seventh discovered later is a seventh switch and not a reason to
-# distrust the six.
+# set: an enumeration that declares itself complete can still miss one, so a
+# seventh discovered later is a seventh switch and not a reason to distrust the
+# six.
 #
 # Most routes already have their switch somewhere in the ladder, and saying where
 # is the point of this file.
@@ -165,7 +165,7 @@ test_that("the boundary's three channels are three switches", {
   # directly. And the seed height solves its own condition, so the third channel
   # is switchable too rather than declared.
   stand <- ladder_stand_introductions()
-  columns <- ladder_bare_traits(census_trait_names_tf24(stand))
+  columns <- ladder_bare_traits(census_trait_names(stand, "TF24"))
   expect_true("a_st3" %in% columns)
   expect_true("recruitment_decay" %in% columns)
   # omega is the seed height's own switch, and the only parameter that is one: it

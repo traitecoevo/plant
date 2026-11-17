@@ -26,14 +26,14 @@ namespace plant {
 // here.
 
 // A strategy that says where its height growth stops: what the absorbing top
-// layer of a continuous patch is pinned at (Control::absorb_epsilon, #519).
+// layer of a continuous patch is pinned at (Control::absorb_epsilon).
 template <typename T>
 concept HasAsymptoticHeight = requires(const T& s, double epsilon) {
   { s.asymptotic_height(epsilon) } -> std::convertible_to<double>;
 };
 
-// A strategy whose cohorts each carry a private root-zone soil column (TF24w,
-// #681): the patch rates it in two extra passes, applies rain pulses to every
+// A strategy whose cohorts each carry a private root-zone soil column (TF24w):
+// the patch rates it in two extra passes, applies rain pulses to every
 // column, and refuses the height coordinate, the gradient path and the
 // stochastic patch for it.
 template <typename T>
@@ -117,7 +117,7 @@ public:
   typename std::vector<node_type>::const_iterator node_begin() const { return nodes.begin(); }
   typename std::vector<node_type>::const_iterator node_end() const { return nodes.end(); }
 
-  // Every soil column this species holds, for the private-water passes (#681):
+  // Every soil column this species holds, for the private-water passes:
   // each node's individual with the ground it stands for -- its trapezium
   // weight on the birth-date grid times its density, individuals per m2 of
   // patch -- then the boundary node, which closes the grid as it does in every
@@ -267,9 +267,8 @@ public:
   bool heights_are_decreasing() const;
 
   // The tallest node height and whether the heights are ordered, from a single
-  // pass. compute_competition() needs both on every call, and walking the heights
-  // twice was measurably slower on FF16 (~5% on the run benchmark) than the
-  // O(1) nodes.front() it replaced.
+  // pass. compute_competition() needs both on every call, so they come from one
+  // walk of the heights rather than two.
   // h_max is the canopy top, a position; decreasing is a comparison outcome and
   // structural, so it stays bool whatever the heights are made of.
   struct HeightScan { value_type h_max; bool decreasing; };
@@ -291,7 +290,7 @@ public:
     return set_top_ode_state(it);
   }
 
-  // * The absorbing top layer (Control::absorb_epsilon, #519)
+  // * The absorbing top layer (Control::absorb_epsilon)
   //
   // One cohort per species, pinned at the strategy's asymptotic height, into
   // which a cohort that has grown there is absorbed at a node introduction. The
@@ -776,7 +775,7 @@ void Species<T,E>::introduce_new_node() {
   // again on the next compute_rates() ready for the following introduction.
   // Recomputing it here would be redundant, and would (wrongly) recompute against
   // the post-introduction environment rather than the environment at the
-  // node's introduction time (resolves the recompute question in #478).
+  // node's introduction time.
   close_open_interval(new_node.introduction_time());
   nodes.push_back(new_node);
   set_open_scales(new_node.introduction_time());

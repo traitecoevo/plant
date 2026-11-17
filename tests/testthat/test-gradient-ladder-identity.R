@@ -5,7 +5,7 @@
 # over steps is associative or it is not, a sweep is repeatable or it is not, and a
 # permutation of the metric order changes the numbers or it does not. That is why
 # they run on the short fixture -- the same five introductions over a quarter of the
-# steps -- and why nothing in this file was re-blessed to put them there.
+# steps -- and why nothing in this file needs re-blessing to put them there.
 #
 # Their whole assurance is the non-vacuity clause beside each one: prove the two
 # paths computed something before believing they agree.
@@ -69,7 +69,7 @@ test_that("a sweep split at an interior step equals the whole sweep", {
   # The short fixture keeps all five introductions and a quarter of the steps, and the
   # comparison below is bit-identity, so nothing here is re-blessed.
   stand <- ladder_stand_introductions_short()
-  unsplit <- census_trait_gradient_tf24(stand)
+  unsplit <- census_trait_gradient(stand, "TF24")
   whole <- do.call(rbind, unsplit$gradient)
   expect_gt(sum(is.finite(whole)), 0)
   unsplit_segments <- unsplit$segments
@@ -118,14 +118,14 @@ test_that("the split identity holds where the recording has sixty-two segments",
   # product runs at 169. The count is separable from the run length: this stand
   # is still under half a year and carries 62.
   #
-  # Two sweeps, 3.2 s. Bit-identity is what makes that affordable -- no reference
+  # Two sweeps. Bit-identity is what makes that affordable -- no reference
   # to capture, no margin to re-bless, and a shorter run tests the same claim.
   stand <- ladder_stand_many_ranges()
   trajectory <- stand$store_recording()
   introductions <- ladder_introduction_rows(trajectory)
   expect_gt(length(introductions), 50L)
 
-  unsplit <- census_trait_gradient_tf24(stand)
+  unsplit <- census_trait_gradient(stand, "TF24")
   whole <- do.call(rbind, unsplit$gradient)
   expect_gt(sum(is.finite(whole)), 0)
   expect_gt(unsplit$segments, 50)

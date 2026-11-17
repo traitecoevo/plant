@@ -116,7 +116,7 @@ ladder_patch_one <- function(parameters = NULL) {
 # No injected fault: at half this fixture's moisture the operating point is a
 # genuine hydraulic shutdown, which is one of the five operating-point kinds and
 # one the boundary refuses by name. That makes a refusal reachable from a
-# constructed patch in about a second, where a refusing RUN is not available at
+# constructed patch cheaply, where a refusing RUN is not available at
 # all -- the trajectory rungs' stands stay interior by construction, which is
 # what their regime asserts.
 #
@@ -262,8 +262,7 @@ ladder_field_knots <- function(x) {
 #
 # The run keeps it and nothing needs to rebuild it: store_recording()'s first
 # record is the first segment's base, and a later segment's base is the introduction
-# record that widened into it. Checked bit for bit against the C++ accessor this
-# replaced over 45 segments on four stands.
+# record that widened into it.
 ladder_segment_base_state <- function(x, segment = 0L) {
   records <- x$store_recording()
   if (segment == 0L) {
@@ -421,8 +420,8 @@ ladder_stand_introductions_short <- function() {
 # lifetime, which is why the two read as one thing. They are separable: written
 # introduction times put 61 segments in a run of less than half a year.
 #
-# Measured on this fixture: 62 introductions, 62 segments, 68 accepted steps, and a
-# sweep in 1.7 s. The four-node stand every other trajectory rung uses has six.
+# On this fixture: 62 introductions, 62 segments and 68 accepted steps. The
+# four-node stand every other trajectory rung uses has six.
 #
 # ⚠️ WHAT THIS DOES NOT REACH IS THE STEP COUNT. Sixty-eight against the ~3,400 a
 # century fixture accepts, so nothing here says the recording's footprint or the
@@ -526,13 +525,12 @@ ladder_recruit_establishment <- function(x) {
   }, numeric(1))
 }
 
-# The smallest stand that shows the allometric-constant disagreement, and its
+# The smallest stand that shows the allometric-constant defect, and its
 # control: one species, four tenths of a year, with and without a second cohort.
 #
-# It exists so work on that defect has a loop measured in seconds. The pair runs in
-# about six seconds each against forty-three for the two-species fixture the
-# measurements were first taken on, and it separates the defect by a factor of six
-# thousand -- 1.4e-03 against 2.2e-07 on the trajectory term. A second cohort
+# It gives work on that defect a short loop, and where the defect is present it
+# separates it by a factor of six thousand -- 1.4e-03 against 2.2e-07 on the
+# trajectory term. A second cohort
 # cannot be had without an introduction after t = 0, so the control differs by that
 # introduction as well as by the cohort; every other check here has excluded the
 # introduction, which is what makes the pair a usable control rather than a
@@ -568,11 +566,11 @@ ladder_run <- function(p, ctrl = NULL, env = NULL) {
 ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
   env <- Environment("TF24")
   # ⚠️ THE LADDER'S LIGHT IS PINNED, not the model default. Its regimes were
-  # designed at 1800 umol m^-2 s^-1 of PPFD above the canopy, and TF24 v13's
+  # designed at 1800 umol m^-2 s^-1 of PPFD above the canopy, and the model's
   # default (SWdown 900, i.e. 2056.5) pushes `clamped` through enough clamps and
   # shade deaths that a difference of whole runs stops converging: 100 of its
   # reference columns scatter by more than 1.5x across the four steps, against
-  # 4 at this light, so the reference cannot referee it. This is the old light
+  # 4 at this light, so the reference cannot referee it. This is that 1800
   # expressed as shortwave.
   env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))
   if (is.null(rain)) {
@@ -599,10 +597,10 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
 # regime is the water and the light; the schedule is the caller's, and what it
 # decides is COST rather than regime: the default schedule derives its
 # introduction count from the lifetime, so a stand that wants the stiff regime
-# pays for cohorts it is not asking about. Measured on the clamped driver at a
-# lifetime of 5: twenty introductions record 3267 steps and run and sweep in
-# 17.8 s where its eighty-eight record far more and take 258, with both light
-# sites firing on both paths and the same overflow refusal either way.
+# pays for cohorts it is not asking about. On the clamped driver at a lifetime
+# of 5, twenty introductions cost a small fraction of what its eighty-eight do,
+# with both light sites firing on both paths and the same overflow refusal
+# either way.
 ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                 introductions = NULL) {
   p <- testing_parameters("TF24")
@@ -1051,15 +1049,10 @@ ladder_field_borne_parameters <- function() c("k_I")
 ladder_leaf_own_traits <- function() {
   # ⚠️ Maintained, not derived, and nothing structural keeps it current: a trait
   # whose row becomes supplied joins the set this asserts and has to be added
-  # here. That has now happened three times -- dark respiration, then the two
-  # photosynthetic capacities -- and each time the failure was this assertion
-  # rather than anything about the gradient, which is the good case. The general
-  # form: a list read off a signature goes silently incomplete when the
-  # signature grows.
-  # Renamed with the (P50, c) reparameterisation: `c` and `b` are the STEM pair
-  # and are `stem_c` and `stem_P50`; `root_b` is `root_P50`; `beta2` carries its
-  # curve's name. `g1_TF24` is gone -- the leaf takes no Medlyn slope on this
-  # path. Exactly the drift this comment predicts, arriving a fourth time.
+  # here, and so does a trait the leaf renames. The failure is then this
+  # assertion rather than anything about the gradient, which is the good case.
+  # The general form: a list read off a signature goes silently incomplete when
+  # the signature grows.
   c("stem_c", "stem_P50", "TF24_beta2", "TF24_cost_scale", "phi_J",
     "curv_fact_elec_trans", "curv_fact_colim", "vcmax_25", "jmax_25",
     "R_d_25", "root_c", "root_P50")
@@ -1326,9 +1319,9 @@ ladder_expect_moves <- function(with_channel, without_channel, label,
 
 # One sweep per fixture, for the checks that only read the gradient back.
 #
-# A sweep of the four-node stand is 43.6 s and building the stand is 0.13 s, so the
-# sweep is the whole cost of a trajectory check; twenty of them pay one purely to
-# read a column out of it. The sweep is deterministic -- the floor asserts two
+# The sweep, not building the stand, is the whole cost of a trajectory check, and
+# twenty of them need one only to read a column out of it. The sweep is
+# deterministic -- the floor asserts two
 # consecutive sweeps of one recording are bit-identical -- so a shared one carries
 # the same numbers as a private one.
 #
@@ -1397,15 +1390,15 @@ ladder_shared <- function(key) {
 # minimum, that row is exactly minus the unit vector in its own direction. The
 # fixtures are pinned interior, so nothing here exercises it.
 ladder_zero_at_an_interior_optimum <- function() {
-  # ⚠️ EMPTY, AND NOT BECAUSE THE ARGUMENT STOPPED HOLDING. psi_crit and
-  # root_psi_crit were here while they were free parameters PASSED to the leaf.
-  # They are derived from (P50, c) inside it now and the strategy hands over
-  # neither, so there is no column to classify -- the complementary-slackness
-  # reasoning above is still true of the bound and no longer describes a trait.
+  # ⚠️ EMPTY, AND NOT BECAUSE THE ARGUMENT DOES NOT HOLD. psi_crit and
+  # root_psi_crit are derived from (P50, c) inside the leaf and the strategy
+  # hands over neither, so there is no column to classify -- the
+  # complementary-slackness reasoning above is true of the bound and describes
+  # no trait.
   #
   # Kept as a named empty list rather than deleted: the reasoning is what a pinned
-  # operating point would need, and a curve whose critical potential becomes free
-  # again belongs here.
+  # operating point would need, and a curve whose critical potential becomes a
+  # free parameter passed to the leaf belongs here.
   character(0)
 }
 
@@ -1414,9 +1407,9 @@ ladder_zero_at_an_interior_optimum <- function() {
 # the column is exactly zero on this metric set and would be live on a fitness
 # functional.
 #
-# omega was here while its second route, through birth size, was imposed to zero.
-# The seed height now solves its own condition, so that route carries a row: omega
-# sets the height a newborn is given, and through it the storage the height scales
+# omega is not in this set: the seed height solves its own condition, so omega's second route,
+# through birth size, carries a row. It sets the height a newborn is given, and
+# through it the storage the height scales
 # and every resource row the newborn's own physiology writes.
 ladder_zero_outside_the_metric_support <- function() {
   "a_f3"
@@ -1679,8 +1672,7 @@ ladder_run_difference_pair <- function(name, species = 2L,
     h <- abs(value) * r
     (census_at(value + h) - census_at(value - h)) / (2 * h)
   }
-  # ⚠️ The step-stability guard is not optional here, and skipping it once
-  # produced a reading that reversed a decision. A column whose sensitivity is
+  # ⚠️ The step-stability guard is not optional here. A column whose sensitivity is
   # an order below its neighbour's -- which competition produces, because the
   # suppressed species contributes less -- sits closer to this difference's own
   # floor, and the answer then moves with the step instead of holding. Measured
@@ -1698,8 +1690,8 @@ ladder_run_difference_pair <- function(name, species = 2L,
   # is the second of two divisions and each hides the other: against the column's
   # own value a row at the difference's floor reads infinitely unconverged, and
   # against the largest of the four readings -- which on a series falling like
-  # 1/h is its noisiest -- 79 of drought's 86 columns kept a reading further from
-  # its neighbour than from zero and reported 0.03% to 34% for it.
+  # 1/h is its noisiest -- 79 of drought's 86 columns keep a reading further from
+  # its neighbour than from zero and would report 0.03% to 34% for it.
   list(gradient = g[, best + 1L],
        column = paste0(species, ".", name),
        step = steps[[best + 1L]],
@@ -1708,8 +1700,7 @@ ladder_run_difference_pair <- function(name, species = 2L,
 }
 
 ladder_shortlist <- function() {
-  # Two classes, and the second was unrefereed until a defect in it was found from
-  # outside this ladder.
+  # Two classes.
   #
   # Reduction-borne: each reaches a census through a reduction as well as through a
   # plant, so each can read zero for a structural reason rather than an ecological
@@ -1717,9 +1708,8 @@ ladder_shortlist <- function() {
   #
   # Birth-size: each reaches a census through the seed's own size, so each carries
   # the one channel whose row is written where a newborn's state is. They move
-  # together as a class -- a row missing there moved all eight while every other
-  # channel held -- so the class is the unit, not the two of it that happened to be
-  # listed here.
+  # together as a class -- a row missing there moves all eight while every other
+  # channel holds -- so the class is the unit, not any two of it.
   unique(c("k_I", "eta", "a_l1", "a_l2", "a_st3", "recruitment_decay",
            ladder_birth_size_parameters()))
 }
@@ -1769,7 +1759,21 @@ ladder_trait_fanout <- function(traits, name, rel = 1e-6) {
 #
 # `plateau_at` is which end the agreement is at, and it belongs beside any figure
 # taken from here.
-ladder_run_difference_stable <- function(traits, name, ...,
+# Memoised on its arguments: two tests of the declared zeros read the same
+# eight differences, each a ladder of eight whole runs.
+ladder_run_difference_stable <- local({
+  cache <- list()
+  function(traits, name, ..., steps = c(1e-6, 1e-5, 1e-4, 1e-3)) {
+    key <- paste(deparse(list(traits, name, list(...), steps)), collapse = "")
+    if (is.null(cache[[key]])) {
+      cache[[key]] <<- ladder_run_difference_stable_uncached(traits, name, ...,
+                                                             steps = steps)
+    }
+    cache[[key]]
+  }
+})
+
+ladder_run_difference_stable_uncached <- function(traits, name, ...,
                                          steps = c(1e-6, 1e-5, 1e-4, 1e-3)) {
   got <- lapply(steps, function(r) ladder_run_difference(traits, name, rel = r, ...))
   g <- vapply(got, function(x) x$gradient, numeric(length(got[[1]]$gradient)))
@@ -1809,31 +1813,28 @@ ladder_trait_direction <- function(columns, name) {
 # every derivative it reports is a derivative at the state it actually reached.
 ladder_replay_floor <- function(stand, value) {
   reached <- ladder_trajectory_tangent(
-    stand, numeric(length(census_trait_names_tf24(stand))))$value
+    stand, numeric(length(census_trait_names(stand, "TF24"))))$value
   max(abs(reached - value) / abs(value))
 }
 
 # What the trajectory sweep and the trajectory tangent agree to. Every column is
-# held here; there is no second, looser bound, and the history of the one there was
-# is the argument for not having it.
+# held here; there is no second, looser bound.
 #
 # Measured worst 6.0e-05 over all 88 columns of a stand carrying one cohort per
-# species. On the introductions fixture the largest is now recruitment_decay at
-# 4.4e-05, with the two constants of the inflow condition next to it -- they sat at
-# 1.9e-02 and 2.0e-03 while the boundary node's density adjoint was accumulated and
-# never transposed through the condition that sets it.
+# species. On the introductions fixture the largest is recruitment_decay at
+# 4.4e-05, with the two constants of the inflow condition next to it; a boundary
+# node's density adjoint accumulated but never transposed through the condition
+# that sets it puts those two at 1.9e-02 and 2.0e-03.
 #
-# The two allometric constants were held to a separate bound of 4e-03 while a species
-# carrying more than one cohort disagreed by 3.4e-03. That was a real defect and it is
-# closed: the seed's dependent auxiliaries were not re-derived where its recorded height
-# is written, so the leaf area every rate at birth size is scaled by carried no
-# derivative. They now read 2.2e-09 and 1.1e-08 on the same fixture.
+# The two allometric constants read 2.2e-09 and 1.1e-08 on the same fixture. If the
+# seed's dependent auxiliaries are not re-derived where its recorded height is
+# written, the leaf area every rate at birth size is scaled by carries no
+# derivative, and a species carrying more than one cohort disagrees by 3.4e-03.
 #
-# Two things that bound cost, and they are why one bound is safer than two. It was the
-# eight-parameter birth-size CLASS that was wrong, not the pair -- the other six were
-# compared nowhere, so the bound named the symptom's two loudest columns and left the
-# rest unrefereed. And a bound widened around a live disagreement cannot fail when that
-# disagreement grows.
+# Why one bound is safer than two. A defect in the birth-size channel is in the
+# whole eight-parameter CLASS, not the pair, so a separate bound for the symptom's
+# two loudest columns leaves the other six unrefereed. And a bound widened around a
+# live disagreement cannot fail when that disagreement grows.
 ladder_trajectory_agreement <- function() 3e-04
 
 # What the transpose and the two references agree to on the soil rows, which is
@@ -1841,11 +1842,10 @@ ladder_trajectory_agreement <- function() 3e-04
 # the collar and the transpose records, so the gap is the rank-two factorisation's
 # own fit step rather than a missing channel.
 #
-# It was 1.06e-05 while the uptake reduction's transpose scattered onto the
-# introduced nodes only, leaving the boundary node's own draw -- the distribution's
-# lower grid point -- reaching no soil row. Both reductions now carry that row and
-# the residual is 5.38e-08 on the four-node patch, 5.07e-08 crossed and 4.67e-08
-# on the one-cohort patch.
+# The residual is 5.38e-08 on the four-node patch, 5.07e-08 crossed and 4.67e-08
+# on the one-cohort patch. Both reductions must carry the boundary node's own
+# draw -- the distribution's lower grid point -- to the soil rows: a transpose
+# that scatters onto the introduced nodes only leaves the residual at 1.06e-05.
 ladder_soil_row_agreement <- function() 8e-08
 
 # A parameter the boundary cannot answer for. A refusal, never a number, and an
@@ -1858,9 +1858,6 @@ ladder_refused_by_name <- function() {
   # that is a property of WHICH CURVE is seated rather than of the model's
   # sensitivity -- which is why it is refused by name rather than declared as an
   # insensitivity.
-  #
-  # `p_50` was here and is gone: it is `stem_P50` now, it is an ordinary trait of
-  # the vulnerability curve, and its column is live.
   c("TF24_floor_lambda_o")
 }
 

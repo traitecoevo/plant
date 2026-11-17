@@ -1,6 +1,6 @@
 # A trait's column is the total derivative as the trait moves through the
 # hyperparameter function that built the strategy; hyperpar = NULL gives the
-# partials, with every derived parameter fixed. For lma the partial was 2.4
+# partials, with every derived parameter fixed. For lma the partial is 2.4
 # to 4 times the total.
 
 hyperpar_parameters <- function(lifetime = 3) {
@@ -69,7 +69,7 @@ test_that("the total agrees with a difference of the trait through add_strategie
   h <- 1e-3 * 0.0825
   fd <- (census_at(0.0825 + h) - census_at(0.0825 - h)) / (2 * h)
   # Measured 3e-5 to 8e-5 across two steps, which is the difference's own noise;
-  # the partial was 2.4 to 3.4 times off.
+  # the partial is 2.4 to 3.4 times off.
   expect_equal(tot$gradient[names(fd), "1.lma"], fd, tolerance = 1e-3)
 })
 
@@ -82,6 +82,29 @@ test_that("a derived parameter is not a column of its own under a trade-off", {
   expect_true(all(c("1.k_l", "1.r_l") %in% colnames(par$gradient)))
   expect_error(stand_gradient(run$solver, traits = "1.k_l"),
                "1.k_l derived from the species' traits")
+})
+
+test_that("a trade-off deriving a parameter that is read and has no column is refused", {
+  run <- hyperpar_run(hyperpar_parameters(lifetime = 1))
+  # The same trade-off, also deriving one more parameter at the value the
+  # strategy holds, so the strategy is on it.
+  deriving <- function(name) {
+    hp <- default_hyperpar("TF24")
+    function(m, s, filter = TRUE) {
+      out <- hp(m, s, filter = filter)
+      out <- cbind(out, rep(s$pars[[name]], nrow(out)))
+      colnames(out)[ncol(out)] <- name
+      out
+    }
+  }
+  # g_min reaches the leaf and has no column, so its channel would be lost.
+  expect_error(stand_gradient(run$solver, traits = "1.lma",
+                              hyperpar = deriving("g_min")),
+               "derives 1.g_min .*chain rule cannot be completed")
+  # root_psi_crit reaches no equation, so the chain loses nothing by it.
+  # (psi_crit would test nothing: the default trade-off derives it already.)
+  expect_no_error(stand_gradient(run$solver, traits = "1.lma",
+                                 hyperpar = deriving("root_psi_crit")))
 })
 
 test_that("a strategy that is not on the trade-off is refused, not chained", {

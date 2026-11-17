@@ -85,6 +85,17 @@ template <typename T, typename E>
 class DeterministicPatchRunner : public PatchRunner<DeterministicPatchRunner<T, E>, Patch<T, E>> {
   typedef PatchRunner<DeterministicPatchRunner<T, E>, Patch<T, E>> base_type;
   friend base_type;
+  // Both hooks are found by concept, so a member misspelt in a strategy would
+  // switch one off with every number finite: a solve that keeps its choices
+  // would search again on a replay, or a refusal would go unread. A strategy
+  // that declares the record must take part in it, and one that keeps choices
+  // has an inner solve that can refuse.
+  static_assert(!requires { typename T::solved_values; } || KeepsSolvedChoices<T>,
+                "a strategy declaring solved_values must define store_solved, "
+                "load_solved and end_solved");
+  static_assert(!KeepsSolvedChoices<T> || RecordsRefusal<T>,
+                "a strategy that keeps its inner solve's choices must record "
+                "its refusals (recorded_refusal)");
 public:
   // ---- Type aliases ------------------------------------------------------
   typedef T                strategy_type;
@@ -97,7 +108,7 @@ public:
 
   // ---- Construction ------------------------------------------------------
   // An empty `ev` means "no events supplied": the schedule then comes from
-  // p.node_schedule_times exactly as it always has (#522).
+  // p.node_schedule_times.
   DeterministicPatchRunner(parameters_type p, environment_type e, plant::Events ev, plant::Control c);
 
   // ---- Simulation lifecycle ----------------------------------------------
@@ -112,7 +123,7 @@ public:
   // run() does, so a sequence of these is a run() leg for leg; a finished one
   // is left where it is. What a caller driving a run from outside needs -- a
   // convergence test between legs, an export at a time of its choosing --
-  // without a Patch copy per step (#519).
+  // without a Patch copy per step.
   void run_to(double t);
 
   // A thinned record of the run: one summary per `snapshot_interval` years,
@@ -148,7 +159,7 @@ public:
   void run_mutant(parameters_type p);
   // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
   // one of them stands in ONE field, the resident's as it stands now, constant for
-  // the whole of their run (#519). Where run_mutant() reads a resident's
+  // the whole of their run. Where run_mutant() reads a resident's
   // recorded field step by step, a fixed point has a single field, so nothing
   // is recorded and nothing read back, and an invader takes its own steps. The
   // field is taken at the first call, from the state the resident has reached
@@ -159,12 +170,10 @@ public:
 
   // Run, keeping the state at each accepted step, and return one row per step.
   //
-  // A run pinned to this run's times and sizes DOES reproduce these states, bit for
-  // bit over 3381 steps, and pays 15% less because it attempts no step it will
-  // reject. This said the opposite -- that a rejected attempt moves patch state
-  // which is not ODE state, and a pinned run makes none -- and the states are
-  // measurably identical, so whatever a rejected attempt leaves behind is rebuilt
-  // from the state before anything reads it.
+  // A run pinned to this run's times and sizes reproduces these states bit for
+  // bit, and is cheaper because it attempts no step it will reject. A rejected
+  // attempt can move patch state that is not ODE state, but whatever it leaves
+  // behind is rebuilt from the state before anything reads it.
   // The record the run kept, read in place off the solver: one row per accepted
   // step carrying its time, the size that reached it and the state there. Not a
   // copy and not a re-pairing -- the solver holds exactly this.
@@ -305,11 +314,30 @@ public:
     }
   }
 
+  // The sweep crosses an event as if it left the state's rows unchanged. That
+  // holds for a harvest or a climate extreme, a constant shift in log density,
+  // and for a pulse the layer takes whole. A pulse that fills a layer and sheds
+  // the rest sets the layer to saturation whatever it held, which the sweep
+  // would carry back as the state it replaced.
+  void require_transposable_events(const char* entry) const {
+    for (const EventRecord& rec : event_log) {
+      if (rec.type == EventType::ResourcePulse && rec.applied.size() > 1 &&
+          rec.applied[1] > 0.0) {
+        util::stop(std::string(entry) + ": the pulse at t = " +
+                   util::format_double(rec.time) + " filled layer " +
+                   util::to_string(static_cast<int>(rec.target_index + 1)) +
+                   " and shed " + util::format_double(rec.applied[1]) +
+                   ", and the reverse-mode gradient has no row for a capped "
+                   "pulse. Give pulses the layer can take whole.");
+      }
+    }
+  }
+
   void require_birth_date_coordinate(const char* entry) const {
     // A private root-zone column couples cohorts through the patch -- the
     // mixing and land-transfer terms of Patch::private_water_exchange -- outside
     // the per-cohort block the recording describes, so its gradient would be a
-    // different function's (#681).
+    // different function's.
     if constexpr (HasPrivateWater<T>) {
       util::stop(std::string(entry) +
                  ": TF24w's private root-zone water is not differentiable. "
@@ -439,7 +467,7 @@ public:
   // rather than the first: it changes no forward number and still decides which
   // rows exist.
   //
-  // ⚠️ EACH NAME BESIDE ITS VALUE, because two of the five are 1e-3 at the
+  // ⚠️ EACH NAME BESIDE ITS VALUE, because three of the five are 1e-3 at the
   // defaults. Attached by position one file away, a transposed ci_abs_tol and
   // gradient_curvature_floor would leave both readable and plausible, and
   // stand_gradient_compare() refusing on the wrong pair. census_gradient.cpp
@@ -1174,7 +1202,7 @@ typename DeterministicPatchRunner<T, E>::recording DeterministicPatchRunner<T, E
   // Handed back as the solver holds it. The state, the time it was reached at and
   // the size that reached it are one record there, so nothing here pairs them and
   // nothing copies them -- projecting the three apart and rebuilding the same row
-  // was work whose only product was a chance to mispair.
+  // would be work whose only product is a chance to mispair.
   return solver.recording();
 }
 
@@ -1441,8 +1469,7 @@ DeterministicPatchRunner<T, E>::census_trait_difference(double rel) {
 // Set lambda on the states the census reads at T, then run the reverse pass
 // back over the recorded steps. The trait adjoints accumulate across every
 // cohort and every step, so the accumulator is cleared once per metric and read
-// once the sweep is done. It is the solver's system that accumulates: `patch` is
-// a snapshot the run copies out, and reading its accumulator gives zeros.
+// once the sweep is done, into an accumulator owned here.
 template <typename T, typename E>
 census_gradient
 DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
@@ -1484,6 +1511,9 @@ DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>&
   // solver itself. store_recording() repeats the run to get them unless
   // keep_states kept them the first time, and either way it may run, so the
   // adjoints below are taken after it.
+  // The run's own event log says whether the sweep can cross its events, so
+  // this is asked before a recording that may repeat the whole run.
+  require_transposable_events("census_trait_gradient");
   store_recording();
 
   patch_type& live = solver.get_system_ref();

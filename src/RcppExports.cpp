@@ -18657,234 +18657,87 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// census_metric_names_tf24
-Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_metric_names_tf24(SEXP obj_SEXP) {
+// census_metric_names
+SEXP census_metric_names(SEXP x, std::string model);
+RcppExport SEXP _plant_census_metric_names(SEXP xSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_metric_names_tf24(obj_));
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_metric_names(x, model));
     return rcpp_result_gen;
 END_RCPP
 }
-// census_tf24
-std::vector<double> census_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_tf24(SEXP obj_SEXP) {
+// census_values
+SEXP census_values(SEXP x, std::string model);
+RcppExport SEXP _plant_census_values(SEXP xSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_tf24(obj_));
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_values(x, model));
     return rcpp_result_gen;
 END_RCPP
 }
-// census_state_adjoint_tf24
-std::vector<std::vector<double>> census_state_adjoint_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_state_adjoint_tf24(SEXP obj_SEXP) {
+// census_state_adjoint
+SEXP census_state_adjoint(SEXP x, std::string model);
+RcppExport SEXP _plant_census_state_adjoint(SEXP xSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_state_adjoint_tf24(obj_));
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_state_adjoint(x, model));
     return rcpp_result_gen;
 END_RCPP
 }
-// census_trait_names_tf24
-std::vector<std::string> census_trait_names_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_trait_names_tf24(SEXP obj_SEXP) {
+// census_trait_names
+SEXP census_trait_names(SEXP x, std::string model);
+RcppExport SEXP _plant_census_trait_names(SEXP xSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_trait_names_tf24(obj_));
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_trait_names(x, model));
     return rcpp_result_gen;
 END_RCPP
 }
-// census_undifferentiable_tf24
-Rcpp::CharacterVector census_undifferentiable_tf24();
-RcppExport SEXP _plant_census_undifferentiable_tf24() {
+// census_undifferentiable
+SEXP census_undifferentiable(std::string model);
+RcppExport SEXP _plant_census_undifferentiable(SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(census_undifferentiable_tf24());
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_undifferentiable(model));
     return rcpp_result_gen;
 END_RCPP
 }
-// census_trait_gradient_tf24
-Rcpp::List census_trait_gradient_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_, Rcpp::Nullable<Rcpp::CharacterVector> which_metrics);
-RcppExport SEXP _plant_census_trait_gradient_tf24(SEXP obj_SEXP, SEXP which_metricsSEXP) {
+// census_trait_gradient
+SEXP census_trait_gradient(SEXP x, std::string model, Rcpp::Nullable<Rcpp::CharacterVector> which_metrics);
+RcppExport SEXP _plant_census_trait_gradient(SEXP xSEXP, SEXP modelSEXP, SEXP which_metricsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type which_metrics(which_metricsSEXP);
-    rcpp_result_gen = Rcpp::wrap(census_trait_gradient_tf24(obj_, which_metrics));
+    rcpp_result_gen = Rcpp::wrap(census_trait_gradient(x, model, which_metrics));
     return rcpp_result_gen;
 END_RCPP
 }
-// gradient_control_tf24
-Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_gradient_control_tf24(SEXP obj_SEXP) {
+// census_gradient_control
+SEXP census_gradient_control(SEXP x, std::string model);
+RcppExport SEXP _plant_census_gradient_control(SEXP xSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(gradient_control_tf24(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_metric_names_tf24f
-Rcpp::CharacterVector census_metric_names_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_metric_names_tf24f(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_metric_names_tf24f(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_tf24f
-std::vector<double> census_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_tf24f(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_tf24f(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_state_adjoint_tf24f
-std::vector<std::vector<double>> census_state_adjoint_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_state_adjoint_tf24f(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_state_adjoint_tf24f(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_trait_names_tf24f
-std::vector<std::string> census_trait_names_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_trait_names_tf24f(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_trait_names_tf24f(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_undifferentiable_tf24f
-Rcpp::CharacterVector census_undifferentiable_tf24f();
-RcppExport SEXP _plant_census_undifferentiable_tf24f() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(census_undifferentiable_tf24f());
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_trait_gradient_tf24f
-Rcpp::List census_trait_gradient_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_, Rcpp::Nullable<Rcpp::CharacterVector> which_metrics);
-RcppExport SEXP _plant_census_trait_gradient_tf24f(SEXP obj_SEXP, SEXP which_metricsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type which_metrics(which_metricsSEXP);
-    rcpp_result_gen = Rcpp::wrap(census_trait_gradient_tf24f(obj_, which_metrics));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gradient_control_tf24f
-Rcpp::NumericVector gradient_control_tf24f(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_gradient_control_tf24f(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(gradient_control_tf24f(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_metric_names_ff16
-Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_metric_names_ff16(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_metric_names_ff16(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_ff16
-std::vector<double> census_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_ff16(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_ff16(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_state_adjoint_ff16
-std::vector<std::vector<double>> census_state_adjoint_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_state_adjoint_ff16(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_state_adjoint_ff16(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_trait_names_ff16
-std::vector<std::string> census_trait_names_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_trait_names_ff16(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_trait_names_ff16(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_undifferentiable_ff16
-Rcpp::CharacterVector census_undifferentiable_ff16();
-RcppExport SEXP _plant_census_undifferentiable_ff16() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(census_undifferentiable_ff16());
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_trait_gradient_ff16
-Rcpp::List census_trait_gradient_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_, Rcpp::Nullable<Rcpp::CharacterVector> which_metrics);
-RcppExport SEXP _plant_census_trait_gradient_ff16(SEXP obj_SEXP, SEXP which_metricsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type which_metrics(which_metricsSEXP);
-    rcpp_result_gen = Rcpp::wrap(census_trait_gradient_ff16(obj_, which_metrics));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gradient_control_ff16
-Rcpp::NumericVector gradient_control_ff16(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_gradient_control_ff16(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(gradient_control_ff16(obj_));
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_gradient_control(x, model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -21360,27 +21213,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24f_Model__ctor", (DL_FUNC) &_plant_TF24f_Model__ctor, 0},
     {"_plant_TF24t_Model__ctor", (DL_FUNC) &_plant_TF24t_Model__ctor, 0},
     {"_plant_TF24w_Model__ctor", (DL_FUNC) &_plant_TF24w_Model__ctor, 0},
-    {"_plant_census_metric_names_tf24", (DL_FUNC) &_plant_census_metric_names_tf24, 1},
-    {"_plant_census_tf24", (DL_FUNC) &_plant_census_tf24, 1},
-    {"_plant_census_state_adjoint_tf24", (DL_FUNC) &_plant_census_state_adjoint_tf24, 1},
-    {"_plant_census_trait_names_tf24", (DL_FUNC) &_plant_census_trait_names_tf24, 1},
-    {"_plant_census_undifferentiable_tf24", (DL_FUNC) &_plant_census_undifferentiable_tf24, 0},
-    {"_plant_census_trait_gradient_tf24", (DL_FUNC) &_plant_census_trait_gradient_tf24, 2},
-    {"_plant_gradient_control_tf24", (DL_FUNC) &_plant_gradient_control_tf24, 1},
-    {"_plant_census_metric_names_tf24f", (DL_FUNC) &_plant_census_metric_names_tf24f, 1},
-    {"_plant_census_tf24f", (DL_FUNC) &_plant_census_tf24f, 1},
-    {"_plant_census_state_adjoint_tf24f", (DL_FUNC) &_plant_census_state_adjoint_tf24f, 1},
-    {"_plant_census_trait_names_tf24f", (DL_FUNC) &_plant_census_trait_names_tf24f, 1},
-    {"_plant_census_undifferentiable_tf24f", (DL_FUNC) &_plant_census_undifferentiable_tf24f, 0},
-    {"_plant_census_trait_gradient_tf24f", (DL_FUNC) &_plant_census_trait_gradient_tf24f, 2},
-    {"_plant_gradient_control_tf24f", (DL_FUNC) &_plant_gradient_control_tf24f, 1},
-    {"_plant_census_metric_names_ff16", (DL_FUNC) &_plant_census_metric_names_ff16, 1},
-    {"_plant_census_ff16", (DL_FUNC) &_plant_census_ff16, 1},
-    {"_plant_census_state_adjoint_ff16", (DL_FUNC) &_plant_census_state_adjoint_ff16, 1},
-    {"_plant_census_trait_names_ff16", (DL_FUNC) &_plant_census_trait_names_ff16, 1},
-    {"_plant_census_undifferentiable_ff16", (DL_FUNC) &_plant_census_undifferentiable_ff16, 0},
-    {"_plant_census_trait_gradient_ff16", (DL_FUNC) &_plant_census_trait_gradient_ff16, 2},
-    {"_plant_gradient_control_ff16", (DL_FUNC) &_plant_gradient_control_ff16, 1},
+    {"_plant_census_metric_names", (DL_FUNC) &_plant_census_metric_names, 2},
+    {"_plant_census_values", (DL_FUNC) &_plant_census_values, 2},
+    {"_plant_census_state_adjoint", (DL_FUNC) &_plant_census_state_adjoint, 2},
+    {"_plant_census_trait_names", (DL_FUNC) &_plant_census_trait_names, 2},
+    {"_plant_census_undifferentiable", (DL_FUNC) &_plant_census_undifferentiable, 1},
+    {"_plant_census_trait_gradient", (DL_FUNC) &_plant_census_trait_gradient, 3},
+    {"_plant_census_gradient_control", (DL_FUNC) &_plant_census_gradient_control, 2},
     {"_plant_ladder_block_jacobian_forward_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_forward_tf24, 2},
     {"_plant_ladder_block_value_tf24", (DL_FUNC) &_plant_ladder_block_value_tf24, 2},
     {"_plant_ladder_block_jacobian_reverse_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_reverse_tf24, 2},

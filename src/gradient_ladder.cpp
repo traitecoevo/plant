@@ -5,7 +5,7 @@
 // that reports how a run was cut and what regimes it met.
 //
 // ⚠️ THIS COMPILES INTO THE SHIPPED LIBRARY, DELIBERATELY, AND THE ALTERNATIVE IS
-// NOT AVAILABLE. Nothing outside `tests/testthat/test-gradient-*.R` calls any of
+// NOT AVAILABLE. Only the tests and scripts/capture-reference-gradient.R call
 // it, so the obvious move is to put it behind a macro the test runner defines.
 // That does not work here: an `[[Rcpp::export]]` reaches R through the generated
 // `src/RcppExports.cpp`, which `Rcpp::compileAttributes()` rewrites whole and
@@ -36,7 +36,7 @@
 // WHAT EARNS A PLACE HERE is a map read at a point, which the shipped answer
 // cannot report: `stand_gradient` returns one number per (metric, trait) over a
 // whole run, so a Jacobian, an adjoint or a reference evaluated at one state has
-// no route to R through it. Two entry points failed that test and are gone --
+// no route to R through it. A map R can already reach needs no entry point:
 // the field's knots are on the published `ResourceSpline`, and a segment's base
 // state is the first record `store_recording()` keeps, or the introduction
 // record that widened into it.
@@ -506,9 +506,8 @@ Rcpp::List ladder_rhs_adjoint_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF2
     lambda_y.assign(lambda_y.size(), nan);
     trait_adjoint.assign(trait_adjoint.size(), nan);
   }
-  // The knot halves are gone with the reduction transposes that produced them:
-  // the field's rows are an intermediate of the stage recording now, so they are
-  // in the state and trait rows rather than beside them.
+  // The field's rows are an intermediate of the stage recording, so they are in
+  // the state and trait rows rather than beside them.
   return Rcpp::List::create(Rcpp::_["state"] = lambda_y,
                             Rcpp::_["trait"] = trait_adjoint,
                             Rcpp::_["refused"] = why.happened(),
@@ -665,7 +664,7 @@ Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::Determi
   const double segments = static_cast<double>(result.segments);
   // And whether there is an answer at all. A refused sweep costs what an accepted
   // one costs, so a caller timing this without reading the refusal is timing work
-  // whose result was thrown away -- which is what the profile scripts were doing.
+  // whose result was thrown away.
   const std::string refused =
     result.why.empty() ? std::string() : result.why.front().reason;
   // And how many operating points the sweep placed rather than searched for. A
@@ -966,7 +965,7 @@ ladder_census_trait_difference_tf24(plant::RcppR6::RcppR6<plant::DeterministicPa
 
 // The same gradient with the sweep stopped and resumed at each given recorded
 // step, counted from one. Composition over steps is associative, so this must
-// agree with census_trait_gradient_tf24 bit for bit.
+// agree with census_trait_gradient bit for bit.
 // [[Rcpp::export]]
 Rcpp::List
 census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_,

@@ -13,6 +13,10 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **A TF24f stand gradient has a column for `k_acclim`, and a stand gradient over a rain pulse that overfilled a layer is refused.** TF24f's acclimation gain reaches the collar position's rate, and its column (`"<species>.k_acclim"`, before the birth rate) is refereed against pinned-step differences; before, the gain was active with neither a column nor a reason. A pulse that fills a layer and sheds the rest sets the layer to saturation, so its row there is zero, and the sweep carried one: the gradient was wrong by up to 0.4% on the measured stand, at any ODE tolerance. Pulses the layer takes whole are exact. Migration:
+  * a TF24f gradient indexed by position -> index it by name; the birth rate's column moves one place, behind `k_acclim`'s
+  * `stand_gradient()` over a run whose `event_log` shows a pulse's excess > 0 -> give pulses each layer can take whole, or difference the metric
+
 * **The stochastic solver draws deaths every 0.01 yr by default, where it drew them every 0.05.** Survival is exact at any interval, but a plant that has died goes on shading the living until the next draw. In an FF16 stand closing its canopy, on 320 m² with the same seeds at each interval, 0.05 left 1.4% fewer plants than 0.01 at 10 years, 0.1 left 4.1% and 0.2 left 9.1%: in proportion to the interval, so 0.05 falls about 2% short of continuous checks and 0.01 about 0.5%. Before the canopy closes (5 years) the interval makes no difference, and by 20 years 0.05 is 0.4% short of 0.01. A stochastic FF16 run takes 20 to 30% longer. Deterministic runs do not move, and no `scientific_version` changes. Migration:
   * a seeded stochastic result recorded before this change -> re-run, or pass `control(stochastic_death_interval = 0.05)` to reproduce it
   * to trade accuracy for speed, set `stochastic_death_interval` in the run's `control`

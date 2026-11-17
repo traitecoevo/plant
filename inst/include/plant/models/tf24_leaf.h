@@ -20,19 +20,14 @@ S TF24_Model<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
   }
 }
 
-// The two _25 traits and day respiration enter as the temperature-adjusted
-// values the leaf's kernels take. The Arrhenius is linear in its reference
-// value, so the chain from the trait is the factor between them and the tape
-// carries the rest.
 // ⚠️ THE TRAITS THEMSELVES, AND EVERY SLOT NAMED. The pack is the leaf model's
 // own parameter enumeration, so the temperature responses, both Weibull scale
 // parameters and both critical potentials are DERIVED inside the leaf from
 // these -- which is what puts their chains on this tape instead of asking this
 // caller to hand over four numbers it would have to keep consistent.
 //
-// Filled by NAMED INDEX rather than as an aggregate: an initialiser shorter
-// than the array zero-fills the rest with no diagnostic at all, and this list
-// has been the wrong length twice.
+// Filled by named slot, from leaf_slots(), rather than as an aggregate: an
+// initialiser shorter than the array zero-fills the rest with no diagnostic.
 //
 // ⚠️ SEATED FIRST, THEN OVERRIDDEN. Starting from the leaf's OWN pack means no
 // slot is left at a value this caller did not choose: the parameters of the
@@ -40,6 +35,34 @@ S TF24_Model<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
 // constants rather than as zeros, which is what a bare fill() would have made
 // them -- a wrong VALUE, not merely a missing row, in any expression that
 // reads one.
+// The strategy's parameters the leaf reads with rows, and the slot of the leaf's
+// pack each fills: the one map between the two. leaf_pars_on_tape puts them on
+// the tape from here, and construct_leaf checks the leaf it seated against it,
+// so the two cannot disagree. A parameter the leaf is seated with and that has
+// no column (g_min, d, alpha_PAR, alpha_NIR) is not here.
+template <typename S>
+const std::array<typename TF24_Model<S>::leaf_slot, 13>&
+TF24_Model<S>::leaf_slots() {
+  using P = TF24_Pars<S>;
+  static const std::array<leaf_slot, 13> slots{{
+      {&P::vcmax_25, phylloptim::par_vcmax_25, "vcmax_25"},
+      {&P::stem_c, phylloptim::par_stem_c, "stem_c"},
+      {&P::stem_P50, phylloptim::par_stem_P50, "stem_P50"},
+      {&P::root_c, phylloptim::par_root_c, "root_c"},
+      {&P::root_P50, phylloptim::par_root_P50, "root_P50"},
+      {&P::TF24_beta2, phylloptim::par_TF24_beta2, "TF24_beta2"},
+      {&P::jmax_25, phylloptim::par_jmax_25, "jmax_25"},
+      {&P::phi_J, phylloptim::par_phi_J, "phi_J"},
+      {&P::curv_fact_elec_trans, phylloptim::par_curv_fact_elec_trans,
+       "curv_fact_elec_trans"},
+      {&P::curv_fact_colim, phylloptim::par_curv_fact_colim, "curv_fact_colim"},
+      {&P::TF24_cost_scale, phylloptim::par_TF24_cost_scale, "TF24_cost_scale"},
+      {&P::R_d_25, phylloptim::par_R_d_25, "R_d_25"},
+      {&P::TF24_floor_lambda_o, phylloptim::par_TF24_floor_lambda_o,
+       "TF24_floor_lambda_o"}}};
+  return slots;
+}
+
 template <typename S>
 phylloptim::leaf_pars<S> TF24_Model<S>::leaf_pars_on_tape(
     const S& PPFD_int, const S& conductance_max,
@@ -50,20 +73,10 @@ phylloptim::leaf_pars<S> TF24_Model<S>::leaf_pars_on_tape(
     in[i] = S(seated[i]);
   }
   // What THIS strategy owns, and therefore what carries rows.
-  in[phylloptim::par_vcmax_25] = pars.vcmax_25;
-  in[phylloptim::par_stem_c] = pars.stem_c;
-  in[phylloptim::par_stem_P50] = pars.stem_P50;
-  in[phylloptim::par_root_c] = pars.root_c;
-  in[phylloptim::par_root_P50] = pars.root_P50;
-  in[phylloptim::par_TF24_beta2] = pars.TF24_beta2;
-  in[phylloptim::par_jmax_25] = pars.jmax_25;
-  in[phylloptim::par_phi_J] = pars.phi_J;
-  in[phylloptim::par_curv_fact_elec_trans] = pars.curv_fact_elec_trans;
-  in[phylloptim::par_curv_fact_colim] = pars.curv_fact_colim;
-  in[phylloptim::par_TF24_cost_scale] = pars.TF24_cost_scale;
-  in[phylloptim::par_R_d_25] = pars.R_d_25;
+  for (const leaf_slot& e : leaf_slots()) {
+    in[e.slot] = pars.*e.at;
+  }
   in[phylloptim::par_kmax] = conductance_max;
-  in[phylloptim::par_TF24_floor_lambda_o] = pars.TF24_floor_lambda_o;
   // The intercepted PPFD this cohort stands in, and the one route every other cohort's
   // height and leaf area have into its carbon: the electron transport reads
   // this slot. Its VALUE is already seated -- optimise_at strips the same
@@ -108,18 +121,8 @@ void TF24_Model<S>::refuse_unusable_curvature(double slope) {
     // ⚠️ A POSITIVE CURVATURE HERE IS EVIDENCE AGAINST THE CURVATURE, not
     // against the operating point. An interior collar is reached only on a
     // bracket the marginal crosses downward, so the curvature at it must be
-    // non-positive -- and the collar solve now probes dry of every root it
-    // returns and counts the exceptions. On the 105-year stand in
-    // scripts/profile-stand-gradient.R it found the marginal rising ZERO times
-    // in 2,829,445 interior solves, while this reported +34.4; a centred
-    // difference of the solve's own marginal at that collar gave -9.63.
-    //
-    // So the two spellings of the marginal disagree, and the one that matches
-    // the difference is the solve's. `condition.marginal` and
-    // `leaf.collar_resid_` are those two spellings, carried here because their
-    // disagreement is the finding -- both must be ~0 at an interior point, and
-    // where they are not, profit_at is not the function that placed this
-    // collar and its second derivative belongs to something else.
+    // non-positive; the message reports the marginal at the collar, which must
+    // be about zero there, so a reader can tell which of the two is wrong.
     //
     // format_double, not to_string: these numbers run to ~1e-6 and below,
     // where to_string's six DECIMAL places print "0.000000". format_double
@@ -133,8 +136,7 @@ void TF24_Model<S>::refuse_unusable_curvature(double slope) {
            "; the collar is " +
            util::format_double(leaf.opt_root_psi_) +
            ". An interior collar sits on a downward crossing, so a positive "
-           "curvature here indicts this derivation rather than the point. See "
-           "docs/design/leaf-derivatives.md");
+           "curvature here indicts this derivation rather than the point.");
   } else if (std::abs(slope) < curvature_floor()) {
     // format_double for the same reason: a curvature inside a floor of 1e-3 is
     // where to_string's six decimal places start losing the number.
@@ -176,9 +178,6 @@ void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
   // model is this strategy's -- the leaf takes the resistances and knows nothing
   // about carbon. So the chain lands on the same tape as everything else rather
   // than crossing as a hand-written d(uptake)/d(carbon).
-  // The thickness is read off the leaf's own soil profile rather than derived
-  // again here: the vertical resistance scales with dz^2, so two definitions
-  // drifting apart would be a silent squared factor neither side could see.
   // ⚠️ THROUGH layer_thicknesses, THE ONE DEFINITION OF dz, and off the LEAF's
   // own profile rather than a second copy of the environment's. The vertical
   // resistance scales with dz^2, so two definitions drifting apart would be a
@@ -263,7 +262,7 @@ void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
     }
     // Named rather than braced: the rows cross as a span, which borrows storage
     // instead of owning it, so a stack array is what holds them here -- and is
-    // what the span was for, since a braced list built a vector per call.
+    // what the span is for, since a braced list would build a vector per call.
     const odelia::input_and_derivative<S> rows[]{{from, 1.0}};
     const odelia::supply_report report =
         odelia::supply_derivatives<S>(value, rows, into);
@@ -314,14 +313,14 @@ S TF24_Model<S>::update_leaf_specific_conductance_max(
   // then bit-identical to the height-linear code it replaces.
   const S stem_path_length = stem_hydraulics::effective_path_length(
       S(height * eta_c), pars.L_tip, stem_path_exponent());
-  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta (#516). Supply per unit leaf area
+  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta. Supply per unit leaf area
   // follows the Huber value the plant actually carries, so a stem that keeps its
   // conducting area while the canopy thins supplies each remaining leaf better.
-  // That is the acclimation half of #516, and it is also what the sapwood
-  // controller differentiates: psi enters here as exp(psi), which is why
+  // That is the acclimation half of flexible allometry, and it is also what the
+  // sapwood controller differentiates: psi enters here as exp(psi), which is why
   // d(kmax)/d(psi) is just kmax. Stored so the controller reads the SAME value
   // rather than recomputing it -- recomputing it is how the two silently drift
-  // apart when the denominator changes, as it did in #617.
+  // apart when the denominator changes.
   S leaf_specific_conductance_max =
     pars.K_s * sapwood_per_leaf_area(sapwood_departure) / stem_path_length;
   leaf_specific_conductance_max_ = leaf_specific_conductance_max;
@@ -497,8 +496,8 @@ S TF24_Model<S>::solve_leaf_over_crown(
     // crown (q integrates to one). PPFD_int_at then applies pars.k_I * PPFD_above,
     // exactly reproducing TF24's established average_radiation.
     //
-    // Each point's light is floored at 1e-4 first (the original rationale was
-    // never recorded; preserved as-is). Counted here, because this is where the
+    // Each point's light is floored at 1e-4 first; the floor has no stated
+    // physical basis. Counted here, because this is where the
     // floor binds: the crown weights sum to one, so a mean of floored values
     // cannot fall below the floor itself.
     const auto floored = [this](const auto& light) {
@@ -566,7 +565,7 @@ S TF24_Model<S>::solve_leaf_over_crown(
   return PPFD_int_used;
 }
 
-// --- How much would more conducting area be worth? (#516) ------------------
+// --- How much would more conducting area be worth? -------------------------
 // d(profit)/d(kmax) at the operating point the leaf just found.
 //
 // ⚠️ THIS COSTS TWO FURTHER LEAF SOLVES, and there is no way around it. The
@@ -628,7 +627,7 @@ void TF24_Model<S>::measure_dprofit_dkmax(
   }
 }
 
-// --- Is the marginal leaf paying for itself? (#516) ------------------------
+// --- Is the marginal leaf paying for itself? -------------------------------
 // The gate reads this rather than the reserve pool, following Manzoni et al.
 // 2015: maximising a season's carbon gain over leaf area gives dG/dL = 0, i.e.
 // shed once a leaf stops covering its own upkeep. That criterion fires while
@@ -686,7 +685,7 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
 
   // psi_soil (MPa, a positive magnitude): the patch column's, computed once
   // per soil state and cached in the environment -- or, in TF24w, this
-  // cohort's own column (#681).
+  // cohort's own column.
   const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
 
   const S leaf_specific_conductance_max =
@@ -744,11 +743,10 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
   // 0.25, the objective understates the carbon kept by 2.3% at lambda_o = 1e4,
   // 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
   //
-  // On TF24_floor `carbon()` is `profit_ + lambda_o * transpiration_`, bit for
-  // bit what this summed before phylloptim billed it, and `profit_` itself at the
-  // default price. No second canopy integral is needed: it reads the stored
-  // `profit_` and `transpiration_`, which the DeepCrown branch integrated against
-  // the same weights, and it is linear in both.
+  // On TF24_floor `carbon()` is `profit_ + lambda_o * transpiration_`, and
+  // `profit_` itself at the default price. No second canopy integral is needed:
+  // it reads the stored `profit_` and `transpiration_`, which the DeepCrown
+  // branch integrated against the same weights, and it is linear in both.
   S profit_ = leaf.carbon();
   if constexpr (!std::is_same_v<S, double>) {
     record_leaf_outputs(PPFD_int_used, psi_soil,
@@ -801,7 +799,7 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
 // a dead run. phylloptim raises its own infeasible_error, which derives from
 // std::runtime_error and NOT from odelia::util::DomainError -- they are siblings
 // -- so odelia's stepper cannot recognise it, and the throw kills the whole solve
-// having taken zero steps (#608 measured exactly this). Translating it lets odelia
+// having taken zero steps. Translating it lets odelia
 // shrink and retry, and it stops only if the minimum step still cannot reach a
 // feasible probe, reporting phylloptim's own message when it does.
 //
@@ -814,7 +812,7 @@ void TF24_Model<S>::solve_leaf() {
   try {
     if (recorded.kind == Leaf::OperatingPointKind::Unsolved) {
       // THE CURVE-TYPED FORM, which names the curve the surface below reads.
-      // (find_root_collar_psi() now solves the seated curve too.)
+      // (find_root_collar_psi() solves the seated curve too.)
       leaf.template find_root_collar_psi_for<
           phylloptim::Leaf::CostCurve::TF24_floor>();
     } else {

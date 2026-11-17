@@ -300,7 +300,7 @@ test_that("the initial reserve channel carries a row", {
   shared <- ladder_shared("introductions")
   stand <- shared$stand
   result <- shared$gradient
-  at <- which(ladder_bare_traits(census_trait_names_tf24(stand)) == "a_st3")
+  at <- which(ladder_bare_traits(census_trait_names(stand, "TF24")) == "a_st3")
   expect_gt(length(at), 0L)
   peak <- max(abs(result$gradient[, at]))
   message(sprintf("\n  a_st3 row peak: %.6e", peak))
@@ -392,9 +392,8 @@ test_that("the initial condition carries no trait row on these fixtures", {
   # What the discard would lose is a run resumed from a populated exported state,
   # where founding cohorts are in y(0) and their provisioning reads a_st3. This
   # ladder has no such fixture, so the term is unrefereed rather than confirmed,
-  # and saying so is the honest form: the earlier version of this test compared
-  # two different runs and required the answer to move, which two different runs
-  # do whatever the sweep keeps.
+  # and saying so is the honest form: comparing two different runs and requiring
+  # the answer to move would pass whatever the sweep keeps.
   shared <- ladder_shared("introductions")
   stand <- shared$stand
   trajectory <- stand$store_recording()
@@ -413,9 +412,9 @@ test_that("seed height carries a row rather than a declaration", {
   # in double and resolves it before the traits are differentiable inputs, so a
   # strategy that receives the result carries nothing through this channel -- and
   # the loss is exact on a tangent and on a sweep alike, because both inherit the
-  # same declaration. That is why it was a declared bias for as long as it was one.
+  # same declaration.
   #
-  # It is now derived where the newborn's state is written, so the eight
+  # So it is derived where the newborn's state is written, and the eight
   # parameters reaching birth size carry a row and the check is a measurement.
   # Every one of them must be a column here; omega is the one whose column is the
   # channel and nothing else, so it is asserted non-zero rather than merely
@@ -425,7 +424,7 @@ test_that("seed height carries a row rather than a declaration", {
 
   shared <- ladder_shared("introductions")
   stand <- shared$stand
-  columns <- ladder_bare_traits(census_trait_names_tf24(stand))
+  columns <- ladder_bare_traits(census_trait_names(stand, "TF24"))
   expect_length(setdiff(eight, columns), 0L)
 
   result <- shared$gradient
@@ -463,9 +462,9 @@ test_that("a newcomer's leaf area reaches the census through a field built witho
 
   # The field-borne pair, and every parameter reaching the census through the seed's
   # own size. The birth-size class is here because a row missing where a newborn's
-  # state is written moved all eight of them together, on this fixture, while the
-  # field-borne columns fixed -- and only two of the eight were being compared, under
-  # a bound widened for them. The class is what an introduction puts on the path, so the
+  # state is written moves all eight of them together, on this fixture, while the
+  # field-borne columns hold fixed -- so two of the eight, under a bound widened for
+  # them, would not see it. The class is what an introduction puts on the path, so the
   # class is what an introduction's rung asks for.
   wanted <- c("1.k_I", "2.k_I",
               paste0("1.", ladder_birth_size_parameters()),
@@ -519,12 +518,12 @@ test_that("the census's sensitivity to a segment's starting state is refereed", 
   # differentiating different functions.
   #
   # ⚠️ THE BUDGET IS 1e-9 AND IT IS THE SAME CLAIM THIS FILE MAKES ONE TEST ABOVE,
-  # where it reads 9.78e-13 against 1e-9. It was 1e-12 here, fitted to a reading of
-  # 1.24e-15, and that reading was luck rather than a property: the two routes are
+  # where it reads 9.78e-13 against 1e-9. Do not fit it to one reading, which is
+  # luck rather than a property: the two routes are
   # one function at two scalars, so with a zero direction they differ only by whatever a
   # nested root-find's iterate count does with a 1e-16 input difference -- which
   # nothing on either route controls, and which reshuffles whenever the curve the
-  # find walks changes shape. Measured on that curve's two forms: 1.24e-15 with the
+  # find walks changes shape. Measured over forms of that curve: 1.24e-15 with the
   # conductivity on its own table, 4.4e-13 with it read as the integral's slope,
   # 1.36e-12 with the integral read as a quintic. The tangent-against-difference
   # checks below -- which are what this file is for -- are unmoved by all three.

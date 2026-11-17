@@ -65,8 +65,7 @@ census_r <- function(species, pars, eta, include_boundary = TRUE,
 # One stand for every block below, on the birth-date coordinate the reverse
 # sweep transposes, and WRITTEN into the initial state rather than grown into.
 # Three cohorts at mutually non-commensurate birth dates, three scheduled
-# introductions and a patch lifetime of 2: six nodes and a live boundary node,
-# in 0.15 s.
+# introductions and a patch lifetime of 2: six nodes and a live boundary node.
 #
 # ⚠️ THE LIVE BOTTOM IS THE PREMISE EVERY CHECK HERE RESTS ON, and it is what a
 # grown distribution is expensive to reach. Where the boundary node's density has
@@ -292,7 +291,8 @@ test_that("G4: the state adjoint reaches every state a metric reads", {
 test_that("G5: the entry point refuses to compare across two Controls", {
   a <- list(gradient = matrix(1, 1, 1, dimnames = list("leaf_area", "lma")),
             control = c(GSS_tol_abs = 1e-3, ci_abs_tol = 1e-3,
-                        node_gradient_eps = 1e-6, schedule_eps = 1e-3))
+                        node_gradient_eps = 1e-6, schedule_eps = 1e-3,
+                        gradient_curvature_floor = 1e-3))
   b <- a
   b$control[["schedule_eps"]] <- 1e-4
   expect_error(stand_gradient_compare(a, b), "schedule_eps")
@@ -327,13 +327,11 @@ test_that("the Control a gradient is taken at is the entries that move it", {
   # gradients taken at different floors are gradients of different functions for a
   # different reason, and both reasons belong in the same comparison.
   #
-  # ⚠️ ASKED BY NAME, WHICH IS WHAT MAKES THIS ABLE TO FAIL. The names came from
-  # R until deterministic_patch_runner.h carried them, so the first comparison
-  # was R's own list against
-  # itself, and the values were compared POSITIONALLY against a list built in the
-  # same order -- self-consistent either way. Measured on the form below: a value
-  # wired to the wrong Control field now FAILS, and a name changed in
-  # deterministic_patch_runner.h FAILS.
+  # ⚠️ ASKED BY NAME, WHICH IS WHAT MAKES THIS ABLE TO FAIL. A list of names kept
+  # in R, with values compared POSITIONALLY against a list built in the same
+  # order, is self-consistent either way. Asked by name, a value wired to the
+  # wrong Control field FAILS, and so does a name changed in
+  # deterministic_patch_runner.h.
   #
   # ⚠️ What it still cannot see is a swap among GSS_tol_abs, ci_abs_tol and
   # gradient_curvature_floor, because all three are 1e-3 at the defaults and a swap
@@ -355,14 +353,54 @@ test_that("the trait gradient entry point is reachable", {
   # a refusal here is the model having moved under a written fixture, which is
   # the finding rather than a state to tolerate.
   solver <- census_stand()
-  expect_true(is.function(census_trait_gradient_tf24))
+  expect_true(is.function(census_trait_gradient))
   # A column is named for its species as well as its parameter: a bare name would
   # resolve to species one's column silently on a multi-species stand.
   got <- stand_gradient(solver, traits = "1.lma", hyperpar = NULL)
-  expect_equal(rownames(got$gradient), unname(census_metric_names_tf24(solver)))
+  expect_equal(rownames(got$gradient), unname(census_metric_names(solver, "TF24")))
   expect_equal(colnames(got$gradient), "1.lma")
   expect_false(any(stand_gradient_refused(got)))
   expect_true(all(is.finite(got$gradient)))
   # And the bare name refuses, naming the convention rather than only failing.
   expect_error(stand_gradient(solver, traits = "lma", hyperpar = NULL), "species index")
+})
+
+test_that("the gradient refuses, by name, what the strategy cannot differentiate", {
+  short <- function(edit = identity, ctrl = Control()) {
+    p <- testing_parameters("TF24")
+    p$max_patch_lifetime <- 0.3
+    p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
+    p$node_schedule_times <- list(c(0, 0.1, 0.2))
+    p <- edit(p)
+    run(p, Environment("TF24"), ctrl, record = "states")$solver
+  }
+  # Deep-crown shading's crown means pass through the leaf at double.
+  solver <- short(ctrl = Control(shading_model = "deep-crown"))
+  expect_error(stand_gradient(solver, metrics = "leaf_area", hyperpar = NULL),
+               "shading_model 'deep-crown' is not differentiable")
+  # Sapwood acclimation's sensitivity is a difference through the leaf, which
+  # carries no rows: every metric is refused and says why.
+  solver <- short(function(p) {
+    p$strategies[[1]]$pars$a_sw <- 0.1
+    p
+  })
+  g <- stand_gradient(solver, hyperpar = NULL)
+  expect_true(all(stand_gradient_refused(g)))
+  expect_true(all(is.na(g$gradient)))
+  for (r in g$refusal) {
+    expect_match(r$reason, "sapwood acclimation \\(a_sw > 0\\) is not differentiable")
+    expect_equal(r$species, 1L)
+  }
+})
+
+test_that("an empty request and an incomparable pair are refused", {
+  solver <- census_stand()
+  expect_error(stand_gradient(solver, metrics = character(0), hyperpar = NULL),
+               "names no metric")
+  a <- stand_gradient(solver, metrics = "leaf_area", traits = "1.lma",
+                      hyperpar = NULL)
+  b <- a
+  b$control <- b$control[-1]
+  expect_error(stand_gradient_compare(a, b), "different Control entries")
+  expect_equal(stand_gradient_compare(a, a), a$gradient - a$gradient)
 })

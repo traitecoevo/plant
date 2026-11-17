@@ -77,6 +77,20 @@ public:
   // than inherited, because the flag says this model's channel was checked.
   static constexpr bool differentiable_fitness = true;
 
+  // TF24's columns with the acclimation gain before the birth rate, which stays
+  // last as in TF24. k_acclim reaches the position's rate and nothing else.
+  size_t ad_column_count() const { return base_type::ad_column_count() + 1; }
+  std::vector<S*> ad_parameters() {
+    std::vector<S*> ret = base_type::ad_parameters();
+    ret.insert(ret.end() - (this->has_birth_rate_column() ? 1 : 0), &k_acclim);
+    return ret;
+  }
+  std::vector<std::string> ad_parameter_names() {
+    std::vector<std::string> ret = base_type::ad_parameter_names();
+    ret.insert(ret.end() - (this->has_birth_rate_column() ? 1 : 0), "k_acclim");
+    return ret;
+  }
+
   // Every active value this strategy holds: TF24's, and the position's
   // working, which carries the state's and the ends' rows into its rate.
   template <class F>
@@ -554,7 +568,11 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
     }
     return true;
   };
-  const S M_held = leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in);
+  // Placed once at the collar and read by the marginal here and by the billing
+  // after, which adds only the collar's channel.
+  leaf.template place_held_coords<S>(collar, draw, in, held);
+  const S M_held =
+      leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in, held);
   // dM/dz at fixed ends. The marginal moves the leaf, so its outputs are put
   // back at the collar before anything reads them.
   auto marginal_at = [&](double dz, bool& ok) {

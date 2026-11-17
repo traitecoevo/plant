@@ -70,13 +70,13 @@ test_that("the adjoint the walk ends holding is the census's sensitivity to the 
   # recorded step sizes and shares no code with the sweep, so a disagreement is
   # the walk's.
   stand <- ladder_stand_resumed()
-  metrics <- unname(census_metric_names_tf24(stand))
+  metrics <- unname(census_metric_names(stand, "TF24"))
 
   # Through stand_gradient so a sweep that refuses this stand skips by the
   # ladder's one gate and a sweep that BREAKS is re-raised. The adjoint itself
   # comes back with the gradient that ended holding it.
   stand_gradient(stand, hyperpar = NULL)
-  lambda <- do.call(rbind, census_trait_gradient_tf24(stand)$at_first_state)
+  lambda <- do.call(rbind, census_trait_gradient(stand, "TF24")$at_first_state)
   rownames(lambda) <- metrics
 
   base <- ladder_segment_base_state(stand, 0L)

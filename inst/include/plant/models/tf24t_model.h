@@ -13,7 +13,7 @@
 namespace plant {
 
 // TF24t ("t" for thermal): TF24 with phylloptim's lasting leaf thermal-damage
-// and acclimation layer (the ATLS model, #566) switched on, plus the four slow
+// and acclimation layer (the ATLS model) switched on, plus the four slow
 // ODE states that layer reads. It inherits TF24_Model and reuses
 // TF24_Environment and TF24_Pars.
 //
@@ -59,8 +59,8 @@ template <typename S = double>
 class TF24t_Model : public TF24_Model<S> {
   // Only ever instantiated at double; see rebind below.
   static_assert(std::is_same_v<S, double>,
-                "TF24t has no differentiable form: the leaf's thermal-damage "
-                "layer carries no derivative");
+                "TF24t has no differentiable form: plant does not put the "
+                "thermal-damage layer's states on the tape");
 
 public:
   using value_type = S;

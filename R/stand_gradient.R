@@ -1,38 +1,22 @@
-# The model's census entry points, chosen off the deterministic runner's own class. Every
-# exported function below reads them from here, so a model that declares no
-# census is refused once, by name, instead of failing on a C++ type check.
+# The model's census entry points, each bound to the model's name as the
+# deterministic runner's own class gives it. The C++ side dispatches on that name
+# and refuses a model that declares no census; TF24t is refused here, by name,
+# because the reason is not that no census was written.
 census_backend <- function(solver) {
-  type <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
-  switch(type,
-    TF24 = list(metric_names = census_metric_names_tf24,
-                census = census_tf24,
-                state_adjoint = census_state_adjoint_tf24,
-                trait_names = census_trait_names_tf24,
-                undifferentiable = census_undifferentiable_tf24,
-                trait_gradient = census_trait_gradient_tf24,
-                control = gradient_control_tf24),
-    TF24f = list(metric_names = census_metric_names_tf24f,
-                 census = census_tf24f,
-                 state_adjoint = census_state_adjoint_tf24f,
-                 trait_names = census_trait_names_tf24f,
-                 undifferentiable = census_undifferentiable_tf24f,
-                 trait_gradient = census_trait_gradient_tf24f,
-                 control = gradient_control_tf24f),
-    FF16 = list(metric_names = census_metric_names_ff16,
-                census = census_ff16,
-                state_adjoint = census_state_adjoint_ff16,
-                trait_names = census_trait_names_ff16,
-                undifferentiable = census_undifferentiable_ff16,
-                trait_gradient = census_trait_gradient_ff16,
-                control = gradient_control_ff16),
-    # Named rather than left to the default, because the reason is not that no
-    # census was written: no derivative of the thermal-damage layer exists.
-    TF24t = stop("No census is declared for the TF24t model, so it has no ",
-                 "stand gradient: phylloptim refuses the derivative of its ",
-                 "leaf with the thermal-damage layer on, and a gradient ",
-                 "without it would describe TF24 rather than TF24t"),
-    stop("No census is declared for the ", type, " model, so it has no ",
-         "stand gradient; FF16, TF24 and TF24f declare one"))
+  model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
+  if (identical(model, "TF24t")) {
+    stop("No census is declared for the TF24t model, so it has no stand ",
+         "gradient: plant does not put the thermal-damage layer's states on ",
+         "the tape, and a gradient without them would describe TF24 rather ",
+         "than TF24t")
+  }
+  list(metric_names = function(x) census_metric_names(x, model),
+       census = function(x) census_values(x, model),
+       state_adjoint = function(x) census_state_adjoint(x, model),
+       trait_names = function(x) census_trait_names(x, model),
+       undifferentiable = function() census_undifferentiable(model),
+       trait_gradient = function(x, metrics) census_trait_gradient(x, model, metrics),
+       control = function(x) census_gradient_control(x, model))
 }
 
 # Every metric the run reports, named, with each one's kind ("census" or
@@ -96,9 +80,9 @@ stand_metrics_of_kind <- function(solver, kind) {
 ##' production, named as \code{\link{stand_gradient}} names them -- and one
 ##' column per ODE state entry, in the order
 ##' \code{x$patch$ode_state} writes. This is what the reverse pass starts
-##' with. The cohort-height columns carry the trapezium weights as well as the
-##' integrand only where the height is the coordinate integrated over; on the
-##' birth-date coordinate the weights are constants.
+##' with. On the birth-date coordinate, the only one the gradient runs on, the
+##' trapezium weights are constants, so the cohort-height columns carry the
+##' integrand's response alone.
 ##'
 ##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
@@ -115,13 +99,17 @@ stand_census_state_adjoint <- function(x) {
 
 ##' The \code{Control} entries a census gradient depends on.
 ##'
-##' The first four move the trajectory the gradient is taken along, so two
-##' gradients taken at different values of any of them are gradients of
-##' different functions. \code{gradient_curvature_floor} is here for a second
-##' reason: it moves no forward number at all and still decides which rows
-##' exist, by refusing a collar response the profit curvature is too small to
-##' support. \code{stand_gradient} records them and
-##' \code{stand_gradient_compare} refuses a pair that disagrees.
+##' A chosen subset, not every entry that moves a gradient. Two are tolerances
+##' of the leaf's inner solves (\code{GSS_tol_abs}, \code{ci_abs_tol}), one is
+##' a finite-difference step (\code{node_gradient_eps}) and one the schedule's
+##' refinement tolerance (\code{schedule_eps}); not every model reads every one.
+##' The fifth, \code{gradient_curvature_floor}, moves no forward number and
+##' still decides which rows exist, by refusing a collar response the profit
+##' curvature is too small to support. The ODE tolerances, the step bounds and
+##' \code{offspring_height_tol} move the trajectory too and are the run's own
+##' \code{Control}, not listed here.
+##' \code{stand_gradient} records these and \code{stand_gradient_compare}
+##' refuses a pair that disagrees.
 ##'
 ##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
@@ -155,8 +143,9 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   a model that declares its fitness differentiable, each species'
 ##'   \code{"<species>.net_reproduction_ratio"} and
 ##'   \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
-##'   Each metric costs one sweep of the recorded trajectory, so name the ones
-##'   wanted.
+##'   The steps are recorded once for all the metrics asked for, and each
+##'   further metric adds only a walk back over them, a small part of the
+##'   first metric's cost; asking for fewer traits saves nothing.
 ##' @param traits Column names to differentiate with respect to; defaults to
 ##'   every differentiable trait every species declares. A column is named for
 ##'   its species and its parameter, as \code{"1.lma"}.
@@ -165,14 +154,21 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   partial derivatives. See the section on traits and parameters.
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
-##'   metric holding the reason and where it was found, or \code{NULL} where the
-##'   metric answered; and \code{control}, the entries the gradient was taken at.
+##'   metric holding the reason and the species it was found in (\code{NA}
+##'   where it belongs to none), or \code{NULL} where the metric answered; and
+##'   \code{control}, the entries the gradient was taken at.
+##'
+##'   Refused outright, with an error: a run on the height coordinate, with the
+##'   absorbing top layer, in a constant field, or with a rain pulse that filled
+##'   a soil layer and shed the rest, which sets the layer whatever it held; and
+##'   a trade-off that derives a parameter an equation reads and that has no
+##'   column.
 ##'
 ##' @section Traits and parameters:
 ##' A column is the derivative as its trait moves through the construction that
 ##' built the strategy, which is what a difference through \code{add_strategies()}
 ##' measures. The hyperparameter function derives some parameters from the traits
-##' (TF24's testing trade-offs, \code{default_hyperpar("TF24")}, set 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+##' (TF24's testing trade-offs, \code{default_hyperpar("TF24")}, which sets twelve parameters, among them \code{k_l}, \code{r_l}, \code{d_I},
 ##' \code{a_f3} and the stem curve, from six traits including \code{lma}), so a
 ##' trait's column is its own partial plus each derived parameter's partial times
 ##' that parameter's derivative with respect to the trait. The function is
@@ -188,8 +184,9 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' rather than differentiated along a trade-off it does not lie on. Pass the
 ##' function it was built with, or \code{hyperpar = NULL}.
 ##'
-##' With \code{hyperpar = NULL} every parameter has a column, and each is a
-##' partial derivative with every other parameter fixed.
+##' With \code{hyperpar = NULL} every parameter the model can differentiate
+##' has a column, and each is a partial derivative with every other parameter
+##' fixed.
 ##'
 ##'   A refused metric's whole row is \code{NaN}: a sum has no defined value with
 ##'   an undefined term, so refusal is metric-level and carries no localisation
@@ -208,8 +205,8 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' An invasion that kept no states is run again, as an invasion, to keep them;
 ##' set \code{x$keep_states <- TRUE} before it to save that run.
 ##' Several invaders in \code{p} share one run and each has its own columns,
-##' but each metric is still one sweep, so a set of invaders costs about what
-##' running them one at a time does. An invader of a resumed resident starts at
+##' and the sweep's cost grows with their cohorts, so a set of invaders costs
+##' about what running them one at a time does. An invader of a resumed resident starts at
 ##' the resume time, as \code{run_mutant} requires.
 ##'
 ##' @section The birth rate:
@@ -225,7 +222,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' orders larger than its neighbours. One measured cell was 211 times the
 ##' median of its grid.
 ##'
-##' ⚠️ **Do not average such a grid, and do not form a covariance from one.** A
+##' Do not average such a grid, and do not form a covariance from one. A
 ##' single outlying cell dominates any second moment, which is the first thing an
 ##' active-subspace or sensitivity workflow computes, so the reduction inherits
 ##' the step placement instead of the ecology. Treat a gradient far outside its
@@ -251,6 +248,9 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
   if (is.null(metrics)) {
     metrics <- all_metrics
   }
+  if (length(metrics) == 0L) {
+    stop("`metrics` names no metric; leave it NULL for every metric")
+  }
   if (is.null(traits)) {
     traits <- all_traits
   }
@@ -261,7 +261,7 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
   unknown <- setdiff(traits, all_traits)
   if (length(unknown) > 0L) {
     # A parameter the model carries but cannot differentiate is not unknown, and
-    # saying so sent readers looking for a spelling mistake. The model states why
+    # saying so sends readers looking for a spelling mistake. The model states why
     # it has no gradient; that sentence is the refusal.
     why <- b$undifferentiable()
     named <- trait_without_species(unknown)
@@ -284,10 +284,8 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
   }
 
   value <- stats::setNames(b$census(x), all_metrics)[metrics]
-  # Only the metrics asked for are swept. A metric costs a sweep of the whole
-  # trajectory, so computing all three and subsetting the answer charged a
-  # caller who wanted one for three. Named, not positioned: C++ resolves the
-  # names against the same list it reports them from.
+  # Only the metrics asked for are swept. Named, not positioned: C++ resolves
+  # the names against the same list it reports them from.
   swept <- b$trait_gradient(x, as.character(metrics))
   gradient <- do.call(rbind, swept$gradient)
   dimnames(gradient) <- list(metrics, all_traits)
@@ -327,7 +325,7 @@ stand_gradient_through <- function(solver, metrics, traits, hyperpar) {
   # A derived parameter without a column adds nothing only where the model states
   # no equation reads it; any other leaves the sum incomplete.
   read <- intersect(derived, columns)
-  unread <- names(census_backend(solver)$undifferentiable())
+  unread <- attr(census_backend(solver)$undifferentiable(), "unread")
   lost <- setdiff(derived, read)
   lost <- lost[!trait_without_species(lost) %in% unread]
   if (length(lost) > 0L) {
@@ -408,6 +406,13 @@ stand_gradient_refused <- function(g) {
 ##'   metrics and traits both carry.
 ##' @export
 stand_gradient_compare <- function(a, b) {
+  if (!setequal(names(a$control), names(b$control))) {
+    stop("These gradients record different Control entries, so they were taken ",
+         "on different models or builds: ",
+         paste(union(setdiff(names(a$control), names(b$control)),
+                     setdiff(names(b$control), names(a$control))),
+               collapse = ", "))
+  }
   differing <- names(a$control)[!identical_doubles(a$control, b$control)]
   if (length(differing) > 0L) {
     stop("These gradients were taken at different Control values, so they are ",

@@ -245,7 +245,7 @@ public:
 
   // Fixed integer slots for the hot ODE rate path, used instead of
   // state_index.at("...") / aux_index.at("...") string-map lookups (those map
-  // lookups showed up in profiling, see #466). These MUST stay in sync with
+  // lookups are too slow for this path). These MUST stay in sync with
   // the order of state_names() and aux_names() below: *_INDEX is the position
   // of that name in state_names(), *_AUX_INDEX the position in aux_names(). If
   // you add/reorder a name there, update these constants (refresh_indices()
@@ -352,40 +352,21 @@ public:
   // birth rate where it is one. The strategy is shared and the fields do not
   // move, so take them once per gradient evaluation.
   std::vector<S*> ad_parameters() {
-    std::vector<S*> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
-      ret.push_back(&(pars.*p.at));
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back(&birth_rate_);
-    }
-    return ret;
+    return pars_table::column_ptrs(
+        pars, has_birth_rate_column() ? &birth_rate_ : nullptr);
   }
 
   // The name each gradient column carries, one per ad_parameters() entry and in
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
-    std::vector<std::string> ret;
-    ret.reserve(ad_column_count());
-    for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
-      ret.push_back(p.name);
-    }
-    if (has_birth_rate_column()) {
-      ret.push_back("birth_rate");
-    }
-    return ret;
+    return pars_table::column_names<FF16_Pars<S>>(has_birth_rate_column());
   }
 
   // The parameters no gradient exists for, each with the sentence that says
   // why, so a caller asking for one is refused in those words rather than told
   // the name is unknown.
-  static std::vector<std::pair<std::string, std::string>> undifferentiable_reasons() {
-    std::vector<std::pair<std::string, std::string>> ret;
-    for (const auto& n : FF16_Pars<S>::undifferentiable) {
-      ret.emplace_back(n.name, n.why);
-    }
-    return ret;
+  static std::vector<no_gradient> undifferentiable_reasons() {
+    return pars_table::undifferentiable<FF16_Pars<S>>();
   }
 
 
@@ -514,7 +495,7 @@ public:
                            const S& height, const S& area_leaf_,
                            const S& height_inverse,
                            S& area_sapwood_, S& mass_sapwood_);
-  // Model-agnostic entry point used by Individual<FF16> (#266): reads the
+  // Model-agnostic entry point used by Individual<FF16>: reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know FF16's state/aux layout.
   S net_mass_production_dt(const FF16_Environment<S>& environment,
@@ -529,7 +510,7 @@ public:
 
   // The height above which this strategy allocates at least 1 - epsilon of its
   // maximum, a_f1, to reproduction: where a continuous patch's absorbing top
-  // layer sits (#519). Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
+  // layer sits. Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
   // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
   // The inverse of fraction_allocation_reproduction()'s logistic, and NaN where
   // the logistic does not rise with height (a_f2 <= 0) or hmat is not positive.
@@ -561,7 +542,7 @@ public:
   S dmass_sapwood_darea_leaf(const S& area_leaf) const;
   // Overloads taking a precomputed pow(area_leaf, a_l2): compute_rates needs
   // this term for both the height rate and the live-mass partition, so it
-  // evaluates the (non-integer, libm) pow once and shares it -- see issue #361.
+  // evaluates the (non-integer, libm) pow once and shares it.
   S darea_leaf_dmass_live(const S& area_leaf,
                           const S& area_leaf_pow_a_l2) const;
   S dheight_darea_leaf(const S& area_leaf, const S& area_leaf_pow_a_l2) const;
@@ -624,7 +605,7 @@ public:
                                  const S& area_leaf_) const {
     return pars.k_I * area_leaf_ * canopy_shape.leaf_area_above(z_over_height);
   }
-  // Model-agnostic entry point used by Individual<FF16> (#266): reads the
+  // Model-agnostic entry point used by Individual<FF16>: reads the
   // cached competition_effect (= area_leaf) and height_inverse aux slots
   // itself. Inline (header) to keep the per-node hot competition path free of
   // a cross-TU call (no LTO build).
@@ -893,7 +874,7 @@ S FF16_Model<S>::mass_coarse_root(const S& mass_sapwood) const {
 
 // Total mass
 // The coarse-root term is appended, not interleaved, so that with the default
-// a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
+// a_cr1 = 0 the sum is bit-identical to the expression without it (x + 0.0 == x
 // exactly, and the association order of the other terms is untouched).
 template <typename S>
 S FF16_Model<S>::mass_live(const S& mass_leaf, const S& mass_bark,
@@ -945,7 +926,7 @@ void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
     const S fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
     // dheight_darea_leaf and the sapwood/bark terms in darea_leaf_dmass_live all
     // share pow(area_leaf, pars.a_l2); evaluate this libm pow once and reuse it for
-    // both rates rather than paying it twice per node per step (issue #361).
+    // both rates rather than paying it twice per node per step.
     const S area_leaf_pow_a_l2 = pow(area_leaf_, pars.a_l2);
     const S darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
     // The fraction of production allocated to growth, from the reproduction
@@ -1130,7 +1111,7 @@ S FF16_Model<S>::darea_leaf_dmass_live(const S& area_leaf,
     dmass_sapwood_darea_leaf(area_leaf, area_leaf_pow_a_l2);
   // dmass_coarse_root_darea_leaf == a_cr1 * dmass_sapwood_darea_leaf, so it
   // reuses the same shared term as bark. Appended last so that at the default
-  // a_cr1 = 0 the denominator is bit-identical to the pre-#349 sum.
+  // a_cr1 = 0 the denominator is bit-identical to the sum without it.
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
               + dmass_sapwood_darea_leaf_
               + pars.a_b1 * dmass_sapwood_darea_leaf_

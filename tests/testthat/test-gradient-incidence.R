@@ -16,7 +16,7 @@
 #
 # ⚠️ NOTHING MAY CLEAR A SHARED STAND'S DIAGNOSTICS. clear_diagnostics() resets
 # every counter, the clamps and the curvature margin together, so a block that
-# cleared one to check the clearing left every later reader asserting against
+# clears one to check the clearing leaves every later reader asserting against
 # zero -- which is a check that passes whatever the model does. The readings
 # below are copies, so a caller cannot reach the counters at all.
 incidence_cache <- new.env(parent = emptyenv())
@@ -74,8 +74,7 @@ test_that("the classification tally is the route to a regime's incidence", {
   # The tally is cleared and re-accumulated per run rather than carried, or a
   # second measurement would read the first one's states as well. On a stand of
   # its own: clearing is destructive and every other block here reads a shared
-  # one. A patch lifetime of 1 is the shortest stand that carries cohorts, so
-  # this costs a second.
+  # one. A patch lifetime of 1 is the shortest stand that carries cohorts.
   solver <- ladder_driver_stand(2.0, 1)
   counts <- census_operating_point_counts_tf24(solver)[[1]]
   expect_gt(sum(counts), 0)
@@ -84,11 +83,8 @@ test_that("the classification tally is the route to a regime's incidence", {
 })
 
 test_that("a dry stand is interior throughout, and answers", {
-  # The number this exists to produce. It was first taken while this driver's
-  # gradient was refused outright, to say how much answering the pinned branch
-  # would buy. On phylloptim 0.16 the stem was held at psi_crit, so 54% of this
-  # stand's solves were pinned there (`boundary-crit`). psi_crit is no longer a
-  # bound and the stem follows the soil past it, so every solve is interior. It
+  # The number this exists to produce. psi_crit is not a bound and the stem
+  # follows the soil past it, so every solve is interior. It
   # is not recoverable from a run afterwards -- the classification is
   # overwritten by the next individual.
   n <- incidence_of(0.25, 10)
@@ -130,15 +126,15 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   #
   # Twenty introductions rather than the schedule's eighty-eight: every claim
   # below is about which sites fire and in what order, and the counts reported
-  # are shares of this stand's own solves. Measured, the two readings differ in
-  # nothing this block asserts and the thinned one costs 18 s against 258.
+  # are shares of this stand's own solves. The two readings differ in nothing
+  # this block asserts, and the thinned one is far cheaper.
   entry <- incidence_built(2.0, 5, k_I = 40, introductions = 20L)
   walked <- entry$solver
   fired <- entry$clamps
   solves <- sum(entry$kinds)
   # Counts, not a share of solves: the crown site is counted once per quadrature
   # point of the mean-light integrand, so solves is not its denominator and
-  # dividing by it reported 348%.
+  # dividing by it can report more than 100%.
   message(sprintf("  at k_I = 40, over %.0f solves: %s %.0f, %s %.0f",
                   solves, nm[light[1]], fired[light[1]],
                   nm[light[2]], fired[light[2]]))
@@ -158,8 +154,7 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   # WHOLE POINT OF THIS BLOCK. Below the floor the census is not a function of
   # light at all, so the honest row is the zero -- and this stand answers, so
   # that zero is what the gradient carries rather than what a refusal covered.
-  # The sweep left what a double holds on this k_I until the storage pool's
-  # charge and drain form came back. Counted before it is read, because
+  # Counted before it is read, because
   # all(is.finite(x)) is TRUE of an empty vector.
   expect_false(any(stand_gradient_refused(g)))
   expect_null(g$refusal[[1]])
@@ -177,7 +172,7 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   expect_gt(swept[[light[[2]]]], 0)
   expect_equal(swept[[light[[1]]]], 0)
   # A counter a rebind drops reports zero however often the clamp fires, which is
-  # what this one did before the storage was shared. And the sweep visits the
+  # why its storage is shared. And the sweep visits the
   # recorded steps rather than every solve, so its tally is the smaller.
   expect_lt(swept[[light[[2]]]], fired[[light[[2]]]])
 
@@ -229,7 +224,10 @@ clamp_class <- list(
   # broad grid, mostly dark, hot or dry leaves. A stand never reaches it, the
   # shaded and clamped drivers' shut leaves included: a shut leaf sits at its wet
   # bound, where E_s is zero by construction rather than by the clamp.
-  stomatal_flux          = "never"
+  stomatal_flux          = "never",
+  # The leaf-to-air vapour deficit held at its floor where a leaf cooled by the
+  # energy balance reaches the dew point; these stands run without it.
+  vpd_leaf_floor         = "never"
 )
 
 test_that("every clamp site is classified, and by a measured incidence", {
@@ -308,9 +306,9 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
     nlayer <- e$get_soil_number_of_depths()
     # ⚠️ THE TRAILING SLOT COUNT IS ASKED FOR, NOT COUNTED. The environment's
     # block is the soil layers followed by its cumulative-flux accumulators, and
-    # a window written as `n - 4` skipped four where there are five: at the FIRST
+    # a window written as `n - 4` skips four where there are five: at the FIRST
     # recorded state, where the whole vector is the environment's ten entries, it
-    # read the first accumulator as the deepest layer's moisture. That slot is
+    # reads the first accumulator as the deepest layer's moisture. That slot is
     # exactly 0, `psi_from_soil_moist(0)` returns the 1000 MPa dry cap, and both
     # bounds below then fail on a number no layer ever held -- the worst real
     # potential over these three drivers is 4.34 MPa, on the drought one.
@@ -318,8 +316,7 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
     # Over the RECORDED steps, which is the set the sweep visits -- a terminal
     # reading misses a layer that dried and rewetted, and those are the states the
     # clamp would bind in. The forward run keeps them, so this costs no sweep:
-    # measured, the three drivers contribute 510, 2503 and 3715 records whether
-    # or not a gradient has been taken on them.
+    # the records are there whether or not a gradient has been taken on them.
     for (r in solver$store_recording()) {
       s <- r$state
       n <- length(s)

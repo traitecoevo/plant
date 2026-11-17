@@ -254,7 +254,7 @@ public:
   // nothing rebuilt. This is the map the sweep transposes, so it runs at whatever
   // scalar it is called on and loads the state itself rather than asking the
   // caller to. Pushing the nodes is how the wider state is computed, so this
-  // patch is left holding it and a walk rebinds again below it.
+  // patch is left holding it and a walk re-seats it below it.
   //
   // The species are the schedule's, looked up by the time the insertion happened
   // -- which is what lets the solver ask for this knowing only a recorded time.
@@ -266,7 +266,7 @@ public:
   void apply_insertion(const introduction& species_index, double time, It x,
                        std::vector<value_type>& y);
 
-  // Apply one non-introduction scheduled event (issue #628). Called between
+  // Apply one non-introduction scheduled event. Called between
   // solver legs, so it may change state and ODE size but must not move the
   // clock -- the caller re-reads both with set_state_from_system(). An action
   // is free to reach the answer however it likes, including by integrating its
@@ -310,7 +310,7 @@ public:
   template <typename It> It set_ode_aux(It it);
 
   // The soil, as odelia's subsystem: the environment's first states, which come
-  // last in the patch's. Not under private root-zone water (#681): the
+  // last in the patch's. Not under private root-zone water: the
   // environment's column is then the bare ground, whose rates carry the
   // exchange pass's terms, and a substep would integrate it without them.
   static constexpr bool SoilSubsystem = HasSoil<E> && !HasPrivateWater<T>;
@@ -464,13 +464,13 @@ public:
 
   // Stand in `f` at every rate evaluation of every later run, whatever the
   // time: a stand at a fixed point makes one field, and an invader of it needs
-  // that field and nothing recorded (#519). The environment's own state is kept
+  // that field and nothing recorded. The environment's own state is kept
   // with it -- its rates are zero -- so TF24's soil does not move either.
   // Survives reset(), unlike a recorded field, because the run that uses it
   // begins with one.
   //
   // ⚠️ HELD BY VALUE, NOT POINTED AT. A pointer into the patch's own member
-  // dangles in every copy (#589), and the solver integrates a copy.
+  // dangles in every copy, and the solver integrates a copy.
   void use_constant_field(const recorded_field& f) { constant_field = f; }
   void clear_constant_field() { constant_field.reset(); }
   bool has_constant_field() const { return constant_field.has_value(); }
@@ -575,7 +575,7 @@ private:
   void after_set_ode_state() {
     // Catch a runaway size-density equation (non-finite cohort density or
     // environment state) before it feeds into competition, resource uptake, or
-    // physiology below and surfaces as an opaque downstream error (issue #550).
+    // physiology below and surfaces as an opaque downstream error.
     check_finite_ode_state();
     // Build the field the rates will be taken in.
     compute_environment();
@@ -633,7 +633,7 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
-  // The private-water passes (#681); reached only for HasPrivateWater<T>.
+  // The private-water passes; reached only for HasPrivateWater<T>.
   void private_water_aggregates();
   // A pulse of `depth` into `layer` with private water: every column takes it,
   // each capped at what its own layer can hold. The environment's column books
@@ -658,7 +658,7 @@ private:
     }
     // A private root-zone column feeds back into growth through the leaf's
     // supply, and on the height coordinate the density rate's growth-gradient
-    // term holds every other state fixed while it perturbs height (#516), which
+    // term holds every other state fixed while it perturbs height, which
     // is then the wrong derivative. The birth-date coordinate has no such term.
     if constexpr (HasPrivateWater<T>) {
       if (!density_in_birth_date()) {
@@ -785,9 +785,8 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   //
   // Left behind: ode_times and ode_step_sizes, which are a record of the last
   // run rather than configuration and are read only by make_schedule, and
-  // n_patches, which nothing reads. A rebind happens once per width a sweep
-  // crosses, so copying two vectors of the whole trajectory into it was a copy
-  // per width per gradient, into an object that never looked at them.
+  // n_patches, which nothing reads, so a rebind copies no trajectory into an
+  // object that never looks at it.
   Parameters<T2,E2> p2;
   p2.patch_area = parameters.patch_area;
   p2.fitness_weighting = parameters.fitness_weighting;
@@ -1038,7 +1037,7 @@ void Patch<T,E>::check_birth_dates_distinct() const {
 
 template <typename T, typename E>
 void Patch<T,E>::check_finite_ode_state() const {
-  // The two failure modes of the same runaway (issue #550), caught here so they
+  // The two failure modes of the same runaway, caught here so they
   // fail with an actionable message instead of an opaque downstream one:
   //
   //  (1) A cohort density overflowing to +Inf, which then poisons the
@@ -1056,8 +1055,8 @@ void Patch<T,E>::check_finite_ode_state() const {
   const double log_density_ceiling = 50.0;
   for (size_t i = 0; i < species.size(); ++i) {
     for (auto it = species[i].node_begin(); it != species[i].node_end(); ++it) {
-      if (!util::is_finite(it->get_density()) ||
-          it->get_log_density() > log_density_ceiling) {
+      if (!util::is_finite(it->density_value()) ||
+          it->log_density_value() > log_density_ceiling) {
         // The size-density characteristic equation integrates
         //   d(log density)/dt = -d(growth)/d(height) - mortality
         // (see Node::compute_rates). When growth rate falls steeply with size
@@ -1117,8 +1116,8 @@ void Patch<T,E>::check_finite_ode_state() const {
   // than a special case. For TF24 these are the per-depth soil-water states.
   // Double, not the working scalar: this reads the state to test it for
   // finiteness and never differentiates it, and the iterator write converts on
-  // the way out. Held at the working scalar it was a slot per entry per stage
-  // for a value flattened on the next line.
+  // the way out. Held at the working scalar it would be a slot per entry per
+  // stage for a value flattened on the next line.
   std::vector<double> env_state(environment.ode_size());
   environment.ode_state(env_state.begin());
   for (size_t i = 0; i < env_state.size(); ++i) {
@@ -1536,7 +1535,7 @@ void Patch<T,E>::compute_rates() {
   double pr_patch_survival = survival_weighting->pr_survival(time_);
   // The aggregates every private column reads -- the patch mean and the crown
   // cover -- come from the columns' states, so they are formed before any column
-  // is rated (#681).
+  // is rated.
   if constexpr (HasPrivateWater<T>) {
     private_water_aggregates();
   }
@@ -1547,8 +1546,8 @@ void Patch<T,E>::compute_rates() {
   }
 
   // Produced here and drained by the call below, so it lives here. As a member
-  // it needed clearing by hand, and a refusal thrown between the fill and the
-  // clear left active values on a Patch across a tape reset.
+  // it would need clearing by hand, and a refusal thrown between the fill and
+  // the clear would leave active values on a Patch across a tape reset.
   std::vector<value_type> resource_depletion;
   resource_depletion.reserve(env.n_resources());
   this->append_resource_depletion(resource_depletion);
@@ -1601,7 +1600,7 @@ std::vector<double> Patch<T,E>::private_water_pulse(size_t layer, double depth) 
   return {accepted_w + bare * own[0], excess_w + bare * own[1]};
 }
 
-// The two passes of private root-zone water (TF24w, #681). Every quantity here
+// The two passes of private root-zone water (TF24w). Every quantity here
 // is a share of the patch's ground: a column's share is its crown area per m2
 // of patch, divided by the cover where crowns overlap, and the bare ground is
 // what crowns leave. Shares sum to one, which is what makes both the mixing and
@@ -1985,7 +1984,7 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     // Remove a fraction of the individuals in a size band. One rule covers the
     // cases that matter: a whole-population removal (the default band), taking
     // everything above a size, and the size-selective removal the restoration
-    // work asks for (#627).
+    // work asks for.
     //
     // Individuals are removed rather than shrunk. Changing sizes instead would
     // have to keep them in decreasing order, which Species' competition
@@ -2016,7 +2015,7 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     // the solver's clock does not move across it, so the action steps its own
     // damage variable over that duration under a simple daily cycle and hands
     // back a single survival fraction. The hook is the part worth keeping: a
-    // model with a real damage state (#566 for TF24's leaf) plugs in here, and
+    // model with a real damage state (TF24's leaf, once it has one) plugs in here, and
     // until one exists a dose-dependent mortality is the honest crude stand-in.
     const double intensity = event.params.at(0);
     const double duration = event.params.at(1);
@@ -2178,6 +2177,8 @@ size_t Patch<T,E>::nodes_at(size_t i, double time) const {
 // Derived rather than read off the recording: the schedule this patch is run
 // from says which species gain a node when, so a walk that jumps into the middle of a recording
 // works out the shape there instead of being handed a list of what happened.
+// The shape only: no field is built and no rate computed, since the state that
+// set_recorded_state loads next rebuilds both.
 template <typename T, typename E>
 void Patch<T,E>::reshape_to(double time) {
   bool moved = false;
@@ -2203,8 +2204,6 @@ void Patch<T,E>::reshape_to(double time) {
   }
   if (moved) {
     check_birth_dates_distinct();
-    compute_environment();
-    compute_rates();
   }
 }
 

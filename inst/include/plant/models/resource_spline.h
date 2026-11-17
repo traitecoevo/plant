@@ -11,7 +11,7 @@
 #include <plant/models/canopy_shape.h>
 #include <plant/util.h>
 #include <array>
-#include <algorithm> // std::max, for the resource-availability floor (#253)
+#include <algorithm> // std::max, for the resource-availability floor
 #include <utility>   // std::pair, the value and slope a build supplies
 
 using namespace Rcpp;
@@ -110,13 +110,13 @@ public:
   // Variant taking a pre-fetched cap (= max_height()) so callers integrating
   // over many points pay the spline.max() lookup once rather than per point.
   S get_value_at_height(const S& height, double cap) const {
-    // TODO(#385): change maximum - here hard-coded to 1.0
+    // TODO: change maximum - here hard-coded to 1.0
     // `cap` already guards the upper bound and the crown integral keeps
     // height >= 0 = spline.min(), so use the unchecked operator() rather than
     // eval() to avoid re-running check_active()/bound checks per quadrature
     // point. Same underlying tk_spline(height) call.
     //
-    // Floor the result at 0 (#253): an interpolated resource availability must
+    // Floor the result at 0: an interpolated resource availability must
     // not be negative. The clamp is a no-op for the usual positive case, so
     // values stay bit-identical there. This is the single chokepoint for
     // FF16/K93/TF24.
@@ -244,8 +244,7 @@ public:
   //
   // ⚠️ THE FIELD AND NOT THE BUILDER. What an interpolant costs is dominated by
   // the adaptive builder and band-solve workspace it drags, which no replay
-  // reads: copying those whole is what put a mutant run at 6.8 GB and OOM past
-  // ~10 yr.
+  // reads, and copying those whole exhausts memory on a long mutant run.
   std::vector<double> interpolators_state() const {
     const std::vector<double>& x = spline.knots();
     const std::vector<S>& y = spline.values();
@@ -350,8 +349,7 @@ private:
 
 // Beer's law on a cumulative extinction profile: a resource left at a height is
 // E = exp(-A) where A is the amount intercepted above it, so dE/dz = -A' exp(-A).
-// One place, because the arithmetic is the same whatever else an environment holds
-// and it was written out once per environment.
+// One place, because the arithmetic is the same whatever else an environment holds.
 //
 // The lambda declares its return type: an active E returned through a deduced one
 // hands the field an expression template referencing operands that die here.

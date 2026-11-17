@@ -14,11 +14,15 @@ birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "
 A named numeric vector of length five.
 }
 \description{
-The first four move the trajectory the gradient is taken along, so two
-gradients taken at different values of any of them are gradients of
-different functions. \code{gradient_curvature_floor} is here for a second
-reason: it moves no forward number at all and still decides which rows
-exist, by refusing a collar response the profit curvature is too small to
-support. \code{stand_gradient} records them and
-\code{stand_gradient_compare} refuses a pair that disagrees.
+A chosen subset, not every entry that moves a gradient. Two are tolerances
+of the leaf's inner solves (\code{GSS_tol_abs}, \code{ci_abs_tol}), one is
+a finite-difference step (\code{node_gradient_eps}) and one the schedule's
+refinement tolerance (\code{schedule_eps}); not every model reads every one.
+The fifth, \code{gradient_curvature_floor}, moves no forward number and
+still decides which rows exist, by refusing a collar response the profit
+curvature is too small to support. The ODE tolerances, the step bounds and
+\code{offspring_height_tol} move the trajectory too and are the run's own
+\code{Control}, not listed here.
+\code{stand_gradient} records these and \code{stand_gradient_compare}
+refuses a pair that disagrees.
 }

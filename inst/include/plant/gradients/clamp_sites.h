@@ -76,8 +76,8 @@ inline const char* clamp_site_name(int site) {
 //
 // The differentiated half is held behind a pointer so a rebind can SHARE it. A
 // block copies its strategy and environment per unit and discards them, so a
-// plain member would take every count on that path down with the copy -- which
-// is what made the site look unreachable while it was firing a million times.
+// plain member would take every count on that path down with the copy, and a
+// site that fires would read as unreachable.
 struct clamp_counter {
   std::vector<std::size_t> forward =
     std::vector<std::size_t>(CLAMP_SITE_COUNT, 0);

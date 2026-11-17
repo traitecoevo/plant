@@ -451,7 +451,7 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## The sweep holds each step's substeps and input slopes, as a tangent of the
   ## pinned schedule does, and both agree with its central differences.
   g <- stand_gradient(substepped, traits = "1.lma", hyperpar = NULL)
-  traits <- census_trait_names_tf24(substepped)
+  traits <- census_trait_names(substepped, "TF24")
   tangent <- ladder_trajectory_tangent_tf24(substepped,
                                             as.numeric(traits == "1.lma"))
   ## The sweep's rows: the census, then each species' fitness.
