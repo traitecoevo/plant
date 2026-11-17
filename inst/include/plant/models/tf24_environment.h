@@ -799,25 +799,13 @@ public:
   {
     using std::max;
 
-    // Rainfall is floored at zero. Drivers are interpolated with a cubic
-    // spline, which overshoots badly on intermittent forcing: a realistic daily
-    // series with a ~10% wet-day fraction evaluates negative at ~45% of points,
-    // reaching -5.7 m yr^-1. Unfloored, negative rainfall gives negative
-    // infiltration and a negative layer-0 rate, which is unphysical (rain
-    // drying the soil) and fails in two different ways depending on wetness:
-    // above residual moisture the water really is removed, while at/below
-    // residual the guard further down clamps the rate to zero, so the removal
-    // is recorded in `sum_rainfall` but never applied and the water budget
-    // stops closing. Drylands sit at residual for much of the year, so that
-    // second case is the common one in the intended application.
-    //
-    // Flooring removes both. It is a bound on the sign, NOT a correction to the
-    // interpolation: the spline conserves the integral exactly (undershoot is
-    // compensated by overshoot), so discarding the negative lobes raises total
-    // rainfall by the undershoot area -- ~7% for the series above. The real
-    // remedy is not to spline an intermittent series; run
-    // `check_driver_interpolation()` on any such driver, which reports the
-    // undershoot area and warns.
+    // Rainfall is floored at zero, as a counted backstop. Drivers are
+    // interpolated with monotone slopes (Environment), so a read stays between
+    // the values that bracket it and a non-negative series never reads
+    // negative. Were it to, negative rainfall would give negative infiltration,
+    // rain drying the soil, and at the residual moisture the guard below would
+    // clamp the rate while `sum_rainfall` recorded the removal, so the water
+    // budget would stop closing. The count says whether it ever binds.
     const double rainfall = rainfall_floored();
     const S infiltration =
       layer_rates(rainfall, vars.states, resource_depletion, vars.rates,
@@ -838,11 +826,13 @@ public:
 
   }
 
-  // The rainfall driver at `time`, floored at zero for the reasons given on
-  // compute_rates(). A member, so that TF24w's private root zones (#681) floor
-  // and count it as the environment's own column does.
-  double rainfall_floored() const {
-    const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", time);
+  // The rainfall driver at `t`, by default the environment's time, floored at
+  // zero for the reasons given on compute_rates(). A member, so that the soil's
+  // sub-steps and TF24w's private root zones floor and count it as the
+  // environment's own column does.
+  double rainfall_floored() const { return rainfall_floored(time); }
+  double rainfall_floored(double t) const {
+    const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", t);
     if (rainfall_raw < 0.0) {
       note_clamp(CLAMP_RAINFALL);
     }
@@ -922,8 +912,7 @@ public:
   void layer_rates(double time_, const std::vector<U>& theta,
                    const std::vector<U>& u, std::vector<U>& rate) const {
     rate.resize(theta.size());
-    layer_rates<U>(std::max(0.0, extrinsic_drivers.evaluate("rainfall", time_)),
-                   theta, u, rate, nullptr,
+    layer_rates<U>(rainfall_floored(time_), theta, u, rate, nullptr,
                    [this](int site) { note_clamp(site); });
   }
 

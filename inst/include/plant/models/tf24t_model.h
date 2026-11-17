@@ -59,8 +59,8 @@ template <typename S = double>
 class TF24t_Model : public TF24_Model<S> {
   // Only ever instantiated at double; see rebind below.
   static_assert(std::is_same_v<S, double>,
-                "TF24t has no differentiable form: the leaf's thermal-damage "
-                "layer carries no derivative");
+                "TF24t has no differentiable form: plant does not put the "
+                "thermal-damage layer's states on the tape");
 
 public:
   using value_type = S;

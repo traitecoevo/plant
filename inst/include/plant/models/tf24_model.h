@@ -14,9 +14,6 @@
 #include <odelia/implicit_node.hpp>
 #include <plant/numerics/with_slope.h>
 #include <array>
-// cstdio/cstdlib for the environment-gated curvature comparison in
-// record_leaf_outputs, and nothing else here.
-#include <cstdio>
 #include <cstdlib>
 #include <string_view>
 #include <utility>
@@ -778,10 +775,9 @@ public:
       return {height_0, area_leaf_0};
     } else {
       // ⚠️ THE SLOPE IS READ, NOT TAKEN HERE. Taking it needs the strategy at a
-      // tangent, and a rebind CONSTRUCTS one -- whose Leaf member builds two
-      // vulnerability curves from an incomplete gamma per knot, which
-      // assign_from then overwrites with a copy. This runs per rate evaluation,
-      // so prepare_strategy takes the tangent once and this reads it.
+      // tangent, a rebind of the whole strategy, and this runs per rate
+      // evaluation, so prepare_strategy takes the tangent once and this reads
+      // it.
       const S h = odelia::implicit_value<S>(
         height_0, dmass_dheight_0,
         [this](const S& y) -> S {

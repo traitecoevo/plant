@@ -756,44 +756,14 @@ problem.
 
 ### Adding a census metric
 
-A census metric is a weighted reduction over the size distribution: the
-trapezium integral of `n_k * psi(state_k)` over the cohort heights, with
-`n_k = exp(l_k)`. `Species::census(psi)` owns the reduction and `psi` owns the
-quantity. Because the metrics travel as a tuple, the codomain of a census — and
-of its gradient — is the tuple's size, so a metric is added without touching the
-reduction, the reverse pass or `odelia`. Four steps:
+A census metric is a weighted reduction over the size distribution: the trapezium integral of `n_k * psi(state_k)` over the cohort birth dates, with `n_k = exp(l_k)`. `Species::census` owns the reduction and `psi` owns the quantity. The metrics travel as a list, so the codomain of a census -- and of its gradient -- is the list's length, and a metric is added without touching the reduction, the reverse pass or `odelia`. Four steps:
 
-1. **Write the metric** as a struct in `namespace census_metric`
-   ([inst/include/plant/community/species.h](inst/include/plant/community/species.h)), with a
-   templated `operator()(const Model&, const Individual&)` returning
-   `typename Individual::value_type`, and a `name()`. It reads the strategy and
-   one cohort and nothing else; a metric with a height cut of its own applies
-   the cut inside `operator()`. Declare the return type — the AD operators
-   return expression templates, and a deduced one dangles (above).
-2. **Add its name to `tf24_census`**, the tuple below the metrics in the same
-   file. That is the one-word change: `census()`,
-   `census_state_adjoint()` and `census_trait_gradient()` in
-   [inst/include/plant/solvers/deterministic_patch_runner.h](inst/include/plant/solvers/deterministic_patch_runner.h) all fold over the tuple,
-   and `census_metric_names_tf24()` reports it, so the new row appears in the
-   value, in the seed and in the gradient with no further edit.
-3. **Rebuild.** No export signature changes and no new symbol reaches R, so
-   `make RcppR6` and `make attributes` have nothing to do. `tf24_census` is named
-   in exactly one translation unit,
-   [src/census_gradient.cpp](src/census_gradient.cpp), so `touch` it and
-   `pkgbuild::compile_dll()` — one file compiles and the library relinks. Any
-   other edit to `species.h` needs `rm -f src/*.o` first, because the header is
-   inline and R's make does not track header dependencies.
-4. **Assert its value and one non-zero gradient row.** The value against an
-   independent R-side computation from the tidied output, and the gradient row
-   against a trait that genuinely moves it — a row of exact zeros reads as an
-   answer and is this design's worst failure mode, so name the trait and say why
-   it moves the metric.
+1. **Write the metric** as one more entry of the model's `census_metrics()` (TF24's is `census_metrics_for()` in [inst/include/plant/models/tf24_model.h](inst/include/plant/models/tf24_model.h), which TF24f shares; FF16's is in [inst/include/plant/models/ff16_model.h](inst/include/plant/models/ff16_model.h)): a `census_metric<M>` ([inst/include/plant/gradients/census.h](inst/include/plant/gradients/census.h)), a name and a function of the strategy and one cohort's `Internals` returning the scalar. It reads the strategy and one cohort and nothing else; a metric with a height cut of its own applies the cut inside the function. Declare the return type -- the AD operators return expression templates, and a deduced one dangles (above); `census_metric`'s plain function pointer makes that a compile error.
+2. **Size the list.** `census_metrics_for()` returns a `std::array` of fixed length, so its count goes up by one. `census()`, `census_state_and_trait_rows()` and `census_trait_gradient()` in [inst/include/plant/solvers/deterministic_patch_runner.h](inst/include/plant/solvers/deterministic_patch_runner.h) read the list, and `census_metric_names(x, model)` reports it, so the new row appears in the value, in the seed and in the gradient with no further edit.
+3. **Rebuild**, after `rm -f src/*.o`: the header is inline and R's make does not track header dependencies. No export signature changes and no new symbol reaches R, so `make RcppR6` and `make attributes` have nothing to do.
+4. **Assert its value and its gradient rows.** The value against an independent R-side computation from the tidied output, as `test-census.R` does, and the gradient against a pinned-step central difference (`pin_steps()` and `central_difference()` in `tests/testthat/helper-plant.R`) of a trait that genuinely moves it -- a row of exact zeros reads as an answer and is this design's worst failure mode, so name the trait and say why it moves the metric.
 
-What a metric may *not* do: read another cohort, read the light field, or carry
-a state of its own. Each of those makes it a term in the rates rather than a
-functional of the state at one time, and the seeding in
-`DeterministicPatchRunner::census_state_adjoint` — one recording of the reduction with the ODE state
-as its inputs — would no longer be the whole derivative.
+What a metric may *not* do: read another cohort, read the light field, or carry a state of its own. Each of those makes it a term in the rates rather than a functional of the state at one time, and the seeding in `DeterministicPatchRunner::census_state_and_trait_rows` — one recording of the reduction with the ODE state as its inputs — would no longer be the whole derivative.
 
 ---
 

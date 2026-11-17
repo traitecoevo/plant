@@ -34,11 +34,30 @@ tf24f_dry_pulses <- function(lifetime) {
   env
 }
 
+# The test stand of `model` at `k_acclim` in its default environment, run once
+# and recorded: three tests below read it.
+tf24f_default_run <- local({
+  cache <- list()
+  function(model = "TF24f", k_acclim = 1) {
+    key <- paste(model, k_acclim)
+    if (is.null(cache[[key]])) {
+      cache[[key]] <<- run(tf24f_gradient_parameters(model, k_acclim),
+                           Environment(model), Control(),
+                           record = "states")$solver
+    }
+    cache[[key]]
+  }
+})
+
 # The gradient of `metrics` and its central difference over runs pinned to the
 # recorded steps, as relative errors: one row per metric, one column per trait.
-tf24f_gradient_errors <- function(p, env, metrics, traits, rel = 1e-5) {
+# `solver` is the recorded run of p in env(), or NULL to run it here.
+tf24f_gradient_errors <- function(p, env, metrics, traits, rel = 1e-5,
+                                  solver = NULL) {
   ctrl <- Control()
-  solver <- run(p, env(), ctrl, record = "states")$solver
+  if (is.null(solver)) {
+    solver <- run(p, env(), ctrl, record = "states")$solver
+  }
   g <- stand_gradient(solver, metrics = metrics, traits = paste0("1.", traits),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
@@ -55,8 +74,7 @@ tf24f_gradient_errors <- function(p, env, metrics, traits, rel = 1e-5) {
 }
 
 test_that("TF24f declares TF24's census and fitness", {
-  solver <- run(tf24f_gradient_parameters(), Environment("TF24f"), Control(),
-                record = "states")$solver
+  solver <- tf24f_default_run()
   expect_equal(stand_metric_table(solver)$name,
                c("leaf_area", "mass_above_ground", "area_stem",
                  "1.net_reproduction_ratio", "1.offspring_production"))
@@ -79,7 +97,8 @@ test_that("TF24f's stand gradient is the pinned-step central difference", {
   errors <- tf24f_gradient_errors(
     tf24f_gradient_parameters(), function() Environment("TF24f"),
     c("leaf_area", "1.offspring_production"),
-    c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate"))
+    c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate"),
+    solver = tf24f_default_run())
   expect_lt(max(errors), 1e-4)
 })
 
@@ -113,9 +132,10 @@ test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {
   traits <- paste0("1.", c("lma", "hmat", "vcmax_25", "stem_P50", "K_s",
                            "omega", "k_I", "d_I", "birth_rate"))
   metric <- "1.offspring_production"
-  gradient_of <- function(model, k_acclim = 1, ctrl = Control()) {
-    solver <- run(tf24f_gradient_parameters(model, k_acclim),
-                  Environment(model), ctrl, record = "states")$solver
+  gradient_of <- function(model, k_acclim = 1, ctrl = NULL) {
+    solver <- if (is.null(ctrl)) tf24f_default_run(model, k_acclim) else
+      run(tf24f_gradient_parameters(model, k_acclim), Environment(model), ctrl,
+          record = "states")$solver
     g <- stand_gradient(solver, metrics = metric, traits = traits,
                         hyperpar = NULL)
     expect_false(any(stand_gradient_refused(g)))

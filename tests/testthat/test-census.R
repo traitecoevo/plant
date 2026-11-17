@@ -292,7 +292,8 @@ test_that("G4: the state adjoint reaches every state a metric reads", {
 test_that("G5: the entry point refuses to compare across two Controls", {
   a <- list(gradient = matrix(1, 1, 1, dimnames = list("leaf_area", "lma")),
             control = c(GSS_tol_abs = 1e-3, ci_abs_tol = 1e-3,
-                        node_gradient_eps = 1e-6, schedule_eps = 1e-3))
+                        node_gradient_eps = 1e-6, schedule_eps = 1e-3,
+                        gradient_curvature_floor = 1e-3))
   b <- a
   b$control[["schedule_eps"]] <- 1e-4
   expect_error(stand_gradient_compare(a, b), "schedule_eps")

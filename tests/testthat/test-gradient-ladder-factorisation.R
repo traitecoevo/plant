@@ -350,8 +350,9 @@ test_that("the leaf's supplied rows are refereed against its own algebra", {
   for (name in ladder_leaf_own_traits()) {
     for (index in seq_len(length(patch$species))) {
       key <- paste0(index, ".", name)
-      # Skip the two whose row is zero at an interior optimum by complementary
-      # slackness; they are declared in the floor and have nothing to referee.
+      # Skip any whose row is zero at an interior optimum by complementary
+      # slackness (ladder_zero_at_an_interior_optimum(), empty today); they are
+      # declared in the floor and have nothing to referee.
       if (name %in% ladder_zero_at_an_interior_optimum()) next
       expect_equal(prepared[[key]], 0,
                    label = paste("the prepared-strategy difference reaches", key))

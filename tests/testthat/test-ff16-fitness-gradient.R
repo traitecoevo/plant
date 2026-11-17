@@ -63,12 +63,12 @@ test_that("the fitness gradient is the pinned-step central difference", {
   # k_I), mortality (a_dG1, d_I) and establishment (a_d0).
   for (name in c("hmat", "a_f1", "a_f2", "omega", "a_f3", "S_D", "lma", "k_I",
                  "a_dG1", "d_I", "a_d0")) {
+    fd <- central_difference(p, 1, name, NULL, fitness_of)
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
-      fd <- central_difference(p, 1, name, metric, fitness_of)
       # Relative to the difference, not absolute: a_dG1's column is ~2.6e-6, so
       # an absolute tolerance of 1e-5 would pass zero or its negative.
-      expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd), 1e-5 * abs(fd),
-                label = paste(metric, name))
+      expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd[[metric]]),
+                1e-5 * abs(fd[[metric]]), label = paste(metric, name))
     }
   }
   # With a constant birth rate the offspring production is the net reproduction
@@ -98,11 +98,13 @@ test_that("one species' fitness responds to the other's traits through the canop
   # curved in the other's lma, and at a relative step of 1e-4 the difference's
   # own truncation error is 2e-5 (it falls as the square of the step: 3e-7 at
   # 1e-5), which is not the sweep's.
-  for (i in 1:2) for (j in 1:2) for (name in c("lma", "k_I")) {
-    metric <- paste0(i, ".net_reproduction_ratio")
-    fd <- central_difference(p, j, name, metric, fitness_of, rel = 1e-5)
-    expect_equal(g$gradient[metric, paste0(j, ".", name)], fd,
-                 tolerance = 1e-5, label = paste(metric, j, name))
+  for (j in 1:2) for (name in c("lma", "k_I")) {
+    fd <- central_difference(p, j, name, NULL, fitness_of, rel = 1e-5)
+    for (i in 1:2) {
+      metric <- paste0(i, ".net_reproduction_ratio")
+      expect_equal(g$gradient[metric, paste0(j, ".", name)], fd[[metric]],
+                   tolerance = 1e-5, label = paste(metric, j, name))
+    }
   }
   # The cross terms are real: species 2's shading reaches species 1's fitness.
   expect_true(abs(g$gradient["1.net_reproduction_ratio", "2.k_I"]) > 0)
@@ -122,9 +124,9 @@ test_that("the fitness gradient over a window is the pinned-step central differe
                    solver$patch$net_reproduction_ratios)
   q <- pin_steps(solver)
   for (name in c("hmat", "lma", "S_D")) {
+    fd <- central_difference(q, 1, name, NULL, fitness_of)
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
-      fd <- central_difference(q, 1, name, metric, fitness_of)
-      expect_equal(g$gradient[metric, paste0("1.", name)], fd,
+      expect_equal(g$gradient[metric, paste0("1.", name)], fd[[metric]],
                    tolerance = 1e-5, label = paste(metric, name))
     }
   }

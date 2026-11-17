@@ -86,8 +86,8 @@ reference_compare <- function(regime, rows) {
   list(name = regime$name, column = column, metric = mine$metric,
        parameter = mine$parameter,
        observed = observed,
-       # Which branches the run reached, summed over species, because the
-       # tolerance below depends on one of them rather than on the regime's name.
+       # Which branches the run reached, summed over species, for whoever reads a
+       # failure.
        kinds = stats::setNames(Reduce(`+`, census_operating_point_counts_tf24(solver)),
                                census_operating_point_names_tf24()),
        # Refusal is metric-level, so it broadcasts to the rows this picked out.

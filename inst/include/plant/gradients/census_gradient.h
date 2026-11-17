@@ -36,10 +36,9 @@ struct census_gradient {
 
   // What the sweep that produced the rows above did, carried beside them rather
   // than left on the solver. Beside, because a count read through its own
-  // accessor is a count that can disagree with the refusal it belongs to -- and
-  // did, for a day, while one of two refusal mechanisms zeroed it and the other
-  // did not. They are written only where there is an answer to describe, so a
-  // refused metric leaves them at the defaults instead of clearing back to them.
+  // accessor is a count that can disagree with the refusal it belongs to. They
+  // are written only where there is an answer to describe, so a refused metric
+  // leaves them at the defaults instead of clearing back to them.
 
   // How many backward segments were walked: one per width, plus one per requested
   // split that fell inside a segment, which is what says a split cut.  Not

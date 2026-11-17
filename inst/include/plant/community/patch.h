@@ -254,7 +254,7 @@ public:
   // nothing rebuilt. This is the map the sweep transposes, so it runs at whatever
   // scalar it is called on and loads the state itself rather than asking the
   // caller to. Pushing the nodes is how the wider state is computed, so this
-  // patch is left holding it and a walk rebinds again below it.
+  // patch is left holding it and a walk re-seats it below it.
   //
   // The species are the schedule's, looked up by the time the insertion happened
   // -- which is what lets the solver ask for this knowing only a recorded time.
@@ -785,9 +785,8 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   //
   // Left behind: ode_times and ode_step_sizes, which are a record of the last
   // run rather than configuration and are read only by make_schedule, and
-  // n_patches, which nothing reads. A rebind happens once per width a sweep
-  // crosses, so copying two vectors of the whole trajectory into it was a copy
-  // per width per gradient, into an object that never looked at them.
+  // n_patches, which nothing reads, so a rebind copies no trajectory into an
+  // object that never looks at it.
   Parameters<T2,E2> p2;
   p2.patch_area = parameters.patch_area;
   p2.fitness_weighting = parameters.fitness_weighting;

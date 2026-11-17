@@ -469,7 +469,7 @@ public:
   // rather than the first: it changes no forward number and still decides which
   // rows exist.
   //
-  // ⚠️ EACH NAME BESIDE ITS VALUE, because two of the five are 1e-3 at the
+  // ⚠️ EACH NAME BESIDE ITS VALUE, because three of the five are 1e-3 at the
   // defaults. Attached by position one file away, a transposed ci_abs_tol and
   // gradient_curvature_floor would leave both readable and plausible, and
   // stand_gradient_compare() refusing on the wrong pair. census_gradient.cpp
@@ -1471,8 +1471,7 @@ DeterministicPatchRunner<T, E>::census_trait_difference(double rel) {
 // Set lambda on the states the census reads at T, then run the reverse pass
 // back over the recorded steps. The trait adjoints accumulate across every
 // cohort and every step, so the accumulator is cleared once per metric and read
-// once the sweep is done. It is the solver's system that accumulates: `patch` is
-// a snapshot the run copies out, and reading its accumulator gives zeros.
+// once the sweep is done, into an accumulator owned here.
 template <typename T, typename E>
 census_gradient
 DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,

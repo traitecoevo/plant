@@ -127,17 +127,10 @@ test_that("record once and sweep many gives each metric its own recording", {
                           logical(1))
   expect_false(any(zero_families))
 
-  # And the positional check, which CANNOT FAIL as written and is kept only
-  # because the shape it watches for is real. stand_gradient(metrics = m) computes
-  # every metric in C++ and subsets in R, so "swept alone" and "swept with the
-  # others" are one sweep and comparing them is a tautology. Established by
-  # injection: with an active value deliberately held across the tape clear, this
-  # passed and only the trajectory reference saw the defect. Closing it needs the
-  # sweep itself to take a metric subset.
-  # One metric rather than every metric. Each iteration is a full sweep at 43.6 s
-  # for a comparison that is an identity by construction, so three of them cost two
-  # minutes and establish exactly what one does. It stays as the placeholder for the
-  # real check, which needs the sweep itself to take a metric subset.
+  # And the positional check. The sweep takes only the metrics asked for, so a
+  # metric swept alone and swept beside the others are two walks over one
+  # recording, and must agree bit for bit: a value held across the tape's clear
+  # would make them differ. One metric, because each is a whole sweep.
   alone <- stand_gradient(stand, metrics = metrics[[1]], hyperpar = NULL)
   expect_identical(alone$gradient[metrics[[1]], ], result$gradient[metrics[[1]], ])
 })

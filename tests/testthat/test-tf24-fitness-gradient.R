@@ -37,8 +37,19 @@ fitness_stand_run <- function(p, record = TRUE) {
       record = if (record) "states" else character(0))$solver
 }
 
+# The stand at a birth rate of 10, recorded once for the two tests that read it.
+fitness_stand_at_10 <- local({
+  built <- NULL
+  function() {
+    if (is.null(built)) {
+      built <<- fitness_stand_run(fitness_stand_parameters(10))
+    }
+    built
+  }
+})
+
 test_that("TF24 reports its fitness under the names the gradient uses", {
-  solver <- fitness_stand_run(fitness_stand_parameters(10))
+  solver <- fitness_stand_at_10()
   f <- stand_fitness(solver)
   expect_equal(names(f), c("1.net_reproduction_ratio", "1.offspring_production"))
   expect_identical(f[["1.net_reproduction_ratio"]], solver$patch$net_reproduction_ratios)
@@ -52,7 +63,7 @@ test_that("TF24 reports its fitness under the names the gradient uses", {
 })
 
 test_that("TF24's fitness and census gradients are the pinned-step central difference", {
-  solver <- fitness_stand_run(fitness_stand_parameters(10))
+  solver <- fitness_stand_at_10()
   fitness <- c("1.net_reproduction_ratio", "1.offspring_production")
   census <- c("leaf_area", "mass_above_ground", "area_stem")
   metrics <- c(fitness, census)

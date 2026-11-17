@@ -5,7 +5,7 @@
 // that reports how a run was cut and what regimes it met.
 //
 // ⚠️ THIS COMPILES INTO THE SHIPPED LIBRARY, DELIBERATELY, AND THE ALTERNATIVE IS
-// NOT AVAILABLE. Nothing outside `tests/testthat/test-gradient-*.R` calls any of
+// NOT AVAILABLE. Only the tests and scripts/capture-reference-gradient.R call
 // it, so the obvious move is to put it behind a macro the test runner defines.
 // That does not work here: an `[[Rcpp::export]]` reaches R through the generated
 // `src/RcppExports.cpp`, which `Rcpp::compileAttributes()` rewrites whole and

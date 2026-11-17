@@ -20,19 +20,14 @@ S TF24_Model<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
   }
 }
 
-// The two _25 traits and day respiration enter as the temperature-adjusted
-// values the leaf's kernels take. The Arrhenius is linear in its reference
-// value, so the chain from the trait is the factor between them and the tape
-// carries the rest.
 // ⚠️ THE TRAITS THEMSELVES, AND EVERY SLOT NAMED. The pack is the leaf model's
 // own parameter enumeration, so the temperature responses, both Weibull scale
 // parameters and both critical potentials are DERIVED inside the leaf from
 // these -- which is what puts their chains on this tape instead of asking this
 // caller to hand over four numbers it would have to keep consistent.
 //
-// Filled by NAMED INDEX rather than as an aggregate: an initialiser shorter
-// than the array zero-fills the rest with no diagnostic at all, and this list
-// has been the wrong length twice.
+// Filled by named slot, from leaf_slots(), rather than as an aggregate: an
+// initialiser shorter than the array zero-fills the rest with no diagnostic.
 //
 // ⚠️ SEATED FIRST, THEN OVERRIDDEN. Starting from the leaf's OWN pack means no
 // slot is left at a value this caller did not choose: the parameters of the
@@ -126,18 +121,8 @@ void TF24_Model<S>::refuse_unusable_curvature(double slope) {
     // ⚠️ A POSITIVE CURVATURE HERE IS EVIDENCE AGAINST THE CURVATURE, not
     // against the operating point. An interior collar is reached only on a
     // bracket the marginal crosses downward, so the curvature at it must be
-    // non-positive -- and the collar solve now probes dry of every root it
-    // returns and counts the exceptions. On the 105-year stand in
-    // scripts/profile-stand-gradient.R it found the marginal rising ZERO times
-    // in 2,829,445 interior solves, while this reported +34.4; a centred
-    // difference of the solve's own marginal at that collar gave -9.63.
-    //
-    // So the two spellings of the marginal disagree, and the one that matches
-    // the difference is the solve's. `condition.marginal` and
-    // `leaf.collar_resid_` are those two spellings, carried here because their
-    // disagreement is the finding -- both must be ~0 at an interior point, and
-    // where they are not, profit_at is not the function that placed this
-    // collar and its second derivative belongs to something else.
+    // non-positive; the message reports the marginal at the collar, which must
+    // be about zero there, so a reader can tell which of the two is wrong.
     //
     // format_double, not to_string: these numbers run to ~1e-6 and below,
     // where to_string's six DECIMAL places print "0.000000". format_double
@@ -151,8 +136,7 @@ void TF24_Model<S>::refuse_unusable_curvature(double slope) {
            "; the collar is " +
            util::format_double(leaf.opt_root_psi_) +
            ". An interior collar sits on a downward crossing, so a positive "
-           "curvature here indicts this derivation rather than the point. See "
-           "docs/design/leaf-derivatives.md");
+           "curvature here indicts this derivation rather than the point.");
   } else if (std::abs(slope) < curvature_floor()) {
     // format_double for the same reason: a curvature inside a floor of 1e-3 is
     // where to_string's six decimal places start losing the number.
@@ -194,9 +178,6 @@ void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
   // model is this strategy's -- the leaf takes the resistances and knows nothing
   // about carbon. So the chain lands on the same tape as everything else rather
   // than crossing as a hand-written d(uptake)/d(carbon).
-  // The thickness is read off the leaf's own soil profile rather than derived
-  // again here: the vertical resistance scales with dz^2, so two definitions
-  // drifting apart would be a silent squared factor neither side could see.
   // ⚠️ THROUGH layer_thicknesses, THE ONE DEFINITION OF dz, and off the LEAF's
   // own profile rather than a second copy of the environment's. The vertical
   // resistance scales with dz^2, so two definitions drifting apart would be a

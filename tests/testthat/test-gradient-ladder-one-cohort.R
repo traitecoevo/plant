@@ -492,9 +492,10 @@ test_that("the trait rows a difference can reach agree with one", {
   # reference that carries the water channel, so it is the only one that referees
   # a trait whose route runs through it.
   #
-  # Eighteen columns are outside its reach and the set is declared rather than
-  # discovered: the leaf holds its own copy of nine traits per species, taken when
-  # the strategy was prepared, and a rate evaluation does not push them back in.
+  # The leaf's own traits, ladder_leaf_own_traits() for each species, are
+  # outside its reach and the set is declared rather than discovered: the leaf
+  # holds its own copy of them, taken when the strategy was prepared, and a rate
+  # evaluation does not push them back in.
   # So the difference is EXACTLY zero there whether the sweep's row is right,
   # wrong or absent -- the same shape as a recorded row one level down. Their
   # referee is the forward model rebuilt from its parameters, which

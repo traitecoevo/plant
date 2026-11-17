@@ -1769,7 +1769,21 @@ ladder_trait_fanout <- function(traits, name, rel = 1e-6) {
 #
 # `plateau_at` is which end the agreement is at, and it belongs beside any figure
 # taken from here.
-ladder_run_difference_stable <- function(traits, name, ...,
+# Memoised on its arguments: two tests of the declared zeros read the same
+# eight differences, each a ladder of eight whole runs.
+ladder_run_difference_stable <- local({
+  cache <- list()
+  function(traits, name, ..., steps = c(1e-6, 1e-5, 1e-4, 1e-3)) {
+    key <- paste(deparse(list(traits, name, list(...), steps)), collapse = "")
+    if (is.null(cache[[key]])) {
+      cache[[key]] <<- ladder_run_difference_stable_uncached(traits, name, ...,
+                                                             steps = steps)
+    }
+    cache[[key]]
+  }
+})
+
+ladder_run_difference_stable_uncached <- function(traits, name, ...,
                                          steps = c(1e-6, 1e-5, 1e-4, 1e-3)) {
   got <- lapply(steps, function(r) ladder_run_difference(traits, name, rel = r, ...))
   g <- vapply(got, function(x) x$gradient, numeric(length(got[[1]]$gradient)))
