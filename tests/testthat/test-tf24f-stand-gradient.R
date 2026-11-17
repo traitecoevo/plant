@@ -136,6 +136,50 @@ test_that("an invader's gradient holds where its collar meets a dry layer's pote
   expect_lt(abs(g$gradient[metric, "1.stem_P50"] - fd), 1e-4 * abs(fd))
 })
 
+test_that("the gradient holds where the cooling cap sets the dry end", {
+  # With the energy balance on, in still air with wide leaves, a well-plumbed
+  # stem and wet soil, a leaf at its dry end transpires as much as cools it
+  # 25 K below its shut temperature: the dry end is the collar at which uptake
+  # reaches that flux, not the stem's continuity root. One year, because later
+  # the shaded cohorts' leaves cool to the dew point, where the floor on the
+  # leaf's vapour deficit puts a kink in the marginal they settle on.
+  cap_parameters <- function() {
+    p <- tf24f_gradient_parameters(lifetime = 1)
+    s <- p$strategies[[1]]
+    s$pars$use_energy_balance <- 1
+    s$pars$d <- 0.25
+    s$pars$K_s <- 30 * s$pars$K_s
+    p$strategies[[1]] <- s
+    p
+  }
+  cap_env <- function() {
+    env <- Environment("TF24f")
+    env$extrinsic_drivers_set_constant("wind_speed", 0.1)
+    env$set_soil_water_state(rep(0.42, env$get_soil_number_of_depths()))
+    env$extrinsic_drivers_set_constant("rainfall", 3)
+    env
+  }
+
+  # The cap binds: a sapling in full light is 25 K cooler at its dry end than
+  # at its wet end, where it transpires nothing.
+  env <- cap_env()
+  env$set_fixed_environment(1, 40)
+  leaf_temp_at <- function(z) {
+    ind <- TF24f_Individual(cap_parameters()$strategies[[1]])
+    ind$set_initial_states(env)
+    ind$set_state("height", 0.5)
+    ind$set_state("collar_position", z)
+    ind$compute_rates(env)
+    ind$aux("Tleaf")
+  }
+  expect_equal(leaf_temp_at(-25) - leaf_temp_at(25), 25, tolerance = 1e-6)
+
+  errors <- tf24f_gradient_errors(cap_parameters(), cap_env,
+                                  c("leaf_area", "1.offspring_production"),
+                                  c("lma", "stem_P50", "K_s", "birth_rate"))
+  expect_lt(max(errors), 1e-4)
+})
+
 test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {
   # The forward counterpart is test-model-tf24f.R's convergence test: a large
   # gain recovers TF24's optimum at every step, so the gradient converges too.
