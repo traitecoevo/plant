@@ -8,7 +8,7 @@
 #include <vector>
 // #include <plant/plant_internals.h>
 
-// TODO(#483): extra_state bounds, upper and lower limits
+// TODO: extra_state bounds, upper and lower limits
 namespace plant {
 
 // The first three state slots of every model, which about fifty readers address
@@ -28,8 +28,7 @@ inline constexpr int FECUNDITY_INDEX = 2;
 // meets one is correct and silent, and the recorded trajectory it hands the
 // reverse sweep carries an entry no derivative can attach to: every census
 // metric comes back not-a-number with no refusal declared, which is the one
-// failure the gradient must never produce. Measured on a k_I = 20 stand: 9 of
-// 88 nodes, from t = 1.5, in 9545 of 11722 recorded steps.
+// failure the gradient must never produce.
 //
 // 750 rather than a rounder number because `exp(-x)` is exactly zero past
 // 745.14, so survival_individual() and mortality_probability() read the numbers

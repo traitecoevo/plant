@@ -44,7 +44,7 @@ struct TF24_Pars {
   // inherit its height scaling and the structural root:shoot ratio is
   // size-invariant. Zero by default, so the pool is absent unless switched on.
   // Only a_r1 feeds the depth-distributed water uptake -- that is a fine-root
-  // process, and coarse roots must stay out of it (see #349).
+  // process, and coarse roots must stay out of it.
   S a_cr1     = 0.0;        // [dimensionless]
   S a_b1      = 0.17;       // Ratio of bark area : sapwood area
   // * Production
@@ -80,7 +80,7 @@ struct TF24_Pars {
   // is bounded in [a_dG1*e^-a_dG2, a_dG1].
   S a_dG1  = 5.5;            // Max growth-related (low-reserve) mortality [/yr]
   S a_dG2  = 20.0;           // Sensitivity of mortality to relative reserves
-  // * NSC storage pool (#517) -- buffers growth & mortality against short-term
+  // * NSC storage pool -- buffers growth & mortality against short-term
   //   productivity swings. See Stefaniak et al. 2026 (plantNSC) for the design.
   //   Carbon first charges storage; growth/reproduction are mobilised from it,
   //   but gated so growth only proceeds when reserves are ample (a plant should
@@ -91,21 +91,21 @@ struct TF24_Pars {
   // Added to the storage pool's own relaxation time, storage_max/(charge +
   // drain) [yr].
   S storage_relaxation_offset = 7.0 / 365.0;
-  // * Flexible allometry (#516) -- a plant under carbon stress declines to
+  // * Flexible allometry -- a plant under carbon stress declines to
   //   replace the leaf and sapwood its turnover destroys, so its canopy thins
   //   instead of its mortality spiking, and rebuilds when carbon returns.
   //   Settable as traits, being TF24_Pars fields; not hyperparameterised,
-  //   there being no trade-off to encode until #512 reports one.
+  //   there being no trade-off to encode yet.
   // a_pl0 = 0 is the fixed allometry EXACTLY, not approximately: it zeroes the
   // withheld fraction, which leaves both departures resting at zero.
   S a_pl0  = 0.0;            // Max fraction of leaf/sapwood turnover left unreplaced [0-1]
   // ⚠️ a_pl1 GATES ON THE MARGINAL LEAF'S CARBON BALANCE, NOT ON RESERVES. It is
   // the dimensionless return (gain - cost)/cost at which withholding is half its
   // maximum, so 0 is exactly Manzoni et al. (2015)'s optimum -- shed once a leaf
-  // stops covering its own upkeep. An earlier version gated on the NSC reserve
-  // fraction; that fires only after the pool has drained, which is the evergreen
-  // strategy Manzoni shows losing a long drought, and it was measured here to buy
-  // a factor of 1.0-1.13 on survivorship. Negative values make a plant hold its
+  // stops covering its own upkeep. A gate on the NSC reserve fraction would fire
+  // only after the pool has drained, which is the evergreen strategy Manzoni
+  // shows losing a long drought, and it buys only a factor of 1.0-1.13 on
+  // survivorship. Negative values make a plant hold its
   // canopy past break-even; positive values make it shed while still in profit.
   S a_pl1  = 0.0;            // Marginal leaf return at which withholding is half its max
   S a_pl2  = 0.2;            // Log-gap scale for rebuilding, and for the canopy floor
@@ -155,8 +155,8 @@ struct TF24_Pars {
   // ⚠️ THE LEAF TRAITS CARRY PHYLLOPTIM'S NAMES, and that is a rule rather than a
   // tidy-up. These are handed to the `Leaf` constructor POSITIONALLY, so a
   // mismatch between what a name says here and which slot it lands in is silent:
-  // `g1_TF24` was the old name for what phylloptim calls `TF24_cost_scale`, and it
-  // reads as a stomatal-slope g1 -- a quantity the leaf also has, under `g1`, in
+  // a name like `g1_TF24` for what phylloptim calls `TF24_cost_scale` reads as a
+  // stomatal-slope g1 -- a quantity the leaf also has, under `g1`, in
   // the Medlyn path. One name per quantity, spelled the same on both sides of the
   // boundary, is what makes the hand-over at prepare_strategy() checkable by eye.
   //
@@ -166,7 +166,7 @@ struct TF24_Pars {
   // copies, not inputs to the model. Setting one does not change the curve.
   // stem_P50 and stem_c are the frozen TF24 trade-offs' values at the default
   // K_s (frozen_TF24_hyperpar in R/default_parameters.R), so a
-  // strategy built from traits and the bare default share one curve (#611).
+  // strategy built from traits and the bare default share one curve.
   S stem_P50 = 2.8887256653360196;
   // Sapwood-specific conductivity of the TERMINAL segment: the whole-stem value
   // 1 of the height-linear model, back-derived to the tip so that the two
@@ -185,7 +185,7 @@ struct TF24_Pars {
   S TF24_cost_scale = 7.5;
   // THE PRICE OF WATER AS TRANSPIRATION GOES TO ZERO, umol C (kg H2O)^-1: the
   // `lambda_o` of phylloptim's TF24_floor cost curve, which TF24 and TF24f are
-  // seated on (#634).
+  // seated on.
   //
   // WHY IT EXISTS. Every conductance-loss cost -- TF24's included -- prices water
   // at zero as E goes to zero, since no conductivity is lost when nothing flows,
@@ -216,15 +216,15 @@ struct TF24_Pars {
   S TF24_floor_lambda_o = 0.0;
   S jmax_25 = vcmax_25*1.64;
   // Quantum yield of electron transport per ABSORBED photon. The leaf absorbs
-  // alpha_PAR of the intercepted PPFD, so 0.30 / 0.85 is the old incident-basis
-  // yield of 0.30 restated (phylloptim 0.13.0 renamed `a` to `phi_J`).
+  // alpha_PAR of the intercepted PPFD, so 0.30 / 0.85 is an incident-basis
+  // yield of 0.30 restated per absorbed photon.
   S phi_J = 0.30 / 0.85;
   S curv_fact_elec_trans = 0.7;
   S curv_fact_colim = 0.99;
   // Day respiration at 25 C, the term net assimilation subtracts: respiration
   // of the photosynthesising leaf, distinct from r_l's maintenance. It is handed
-  // over now that set_traits takes it, rather than left to the leaf's own
-  // default -- so a parameter can move it and a gradient can see it.
+  // over rather than left to the leaf's own default -- so a parameter can move
+  // it and a gradient can see it.
   S R_d_25 = 1.44;
   // shape exponent for the Q() root-fraction-with-depth profile
   S root_depth_shape_eta = 0.2;
@@ -260,7 +260,7 @@ struct TF24_Pars {
   // plant/models/stem_hydraulics.h for the closed form and what it assumes.
   //
   // Setting all three to zero collapses the path integral to a resistance
-  // linear in height -- the model before this existed -- bit for bit, which is
+  // linear in height bit for bit, which is
   // what the regression test asserts. theta_c is zero by default, so `theta`
   // keeps its whole-plant meaning and no parameter-file migration is needed
   // yet.
@@ -301,9 +301,9 @@ struct TF24_Pars {
   S L_tip = 0.02;
   // Germination
   S recruitment_decay = 0.0;
-  // Penman-Monteith leaf energy balance (#523). use_energy_balance gates PM
-  // (0 = off, today's Tleaf=Tair behaviour; != 0 = on); default off preserves
-  // backward compatibility. d is the characteristic leaf dimension (m) for the
+  // Penman-Monteith leaf energy balance. use_energy_balance gates PM
+  // (0 = off, Tleaf = Tair; != 0 = on), and is off by default. d is the
+  // characteristic leaf dimension (m) for the
   // aerodynamic resistance ra = C_ra*sqrt(d/U0); inert while PM is off.
   S use_energy_balance = 0.0;
   S d = 0.05;
@@ -313,13 +313,13 @@ struct TF24_Pars {
   S alpha_PAR = 0.85;
   S alpha_NIR = 0.20;
   // Crown leaf area index: the leaf area a crown carries per unit of ground it
-  // covers, so crown area = area_leaf / L_crown. Read by TF24w alone (#681),
+  // covers, so crown area = area_leaf / L_crown. Read by TF24w alone,
   // where it sets the footprint of a plant's private root-zone soil column;
   // TF24 reads nothing from it. Default to be set from crown allometry; 2 is a
   // placeholder.
   S L_crown = 2.0;
   // Residual (minimum) leaf conductance to water at 25 C, mol H2O m^-2 s^-1:
-  // phylloptim's `g_min` (phylloptim #182), the flux a leaf loses with its
+  // phylloptim's `g_min`, the flux a leaf loses with its
   // stomata shut. Zero by default, which is exactly the model without it: the
   // leaf tests `g_min == 0.0` and returns exact zeros for the residual terms, so
   // no result moves at the default. Carried here so a parameter set can reach
@@ -368,7 +368,7 @@ struct TF24_Pars {
                   "the coarse-root pool is opt-in and has no gradient fixture"},
       no_gradient{"r_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
       no_gradient{"k_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
-      // Flexible allometry (#516) is opt-in the same way: at a_pl0 = 0 nothing
+      // Flexible allometry is opt-in the same way: at a_pl0 = 0 nothing
       // is withheld, so the other four gate parameters multiply zero.
       no_gradient{"a_pl0",
                   "flexible allometry is opt-in and has no gradient fixture"},

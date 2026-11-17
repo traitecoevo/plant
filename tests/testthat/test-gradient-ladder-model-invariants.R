@@ -26,7 +26,7 @@ test_that("the fixtures sit in the regime their checks are declared for", {
   expect_equal(ladder_crossing_count(
     ladder_nodes(ladder_patch_two_by_two(cross = FALSE))), 0L)
 
-  # The other half of adversariality, and it was measured nowhere: the two species
+  # The other half of adversariality: the two species
   # must differ by whole factors in every per-species reduction parameter. A sum
   # that collapses them into one scalar, and a scatter that reaches the wrong
   # species, are both invisible while the two carry commensurate values.
@@ -152,8 +152,7 @@ test_that("the regime holds at the states a trajectory passed through", {
   # boundary node's height, so "no two heights equal" is false there by
   # construction and says nothing about the regime the checks need.
   #
-  # What 08 asks to be evaluated at every solve is the physical regime, and that is
-  # this list.
+  # What has to hold at every solve is the physical regime, and that is this list.
   per_state <- c("soil moisture strictly interior on every layer",
                  "net production strictly positive at every cohort",
                  "light at every read at least 100 times the floor")

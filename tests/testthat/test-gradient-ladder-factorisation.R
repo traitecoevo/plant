@@ -91,18 +91,17 @@ test_that("the marginal profit's factorisation is measured, not assumed", {
 
   # EVERY layer is out of sample. The pair is anchored in root carbon, not in a
   # soil potential, so no potential layer is the one it was solved from and none
-  # of them gets the fit step's own second-order error allowed for. This used to
-  # excuse whichever layer had the largest diagonal, on the reading that the pair
-  # was fitted from a potential; that stopped being true when the anchor moved.
+  # of them gets the fit step's own second-order error allowed for. Excusing
+  # whichever layer has the largest diagonal would read the pair as fitted from a
+  # potential, which it is not.
   expect_gt(length(residual), 1L)
 
-  # Reported per layer because that is how the disagreement was found, but it is
-  # not what is asserted: this statistic scales each layer by the whole block's
-  # largest entry, so one error common to every layer reads as five different
-  # numbers -- 20.9, 18.9, 17.5, 0.5, 1.4 when the root vulnerability curve was
-  # tabulated as a fit through its values alone, and 1.6, 0.4, 1.0, 0.8, 1.1 once
-  # the tabulation carried an exact slope at every knot. The second reading is the
-  # residual sitting at its own reference's error on every layer.
+  # Reported per layer, but it is not what is asserted: this statistic scales
+  # each layer by the whole block's largest entry, so one error common to every
+  # layer reads as five different numbers -- 20.9, 18.9, 17.5, 0.5, 1.4 with the
+  # root vulnerability curve tabulated as a fit through its values alone, and
+  # 1.6, 0.4, 1.0, 0.8, 1.1 with an exact slope at every knot. The second reading
+  # is the residual sitting at its own reference's error on every layer.
   message("  per-layer ratio to its own reference: ",
           paste(sprintf("%.1f", residual / floor), collapse = " "))
 
@@ -162,16 +161,16 @@ test_that("the marginal profit's factorisation is measured, not assumed", {
   # The factor of ten is the headroom the anchoring column below is held to, at
   # the same step and by the same argument.
   #
-  # ⚠️ AND THE REFERENCE HAS TO RESOLVE AN ENTRY BEFORE IT CAN ADJUDICATE IT. The
-  # old filter asked only that the coarsest step be within 10% of the reference,
-  # which is four orders looser than the bound enforced -- so an entry whose three
-  # steps disagreed at 1e-04 passed it and was then held to 1e-05. That stayed
-  # invisible while the rows disagreed by more than the reference did, and became
-  # the whole of this statistic once they did not: measured at the entry that
-  # failed, the row agrees with the 1e-05 step to 8.5e-08 and with the 1e-07 step
-  # to 5.2e-06, while the 1e-06 step used as the reference differs from BOTH its
-  # neighbours by 2.3e-04. The statistic was reading the reference's own step, and
-  # every per-layer residual was 1e-08 at the same time.
+  # ⚠️ AND THE REFERENCE HAS TO RESOLVE AN ENTRY BEFORE IT CAN ADJUDICATE IT. A
+  # filter asking only that the coarsest step be within 10% of the reference is
+  # four orders looser than the bound enforced -- so an entry whose three steps
+  # disagree at 1e-04 passes it and is then held to 1e-05. That is invisible while
+  # the rows disagree by more than the reference does, and becomes the whole of
+  # this statistic once they do not: at such an entry the row agrees with the
+  # 1e-05 step to 8.5e-08 and with the 1e-07 step to 5.2e-06, while the 1e-06
+  # step used as the reference differs from BOTH its neighbours by 2.3e-04. The
+  # statistic then reads the reference's own step, with every per-layer residual
+  # at 1e-08.
   #
   # So an entry is comparable where the reference resolves it to better than the
   # bound, which is the same standard the per-layer statistic already applies, and
@@ -254,8 +253,7 @@ test_that("the water rows hold in the direction the ecology reads", {
     #
     # Not `floor`. That is the gap between two step sizes, which measures how far
     # the difference has converged and not how accurate it is, so it tightens
-    # exactly where the check gets sharper -- the same defect the per-layer
-    # statistic above was carrying.
+    # exactly where the check gets sharper.
     #
     # The reference's own error is added, though: `rows` is compared with `fine`,
     # so a residual within the reference's uncertainty says nothing about the rows.
@@ -271,8 +269,8 @@ test_that("the water rows hold in the direction the ecology reads", {
 test_that("the water rows hold in the family the pair was anchored in", {
   # The pair is solved from one root-carbon direction, and root carbon reaches the
   # block through three inputs rather than as one of its own. Those three columns
-  # are computed by the difference the check above already runs and were being
-  # discarded; a_r1 is the clean one, reaching the water channel only through the
+  # are computed by the difference the check above already runs; a_r1 is the
+  # clean one, reaching the water channel only through the
   # root profile, where height also moves leaf area and absorbed light.
   patch <- ladder_patch_one()
   ladder_require_regime(patch, "patch")

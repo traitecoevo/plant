@@ -5,7 +5,7 @@
 # over steps is associative or it is not, a sweep is repeatable or it is not, and a
 # permutation of the metric order changes the numbers or it does not. That is why
 # they run on the short fixture -- the same five introductions over a quarter of the
-# steps -- and why nothing in this file was re-blessed to put them there.
+# steps -- and why nothing in this file needs re-blessing to put them there.
 #
 # Their whole assurance is the non-vacuity clause beside each one: prove the two
 # paths computed something before believing they agree.
@@ -118,7 +118,7 @@ test_that("the split identity holds where the recording has sixty-two segments",
   # product runs at 169. The count is separable from the run length: this stand
   # is still under half a year and carries 62.
   #
-  # Two sweeps, 3.2 s. Bit-identity is what makes that affordable -- no reference
+  # Two sweeps. Bit-identity is what makes that affordable -- no reference
   # to capture, no margin to re-bless, and a shorter run tests the same claim.
   stand <- ladder_stand_many_ranges()
   trajectory <- stand$store_recording()

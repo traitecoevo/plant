@@ -253,7 +253,7 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
   unknown <- setdiff(traits, all_traits)
   if (length(unknown) > 0L) {
     # A parameter the model carries but cannot differentiate is not unknown, and
-    # saying so sent readers looking for a spelling mistake. The model states why
+    # saying so sends readers looking for a spelling mistake. The model states why
     # it has no gradient; that sentence is the refusal.
     why <- b$undifferentiable()
     named <- trait_without_species(unknown)

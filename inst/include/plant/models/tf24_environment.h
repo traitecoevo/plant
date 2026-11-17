@@ -85,24 +85,13 @@ public:
     extrinsic_drivers_set_constant("ca",40);
     extrinsic_drivers_set_constant("leaf_temp",25);
     extrinsic_drivers_set_constant("atm_o2_kpa",21);
-    // 101.3 kPa, standard sea-level pressure -- and, more to the point, the value
-    // the leaf model's photosynthesis side has always assumed. Its ppm -> Pa
-    // conversion was the hard-coded constant 0.1013 = 1e-6 * 101300 Pa, i.e. 101.3
-    // kPa in disguise, while this driver said 100.5. The two disagreed, so the
-    // conductance side of the model responded to 100.5 while Gamma*, Kc, Ko, Km and
-    // the ci root-find bounds silently assumed 101.3.
-    //
-    // The leaf package now derives the conversion from atm_kpa (phylloptim #15 item
-    // 10c), which makes the model self-consistent at any pressure -- and turns the
-    // disagreement into a 2.4% shift in TF24 output. **This line is why**: 100.5
-    // arrived in `34d46ac2` ("Simplify scm & environment interface", #446), a pure
-    // interface refactor that does not mention atmospheric pressure, and no
-    // rationale for it is recorded anywhere. Every leaf-level test uses 101.3.
-    // So it was an artefact, not a site elevation, and pinning it to the value the
-    // rest of the model already assumed keeps the published numbers instead of
-    // re-baselining them against an accident. Set it per-site if you mean altitude.
+    // 101.3 kPa, standard sea-level pressure, and the value every leaf-level
+    // test uses. The leaf derives its ppm -> Pa conversion from atm_kpa, so the
+    // model is self-consistent at any pressure, but the published numbers are at
+    // this one: 100.5 kPa shifts TF24 output by 2.4%. It is not a site elevation;
+    // set it per-site if you mean altitude.
     extrinsic_drivers_set_constant("atm_kpa",101.3);
-    extrinsic_drivers_set_constant("wind_speed",2.0); // U0, m s^-1 (Penman-Monteith, #523)
+    extrinsic_drivers_set_constant("wind_speed",2.0); // U0, m s^-1 (Penman-Monteith)
 
     set_soil_number_of_depths(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, soil_moist_sat*0.5));
@@ -113,7 +102,7 @@ public:
   // participating in the water balance: sum_rainfall, sum_infiltration,
   // sum_drainage, sum_resource_depletion, sum_pulse_runoff.
   //
-  // The fifth is fed only by rainfall-pulse events (#522). That is deliberate,
+  // The fifth is fed only by rainfall-pulse events. That is deliberate,
   // not an oversight: the ODE controller takes its error norm over *every*
   // state component, so an accumulator with a non-zero rate would join the
   // step-size decision and could move existing TF24 trajectories. Held at rate
@@ -503,7 +492,7 @@ public:
   // The state the solver integrates, and the uptake compute_rates received.
   Internals<S> vars;
 
-  // * Private root-zone water (TF24w, #681)
+  // * Private root-zone water (TF24w)
   //
   // Lateral exchange between a plant's root-zone column and its surroundings,
   // as a relaxation rate toward the area-weighted patch mean [yr^-1]. A soil
@@ -588,8 +577,8 @@ public:
   // The potentials the moisture state implies, derived where they are asked for
   // and kept until the state moves. Every writer of that state clears the flag
   // below, which is the whole of what keeps this true -- a second copy of the
-  // state was kept beside these and compared per read, and it could only ever
-  // catch a writer that had forgotten.
+  // state kept beside these and compared per read could only ever catch a
+  // writer that had forgotten.
   //
   // ⚠️ A value read here cannot be compared against a value to decide staleness:
   // on an active scalar the derivative can move behind an unchanged value, and
@@ -689,18 +678,17 @@ public:
   // layer below this (see the positivity guard in compute_rates), and
   // psi_from_soil_moist is evaluated at this floor so the retention curve
   // (which diverges as theta->0) stays finite. Well below any realistic
-  // operating moisture, so it does not perturb non-drought runs. See issue
-  // #485.
+  // operating moisture, so it does not perturb non-drought runs.
   double soil_moist_residual = 1e-2;
 
-  // Ceiling on soil water potential (MPa), issue #549. Near the residual floor
+  // Ceiling on soil water potential (MPa). Near the residual floor
   // the retention curve returns psi ~ 1e8 MPa, which drives the leaf hydraulic
   // solve non-finite and blows up the soil feedback. phylloptim bounds the root
-  // vulnerability curves past their grid (traitecoevo/phylloptim#77), so root
+  // vulnerability curves past their grid, so root
   // conductivity is exactly 0 above ~46 MPa at the default root_P50 = 3.4, a
   // point that scales with root_P50; at 50 MPa it is below 1e-22 for any
   // root_P50 up to 10. So the ceiling leaves uptake unchanged and tightening it
-  // cannot fix a drought symptom. Dry runs do reach it (#613), so it is set
+  // cannot fix a drought symptom. Dry runs do reach it, so it is set
   // near that point rather than at an oven-dry potential.
   double soil_psi_max_ = 50;
 
@@ -947,7 +935,7 @@ public:
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
     const S psi =
       a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer);
-    // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
+    // Cap at a large-but-finite ceiling: near theta_r the retention curve
     // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
     // corrupts the soil feedback. Root conductivity is already negligible at the
     // ceiling (see soil_psi_max_), so the cap keeps every downstream
@@ -986,7 +974,7 @@ public:
   double get_leaf_temp()  const { return driver_at(DRIVER_LEAF_TEMP); }
   double get_atm_o2_kpa() const { return driver_at(DRIVER_ATM_O2_KPA); }
   double get_atm_kpa()    const { return driver_at(DRIVER_ATM_KPA); }
-  // Above-canopy wind speed U0 (m s^-1), Penman-Monteith aerodynamic resistance (#523)
+  // Above-canopy wind speed U0 (m s^-1), Penman-Monteith aerodynamic resistance
   double get_wind_speed() const { return driver_at(DRIVER_WIND_SPEED); }
 
 
@@ -1026,7 +1014,7 @@ public:
     return out;
   }
 
-  // The generic resource-pulse hook (#628): TF24's resources are its soil
+  // The generic resource-pulse hook: TF24's resources are its soil
   // layers, so a pulse is a depth of water added to one of them. Layer 0 is
   // rain; a deeper layer is irrigation, or a water table rising into the
   // profile. Either way the water has entered the column, so it counts as

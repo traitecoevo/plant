@@ -1,4 +1,4 @@
-# The birth-rate column on FF16 (plant#650, E3): d(metric)/d(birth rate of
+# The birth-rate column on FF16: d(metric)/d(birth rate of
 # species j), the Jacobian of the offspring map an equilibrium solver iterates
 # on. A constant birth rate reaches the model at the inflow condition (the
 # density every cohort is born at) and as the offspring integral's scalars, and

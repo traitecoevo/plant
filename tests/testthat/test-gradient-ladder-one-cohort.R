@@ -271,7 +271,7 @@ test_that("the tangent carries the soil channel, and two references agree in it"
 
   # The two references are independent -- one exact and tape-free, the other a
   # plain-double difference that re-runs the forward balance -- so their agreement
-  # in the channel that was unrefereed is what licenses using either in it.
+  # in a channel nothing else referees is what licenses using either in it.
   coarse <- ladder_rhs_state_difference(patch, 1e-5)
   fine <- ladder_rhs_state_difference(patch, 1e-6)
   floor <- ladder_difference_floor(coarse, fine)
@@ -281,7 +281,7 @@ test_that("the tangent carries the soil channel, and two references agree in it"
 
   # The transpose against the tangent, set on every rate. Off the soil rates it
   # is round-off. On them it is the leaf's own supplied-row gap: both reductions
-  # now carry the boundary node's row, so what is left is the difference between a
+  # carry the boundary node's row, so what is left is the difference between a
   # recorded uptake row and one taken by re-solving the collar.
   rates <- patch$ode_rates
   adjoint <- ladder_test_vector(n, scale = ladder_block_scale(rates))
@@ -451,7 +451,7 @@ test_that("the trait rows that arise inside a reduction arrive", {
   rates <- patch$ode_rates
   adjoint <- ladder_test_vector(n, scale = ladder_block_scale(rates))
 
-  # Set on the cohort rates only. The soil rates now carry trait rows in the
+  # Set on the cohort rates only. The soil rates carry trait rows in the
   # reference too, but their transpose is short of the boundary node's own draw,
   # so including them here would report that gap as a reduction defect.
   cohort_adjoint <- adjoint
@@ -576,13 +576,13 @@ test_that("the recording does not grow with the stand", {
 
   # The stage is recorded whole, so peak holds every unit at once and the size is
   # linear in the unit count. That is the commitment traded away: a recording flat
-  # in the cohort count was paid for by writing every transpose between the state
-  # and the rates by hand.
+  # in the cohort count would need every transpose between the state and the
+  # rates written by hand.
   #
   # What replaces a flatness test is amortisation. Four units cost less than four
   # one-unit recordings, because the field is read into the tape once for the
-  # stage where a per-unit block registered the whole 130-wide field read again
-  # for every unit. A recording that lost that would land at four times the one.
+  # stage, where a per-unit block would register the whole 130-wide field read
+  # again for every unit. A recording that lost that would land at four times the one.
   expect_gt(per_unit, 0)
   expect_lt(b$block_recording_size, 4 * a$block_recording_size)
 })

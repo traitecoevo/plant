@@ -13,7 +13,7 @@
 namespace plant {
 
 // TF24t ("t" for thermal): TF24 with phylloptim's lasting leaf thermal-damage
-// and acclimation layer (the ATLS model, #566) switched on, plus the four slow
+// and acclimation layer (the ATLS model) switched on, plus the four slow
 // ODE states that layer reads. It inherits TF24_Model and reuses
 // TF24_Environment and TF24_Pars.
 //
