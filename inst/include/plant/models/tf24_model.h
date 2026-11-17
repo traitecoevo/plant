@@ -729,16 +729,8 @@ public:
   with_slope<S> compute_competition_and_slope(const S& z, const Internals<S>& vars) const {
     const S& area_leaf_ = vars.aux(aux_idx_competition_effect);
     const S& height_inverse = vars.aux(aux_idx_height_inverse);
-    if constexpr (odelia::CarriesAdjoint<S>) {
-      // Above the crown both are zero whatever scales them, and scaling a
-      // passive zero by active factors records statements for nothing. The
-      // signs are the ones the product below gives a positive scale.
-      using odelia::util::to_passive;
-      if (canopy_shape.smooth_profile() &&
-          to_passive(z) * to_passive(height_inverse) > 1.0) {
-        return {S(0.0), S(-0.0)};
-      }
-    }
+    // Not skipped above the crown, as FF16 is: skipping the zero products here
+    // moves these rows in their last bits.
     const S scale = pars.k_I * area_leaf_;
     const std::pair<S, S> Qq =
       canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
