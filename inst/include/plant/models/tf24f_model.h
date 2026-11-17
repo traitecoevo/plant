@@ -322,8 +322,6 @@ bool TF24f_Model<S>::collar_interval(double& a, double& b, bool& capped) {
           phylloptim::Leaf::CostCurve::TF24_floor>(a, b)) {
     return false;
   }
-  // Which condition the dry end's polish below solves, as the leaf says it.
-  capped = leaf.dry_bound_kind() == Leaf::OperatingPointKind::BoundaryCold;
   a = leaf.polish_bracket_bound(a, leaf.supply_psi_soil(), 0);
   b = leaf.polish_bracket_bound(b, leaf.supply_psi_soil(), 1);
   if (!(b > a)) {
@@ -332,6 +330,9 @@ bool TF24f_Model<S>::collar_interval(double& a, double& b, bool& capped) {
         "collar precision: wet end " + util::format_double(a) +
         " MPa, dry end " + util::format_double(b) + " MPa");
   }
+  // Which condition placed the dry end, and so which its polish above solved,
+  // as the leaf says it.
+  capped = leaf.dry_bound_kind() == Leaf::OperatingPointKind::BoundaryCold;
   return true;
 }
 
