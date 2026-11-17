@@ -21,7 +21,11 @@ pulse_environment <- function() {
 }
 
 pulse_run <- function(p, depth, record = TRUE) {
-  run(p, pulse_environment(), Control(node_density_coordinate = "birth_date"),
+  # At an ODE tolerance of 1e-6, where lma's column, which reaches the seed's
+  # height, resolves; at the default its difference carries about 1e-5.
+  run(p, pulse_environment(),
+      Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
+              ode_tol_abs = 1e-6),
       events = events(rainfall_pulse(time = c(1, 2), depth = depth)),
       record = if (record) "states" else character(0))$solver
 }

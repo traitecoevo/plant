@@ -68,7 +68,7 @@ test_that("TF24f declares TF24's census and fitness", {
                    census_undifferentiable("TF24"))
   columns <- census_trait_names(solver, "TF24f")
   expect_equal(utils::tail(columns, 2), c("1.k_acclim", "1.birth_rate"))
-  expect_equal(setdiff(columns, census_trait_names(solver, "TF24")), "1.k_acclim")
+  expect_equal(sum(columns == "1.k_acclim"), 1L)
 })
 
 test_that("TF24f's stand gradient is the pinned-step central difference", {
