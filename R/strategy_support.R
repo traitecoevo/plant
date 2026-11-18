@@ -8,6 +8,7 @@ environment_type <- function(type) {
          TF24t=sprintf("TF24_Env"),
          TF24w=sprintf("TF24_Env"),
          K93=sprintf("K93_Env"),
+         ES20=sprintf("FF16_Env"),
          stop("Unknown type ", type))
 }
 
@@ -70,6 +71,7 @@ Environment <- function(type = NULL) {
          TF24_Env=TF24_Environment(),
          K93=K93_Environment(),
          K93_Env=K93_Environment(),
+         ES20=ES20_Environment(),
          stop("Unknown type ", type))
 }
 
@@ -90,6 +92,7 @@ expand_state <- function(results) {
     TF24t = TF24t_expand_state(results),
     TF24w = TF24w_expand_state(results),
     K93 = K93_expand_state(results),
+    ES20 = ES20_expand_state(results),
     stop("Unknown type ", type)
   )
 }

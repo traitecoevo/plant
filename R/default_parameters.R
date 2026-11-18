@@ -36,7 +36,7 @@
 ##' \code{generate_strategy} says so once per session.
 ##'
 ##' @param model A model name: \code{"FF16"}, \code{"TF24"}, \code{"TF24f"},
-##'   \code{"TF24t"}, \code{"TF24w"} or \code{"K93"}.
+##'   \code{"TF24t"}, \code{"TF24w"}, \code{"K93"} or \code{"ES20"}.
 ##' @param quiet If \code{FALSE} (the default), warn that this is a testing set.
 ##' @return For \code{default_parameters}, a \code{Parameters} object with
 ##'   \code{hyperpar} set.
@@ -69,10 +69,11 @@ default_parameters <- function(model, quiet = FALSE) {
 ##'   frozen maker (\code{B_kl1}, \code{B_Hv1}, \code{narea}, ...; see
 ##'   \code{\link{frozen_FF16_hyperpar}} and \code{\link{frozen_TF24_hyperpar}}
 ##'   for the lists). For tests and diagnostics only: with a coefficient moved
-##'   the result is no longer the testing set. K93 accepts none.
+##'   the result is no longer the testing set. K93 and ES20 accept none.
 ##' @return For \code{default_hyperpar}, the frozen trade-off closure for
 ##'   \code{model}. TF24's serves TF24, TF24f, TF24t and TF24w, which share
-##'   \code{TF24_Pars}; K93 has no trade-offs and gets the identity function.
+##'   \code{TF24_Pars}; K93 and ES20 have no trade-offs and get the identity
+##'   function.
 ##'   The closure carries \code{attr(f, "traits")} (every trait-matrix column
 ##'   it reads), \code{attr(f, "input_traits")} (those that are not fields of
 ##'   \code{pars}) and \code{attr(f, "coefficients")} (the coefficients it was
@@ -87,10 +88,11 @@ default_hyperpar <- function(model, ...) {
     TF24t = ,
     TF24w = frozen_TF24_hyperpar,
     K93 = NULL,
+    ES20 = NULL,
     stop("Unknown type ", model))
   if (is.null(maker)) {
     if (...length() > 0L) {
-      stop("K93 has no trade-off coefficients to set", call. = FALSE)
+      stop(model, " has no trade-off coefficients to set", call. = FALSE)
     }
     f <- identity_hyperpar
     coefficients <- list()
@@ -111,6 +113,7 @@ default_hyperpar <- function(model, ...) {
   attr(f, "traits") <- switch(model,
     FF16 = c("lma", "rho", "omega", "narea"),
     K93 = character(0),
+    ES20 = character(0),
     c("lma", "rho", "omega", "K_s", "vcmax_25", "jmax_25"))
   attr(f, "coefficients") <- coefficients
   f

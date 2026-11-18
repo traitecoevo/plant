@@ -36,6 +36,7 @@
 #include <plant/models/tf24t_model.h>
 #include <plant/models/tf24w_model.h>
 #include <plant/models/k93_model.h>
+#include <plant/models/es20_model.h>
 #include <plant/models/leaf_model.h>
 
 // Getting more serious down here.

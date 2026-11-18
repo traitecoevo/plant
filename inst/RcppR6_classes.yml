@@ -305,6 +305,7 @@ OdeRunner:
       - ["TF24t": "plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>>"]
       - ["TF24w": "plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment>"]
+      - ["ES20": "plant::tools::IndividualRunner<plant::ES20_Model, plant::FF16_Environment<double>>"]
   constructor:
     args: [obj: T, control: "odelia::ode::OdeControl=OdeControl()"]
   active:
@@ -524,6 +525,7 @@ Individual:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args: [s: T]
     name_cpp: "plant::make_individual<T,E>"
@@ -588,6 +590,7 @@ IndividualRunner:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
     args: [individual: "plant::Individual<T,E>", environment: E]
@@ -649,6 +652,7 @@ Parameters:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   validator:
     name_cpp: validate
   list:
@@ -690,6 +694,7 @@ Node:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     name_cpp: "plant::make_node<T,E>"
     args: [strategy: T]
@@ -746,6 +751,7 @@ Species:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args: [strategy: T]
   active:
@@ -819,6 +825,7 @@ Patch:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args:
       - parameters: "plant::Parameters<T,E>"
@@ -924,6 +931,7 @@ DeterministicPatchRunner:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args:
       - parameters: "plant::Parameters<T,E>"
@@ -1029,6 +1037,7 @@ StochasticSpecies:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args: [strategy: "T"]
   active:
@@ -1076,6 +1085,7 @@ StochasticPatch:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args:
       - parameters: "plant::Parameters<T,E>"
@@ -1148,6 +1158,7 @@ StochasticPatchRunner:
       - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
+      - ["ES20": "plant::ES20_Model", "FF16_Env": "plant::FF16_Environment<double>"]
   constructor:
     args:
       - parameters: "plant::Parameters<T,E>"
@@ -1353,6 +1364,23 @@ FF16_Environment:
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void
+    # Defined on the base class `environment.h`. ES20 reads its stress
+    # schedule from the "stress_onset" driver.
+    extrinsic_drivers_get_names:
+      args: []
+      return_type: std::vector<std::string>
+    extrinsic_drivers_set_constant:
+      args: [driver_name: std::string, value: double]
+      return_type: void
+    extrinsic_drivers_set_variable:
+      args: [driver_name: std::string, x: std::vector<double>, y: std::vector<double>]
+      return_type: void
+    extrinsic_drivers_evaluate:
+      args: [driver_name: std::string, x: double]
+      return_type: double
+    extrinsic_drivers_evaluate_range:
+      args: [driver_name: std::string, x: std::vector<double>]
+      return_type: std::vector<double>
   active:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
@@ -1395,6 +1423,78 @@ K93_Model:
     @export
   list:
     - pars: "plant::K93_Pars"
+    - control: "plant::Control"
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
+
+ES20_Pars:
+  name_cpp: "plant::ES20_Pars"
+  roxygen: |
+    Biological trait/parameters for the ES20 model (FF16 with a
+    non-structural carbohydrate store). Held as the nested \code{pars}
+    element of a \code{\link{ES20_Model}} (access as \code{s$pars$t_s}).
+    Defaults are Table S2 of Stefaniak et al. (egusphere-2026-1474).
+    @title ES20 model parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - lma: double
+    - rho: double
+    - hmat: double
+    - omega: double
+    - eta: double
+    - theta: double
+    - a_l1: double
+    - a_l2: double
+    - a_r1: double
+    - a_b1: double
+    - r_l: double
+    - r_r: double
+    - r_s: double
+    - r_b: double
+    - r_min: double
+    - a_y: double
+    - a_bio: double
+    - k_l: double
+    - k_b: double
+    - k_s: double
+    - k_r: double
+    - a_p1: double
+    - a_p2: double
+    - a_f1: double
+    - a_f2: double
+    - a_f3: double
+    - S_D: double
+    - a_d0: double
+    - d_I: double
+    - a_dP1: double
+    - a_dP2: double
+    - a_dS1: double
+    - a_dS2: double
+    - t_s: double
+    - a_s: double
+    - b_s1: double
+    - b_s2: double
+    - c_k: double
+    - k_stress: double
+    - k_I: double
+
+ES20_Model:
+  name_cpp: "plant::ES20_Model"
+  roxygen: |
+    The ES20 model: FF16 with a non-structural carbohydrate store that
+    growth and reproduction draw on, under an annual stress period set by
+    the environment's \code{"stress_onset"} driver (see
+    \code{\link{ES20_Environment}}), after Stefaniak et al.
+    (egusphere-2026-1474).
+    @title The ES20 model
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::ES20_Pars"
     - control: "plant::Control"
     - birth_rate_x: std::vector<double>
     - birth_rate_y: std::vector<double>

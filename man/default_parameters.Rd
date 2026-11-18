@@ -14,7 +14,7 @@ param_hyperpar(parameters)
 }
 \arguments{
 \item{model}{A model name: \code{"FF16"}, \code{"TF24"}, \code{"TF24f"},
-\code{"TF24t"}, \code{"TF24w"} or \code{"K93"}.}
+\code{"TF24t"}, \code{"TF24w"}, \code{"K93"} or \code{"ES20"}.}
 
 \item{quiet}{If \code{FALSE} (the default), warn that this is a testing set.}
 
@@ -22,7 +22,7 @@ param_hyperpar(parameters)
 frozen maker (\code{B_kl1}, \code{B_Hv1}, \code{narea}, ...; see
 \code{\link{frozen_FF16_hyperpar}} and \code{\link{frozen_TF24_hyperpar}}
 for the lists). For tests and diagnostics only: with a coefficient moved
-the result is no longer the testing set. K93 accepts none.}
+the result is no longer the testing set. K93 and ES20 accept none.}
 
 \item{parameters}{A \code{Parameters} object.}
 }
@@ -32,7 +32,8 @@ For \code{default_parameters}, a \code{Parameters} object with
 
 For \code{default_hyperpar}, the frozen trade-off closure for
   \code{model}. TF24's serves TF24, TF24f, TF24t and TF24w, which share
-  \code{TF24_Pars}; K93 has no trade-offs and gets the identity function.
+  \code{TF24_Pars}; K93 and ES20 have no trade-offs and get the identity
+  function.
   The closure carries \code{attr(f, "traits")} (every trait-matrix column
   it reads), \code{attr(f, "input_traits")} (those that are not fields of
   \code{pars}) and \code{attr(f, "coefficients")} (the coefficients it was

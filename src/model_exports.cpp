@@ -27,6 +27,16 @@ plant::Schedule make_schedule__Parameters___K93__K93_Env(const plant::Parameters
 }
 
 // [[Rcpp::export]]
+plant::Schedule schedule_default__Parameters___ES20__FF16_Env(const plant::Parameters<plant::ES20_Model,plant::FF16_Environment<double>>& p) {
+   return plant::schedule_default<plant::Parameters<plant::ES20_Model,plant::FF16_Environment<double>> >(p);
+}
+
+// [[Rcpp::export]]
+plant::Schedule make_schedule__Parameters___ES20__FF16_Env(const plant::Parameters<plant::ES20_Model,plant::FF16_Environment<double>>& p) {
+   return plant::make_schedule<plant::Parameters<plant::ES20_Model,plant::FF16_Environment<double>> >(p);
+}
+
+// [[Rcpp::export]]
 plant::Schedule schedule_default__Parameters___TF24__TF24_Env(const plant::Parameters<plant::TF24_Model<double>,plant::TF24_Environment<double>>& p) {
    return plant::schedule_default<plant::Parameters<plant::TF24_Model<double>,plant::TF24_Environment<double>> >(p);
 }
@@ -81,6 +91,12 @@ plant::Internals<double> K93_oderunner_individual_internals(
 }
 
 // [[Rcpp::export]]
+plant::Internals<double> ES20_oderunner_individual_internals(
+  const odelia::ode::Solver<plant::tools::IndividualRunner<plant::ES20_Model, plant::FF16_Environment<double>>>& obj) {
+  return obj.get_system().individual.r_internals();
+}
+
+// [[Rcpp::export]]
 plant::Internals<double> TF24_oderunner_individual_internals(
   const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>>>& obj) {
   return obj.get_system().individual.r_internals();
@@ -122,6 +138,8 @@ std::string strategy_scientific_version(std::string type) {
     return std::to_string(plant::FF16_Model<double>::scientific_version);
   if (type == "K93")
     return std::to_string(plant::K93_Model::scientific_version);
+  if (type == "ES20")
+    return std::to_string(plant::ES20_Model::scientific_version);
   if (type == "TF24")
     return std::to_string(plant::TF24_Model<double>::scientific_version);
   if (type == "TF24f")

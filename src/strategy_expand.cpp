@@ -125,6 +125,11 @@ Rcpp::List K93_canopy_profile(plant::K93_Model s, Rcpp::NumericVector u) {
   return plant::canopy_profile_impl(s, u);
 }
 
+// [[Rcpp::export]]
+Rcpp::List ES20_canopy_profile(plant::ES20_Model s, Rcpp::NumericVector u) {
+  return plant::canopy_profile_impl(s, u);
+}
+
 // K93's size is stem diameter in cm, and its competitive size the basal area in
 // cm^2; as FF16's and TF24's stem columns, in m and m^2.
 // [[Rcpp::export]]

@@ -70,7 +70,7 @@ The core classes are **templated on two type parameters**:
 
 ```
 Model<E>                            the rules a species' plants follow
-  └─ concrete: FF16_Model, TF24_Model, K93_Model
+  └─ concrete: FF16_Model, TF24_Model, K93_Model, ES20_Model
 
 Environment                         resource environment (e.g. light profile)
   └─ concrete: FF16_Environment, TF24_Environment, K93_Environment
@@ -91,7 +91,7 @@ Key headers to know:
 | Concern | Header |
 |---|---|
 | Biological model interface | [model.h](inst/include/plant/models/model.h) |
-| Concrete models | [models/ff16_model.h](inst/include/plant/models/ff16_model.h), [models/tf24_model.h](inst/include/plant/models/tf24_model.h) (with its parameters in `tf24_pars.h` and its definitions in `tf24_allometry.h`, `tf24_leaf.h` and `tf24_rates.h`), [models/k93_model.h](inst/include/plant/models/k93_model.h) |
+| Concrete models | [models/ff16_model.h](inst/include/plant/models/ff16_model.h), [models/tf24_model.h](inst/include/plant/models/tf24_model.h) (with its parameters in `tf24_pars.h` and its definitions in `tf24_allometry.h`, `tf24_leaf.h` and `tf24_rates.h`), [models/k93_model.h](inst/include/plant/models/k93_model.h), [models/es20_model.h](inst/include/plant/models/es20_model.h) |
 | Environments | [models/ff16_environment.h](inst/include/plant/models/ff16_environment.h) (and tf24/k93 variants) |
 | Single plant | [individual.h](inst/include/plant/community/individual.h), per-plant state in [internals.h](inst/include/plant/community/internals.h) |
 | Cohort / species / patch | [node.h](inst/include/plant/community/node.h), [species.h](inst/include/plant/community/species.h), [patch.h](inst/include/plant/community/patch.h) |
@@ -226,7 +226,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 
 | File | Responsibility |
 |---|---|
-| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state |
+| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [es20.R](R/es20.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state |
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`). These are `switch()` statements that must list every model; the schedule helpers are found by name from the `Parameters` object's template types, so they need no row. |
 | [run.R](R/run.R) | `run()`, the one verb (#428), for a patch by either solver (`method =`) and for a single plant (`run(individual, times = )`): `scenario()` bundles `p`, `env`, `control` and `events`; a run returns a `plant_run` (values plus the live solver at `$solver`); `run_mutant()`; `tidy()` |
@@ -378,6 +378,7 @@ The shipped models:
 
 - **FF16**: the default model (Falster et al. 2011, 2016, 2018).
 - **K93**: Kohyama 1993, a simpler size-structured model, and the smallest complete model to read.
+- **ES20**: FF16 with a non-structural carbohydrate store that growth and reproduction draw on (Stefaniak et al., egusphere-2026-1474), under an annual stress period ([es20_model.h](inst/include/plant/models/es20_model.h)). An own model, double-only and header-only like K93, that runs in FF16's environment: the stress schedule is that environment's `"stress_onset"` extrinsic driver, one onset per year read at whole years, and no driver means no stress. It carries its tissues and storage as states, so a newborn is seeded by `set_initial_states()`, which the core calls for nodes and stochastic arrivals and `ES20_Individual()` calls for a single plant; and because growth reads storage it runs in the birth-date coordinate. It declares no census, so it has no stand gradient.
 - **TF24**: plant's hydraulic model, whose leaf gas exchange and hydraulics are phylloptim's (§3.1).
 - **TF24f**: TF24 with a plastic hydraulic operating point, tracked as an ODE state; a subclass.
 - **TF24t**: TF24 with leaf thermal damage and acclimation, as a subclass with four appended states ([tf24t_model.h](inst/include/plant/models/tf24t_model.h)). Its thermal parameters sit at the top level of the strategy, beside `pars`.
