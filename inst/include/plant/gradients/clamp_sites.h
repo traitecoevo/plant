@@ -43,7 +43,7 @@ enum clamp_site {
 
 inline const char* clamp_site_name(int site) {
   switch (site) {
-  case CLAMP_SOIL_MOISTURE_FLOOR:   return "soil_moisture_floor";
+  case CLAMP_SOIL_MOISTURE_FLOOR:    return "soil_moisture_floor";
   case CLAMP_SOIL_POTENTIAL_CEILING: return "soil_potential_ceiling";
   case CLAMP_SOIL_POSITIVITY:        return "soil_positivity";
   case CLAMP_SOIL_CONDUCTIVITY:      return "soil_conductivity";
