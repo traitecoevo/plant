@@ -50,22 +50,29 @@ test_that("Reference comparison", {
   expect_identical(p$state("height"), h0)
   # testing set auxiliary state as well as area_leaf/competition_effect depends on height only
   expect_equal(p$aux("competition_effect"), cmp$LeafArea(h0))
-  # todo - renable. these?
-  # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
-  # expect_equal(p$state("mass_sapwood"), cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
-  # expect_equal(p$state("mass_bark"), cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
-  # expect_equal(p$state("mass_root"), cmp$RootMass(cmp$LeafArea(h0)))
-  # expect_equal(p$state("mass_live"), cmp$LiveMass(cmp$traits, cmp$LeafArea(h0)))
-  # expect_equal(p$state("area_bark"), cmp$area_bark(h0))
-  # expect_equal(p$state("area_sapwood"), cmp$area_sapwood(h0))
-  # expect_equal(p$state("area_stem"), cmp$area_stem(h0))
+  ## Sizes are not states; they are derived from height and heartwood by
+  ## the model's own allometry.
+  la <- cmp$LeafArea(h0)
+  size <- FF16_strategy_expand_allometry(s, h0, 0, 0)
+  expect_equal(size$mass_leaf, cmp$LeafMass(cmp$traits$lma, la))
+  expect_equal(size$mass_sapwood, cmp$SapwoodMass(cmp$traits$rho, la, h0))
+  expect_equal(size$mass_bark, cmp$BarkMass(cmp$traits$rho, la, h0))
+  expect_equal(size$mass_root, cmp$RootMass(la))
+  expect_equal(size$mass_live, cmp$LiveMass(cmp$traits, la))
+  expect_equal(size$area_bark, cmp$area_bark(h0))
+  expect_equal(size$area_sapwood, cmp$area_sapwood(h0))
+  expect_equal(size$area_stem, cmp$area_stem(h0))
 
-  ## Heartwood: a new plant has none, and a value set is held as set.
+  ## Heartwood: a new plant has none, and a value set survives a change of
+  ## height, which refreshes the height-dependent auxiliary values.
   expect_identical(p$state("area_heartwood"), 0.0)
   HA0 <- 1e-3
   p$set_state("area_heartwood", HA0)
+  p$set_state("height", h0 + 0.1)
+  p$set_state("height", h0)
   expect_identical(p$state("area_heartwood"), HA0)
-  # expect_equal(p$state("area_stem"), cmp$area_stem(h0) + HA0)
+  expect_equal(FF16_strategy_expand_allometry(s, h0, HA0, 0)$area_stem,
+               cmp$area_stem(h0) + HA0)
   # set heartwood back at zero for subsequent tests
   p$set_state("area_heartwood", 0)
 
@@ -75,40 +82,22 @@ test_that("Reference comparison", {
      as.numeric()
   }
   
-  ## The R model computes A_lf * area_leaf * a_y * a_bio, wheras we just
-  ## compute A_lf; will have to correct some numbers.
-  cmp_const <- s$pars$a_y * s$pars$a_bio
-
-  ## Compute the physiological variables and retrieve them.
   p$compute_rates(env)
-#  p$compute_vars_growth() # NOTE: Compute immediately *after* rates
 
-  ## 1. Assimilation:
-  cmp_assimilation_plant <- cmp$assimilation.plant(h0, light_env)
-  # expect_equal(vars[["assimilation"]], cmp_assimilation_plant / cmp_const)
+  ## Assimilation, respiration, turnover and the allocation fractions are
+  ## not exposed on their own; net production combines the first three, and
+  ## the fecundity and height rates below carry the allocation.
 
-  ## 2. Respiration:
-  cmp_respiration <- cmp$respiration.given.height(cmp$traits, h0)
-  # expect_equal(vars[["respiration"]], cmp_respiration / cmp_const)
-
-  ## 3. Turnover:
-  cmp_turnover <- cmp$turnover.given.height(cmp$traits, h0)
-  # expect_equal(vars[["turnover"]], cmp_turnover)
-
-  ## 4. Net production:
+  ## Net production:
   cmp_net_mass_production_dt <- cmp$net.production(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("net_mass_production"), cmp_net_mass_production_dt, tolerance=1e-7)
+  expect_equal(p$aux("net_mass_production_dt"), cmp_net_mass_production_dt,
+               tolerance=1e-7)
 
-  ## 5. Reproduction fraction
-  cmp_fraction_allocation_reproduction <-
-    cmp$ReproductiveAllocation(cmp$traits$hmat,h0)
-  # expect_equal(vars[["fraction_allocation_reproduction"]], cmp_fraction_allocation_reproduction)
-
-  ## 6. Fecundity rate
+  ## Fecundity rate
   cmp_fecundity_dt <- cmp$fecundity_dt(cmp$traits, h0, light_env)
   expect_equal(p$rate("fecundity"), cmp_fecundity_dt, tolerance=1e-7)
 
-  ## 8. Growth rate for height
+  ## Growth rate for height
   cmp_height_dt <- cmp$height.growth.dt(cmp$traits, h0, light_env)
   expect_equal(p$rate("height"), cmp_height_dt, tolerance=1e-7)
 
@@ -116,63 +105,63 @@ test_that("Reference comparison", {
     cmp$height.growth.dt.via.area.leaf(cmp$traits, h0, light_env)
   expect_equal(p$rate("height"), cmp_height_dt, tolerance=1e-7)
 
-  ## 9. Mortality rate
+  ## Mortality rate
   cmp_mortality_dt <- cmp$mortality.dt(cmp$traits, h0, light_env)
   expect_equal(p$rate("mortality"), cmp_mortality_dt)
 
-  ## 10. Architectural layout
-  cmp_dheight_darea_leaf <- cmp$dHdA(cmp$LeafArea(h0))
-  # expect_equal(vars[["dheight_darea_leaf"]], cmp_dheight_darea_leaf)
+  ## Rates and derivatives of size: the model does not expose these, so
+  ## take them from its own allometry by central differences in height and
+  ## heartwood area, carried forward by the model's own rates.
+  dh <- 1e-5
+  dha <- 1e-8
+  by_height <- function(v) {
+    (FF16_strategy_expand_allometry(s, h0 + dh, 0, 0)[[v]] -
+       FF16_strategy_expand_allometry(s, h0 - dh, 0, 0)[[v]]) / (2 * dh)
+  }
+  by_heartwood <- function(v) {
+    (FF16_strategy_expand_allometry(s, h0, dha, 0)[[v]] -
+       FF16_strategy_expand_allometry(s, h0, -dha, 0)[[v]]) / (2 * dha)
+  }
+  size_rate <- function(v) {
+    by_height(v) * p$rate("height") +
+      by_heartwood(v) * p$rate("area_heartwood")
+  }
 
-  ## 11. Sapwood mass per leaf mass
-  cmp_dmass_sapwood_darea_leaf<- cmp$sapwood.per.leaf.area(cmp$traits, h0)
-  # expect_equal(vars[["dmass_sapwood_darea_leaf"]], cmp_dmass_sapwood_darea_leaf)
+  ## Architectural layout and tissue per unit leaf area
+  expect_equal(1 / by_height("area_leaf"), cmp$dHdA(la), tolerance=1e-6)
+  expect_equal(by_height("mass_sapwood") / by_height("area_leaf"),
+               cmp$sapwood.per.leaf.area(cmp$traits, h0), tolerance=1e-6)
+  expect_equal(by_height("mass_bark") / by_height("area_leaf"),
+               cmp$bark.per.leaf.area(cmp$traits, h0), tolerance=1e-6)
+  expect_equal(by_height("mass_root") / by_height("area_leaf"),
+               cmp$root.per.leaf.area(cmp$traits, h0), tolerance=1e-6)
 
-  ## 12. Bark mass per leaf mass
-  cmp_dmass_bark_darea_leaf <- cmp$bark.per.leaf.area(cmp$traits, h0)
-  # expect_equal(vars[["dmass_bark_darea_leaf"]], cmp_dmass_bark_darea_leaf)
-
-  ## 12. Root mass per leaf mass
-  cmp_dmass_root_darea_leaf <- cmp$root.per.leaf.area(cmp$traits, h0)
-  # expect_equal(vars[["dmass_root_darea_leaf"]], cmp_dmass_root_darea_leaf)
-
-  ## 13. Leaf area growth rate
-  cmp_area_leaf_dt <- cmp$competition_effect_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("competition_effect"), cmp_area_leaf_dt, tolerance=1e-7)
-
-  ## 14. sapwood area growth rate
-  cmp_area_sapwood_dt <- cmp$area_sapwood_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("area_sapwood"), cmp_area_sapwood_dt, tolerance=1e-7)
-
-  ## 15. bark area growth rate
-  cmp_area_bark_dt <- cmp$area_bark_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("area_bark"), cmp_area_bark_dt, tolerance=1e-7)
-
-  ## 16. heartwood area growth rate
+  ## Area growth rates
+  expect_equal(size_rate("area_leaf"),
+               cmp$competition_effect_dt(cmp$traits, h0, light_env), tolerance=1e-6)
+  expect_equal(size_rate("area_sapwood"),
+               cmp$area_sapwood_dt(cmp$traits, h0, light_env), tolerance=1e-6)
+  expect_equal(size_rate("area_bark"),
+               cmp$area_bark_dt(cmp$traits, h0, light_env), tolerance=1e-6)
   cmp_area_heartwood_dt <- cmp$area_heartwood_dt(cmp$traits, h0, light_env)
   expect_equal(p$rate("area_heartwood"), cmp_area_heartwood_dt, tolerance=1e-7)
+  expect_equal(size_rate("area_stem"),
+               cmp$area_stem_dt(cmp$traits, h0, light_env), tolerance=1e-6)
 
-  ## 17. basal area growth rate
-  cmp_area_stem_dt <- cmp$area_stem_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("area_stem"), cmp_area_stem_dt, tolerance=1e-7)
+  ## Stem diameter
+  expect_equal(by_heartwood("diameter_stem") / by_heartwood("area_stem"),
+               cmp$ddiameter_stem_darea_stem(cmp$area_stem(h0)), tolerance=1e-6)
+  expect_equal(size_rate("diameter_stem"),
+               cmp$diameter_stem_dt(cmp$traits, h0, light_env), tolerance=1e-6)
 
-  ## 18. change in basal diam per basal area
-  cmp_ddiameter_stem_darea_stem <- cmp$ddiameter_stem_darea_stem(cmp$area_stem(h0))
-  # expect_equal(vars[["ddiameter_stem_darea_stem"]], cmp_ddiameter_stem_darea_stem, tolerance=1e-7)
+  ## Height growth decomposes as dH/dA * dA/dM * (1 - reproductive
+  ## allocation) * net production.
+  expect_equal(p$rate("height"),
+               (1 - cmp$ReproductiveAllocation(cmp$traits$hmat, h0)) *
+                 cmp_net_mass_production_dt / by_height("mass_live"),
+               tolerance=1e-6)
 
-  ## 18. basal diam growth rate
-  cmp_diameter_stem_dt <- cmp$diameter_stem_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("diameter_stem"), cmp_diameter_stem_dt, tolerance=1e-7)
-
-  ## 19. whole-plant light compensation point
+  ## Whole-plant light compensation point
   cmp_lcp <- cmp$WPLCP(cmp$traits, h0)
   expect_equal(p$resource_compensation_point(), cmp_lcp, tolerance=1e-6)
-
-  ## Check that height decomposition multiplies out to give right
-  ## answer
-  # cmp <- prod(unlist(vars[c("dheight_darea_leaf",
-  #                           "darea_leaf_dmass_live",
-  #                           "fraction_allocation_growth")]),
-  #             vars[[c("net_mass_production_dt")]])
-  # expect_equal(p$rate("height"), cmp, tolerance=1e-7)
 })

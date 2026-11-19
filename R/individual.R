@@ -68,8 +68,9 @@ individual_grow_to_times <- function(individual, times, env) {
   runner <- OdeRunner(strategy_name)(ir1)
   runner_detail <- OdeRunner(strategy_name)(ir2)
 
-  ## `runner` steps freely; `runner_detail` replays each step from its start
-  ## to land exactly on each requested time.
+  ## `runner` steps freely; for each requested time a step crosses,
+  ## `runner_detail` re-integrates from the start of that step to land on it
+  ## exactly.
   state <- matrix(NA, n, length(y0))
   colnames(state) <- individual$ode_names
 

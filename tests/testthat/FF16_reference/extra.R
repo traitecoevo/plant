@@ -176,7 +176,8 @@ mortality.dt <- function(traits, h, env) {
 }
 
 height.at.birth <- function(traits) {
-  ## A seedling is far shorter than 1 m, so this interval brackets the root.
+  ## At the reference traits the seedling is about 0.34 m tall, inside this
+  ## bracket; a much larger seed mass (omega) would need a wider one.
   hmin <- 1e-16
   hmax <- 1
   f <- function(h)
