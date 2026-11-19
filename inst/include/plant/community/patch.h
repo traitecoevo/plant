@@ -2013,7 +2013,7 @@ std::vector<double> Patch<T,E>::apply_action(const ScheduleEvent& event) {
       applied = private_water_pulse(event.target_index, event.params.at(0));
     } else {
       applied = environment.add_resource_pulse(event.target_index,
-                                                   event.params.at(0));
+                                               event.params.at(0));
     }
     break;
   }
