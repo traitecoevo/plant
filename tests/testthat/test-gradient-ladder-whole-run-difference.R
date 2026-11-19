@@ -53,7 +53,7 @@ reference_stand <- function(regime) {
 }
 
 # The columns this reference carries no row for, and the reason is not that
-# nobody captured them. Two default to 0, so the capture's RELATIVE step
+# nobody captured them. Three default to 0, so the capture's RELATIVE step
 # `abs(value) * rel` is 0 and the difference moves no parameter at all; their
 # rows record that refusal and carry no metric, which reference_rows() drops.
 # S_D is captured: it enters no rate, so its census rows are zero by
@@ -65,7 +65,7 @@ reference_stand <- function(regime) {
 # notice a column the REFERENCE does not carry, so a reference missing columns
 # would pass with nothing said.
 reference_uncaptured_columns <- function() {
-  c("TF24_floor_lambda_o", "recruitment_decay")
+  c("TF24_floor_lambda_o", "recruitment_decay", "a_cr1")
 }
 
 reference_compare <- function(regime, rows) {

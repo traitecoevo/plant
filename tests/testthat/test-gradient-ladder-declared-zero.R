@@ -163,12 +163,20 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
   # goes stale when the set moves. It went stale once already: the pair was
   # c("k_I", "a_l1") and `a_l1` is a birth-size parameter, so the loop asserted on
   # one name and said two.
-  others <- setdiff(ladder_bare_traits(columns), ladder_birth_size_parameters())
-  expect_gt(length(others), length(ladder_birth_size_parameters()))
+  birth <- c(ladder_birth_size_parameters(),
+             ladder_birth_size_parameters_at_zero())
+  others <- setdiff(ladder_bare_traits(columns), birth)
+  expect_gt(length(others), length(birth))
   for (name in others) {
     at <- match(paste0("1.", name), columns)
     expect_identical(ladder_seed_geometry_tangent_tf24(patch, at)$dheight, 0,
                      info = paste("reaches the seed-height residual:", name))
+  }
+  # The one at zero still reaches the residual: a zero here would be the channel
+  # dropped.
+  for (name in ladder_birth_size_parameters_at_zero()) {
+    at <- match(paste0("1.", name), columns)
+    expect_gt(abs(ladder_seed_geometry_tangent_tf24(patch, at)$dheight), 0)
   }
 })
 

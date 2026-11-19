@@ -188,6 +188,14 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' has a column, and each is a partial derivative with every other parameter
 ##' fixed.
 ##'
+##' A column can be zero because of another parameter's value. FF16 and TF24
+##' both offer the coarse-root pool's \code{a_cr1}, \code{r_cr} and
+##' \code{k_cr}. At the default \code{a_cr1 = 0} the pool is empty, so the
+##' columns of its respiration and turnover rates, \code{r_cr} and
+##' \code{k_cr}, are exact zeros by construction, not findings about the pool;
+##' \code{a_cr1}'s own column is live there. Set \code{a_cr1 > 0} to read
+##' the other two.
+##'
 ##'   A refused metric's whole row is \code{NaN}: a sum has no defined value with
 ##'   an undefined term, so refusal is metric-level and carries no localisation
 ##'   within a metric. Every other number is one the sweep computed, an exact
