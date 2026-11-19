@@ -1685,7 +1685,7 @@ parameters:
     symbol: '\theta_{\rm sat}'
     units: 'm³ m⁻³'
     class: hyperparameter
-    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves and the capacity a water pulse fills to; not a bound on the integrated state. One value for every layer unless set_soil_parameters gives one per layer'
+    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves, the capacity a water pulse fills to, and the upper bound on each layer''s integrated moisture: a step that ends above it in any layer is rejected and retried smaller (Patch::ode_state_valid). One value for every layer unless set_soil_parameters gives one per layer'
     source: 'TF24_Environment constructor default; no source recorded'
     placeholder: true
     code: plant::TF24_Environment::soil_moist_sat

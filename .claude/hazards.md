@@ -68,7 +68,7 @@ Layer widths are validated for being finite, positive and not thinner with depth
 
 ### 12. Do not change the soil physics to fix a pulse failure
 
-θ_sat is already a barrier, error control already rejects the steps that overshoot it, and what kills a pulsed run is an inherited step (hazard 2) or an exception thrown where the stepper cannot reject it (hazard 3); PR #608 has the measurements. Clamps in the water balance were measured and do not help (5 of 40 failing seeds became 4 of 40). Receiver-capacity limiting in `compute_rates`, a θ ≤ θ_sat clamp in `psi_from_soil_moist` and any change to the cascade are not needed. What the pulse feature did need, a cap on the pulse jump at free capacity with the excess to runoff, is in `TF24_Environment`.
+θ_sat is already a barrier: `Patch::ode_state_valid` rejects a step that ends above it in any layer, and on every shipped stand error control rejects such an overshoot first, at the default tolerance. What kills a pulsed run is an inherited step (hazard 2) or an exception thrown where the stepper cannot reject it (hazard 3); PR #608 has the measurements. Clamps in the water balance were measured and do not help (5 of 40 failing seeds became 4 of 40). Receiver-capacity limiting in `compute_rates`, a θ ≤ θ_sat clamp in `psi_from_soil_moist` and any change to the cascade are not needed. What the pulse feature did need, a cap on the pulse jump at free capacity with the excess to runoff, is in `TF24_Environment`.
 
 ## The continuous patch
 

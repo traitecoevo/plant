@@ -2301,12 +2301,19 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   // ODE vector, it is where integrator overshoot shows up (TF24's soil water,
   // driven past its bounds by a step inherited across a discrete change), and
   // the completed step's state never reaches check_finite_ode_state(), which
-  // runs per stage. Finiteness only -- a node's log_density is legitimately
-  // -Inf, so this must not be extended over the species block.
+  // runs per stage. Finiteness -- a node's log_density is legitimately -Inf, so
+  // this must not be extended over the species block -- and, for a soil, each
+  // layer at or below its saturation.
   const size_t n_env = environment.ode_size();
   if (n_env > 0 && y.size() >= n_env) {
     for (size_t i = y.size() - n_env; i < y.size(); ++i) {
       if (!util::is_finite(y[i])) {
+        return false;
+      }
+    }
+    if constexpr (HasSoil<E>) {
+      const auto first = y.begin() + static_cast<std::ptrdiff_t>(y.size() - n_env);
+      if (!environment.soil_moisture_within_saturation(first)) {
         return false;
       }
     }

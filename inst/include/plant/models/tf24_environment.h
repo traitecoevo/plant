@@ -555,6 +555,24 @@ public:
     vars.set_state(n + 1, vars.state(n + 1) + S(d_infiltration));
     vars.set_state(n + 4, vars.state(n + 4) + S(d_runoff));
   }
+  // Whether every layer of a state the solver proposes holds no more than its
+  // saturation, read from layer 0's entry at `first`; the accumulators after
+  // the layers are not bounded. Patch::ode_state_valid reads it, so a step
+  // that ends above saturation is rejected and retried smaller rather than
+  // committed: the moisture is a share of the pore space, and above
+  // saturation the retention curve gives a suction smaller than a saturated
+  // soil's. Asked as "is it inside", so a NaN fails.
+  template <class It>
+  bool soil_moisture_within_saturation(It first) const {
+    for (int i = 0; i < soil_number_of_depths; ++i, ++first) {
+      const double sat =
+        soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i);
+      if (!(*first <= sat)) {
+        return false;
+      }
+    }
+    return true;
+  }
   // What a layer at `theta` can still accept, in metres of water: the cap
   // add_water_pulse_to_layer applies, factored out so a private column applies
   // the same one.
