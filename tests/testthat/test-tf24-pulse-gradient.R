@@ -1,8 +1,9 @@
-# The stand gradient across rain pulses. The sweep crosses an event as if it
-# left the state's rows unchanged, which is exact for a pulse the top layer takes
-# whole. A pulse that fills the layer and sheds the rest sets it to saturation
-# whatever it held, so its row there is zero and the sweep would carry one: that
-# run is refused.
+# The stand gradient across rain pulses. The sweep crosses a pulse by
+# transposing the map the run applied at that instant. A pulse the layer takes
+# whole adds a constant, so its rows are the identity's. A pulse that fills the
+# layer and sheds the rest sets it to saturation whatever it held, so the
+# layer's row is zero there, and infiltration and runoff move with the state it
+# replaced.
 
 pulse_stand <- function() {
   p <- testing_parameters("TF24")
@@ -51,9 +52,45 @@ test_that("a pulse the layer takes whole is the pinned-step central difference",
   }
 })
 
-test_that("a pulse that fills the layer and sheds the rest is refused, by name", {
+test_that("a pulse that fills the layer and sheds the rest is the pinned-step central difference", {
+  # 0.5 m into a layer at 0.3: both pulses fill layer 1 and shed the rest.
+  # Carried as the identity, the gradient was 6e-4 to 3.6e-3 off this
+  # difference at any ODE tolerance. Held to 1e-6.
+  depth <- 0.5
+  solver <- pulse_run(pulse_stand(), depth)
+  shed <- vapply(solver$event_log$applied, function(a) a[[2]], 0)
+  expect_true(all(shed > 0))
+  traits <- c("lma", "a_r1", "K_s")
+  metrics <- c("leaf_area", "mass_above_ground")
+  g <- stand_gradient(solver, metrics = metrics, traits = paste0("1.", traits),
+                      hyperpar = NULL)
+  pinned <- pin_steps(solver)
+  census_of <- function(q) stand_census(pulse_run(q, depth, record = FALSE))[metrics]
+  for (name in traits) {
+    fd <- central_difference(pinned, 1, name, NULL, census_of, rel = 1e-5)
+    for (m in metrics) {
+      expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd[[m]]), 1e-6 * abs(fd[[m]]),
+                label = paste(m, name))
+    }
+  }
+})
+
+test_that("the forward tangent walks the run's pulses", {
+  # The ladder's trajectory reference steps the recording forward at an active
+  # scalar, crossing each insertion by the same map the sweep transposes. Its
+  # value is the run's census only if that map applies the pulses, and its
+  # derivative is the sweep's only if the map carries a filled layer's rows.
   solver <- pulse_run(pulse_stand(), 0.5)
-  expect_true(any(vapply(solver$event_log$applied, function(a) a[[2]], 0) > 0))
-  expect_error(stand_gradient(solver, metrics = "leaf_area", hyperpar = NULL),
-               "filled layer 1 and shed .*has no row for a capped pulse")
+  traits <- census_trait_names(solver, "TF24")
+  g <- stand_gradient(solver, traits = "1.lma", hyperpar = NULL)
+  tangent <- ladder_trajectory_tangent_tf24(solver, as.numeric(traits == "1.lma"))
+  metrics <- c(stand_census(solver), stand_fitness(solver))
+  expect_identical(names(metrics), rownames(g$gradient))
+  for (i in seq_along(metrics)) {
+    m <- names(metrics)[[i]]
+    expect_lt(abs(tangent$value[[i]] - metrics[[i]]), 1e-9 * abs(metrics[[i]]),
+              label = paste("value of", m))
+    expect_lt(abs(tangent$tangent[[i]] - g$gradient[m, "1.lma"]),
+              1e-6 * abs(tangent$tangent[[i]]), label = paste("tangent of", m))
+  }
 })

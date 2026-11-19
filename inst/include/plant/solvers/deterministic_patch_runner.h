@@ -314,25 +314,6 @@ public:
     }
   }
 
-  // The sweep crosses an event as if it left the state's rows unchanged. That
-  // holds for a harvest or a climate extreme, a constant shift in log density,
-  // and for a pulse the layer takes whole. A pulse that fills a layer and sheds
-  // the rest sets the layer to saturation whatever it held, which the sweep
-  // would carry back as the state it replaced.
-  void require_transposable_events(const char* entry) const {
-    for (const EventRecord& rec : event_log) {
-      if (rec.type == EventType::ResourcePulse && rec.applied.size() > 1 &&
-          rec.applied[1] > 0.0) {
-        util::stop(std::string(entry) + ": the pulse at t = " +
-                   util::format_double(rec.time) + " filled layer " +
-                   util::to_string(static_cast<int>(rec.target_index + 1)) +
-                   " and shed " + util::format_double(rec.applied[1]) +
-                   ", and the reverse-mode gradient has no row for a capped "
-                   "pulse. Give pulses the layer can take whole.");
-      }
-    }
-  }
-
   void require_birth_date_coordinate(const char* entry) const {
     // A private root-zone column couples cohorts through the patch -- the
     // mixing and land-transfer terms of Patch::private_water_exchange -- outside
@@ -1293,6 +1274,15 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::reset() {
   // Refreshed where the run that uses it begins, which is the one place both
   // the patch and the solver are put back to t = 0.
   patch.set_introduction_times(parameters.node_schedule_times);
+  // The insertion map applies the actions too, so it is handed the ones this
+  // run applies.
+  std::vector<ScheduleEvent> actions;
+  for (const ScheduleEvent& e : schedule.get_events()) {
+    if (!e.is_node_introduction()) {
+      actions.push_back(e);
+    }
+  }
+  patch.set_scheduled_actions(std::move(actions));
   this->restart();
   // Sync the snapshot back from the solver's reset system.
   patch = solver.get_system_ref();
@@ -1511,9 +1501,6 @@ DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>&
   // solver itself. store_recording() repeats the run to get them unless
   // keep_states kept them the first time, and either way it may run, so the
   // adjoints below are taken after it.
-  // The run's own event log says whether the sweep can cross its events, so
-  // this is asked before a recording that may repeat the whole run.
-  require_transposable_events("census_trait_gradient");
   store_recording();
 
   patch_type& live = solver.get_system_ref();

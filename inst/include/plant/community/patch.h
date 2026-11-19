@@ -256,6 +256,12 @@ public:
   // caller to. Pushing the nodes is how the wider state is computed, so this
   // patch is left holding it and a walk re-seats it below it.
   //
+  // It is everything the run did at that instant: the scheduled actions there
+  // first, in the order the run applied them, then the nodes. A recorded
+  // insertion row holds the state after both, so a map leaving the actions out
+  // is a different function from the run's -- the sweep would transpose the
+  // wrong one, and a tangent walking the recording would run without them.
+  //
   // The species are the schedule's, looked up by the time the insertion happened
   // -- which is what lets the solver ask for this knowing only a recorded time.
   template <typename It>
@@ -273,6 +279,11 @@ public:
   // own fast sub-model over the event's nominal duration with the patch's
   // demography frozen; to this solver that is still one instantaneous jump.
   EventRecord apply_event(const ScheduleEvent& event);
+
+  // What an event does to the state, at this patch's scalar, and what it reports
+  // having applied: apply_event without the record and the field rebuild. The
+  // run and the insertion map both act through it, so the two are one function.
+  std::vector<double> apply_action(const ScheduleEvent& event);
 
   // Scale every selected node's density by phi, and report how many nodes were
   // touched. Shared by harvest and climate extremes, which differ only in how phi
@@ -513,6 +524,12 @@ public:
   void set_introduction_times(const std::vector<std::vector<double>>& times) {
     parameters.node_schedule_times = times;
   }
+  // The actions the run applies at its insertions, held for the same reason:
+  // the insertion map applies them, and a walk knows only a recorded time. In
+  // schedule order, which within an instant is the order they are applied in.
+  void set_scheduled_actions(std::vector<ScheduleEvent> actions) {
+    scheduled_actions = std::move(actions);
+  }
 
   introduction introduced_at(double time) const;
   // How many nodes species `i` holds at a recorded `time`: what it was initialised
@@ -604,6 +621,9 @@ private:
 
   void compute_environment();
   void compute_rates();
+
+  // See set_scheduled_actions().
+  std::vector<ScheduleEvent> scheduled_actions;
 
   // Set where a run is asked to keep its field, read by store_solved().
   bool keep_field = false;
@@ -823,6 +843,7 @@ void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
   util::check_length(from.species.size(), species.size());
   area = from.area;
   control = from.control;
+  scheduled_actions = from.scheduled_actions;
   for (size_t i = 0; i < species.size(); ++i) {
     // The strategy object stays where it is, so every node pointing at it reads
     // the values written; a TF24 strategy's leaf is copied with them.
@@ -1884,7 +1905,10 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
     if (skip_retired && n->retired()) {
       continue;
     }
-    const double phi = select(n->height());
+    // The selection is on the passive height and phi is a constant, so at an
+    // active scalar the event shifts the two states by a constant: the rows it
+    // carries are the identity's.
+    const double phi = select(odelia::util::to_passive(n->height()));
     if (phi >= 1.0) {
       continue;
     }
@@ -1892,10 +1916,10 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
       refuse_whole();
     }
     const double log_phi = std::log(phi);
-    const double before = n->get_density();
+    const double before = odelia::util::to_passive(n->get_density());
     n->set_log_density(n->get_log_density() + log_phi);
     if (util::is_finite(before)) {
-      density_removed += before - n->get_density();
+      density_removed += before - odelia::util::to_passive(n->get_density());
     }
     n->individual.set_state("mortality",
                             n->individual.state(MORTALITY_INDEX) - log_phi);
@@ -1923,7 +1947,21 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
   rec.target = event.target;
   rec.target_index = event.target_index;
   rec.requested = event.params;
+  rec.applied = apply_action(event);
 
+  // Anything that changed the vegetation changes the light profile too, and
+  // every cohort's rates are computed against it.
+  if (event.type != EventType::ResourcePulse) {
+    // The field is tabulated on fixed fractions of height_max, so a rebuild
+    // needs nothing rescaled.
+    compute_environment();
+  }
+  return rec;
+}
+
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::apply_action(const ScheduleEvent& event) {
+  std::vector<double> applied;
   // Which species the event reaches: one, or all of them.
   std::vector<size_t> targets;
   if (event.target == EventTarget::Species) {
@@ -1972,9 +2010,9 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
                  util::to_string(environment.n_resources()) + " resources");
     }
     if constexpr (HasPrivateWater<T>) {
-      rec.applied = private_water_pulse(event.target_index, event.params.at(0));
+      applied = private_water_pulse(event.target_index, event.params.at(0));
     } else {
-      rec.applied = environment.add_resource_pulse(event.target_index,
+      applied = environment.add_resource_pulse(event.target_index,
                                                    event.params.at(0));
     }
     break;
@@ -2001,7 +2039,7 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     const auto r = scale_targets([&](double size) {
       return (size >= size_min && size <= size_max) ? phi : 1.0;
     });
-    rec.applied = {fraction, static_cast<double>(r.first), r.second};
+    applied = {fraction, static_cast<double>(r.first), r.second};
     break;
   }
 
@@ -2028,19 +2066,11 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     const double phi =
       climate_extreme_survival(intensity, duration, threshold, sensitivity);
     const auto r = scale_targets([&](double) { return phi; });
-    rec.applied = {1.0 - phi, static_cast<double>(r.first), r.second};
+    applied = {1.0 - phi, static_cast<double>(r.first), r.second};
     break;
   }
   }
-
-  // Anything that changed the vegetation changes the light profile too, and
-  // every cohort's rates are computed against it.
-  if (event.type != EventType::ResourcePulse) {
-    // The field is tabulated on fixed fractions of height_max, so a rebuild
-    // needs nothing rescaled.
-    compute_environment();
-  }
-  return rec;
+  return applied;
 }
 
 template <typename T, typename E>
@@ -2219,6 +2249,11 @@ template <typename It>
 void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
                                  It x, std::vector<value_type>& y) {
   set_state_and_boundary(x, time);
+  for (const ScheduleEvent& action : scheduled_actions) {
+    if (util::identical(action.time_introduction(), time)) {
+      apply_action(action);
+    }
+  }
   absorb_tall();
   push_nodes(species_index, time);
   y.assign(ode_size(), value_type(0.0));
