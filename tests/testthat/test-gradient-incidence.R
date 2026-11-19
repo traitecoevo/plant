@@ -103,9 +103,9 @@ test_that("a dry stand is interior throughout, and answers", {
 test_that("the darkest driver solves its leaves at the light it leaves, and answers", {
   # k_I is a free parameter a gradient-driven search walks, and walking it up
   # walks the light field towards darkness. Eighty times the shipped value puts
-  # the youngest cohorts at an openness four orders under the open sky, and the
-  # leaf is solved there rather than at a floor: the light's row is the leaf's
-  # own, not a constant.
+  # the youngest cohorts at an openness four orders under the open sky. What
+  # this guards: the stand runs there, its leaves are solved at that light, and
+  # the gradient answers with every row finite.
   #
   # Twenty introductions rather than the schedule's eighty-eight: the claims are
   # about where the stand reaches and whether it answers, and the thinned
@@ -129,9 +129,12 @@ test_that("the darkest driver solves its leaves at the light it leaves, and answ
 test_that("a clamp the sweep crosses is counted on both paths, through the rebind", {
   # A stand started on soil dry enough that its potential sits at the
   # retention curve's ceiling: the one site the ladder's drivers do not reach
-  # on a recorded step. It is what shows the differentiated tally survives the
-  # sweep's rebind -- a counter a rebind drops reports zero however often the
-  # clamp fires, which is why its storage is shared.
+  # on a recorded step. It shows the ENVIRONMENT's differentiated tally survives
+  # the sweep's rebind -- a counter a rebind drops reports zero however often
+  # the clamp fires, which is why its storage is shared. The strategy's own
+  # tally holds only the leaf's sites, and no stand here fires one on the sweep
+  # (an energy-balance stand reaches the vapour-deficit floor forward only), so
+  # that tally's survival is not shown by a count.
   p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 3
   tr <- c(lma = 0.0825, hmat = 5.13, k_I = 0.5, a_l1 = 5.44, a_l2 = 0.306)
@@ -220,9 +223,9 @@ test_that("every clamp site is classified, and by a measured incidence", {
 
   # Never means never, on both paths and both drivers. A site in this class that
   # starts firing is a regime the suite has never seen — including the leaf's
-  # stomatal corner, which a stand does not reach. Every zero below is a zero
-  # of a live tally: the dry-start block above is what shows a site that fires
-  # is counted on both paths.
+  # stomatal corner, which a stand does not reach. For the environment's sites
+  # every zero below is a zero of a live tally: the dry-start block above shows
+  # a site that fires is counted on both paths.
   for (s in names(clamp_class)[unlist(clamp_class) == "never"]) {
     expect_equal(wet_s[[s]], 0, label = paste(s, "fired on the wet driver"))
     expect_equal(dry_s[[s]], 0, label = paste(s, "fired on the drought driver"))

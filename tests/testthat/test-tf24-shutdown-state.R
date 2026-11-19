@@ -117,13 +117,14 @@ test_that("a shut-down plant stops depleting the soil", {
 })
 
 test_that("a leaf in the canopy's shade is solved at the light it stands in", {
-  # Openness is not floored on its way to the leaf: darkness is an attainable
-  # state, and the leaf answers there. At zero light it fixes no carbon, pays
-  # its dark respiration and shuts, on every shading model; and as the light
-  # falls towards zero the answer goes continuously to that one.
-  at <- function(light, shading, theta = 0.30) {
+  # Darkness is an attainable state and the leaf is solved there. With the
+  # energy balance off, at zero light it fixes no carbon, pays its dark
+  # respiration and shuts, on every shading model; and as the light falls
+  # towards zero the answer goes continuously to that one.
+  at <- function(light, shading, theta = 0.30, energy_balance = FALSE) {
     m <- TF24_Model()
     m$control$shading_model <- shading
+    if (energy_balance) m$pars$use_energy_balance <- 1
     ind <- TF24_Individual(m)
     ind$set_state("height", 5)
     env <- TF24_Environment()
@@ -148,5 +149,21 @@ test_that("a leaf in the canopy's shade is solved at the light it stands in", {
     expect_true(all(diff(dim) > 0), label = shading)
     expect_equal(at(1e-12, shading)[["assimilation"]], -R_d_25,
                  tolerance = 1e-9, label = shading)
+  }
+
+  # With the energy balance on, the leaf is cooler than the air in the dark, so
+  # its respiration is below R_d_25, and in wet soil the stomata stay a little
+  # open. Asserted here is that it answers: every output finite, carbon lost
+  # rather than gained, and assimilation rising with the light from zero.
+  for (theta in c(0.30, 0.10)) {
+    lights <- c(0, 1e-6, 1e-5, 1e-4)
+    eb <- lapply(lights, at, shading = "mean-light", theta = theta,
+                 energy_balance = TRUE)
+    label <- sprintf("energy balance at theta = %g", theta)
+    expect_true(all(vapply(eb, function(x) all(is.finite(x)), TRUE)),
+                label = label)
+    A <- vapply(eb, `[[`, 0, "assimilation")
+    expect_lt(A[[1]], 0)
+    expect_true(all(diff(A) > 0), label = label)
   }
 })

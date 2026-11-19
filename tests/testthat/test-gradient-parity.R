@@ -218,8 +218,8 @@ test_that("no driver's gradient crosses a clamp", {
   # counted on the sweep of every driver, the darkest included, and none fires:
   # each of these gradients is the model's own derivative, with no row a guard
   # severed. A site that starts firing here is a regime the ladder has not met.
-  # That the tally is live, and not merely zero, is shown by the incidence file's
-  # dry-start stand, whose sweep does cross one.
+  # That the environment's tally is live, and not merely zero, is shown by the
+  # incidence file's dry-start stand, whose sweep does cross one.
   by_name <- stats::setNames(parity_shared(), vapply(parity_shared(),
                                                      function(r) r$name, ""))
   nm <- census_clamp_names_tf24()

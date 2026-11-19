@@ -81,9 +81,9 @@ test_that("rooting_depth_max reaches the root network", {
 
 test_that("the rooting depth saturates at its cap without a kink", {
   # Over the same stratified column, the collar potential's one-sided slopes in
-  # height either side of the cap. A min() there has the roots' contribution on
-  # one side and none on the other, and its slopes differ by 83%; the smooth
-  # minimum's agree to the difference's own truncation.
+  # height either side of the cap must agree to the difference's own truncation:
+  # the rooting depth's slope in height passes through the cap continuously, so
+  # a cap that switched the roots' contribution off at a point fails here.
   stratified <- c(rep(0.04, 8), rep(0.35, 7))
   at <- function(h) {
     ind <- TF24_Individual(TF24_Model())
