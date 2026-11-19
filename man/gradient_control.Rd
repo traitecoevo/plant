@@ -11,18 +11,22 @@ gradient_control(x)
 birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
 }
 \value{
-A named numeric vector of length five.
+A named numeric vector of length six.
 }
 \description{
-A chosen subset, not every entry that moves a gradient. Two are tolerances
-of the leaf's inner solves (\code{GSS_tol_abs}, \code{ci_abs_tol}), one is
-a finite-difference step (\code{node_gradient_eps}) and one the schedule's
-refinement tolerance (\code{schedule_eps}); not every model reads every one.
-The fifth, \code{gradient_curvature_floor}, moves no forward number and
-still decides which rows exist, by refusing a collar response the profit
-curvature is too small to support. The ODE tolerances, the step bounds and
-\code{offspring_height_tol} move the trajectory too and are the run's own
-\code{Control}, not listed here.
+The entries inside a rate evaluation and the schedule that move the
+gradient. Three are tolerances of a model's inner solves: the leaf's
+(\code{GSS_tol_abs}, \code{ci_abs_tol}) and a newborn's height
+(\code{offspring_height_tol}). One is a finite-difference step
+(\code{node_gradient_eps}) and one the schedule's refinement tolerance
+(\code{schedule_eps}). The sixth, \code{gradient_curvature_floor}, moves no
+forward number and still decides which rows exist, by refusing a collar
+response the profit curvature is too small to support. The list is the same
+for every model, so it holds entries a model does not read (FF16 reads
+neither leaf tolerance nor the floor): two of its gradients that differ only
+there are refused although they are equal, and no two that differ in one
+are compared. The ODE integrator's tolerances and step bounds move the
+trajectory too, and are the run's own \code{Control}, not listed here.
 \code{stand_gradient} records these and \code{stand_gradient_compare}
 refuses a pair that disagrees.
 }

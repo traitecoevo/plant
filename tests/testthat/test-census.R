@@ -321,7 +321,7 @@ test_that("G6: no census metric has an all-zero state sensitivity", {
 })
 
 test_that("the Control a gradient is taken at is the entries that move it", {
-  # Four move the TRAJECTORY the gradient is taken along. The fifth moves no
+  # Five move the TRAJECTORY the gradient is taken along. The sixth moves no
   # forward number at all and still decides which rows exist, by refusing a
   # collar response the profit curvature is too small to support -- so two
   # gradients taken at different floors are gradients of different functions for a
@@ -344,8 +344,15 @@ test_that("the Control a gradient is taken at is the entries that move it", {
   got <- gradient_control(solver)
   expect_equal(names(got),
                c("GSS_tol_abs", "ci_abs_tol", "node_gradient_eps",
-                 "schedule_eps", "gradient_curvature_floor"))
+                 "schedule_eps", "gradient_curvature_floor",
+                 "offspring_height_tol"))
   expect_equal(got, unlist(unclass(Control())[names(got)]))
+  # A newborn's height tolerance moves every model's trajectory, so two
+  # gradients taken at different ones are not compared.
+  a <- list(control = got, gradient = matrix(0))
+  b <- a
+  b$control[["offspring_height_tol"]] <- 1e-8
+  expect_error(stand_gradient_compare(a, b), "offspring_height_tol")
 })
 
 test_that("the trait gradient entry point is reachable", {

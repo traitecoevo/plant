@@ -13,7 +13,13 @@ stand_gradient(
 }
 \arguments{
 \item{x}{A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
-birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
+birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
+The sweep reads the state at every step. A run that kept none (one run
+without \code{record = "states"}) is run again inside this call to keep
+them, which costs as much as the run did and gives the same numbers; the
+solver keeps them afterwards (\code{x$keep_states} is then \code{TRUE}),
+so a second call does not repeat it. Run with \code{record = "states"} to
+pay for the run once.}
 
 \item{metrics}{Metric names to differentiate; defaults to every metric the
 model declares: the census metrics (\code{\link{stand_census}}) and, for

@@ -15,8 +15,8 @@ The element-wise difference \code{a$gradient - b$gradient}, over the
 }
 \description{
 Two gradients are comparable only if they were taken at the same
-\code{Control}: four of the five entries change the trajectory and so change
-the function being differentiated, and the fifth,
+\code{Control}: five of the six entries change the trajectory and so change
+the function being differentiated, and the sixth,
 \code{gradient_curvature_floor}, decides which rows exist. See
 \code{\link{gradient_control}}.
 }

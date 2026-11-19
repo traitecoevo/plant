@@ -13,6 +13,10 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`gradient_control()` lists `offspring_height_tol`, so a stand gradient records six `Control` entries where it recorded five.** The tolerance of a newborn's height moves every census model's trajectory, and gradients taken at different values were compared as if they were of one function. The list stays one for every model, and its documentation now says what is in it and why. No number moves. Migration:
+  * a gradient saved before this change, passed to `stand_gradient_compare()` with one taken after -> refused as "different Control entries"; take both again, or add `offspring_height_tol` (the run's `Control` value) to the saved one's `control`
+  * code indexing `gradient_control()` by position -> index it by name; the new entry is last
+
 * **A TF24f stand gradient has a column for `k_acclim`, and a stand gradient over a rain pulse that overfilled a layer is refused.** TF24f's acclimation gain reaches the collar position's rate, and its column (`"<species>.k_acclim"`, before the birth rate) is refereed against pinned-step differences; before, the gain was active with neither a column nor a reason. A pulse that fills a layer and sheds the rest sets the layer to saturation, so its row there is zero, and the sweep carried one: the gradient was wrong by up to 0.4% on the measured stand, at any ODE tolerance. Pulses the layer takes whole are exact. Migration:
   * a TF24f gradient indexed by position -> index it by name; the birth rate's column moves one place, behind `k_acclim`'s
   * `stand_gradient()` over a run whose `event_log` shows a pulse's excess > 0 -> give pulses each layer can take whole, or difference the metric
