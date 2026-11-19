@@ -85,8 +85,8 @@ test_that("TF24's fitness and census gradients are the pinned-step central diffe
   expect_false(any(stand_gradient_refused(g)))
   expect_gt(g$value[["1.net_reproduction_ratio"]], 1)
   # The branch these rows are taken on: the stand's leaves sit interior.
-  kinds <- stats::setNames(census_operating_point_counts_tf24(solver)[[1]],
-                           census_operating_point_names_tf24())
+  kinds <- stats::setNames(census_operating_point_counts(solver, "TF24")[[1]],
+                           census_operating_point_names())
   expect_gt(kinds[["interior"]], 0)
 
   pinned <- pin_steps(solver)

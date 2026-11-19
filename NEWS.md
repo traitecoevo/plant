@@ -13,6 +13,11 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **TF24f reports its leaf solves' operating points and its curvature margin, which were TF24's alone; the readers take the model's name.** TF24f's solves were not tallied, so a run could not say how often a leaf was shut or a collar tracked. Each solve is now tallied by the kind the leaf was left in: a newborn's optimum as TF24's is, a tracked collar as `prescribed`, a leaf with no feasible interval as `hydraulic-shutdown`. FF16 solves no leaf and is refused by name. No number moves. Migration (internal, reached as `plant:::`):
+  * `census_operating_point_counts_tf24(scm)` -> `census_operating_point_counts(scm, "TF24")`, or `"TF24f"`
+  * `census_operating_point_names_tf24()` -> `census_operating_point_names()`
+  * `census_curvature_margin_tf24(scm)` -> `census_curvature_margin(scm, "TF24")`, or `"TF24f"`
+
 * **A TF24f stand gradient has a column for `k_acclim`, and a stand gradient over a rain pulse that overfilled a layer is refused.** TF24f's acclimation gain reaches the collar position's rate, and its column (`"<species>.k_acclim"`, before the birth rate) is refereed against pinned-step differences; before, the gain was active with neither a column nor a reason. A pulse that fills a layer and sheds the rest sets the layer to saturation, so its row there is zero, and the sweep carried one: the gradient was wrong by up to 0.4% on the measured stand, at any ODE tolerance. Pulses the layer takes whole are exact. Migration:
   * a TF24f gradient indexed by position -> index it by name; the birth rate's column moves one place, behind `k_acclim`'s
   * `stand_gradient()` over a run whose `event_log` shows a pulse's excess > 0 -> give pulses each layer can take whole, or difference the metric
@@ -1430,8 +1435,8 @@ were not previously recorded here:
   by the branch taken and the next plant overwrites it, and a clamp that severs a
   row leaves a number indistinguishable from a true zero -- so neither was
   recoverable after a run. Additions only:
-  * `census_operating_point_counts_tf24(scm)` -> per-species counts by kind
-  * `census_operating_point_names_tf24()`     -> the kinds, in that order
+  * `census_operating_point_counts(scm, model)` -> per-species counts by kind
+  * `census_operating_point_names()`     -> the kinds, in that order
   * `census_clamp_counts_tf24(scm)`           -> per-species counts by clamp site
   * `census_clamp_names_tf24()`               -> the sites, in that order
   * `census_clear_diagnostics_tf24(scm)`       -> reset both, per run
@@ -1443,7 +1448,7 @@ were not previously recorded here:
   curvature floor and `stand_gradient_compare` refuses two gradients taken at
   different ones, and nothing said how close a run came. Additions only:
   * `census_clamp_counts_differentiated_tf24(scm)` -> per-species counts where the sweep ran
-  * `census_curvature_margin_tf24(scm)`            -> the smallest profit curvature met, or -1 for none
+  * `census_curvature_margin(scm, model)`          -> the smallest profit curvature met, or -1 for none
 
 * **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
   `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called

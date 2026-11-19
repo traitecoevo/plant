@@ -369,12 +369,20 @@ template <typename S>
 void TF24f_Model<S>::solve_leaf() try {
   constexpr auto curve = phylloptim::Leaf::CostCurve::TF24_floor;
   Leaf& leaf = this->leaf;
+  // Tallied as TF24's solve tallies, by the kind the leaf was left in: a
+  // newborn's optimum is classified as TF24's is, a shut leaf as shut, and a
+  // tracked collar as prescribed.
+  const auto tally = [this, &leaf] {
+    ++this->operating_point_counts[
+        static_cast<size_t>(leaf.operating_point_kind())];
+  };
   if (initializing_) {
     // Birth: the interval first, because the optimiser prepares its own and
     // leaves the leaf at the optimum set_initial_states reads. The
     // curve-typed form, for the reason TF24_Model::solve_leaf gives.
     seed_open_ = collar_interval(seed_a_, seed_b_, seed_capped_);
     leaf.template find_root_collar_psi_for<curve>();
+    tally();
     return;
   }
   double a, b;
@@ -383,6 +391,7 @@ void TF24f_Model<S>::solve_leaf() try {
     // Shut: the leaf is at its own operating point, whatever the position.
     marginal_ = 0.0;
     width_ = 0.0;
+    tally();
     return;
   }
   const double collar =
@@ -395,6 +404,7 @@ void TF24f_Model<S>::solve_leaf() try {
   width_ = b - a;
   // The marginal moved the leaf; put its outputs back at the collar.
   leaf.template profit_at_collar_psi<curve>(collar, a, b);
+  tally();
 } catch (const phylloptim::util::infeasible_error& e) {
   odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
 }

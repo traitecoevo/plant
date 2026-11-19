@@ -87,8 +87,8 @@ reference_compare <- function(regime, rows) {
        observed = observed,
        # Which branches the run reached, summed over species, for whoever reads a
        # failure.
-       kinds = stats::setNames(Reduce(`+`, census_operating_point_counts_tf24(solver)),
-                               census_operating_point_names_tf24()),
+       kinds = stats::setNames(Reduce(`+`, census_operating_point_counts(solver, "TF24")),
+                               census_operating_point_names()),
        # Refusal is metric-level, so it broadcasts to the rows this picked out.
        refused = unname(stand_gradient_refused(got)[mine$metric]),
        # And the reason, so a regime refusing every metric can be checked
