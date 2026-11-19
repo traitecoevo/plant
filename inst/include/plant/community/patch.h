@@ -527,8 +527,11 @@ public:
   // The actions the run applies at its insertions, held for the same reason:
   // the insertion map applies them, and a walk knows only a recorded time. In
   // schedule order, which within an instant is the order they are applied in.
+  // Shared and immutable, so a sweep's reseats and rebinds copy a pointer
+  // rather than the list.
   void set_scheduled_actions(std::vector<ScheduleEvent> actions) {
-    scheduled_actions = std::move(actions);
+    scheduled_actions =
+      std::make_shared<const std::vector<ScheduleEvent>>(std::move(actions));
   }
 
   introduction introduced_at(double time) const;
@@ -622,8 +625,8 @@ private:
   void compute_environment();
   void compute_rates();
 
-  // See set_scheduled_actions().
-  std::vector<ScheduleEvent> scheduled_actions;
+  // See set_scheduled_actions(). Null where none were set, which is none.
+  std::shared_ptr<const std::vector<ScheduleEvent>> scheduled_actions;
 
   // Set where a run is asked to keep its field, read by store_solved().
   bool keep_field = false;
@@ -2249,13 +2252,25 @@ template <typename It>
 void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
                                  It x, std::vector<value_type>& y) {
   set_state_and_boundary(x, time);
-  for (const ScheduleEvent& action : scheduled_actions) {
-    if (util::identical(action.time_introduction(), time)) {
-      apply_action(action);
+  bool vegetation_moved = false;
+  if (scheduled_actions) {
+    for (const ScheduleEvent& action : *scheduled_actions) {
+      if (util::identical(action.time_introduction(), time)) {
+        apply_action(action);
+        vegetation_moved |= action.type != EventType::ResourcePulse;
+      }
     }
   }
   absorb_tall();
   push_nodes(species_index, time);
+  // The field the loaded state built is the one before the actions. A walk
+  // reads the next step's first rates off this patch, and the run took them in
+  // the field after a harvest or a climate extreme, so it is rebuilt where one
+  // moved the vegetation. A pulse moves only the soil, which the rates read
+  // from the state.
+  if (vegetation_moved) {
+    compute_environment();
+  }
   y.assign(ode_size(), value_type(0.0));
   ode_state(y.begin());
 }
