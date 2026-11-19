@@ -160,9 +160,11 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'
 ##'   Refused outright, with an error: a run on the height coordinate, with the
 ##'   absorbing top layer, in a constant field, or with a rain pulse that filled
-##'   a soil layer and shed the rest, which sets the layer whatever it held; and
-##'   a trade-off that derives a parameter an equation reads and that has no
-##'   column.
+##'   a soil layer and shed the rest, which sets the layer whatever it held; a
+##'   strategy no gradient exists for whatever its run (TF24's deep-crown
+##'   shading or sapwood acclimation, \code{a_sw > 0}), refused before a run
+##'   that kept no states is repeated; and a trade-off that derives a parameter
+##'   an equation reads and that has no column.
 ##'
 ##' @section Traits and parameters:
 ##' A column is the derivative as its trait moves through the construction that

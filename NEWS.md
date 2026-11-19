@@ -13,6 +13,9 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **A stand gradient of a TF24 or TF24f run with sapwood acclimation on (`a_sw > 0`) is refused with an error, where it returned every metric as not-a-number with a refusal.** No gradient exists for such a strategy whatever its trajectory, so it is refused before the run is recorded, as deep-crown shading is, and neither re-runs a run that kept no states only to refuse it. The message names the entry point and the species. No number moves. Migration:
+  * `stand_gradient()` on an `a_sw > 0` run, read through `stand_gradient_refused()` -> expect an error; `stand_census_state_adjoint()` still answers on such a run
+
 * **A TF24f stand gradient has a column for `k_acclim`, and a stand gradient over a rain pulse that overfilled a layer is refused.** TF24f's acclimation gain reaches the collar position's rate, and its column (`"<species>.k_acclim"`, before the birth rate) is refereed against pinned-step differences; before, the gain was active with neither a column nor a reason. A pulse that fills a layer and sheds the rest sets the layer to saturation, so its row there is zero, and the sweep carried one: the gradient was wrong by up to 0.4% on the measured stand, at any ODE tolerance. Pulses the layer takes whole are exact. Migration:
   * a TF24f gradient indexed by position -> index it by name; the birth rate's column moves one place, behind `k_acclim`'s
   * `stand_gradient()` over a run whose `event_log` shows a pulse's excess > 0 -> give pulses each layer can take whole, or difference the metric

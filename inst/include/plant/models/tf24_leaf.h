@@ -556,10 +556,7 @@ S TF24_Model<S>::solve_leaf_over_crown(
           function_integrator.integrate_vector(soil_y[a], 0.0, height);
       }
     } else {
-      util::stop("shading_model '" + this->control.shading_model +
-                 "' is not differentiable: its crown means pass through Leaf, "
-                 "which carries double. Use crown-centre or mean-light "
-                 "shading for a gradient.");
+      util::stop(gradient_refusal());
     }
   }
   return PPFD_int_used;
@@ -603,9 +600,7 @@ void TF24_Model<S>::measure_dprofit_dkmax(
   if (odelia::util::to_passive(pars.a_sw) > 0.0) {
     using odelia::util::to_passive;
     if constexpr (!std::is_same_v<S, double>) {
-      refuse("sapwood acclimation (a_sw > 0) is not differentiable: its "
-             "sensitivity is a finite difference through the leaf, which "
-             "carries no rows");
+      refuse(gradient_refusal());
     }
     const double kmax = to_passive(leaf_specific_conductance_max);
     const double profit_base = leaf.carbon();
