@@ -16,6 +16,12 @@
 # reference regenerated from the model it referees is not a reference, so a
 # disagreement here is a finding.
 #
+# The pinned grid is the run's own, so the reference is the derivative of the
+# DISCRETISED run, and any change that moves the steps a run takes ages it.
+# Re-capturing then is legitimate only once a difference with every step pinned
+# agrees with the sweep on the rows that moved: that is what separates an aged
+# reference from a wrong gradient.
+#
 # A residual is normalised per metric, over the columns the reference carries for
 # it, which is the convention `ladder_matrix_residual` uses. Normalising per
 # column instead makes every column whose whole row is at the difference's own
@@ -174,9 +180,10 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # The reference's own resolution, with a floor: where its four steps agreed
     # to round-off, the sweep is still only asked to agree to the truncation the
     # coarsest of them carries. Over 270 answered columns a regime, the worst
-    # reads 9.6e-04 on drought, 6.9e-05 on seasonal and 4.7e-05 on wet -- and all
-    # three are `theta` or `omega`, which reach the census through the channels
-    # the leaf boundary carries and are the last columns to resolve.
+    # reads 8.6e-04, on clamped's `theta`, whose four steps themselves spread by
+    # as much; no other regime reads above 3e-07. `theta` and `omega` reach the
+    # census through the channels the leaf boundary carries and are the last
+    # columns to resolve.
     tolerance <- pmax(3 * r$spread, 2e-3)
     over <- live & r$residual > tolerance
     # ⚠️ THIS RUNG IS THE ONLY ONE THAT SEES THE KNOT GRID, through this floor.
@@ -196,14 +203,14 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # And each row the reference resolves, on its own scale. The check above
     # divides by the metric's largest entry, so a small row passes it whatever
     # the sweep says: a zero passes most of them. A row whose four steps agree to
-    # 1e-4 of its value is held to 5e-4 of it, or to three times its spread. The
-    # floor is the reference's own age: it was captured on an earlier step grid,
-    # and on the rows it flags at 1e-4 a fresh pinned difference on today's grid
-    # agrees with the sweep to 1e-5 and with the reference to no better than
-    # 4e-4. Re-captured, the reference would take 1e-4.
+    # 1e-4 of its value is held to 1e-4 of it, or to three times its spread. The
+    # floor is the reference's own resolution: it reads a column at one step for
+    # every metric, and its worst row, clamped's leaf_area in 2.a_l2, is read at
+    # 1e-5 where its 1e-6 reading lies 9e-05 away and agrees with the sweep to
+    # 2e-07. A reference aged by a moved step grid fails this floor first.
     resolved <- live & r$spread_raw < 1e-4 * abs(r$reference)
     expect_gt(sum(resolved), 150)
-    own <- pmax(3 * r$spread_raw, 5e-4 * abs(r$reference))
+    own <- pmax(3 * r$spread_raw, 1e-4 * abs(r$reference))
     gap <- abs(r$observed - r$reference)
     off <- resolved & gap > own
     expect_equal(sum(off), 0L,
