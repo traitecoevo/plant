@@ -60,19 +60,10 @@ test_that("Reference comparison", {
   # expect_equal(p$state("area_sapwood"), cmp$area_sapwood(h0))
   # expect_equal(p$state("area_stem"), cmp$area_stem(h0))
 
-  ## Heartwood function
-  ## TODO(#482): Check with Daniel here -- might need updating.
-  ## Expect zero unless it has been set otherwise
+  ## Heartwood: a new plant has none, and a value set is held as set.
   expect_identical(p$state("area_heartwood"), 0.0)
   HA0 <- 1e-3
   p$set_state("area_heartwood", HA0)
-  ## TODO(#482): This is due to issues with how we think about size; see notes
-  ## in plant.cpp around set_height and set_mass_heartwood.  Note that
-  ## when running as an ODE, this gives the *wrong answer*.
-  h <- p$state("height")
-  p$set_state("height", h + .1) # trick plant into recomputing all size variables)
-  p$set_state("height", h)
-
   expect_identical(p$state("area_heartwood"), HA0)
   # expect_equal(p$state("area_stem"), cmp$area_stem(h0) + HA0)
   # set heartwood back at zero for subsequent tests
@@ -87,9 +78,6 @@ test_that("Reference comparison", {
   ## The R model computes A_lf * area_leaf * a_y * a_bio, wheras we just
   ## compute A_lf; will have to correct some numbers.
   cmp_const <- s$pars$a_y * s$pars$a_bio
-
-  ## TODO(#482): Check what growth variables look like before running
-  ## through with environment.  Most are NA_real_, but some are not
 
   ## Compute the physiological variables and retrieve them.
   p$compute_rates(env)

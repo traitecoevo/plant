@@ -68,9 +68,8 @@ individual_grow_to_times <- function(individual, times, env) {
   runner <- OdeRunner(strategy_name)(ir1)
   runner_detail <- OdeRunner(strategy_name)(ir2)
 
-  ## TODO(#483): This could also be done by better configuring the
-  ## underlying ODE runner, but this seems a reasonable way of getting
-  ## things run for now.
+  ## `runner` steps freely; `runner_detail` replays each step from its start
+  ## to land exactly on each requested time.
   state <- matrix(NA, n, length(y0))
   colnames(state) <- individual$ode_names
 
@@ -112,8 +111,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   }
   strategy_name <- individual$strategy_name
 
-  # TODO(#483): size index uses index from 0
-  # can we clarify?
+  # The internals accessor indexes states from zero.
   size_index <- (which(individual$ode_names == size_name) - 1)
 
   runner <- OdeRunner(strategy_name)(IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env))
@@ -136,8 +134,6 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
       if (warn) {
         warning(paste(msg, collapse="\n"), immediate.=TRUE)
       }
-      ## TODO(#483): Consider making this an error, or making the test a bit better.
-      ##
       ## ⚠️ BOTH HALVES, BECAUSE A PARKED RATE IS WHAT A DEAD PLANT LOOKS LIKE.
       ## Every strategy's mortality_dt returns exactly zero once the accumulated
       ## hazard reaches establishment_failure_hazard, so the rate alone cannot
@@ -192,8 +188,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 grow_individual_to_size <- function(runner, size, size_name, t0, t1, y0) {
 
   
-  # TODO(#483): size index uses index from 0
-  # can we clarify?
+  # The internals accessor indexes states from zero.
   size_index <- (which(runner$object$individual$ode_names == size_name) - 1)
 
   internals <- get_individual_internals_fun(runner$object$individual)

@@ -176,9 +176,7 @@ mortality.dt <- function(traits, h, env) {
 }
 
 height.at.birth <- function(traits) {
-  ## TODO(#482): These are hard-coded for now, but the upper limit could be
-  ## got at directly if we had a couple of extra functions to compute
-  ## height from total area.
+  ## A seedling is far shorter than 1 m, so this interval brackets the root.
   hmin <- 1e-16
   hmax <- 1
   f <- function(h)

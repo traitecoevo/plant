@@ -245,7 +245,7 @@ test_that("collect returns a well-formed, non-empty trajectory (#498)", {
   }
 })
 
-test_that("collect output is reproducible and matches a seeded baseline (#482)", {
+test_that("collect output is reproducible and matches a seeded baseline", {
   ## With set.seed(1) the arrival schedule (R RNG) and the deaths (R::unif_rand,
   ## in C++) are fully reproducible, so the number of individuals introduced and
   ## the number alive at the final step are fixed. These golden values guard
