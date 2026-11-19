@@ -1,8 +1,8 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
 ## test-default-baseline.R and scripts/capture-default-baseline.R. The runs go
 ## through run() (#428), so the capture needs a build that has it. All six
-## cases were last captured when the seed-height root tolerance went to 1e-12,
-## which moved every case but K93's by at most 7e-9 in offspring production.
+## cases were last captured at TF24's scientific version 17, which moved only
+## the TF24 case (by 8e-5 in offspring production).
 default_baseline_cases <- function() {
   outputs <- function(solver) {
     list(ode_state = solver$patch$ode_state,
