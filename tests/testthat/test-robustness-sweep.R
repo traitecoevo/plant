@@ -13,7 +13,8 @@
 # every axis's value, each criterion's verdict and every clamp site's count, to
 # PLANT_SWEEP_OUT (a path; by default robustness-sweep.tsv in the session's
 # temporary directory). The design is seeded, so a failing point is also
-# `sweep_design()[point, ]`, and `sweep_point(model, that_row)` re-runs it alone.
+# `sweep_design()[point, ]`, and `sweep_point(model, that_row)` re-runs it
+# alone.
 #
 # ⚠️ A FAILURE HERE IS A FINDING. Each one is either a model defect or an input
 # outside the model's domain, and deciding which is the point of running it.
@@ -29,13 +30,20 @@
 # non-decreasing across the recorded steps, and its height rate at the end is
 # held finite and non-negative.
 #
-# The domain is checked on the states at every recorded step (each introduction
-# and the end): every value finite; height positive; mortality, fecundity,
-# heartwood, storage, survival-weighted offspring and density non-negative;
-# patch survival in [0, 1]; soil moisture in [0, saturation]. The final ODE state
-# must also pass the patch's own validity predicate. Between recorded steps the
-# solver's own predicate rejects a step that leaves the non-negative states, so
-# this is a check that it held, not the only guard.
+# The domain is checked on every cohort's states at every recorded step (each
+# introduction and the end), over every state the model integrates. A row that
+# is NA throughout is a cohort not yet introduced; a NaN anywhere is a
+# violation, and so is any non-finite value, except that log_density may be
+# -Inf, which is a cohort at zero density. On top of finiteness: height
+# positive; mortality, fecundity, heartwood, storage, survival-weighted
+# offspring and density non-negative; the patch-age density non-negative; soil
+# moisture in [0, saturation]. The final ODE state is held to the same rules and
+# to the patch's own validity predicate.
+#
+# That predicate is what the solver itself rejects a step by, and it covers less
+# than this check does: the states the model declares non-negative, and for
+# the soil, finiteness only. A soil above saturation or below zero is caught
+# here and nowhere else.
 #
 # Monotonicity is asked only where it is physically certain, and so it is asked
 # of mutants rather than of the environment. Moving rain, light or soil depth
@@ -69,7 +77,9 @@ sweep_enabled <- function() identical(Sys.getenv("PLANT_RUN_SWEEP"), "1")
 # default and both sets, with room either side.
 sweep_axes <- function() {
   list(
-    # Leaf mass per area [kg m^-2]. Default 0.198; alpine ash 0.206, mulga 0.458.
+    # Leaf mass per area [kg m^-2]. Default 0.198; alpine ash 0.206, mulga
+    # 0.458. With no trade-off function, lma moves the cost of building leaf
+    # only: leaf turnover and leaf respiration stay at their defaults.
     lma      = list(lower = 0.05, upper = 0.6, log = TRUE),
     # Height at maturation [m]. Default 16.6; mulga 2.5, alpine ash 23.5.
     hmat     = list(lower = 1.5, upper = 40, log = TRUE),
@@ -109,8 +119,15 @@ sweep_axes <- function() {
     # Shortwave above the canopy [W m^-2]. Default 900, a clear-sky midday
     # figure; down to a third of it.
     SWdown   = list(lower = 300, upper = 1000, log = FALSE),
-    # Soil depth [m], in five equal layers. Default 1.5; mulga's set is 1.0, to
-    # a hardpan.
+    # Soil depth [m]. Default 1.5; mulga's set is 1.0, to a hardpan. Realised
+    # in layers of the default 0.3 m, so the depth a point runs at is rounded to
+    # a multiple of 0.3 (0.6 to 3.9 m). The layer thickness is held rather than
+    # the layer count because a root's resistance to a layer goes as its
+    # thickness squared: at 1.5 m, five layers and ten give fitness 0.089 and
+    # 0.021, so an axis that moved the thickness would be a discretisation axis
+    # as much as a depth one. Roots may reach the bottom of the soil, so the
+    # strategy's rooting_depth_max is set to the depth, as its default 1.5 is to
+    # the default soil.
     depth    = list(lower = 0.5, upper = 4, log = TRUE)
   )
 }
@@ -144,8 +161,12 @@ sweep_design <- function(n = 200L, seed = 20261119L) {
     }
   }, numeric(n))
   colnames(out) <- names(axes)
+  out[, "depth"] <- sweep_layer_width() *
+    pmax(1, round(out[, "depth"] / sweep_layer_width()))
   data.frame(point = seq_len(n), out)
 }
+
+sweep_layer_width <- function() 0.3
 
 # The strategy's parameters at one point. The traits are set as parameters,
 # with no trade-off function: TF24's trade-offs derive d_I and stem_P50 from
@@ -157,12 +178,16 @@ sweep_parameters <- function(model, x, energy_balance = FALSE) {
   traits <- unlist(x[sweep_traits(model)])
   if (model == "TF24") {
     traits <- c(traits, jmax_25 = 1.64 * traits[["vcmax_25"]],
+                rooting_depth_max = x$depth,
                 use_energy_balance = as.numeric(energy_balance))
   }
   p <- add_strategies(p, trait_matrix(unname(traits), names(traits)),
                       hyperpar = NULL, birth_rate = 1)
+  # Twelve introductions, thinned evenly from the default schedule, which is
+  # dense early: ten fall in the first year, then one at 3 years and one at 9.
   full <- p$node_schedule_times[[1]]
-  p$node_schedule_times <- list(full[round(seq(1, length(full), length.out = 12))])
+  p$node_schedule_times <-
+    list(full[round(seq(1, length(full), length.out = 12))])
   p
 }
 
@@ -171,8 +196,9 @@ sweep_environment <- function(model, x) {
   if (model != "TF24") {
     return(env)
   }
-  env$set_soil_layer_widths(rep(x$depth / 5, 5))
-  env$set_soil_water_state(rep(0.5 * env$soil_moist_sat, 5))
+  n <- round(x$depth / sweep_layer_width())
+  env$set_soil_layer_widths(rep(sweep_layer_width(), n))
+  env$set_soil_water_state(rep(0.5 * env$soil_moist_sat, n))
   env$extrinsic_drivers_set_constant("SWdown", x$SWdown)
   t <- seq(0, 10, length.out = 481)
   env$extrinsic_drivers_set_variable(
@@ -197,27 +223,33 @@ sweep_mutants <- function(p) {
 # where nothing did.
 sweep_domain <- function(r, model) {
   td <- tidy(r)
-  sp <- td$species
-  sp <- sp[!is.na(sp$height), , drop = FALSE]
+  sp <- sweep_introduced(td$species)
   bad <- character(0)
   worst <- function(x) signif(x[which.max(abs(x))], 3)
-  states <- intersect(c("height", "mortality", "fecundity", "area_heartwood",
-                        "mass_heartwood", "storage",
-                        "offspring_produced_survival_weighted", "density"),
+  # Every state the model integrates, read off a cohort, and its density.
+  nodes <- r$solver$patch$species[[1]]$nodes
+  states <- intersect(c(if (length(nodes)) nodes[[1]]$ode_names, "density"),
                       names(sp))
+  non_negative <- c("mortality", "fecundity", "area_heartwood",
+                    "mass_heartwood", "storage",
+                    "offspring_produced_survival_weighted", "density")
   for (s in states) {
     v <- sp[[s]]
-    if (any(!is.finite(v))) {
-      bad <- c(bad, sprintf("%s non-finite (%d)", s, sum(!is.finite(v))))
+    ok <- if (s == "log_density") !is.na(v) & v < Inf else is.finite(v)
+    if (any(!ok)) {
+      bad <- c(bad, sprintf("%s non-finite (%d, first %s)", s, sum(!ok),
+                            v[!ok][[1]]))
     } else if (s == "height" && any(v <= 0)) {
       bad <- c(bad, sprintf("height <= 0 (%s)", worst(v[v <= 0])))
-    } else if (any(v < 0)) {
+    } else if (s %in% non_negative && any(v < 0)) {
       bad <- c(bad, sprintf("%s < 0 (%s)", s, worst(v[v < 0])))
     }
   }
+  # The patch-age density, which starts above one for a short-lived patch, so
+  # it has no upper bound to check.
   pd <- td$steps$patch_density
-  if (any(!is.finite(pd) | pd < 0 | pd > 1)) {
-    bad <- c(bad, "patch survival outside [0, 1]")
+  if (any(!is.finite(pd) | pd < 0)) {
+    bad <- c(bad, "patch-age density non-finite or negative")
   }
   if (model == "TF24") {
     theta <- td$env$soil_moist$soil_moist
@@ -225,26 +257,60 @@ sweep_domain <- function(r, model) {
     if (any(!is.finite(theta))) {
       bad <- c(bad, "soil moisture non-finite")
     } else {
-      if (any(theta < 0)) bad <- c(bad, sprintf("soil moisture < 0 (%s)", worst(theta[theta < 0])))
+      if (any(theta < 0)) {
+        bad <- c(bad, sprintf("soil moisture < 0 (%s)",
+                              worst(theta[theta < 0])))
+      }
       if (any(theta > sat)) {
         bad <- c(bad, sprintf("soil moisture above saturation by %s",
                               signif(max(theta - sat), 3)))
       }
     }
   }
-  patch <- r$solver$patch
-  y <- patch$ode_state
-  if (any(!is.finite(y)) || !isTRUE(patch$ode_state_valid(y))) {
-    bad <- c(bad, "final ODE state refused by the patch's validity predicate")
-  }
+  bad <- c(bad, sweep_final_state(r$solver$patch))
   paste(bad, collapse = "; ")
 }
 
+# The cohorts' rows from a tidied run, without those not yet introduced. A row
+# not yet introduced is NA in every state; a NaN is not NA for this purpose,
+# because a NaN state is a violation the domain check has to see.
+sweep_introduced <- function(sp) {
+  sp[!(is.na(sp$height) & !is.nan(sp$height)), , drop = FALSE]
+}
+
+# The final ODE state, read per cohort so each value is checked against its
+# own state's rule, then the environment block, which trails the vector.
+sweep_final_state <- function(patch) {
+  bad <- character(0)
+  species <- patch$species
+  for (sp in species) {
+    for (nd in sp$nodes) {
+      v <- stats::setNames(nd$ode_state, nd$ode_names)
+      ld <- names(v) == "log_density"
+      if (any(is.nan(v)) || any(!is.finite(v[!ld])) || any(v[ld] == Inf)) {
+        bad <- c(bad, "a cohort's final state is non-finite")
+        break
+      }
+    }
+  }
+  y <- patch$ode_state
+  n_env <- length(y) - sum(vapply(species, function(sp) sp$ode_size, 0))
+  if (n_env > 0 && any(!is.finite(utils::tail(y, n_env)))) {
+    bad <- c(bad, "the environment's final state is non-finite")
+  }
+  if (!isTRUE(patch$ode_state_valid(y))) {
+    bad <- c(bad, "final ODE state refused by the patch's validity predicate")
+  }
+  unique(bad)
+}
+
 # Growth: every cohort's height non-decreasing over the recorded steps, and its
-# height rate at the end finite and non-negative. "" where both hold.
+# height rate at the end finite and non-negative. "" where both hold. A NaN
+# height is the domain check's to report; here it is left out of the
+# differences rather than read as a fall.
 sweep_growth <- function(r) {
-  sp <- tidy(r)$species
-  sp <- sp[!is.na(sp$height), , drop = FALSE]
+  sp <- sweep_introduced(tidy(r)$species)
+  sp <- sp[is.finite(sp$height), , drop = FALSE]
   bad <- character(0)
   drop <- tapply(sp$height, sp$node, function(h) {
     if (length(h) < 2L) 0 else min(diff(h))
@@ -265,61 +331,85 @@ sweep_growth <- function(r) {
 sweep_clamp_names <- function() census_clamp_names_tf24()
 
 # One point, run and judged. Never throws: a point that errors is a row saying
-# so, so the sweep reports every point rather than the first to fail.
+# so, and at which stage, so the sweep reports every point rather than the
+# first to fail. The stages are the resident's run, which is what "the run
+# finishes" asks about; reading the clamp counts and tidying the run, which are
+# this file's own instruments; and the mutants' run, which the monotonicity
+# criterion needs.
 sweep_point <- function(model, x, energy_balance = FALSE) {
   started <- proc.time()[["elapsed"]]
-  row <- list(finished = FALSE, error = "", fitness = NA_real_, growth = "",
-              domain = "", fitness_d_I = NA_real_, fitness_a_d0 = NA_real_,
-              fitness_twin = NA_real_, monotone = "")
+  row <- list(finished = FALSE, stage = "", error = "", fitness = NA_real_,
+              growth = "", domain = "", fitness_twin = NA_real_,
+              fitness_d_I = NA_real_, fitness_a_d0 = NA_real_, monotone = "")
   clamps <- stats::setNames(rep(NA_real_, length(sweep_clamp_names())),
                             paste0("clamp_", sweep_clamp_names()))
+  stage <- "resident run"
   got <- tryCatch({
     p <- sweep_parameters(model, x, energy_balance)
     r <- run(p, sweep_environment(model, x), record = "steps")
     row$finished <- isTRUE(r$complete)
     row$fitness <- r$net_reproduction_ratios[[1]]
+    stage <- "clamp counts"
     if (model == "TF24") {
       clamps[] <- census_clamp_counts_tf24(r$solver)[[1]]
     }
+    stage <- "tidy"
     row$growth <- sweep_growth(r)
     row$domain <- sweep_domain(r, model)
     # Last, because it moves the resident's solver on.
+    stage <- "mutant run"
     f <- run_mutant(r, sweep_mutants(p))$net_reproduction_ratios
     row$fitness_twin <- f[[1]]
     row$fitness_d_I <- f[[2]]
     row$fitness_a_d0 <- f[[3]]
-    mono <- character(0)
-    if (!all(is.finite(f))) {
-      mono <- c(mono, "mutant fitness non-finite")
-    } else {
-      if (if (f[[1]] > 0) f[[2]] >= f[[1]] else f[[2]] != 0) {
-        mono <- c(mono, sprintf("d_I + 0.02 did not lower fitness (%s -> %s)",
-                                signif(f[[1]], 4), signif(f[[2]], 4)))
-      }
-      if (f[[3]] > f[[1]]) {
-        mono <- c(mono, sprintf("2 a_d0 raised fitness (%s -> %s)",
-                                signif(f[[1]], 4), signif(f[[3]], 4)))
-      }
-    }
-    row$monotone <- paste(mono, collapse = "; ")
+    row$monotone <- sweep_monotone(f)
     NULL
   }, error = function(e) conditionMessage(e))
   if (!is.null(got)) {
+    row$stage <- stage
     row$error <- gsub("[\t\n]+", " ", got)
   }
   data.frame(row, as.list(clamps), seconds = proc.time()[["elapsed"]] - started,
              stringsAsFactors = FALSE, check.names = FALSE)
 }
 
-# Which of the four criteria a row fails, by name.
+# The two monotonicity checks on the mutants' fitnesses: the resident's twin,
+# then d_I raised, then a_d0 doubled. Judged only where the twin's fitness is a
+# valid fitness, finite and non-negative: a negative one is the other
+# criterion's finding, and comparing against it would report the same defect
+# twice under a misleading name.
+sweep_monotone <- function(f) {
+  if (!is.finite(f[[1]]) || f[[1]] < 0) {
+    return("")
+  }
+  mono <- character(0)
+  if (!all(is.finite(f))) {
+    mono <- c(mono, "mutant fitness non-finite")
+  } else {
+    if (if (f[[1]] > 0) f[[2]] >= f[[1]] else f[[2]] != 0) {
+      mono <- c(mono, sprintf("d_I + 0.02 did not lower fitness (%s -> %s)",
+                              signif(f[[1]], 4), signif(f[[2]], 4)))
+    }
+    if (f[[3]] > f[[1]]) {
+      mono <- c(mono, sprintf("2 a_d0 raised fitness (%s -> %s)",
+                              signif(f[[1]], 4), signif(f[[3]], 4)))
+    }
+  }
+  paste(mono, collapse = "; ")
+}
+
+# Which criteria a row fails, by name. "readable" is this file's own: a point
+# whose run finished but whose clamp counts or tidied states could not be read
+# is a defect in the instrument or in what the run hands back, not a pass.
 sweep_failures <- function(res) {
+  ran <- res$finished & res$stage %in% c("", "mutant run")
   fit_ok <- is.finite(res$fitness) & res$fitness >= 0
   data.frame(
-    finishes = !res$finished | nzchar(res$error),
-    finite_non_negative = res$finished & !nzchar(res$error) &
-      (!fit_ok | nzchar(res$growth)),
+    finishes = !res$finished | res$stage == "resident run",
+    readable = res$stage %in% c("clamp counts", "tidy"),
+    finite_non_negative = ran & (!fit_ok | nzchar(res$growth)),
     in_domain = nzchar(res$domain),
-    monotone = nzchar(res$monotone))
+    monotone = nzchar(res$monotone) | res$stage == "mutant run")
 }
 
 sweep_run <- function(model, design, energy_balance = FALSE) {
@@ -333,28 +423,31 @@ sweep_run <- function(model, design, energy_balance = FALSE) {
   } else {
     lapply(rows, one)
   }
-  # A worker that died returns a condition rather than a row; it is reported as
-  # the point not finishing, with the worker's message, rather than lost.
+  # A forked worker that errors returns a try-error, and one that is killed (a
+  # segfault, say) returns NULL, which rbind() would drop without a word. Either
+  # way the point is kept, with its design row, as a run that did not finish.
   out <- lapply(seq_along(out), function(i) {
-    if (inherits(out[[i]], "try-error") || inherits(out[[i]], "condition")) {
-      cbind(rows[[i]], sweep_point_failed(model, as.character(out[[i]])))
-    } else {
-      out[[i]]
+    if (is.data.frame(out[[i]])) {
+      return(out[[i]])
     }
+    why <- if (is.null(out[[i]])) "the worker died (no result returned)"
+           else paste(as.character(out[[i]]), collapse = " ")
+    cbind(rows[[i]], sweep_point_failed(why))
   })
   res <- do.call(rbind, out)
   res$set <- if (energy_balance) "TF24 energy balance" else model
   res
 }
 
-sweep_point_failed <- function(model, message) {
+sweep_point_failed <- function(message) {
   clamps <- stats::setNames(rep(NA_real_, length(sweep_clamp_names())),
                             paste0("clamp_", sweep_clamp_names()))
-  data.frame(finished = FALSE, error = gsub("[\t\n]+", " ", message),
-             fitness = NA_real_, growth = "", domain = "",
-             fitness_d_I = NA_real_, fitness_a_d0 = NA_real_,
-             fitness_twin = NA_real_, monotone = "", as.list(clamps),
-             seconds = NA_real_, stringsAsFactors = FALSE, check.names = FALSE)
+  data.frame(finished = FALSE, stage = "resident run",
+             error = gsub("[\t\n]+", " ", message), fitness = NA_real_,
+             growth = "", domain = "", fitness_twin = NA_real_,
+             fitness_d_I = NA_real_, fitness_a_d0 = NA_real_, monotone = "",
+             as.list(clamps), seconds = NA_real_, stringsAsFactors = FALSE,
+             check.names = FALSE)
 }
 
 # The failing rows as a table a reader can act on: the point, the criteria it
@@ -369,16 +462,18 @@ sweep_report <- function(res) {
     paste(names(z)[z], collapse = ",")
   })
   detail <- with(res[hit, , drop = FALSE],
-                 trimws(paste(error, growth, domain, monotone)))
+                 trimws(paste(ifelse(nzchar(stage), paste0(stage, ": "), ""),
+                              error, growth, domain, monotone)))
   tab <- data.frame(set = res$set[hit], point = res$point[hit],
                     failed = what, detail = substr(detail, 1, 160))
   message(paste(utils::capture.output(print(tab, row.names = FALSE)),
                 collapse = "\n"))
 }
 
-test_that("every point of a wide trait and environment sweep meets the four criteria", {
-  skip_if_not(sweep_enabled(),
-              "the robustness sweep is opt-in: set PLANT_RUN_SWEEP=1 (nightly or before a release)")
+test_that("a wide trait and environment sweep meets the criteria", {
+  skip_if_not(sweep_enabled(), paste("the robustness sweep is opt-in: set",
+                                      "PLANT_RUN_SWEEP=1 (nightly or before",
+                                      "a release)"))
   skip_on_cran()
 
   design <- sweep_design()
