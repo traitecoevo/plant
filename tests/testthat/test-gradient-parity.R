@@ -19,11 +19,10 @@
 # this file exists to catch.
 #
 # ⚠️ ONE ENTRY, AND IT IS THE SWEEP'S OWN. The shut branches answer, so
-# `shade-death` is not here; nor is the LIGHT FLOOR, because the row it severs is
-# exactly zero for the model as evaluated -- every light below the
-# floor gives a bit-identical census, so the honest row is the zero rather than a
-# refusal, and what makes the zero readable is the clamp counter rather than a
-# name here.
+# `shade-death` is not here; nor is a clamp, because the row a clamp severs is
+# exactly zero for the model as evaluated, so the honest row is the zero rather
+# than a refusal, and what makes the zero readable is the clamp counter rather
+# than a name here.
 #
 # What remains is not a branch of the model at all: the descent leaves the range
 # a double holds. Nothing it computes is wrong -- see `ladder_range_refusal` --
@@ -213,49 +212,24 @@ test_that("every refusal names a branch that has never answered", {
                           parity_range_gap))
 })
 
-test_that("the driver that reaches a clamp says so, answered or not", {
-  # This file's non-vacuity guard, and it does not depend on the driver
-  # answering: an answered gradient carrying a declared zero and one carrying no
-  # clamp at all are the same numbers, so only the count separates them. Written
-  # to hold whether or not a driver answers, because what it reads is the count a
-  # descent left behind rather than the rows it returned.
+test_that("no driver's gradient crosses a clamp", {
+  # An answered gradient carrying a declared zero and one carrying no clamp at
+  # all are the same numbers, so only the count separates them. Every site is
+  # counted on the sweep of every driver, the darkest included, and none fires:
+  # each of these gradients is the model's own derivative, with no row a guard
+  # severed. A site that starts firing here is a regime the ladder has not met.
+  # That the tally is live, and not merely zero, is shown by the incidence file's
+  # dry-start stand, whose sweep does cross one.
   by_name <- stats::setNames(parity_shared(), vapply(parity_shared(),
                                                      function(r) r$name, ""))
   nm <- census_clamp_names_tf24()
-  at <- function(driver, site) by_name[[driver]]$clamp[[match(site, nm)]]
   for (d in names(by_name)) {
     c_d <- by_name[[d]]$clamp
-    message(sprintf("  %-9s %s", d,
-                    paste(sprintf("%s=%.0f", nm[c_d > 0], c_d[c_d > 0]),
-                          collapse = " ")))
-  }
-
-  # Every driver, including the control, severs its light-independent root rows:
-  # above the rooting-depth cap the root profile stops reading height, and that
-  # is the model rather than a guard. It is the non-vacuity guard because it
-  # holds everywhere -- a build reporting zero here has lost the counter, not
-  # found a cleaner stand.
-  for (d in names(by_name)) {
-    expect_gt(at(d, "rooting_depth"), 0)
-  }
-
-  # The light floor is the driver-specific one: the shaded driver reaches it and
-  # the control does not, so these counts measure the driver rather than the clamp.
-  # The crown site, because under mean light a mean of floored points cannot
-  # fall below the floor, so the radiation site does not bind. Counted over the
-  # steps the descent reached before it was refused, which is a subset of the run
-  # and not none.
-  expect_gt(at("clamped", "light_floor_crown"), 0)
-  expect_equal(at("clamped", "light_floor"), 0)
-  expect_equal(at("wet", "light_floor"), 0)
-  expect_equal(at("wet", "light_floor_crown"), 0)
-
-  # And three sites fire on no driver at all, which is the guard census's own
-  # entry and a different statement from "it held".
-  for (s in c("soil_positivity", "rainfall", "infiltration")) {
-    for (d in names(by_name)) {
-      expect_equal(at(d, s), 0)
-    }
+    expect_length(c_d, length(nm))
+    expect_equal(sum(c_d), 0,
+                 label = sprintf("%s: %s", d,
+                                 paste(sprintf("%s=%.0f", nm[c_d > 0], c_d[c_d > 0]),
+                                       collapse = " ")))
   }
 })
 

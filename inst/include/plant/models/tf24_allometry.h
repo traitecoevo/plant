@@ -232,6 +232,34 @@ S TF24_Model<S>::Q(const S& z, const S& rooting_depth, const S& eta_x) const {
   return tmp * tmp;
 }
 
+// Roots go as deep as the plant is tall, up to the soil's depth x_max. The cap
+// is a smooth minimum,
+//
+//   D = x_max - w * softplus((x_max - h) / w),   w = 0.05 * x_max,
+//
+// which departs from min(h, x_max) only within a few w of the cap: by
+// w * log(2) at the cap, and by w * exp(-|h - x_max| / w) away from it. Its
+// slope in h is the logistic sigmoid((x_max - h) / w), so it has no kink and
+// the root profile keeps responding to height above the cap, ever more weakly.
+//
+// D is increasing in h, and below the cap D = h - w * log1p(exp(-(x_max - h) / w)),
+// which is positive for every h above about 2e-9 * w: far below any seed's height.
+//
+// softplus(y) = log(1 + exp(y)) is evaluated in the form that neither
+// overflows for large y nor loses its tail for very negative y. The two
+// branches agree in value and slope at y = 0, so the branch taken is no kink.
+template <typename S>
+S TF24_Model<S>::rooting_depth_at(const S& height) const {
+  using std::exp;
+  using std::log1p;
+  const S w = 0.05 * pars.rooting_depth_max;
+  const S y = (pars.rooting_depth_max - height) / w;
+  const S softplus = odelia::util::to_passive(y) > 0.0
+    ? S(y + log1p(exp(-y)))
+    : S(log1p(exp(y)));
+  return pars.rooting_depth_max - w * softplus;
+}
+
 // The aim is to find a plant height that gives the correct seed mass.
 template <typename S>
 double TF24_Model<S>::height_seed(void) const {

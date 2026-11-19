@@ -100,84 +100,67 @@ test_that("a dry stand is interior throughout, and answers", {
   expect_true(all(is.finite(g$gradient[[1]])))
 })
 
-test_that("the light floor is counted on both paths, and binds at neither shipped value", {
-  # Where this clamp binds, a cohort's radiation stops depending on any other
-  # cohort's height. Both halves are asserted, because a counter that never fires
-  # and a counter that always fires are equally uninformative.
+test_that("the darkest driver solves its leaves at the light it leaves, and answers", {
+  # k_I is a free parameter a gradient-driven search walks, and walking it up
+  # walks the light field towards darkness. Eighty times the shipped value puts
+  # the youngest cohorts at an openness four orders under the open sky, and the
+  # leaf is solved there rather than at a floor: the light's row is the leaf's
+  # own, not a constant.
   #
-  # ⚠️ THE FLOOR IS TWO SITES, NOT ONE. The
-  # crown site floors each quadrature point of the mean-light integrand; the
-  # radiation site floors the mean those points make. The crown weights sum to
-  # one, so a mean of floored points cannot fall below the floor: on the shipped
-  # shading model only the crown site fires, and reading the radiation site
-  # alone would report no severance at all.
-  # Scoped to the two light sites: the other clamps have their own regimes and
-  # their own block below, and several of them do bind at shipped values.
-  nm <- census_clamp_names_tf24()
-  light <- match(c("light_floor", "light_floor_crown"), nm)
-  shipped <- incidence_built(2.0, 5, k_I = 0.5)$clamps
-  expect_true(all(shipped[light] == 0))
-  # Non-vacuity, and it is not decorative: this tally is shared and clearing it
-  # anywhere would make the line above pass whatever the light field did.
-  expect_gt(shipped[["rooting_depth"]], 0)
-
-  # k_I is a free parameter a gradient-driven search walks, and walking it up is
-  # what walks the field into the floor. Eighty times the shipped value.
-  #
-  # Twenty introductions rather than the schedule's eighty-eight: every claim
-  # below is about which sites fire and in what order, and the counts reported
-  # are shares of this stand's own solves. The two readings differ in nothing
-  # this block asserts, and the thinned one is far cheaper.
+  # Twenty introductions rather than the schedule's eighty-eight: the claims are
+  # about where the stand reaches and whether it answers, and the thinned
+  # schedule reaches the same shade far more cheaply.
   entry <- incidence_built(2.0, 5, k_I = 40, introductions = 20L)
   walked <- entry$solver
-  fired <- entry$clamps
-  solves <- sum(entry$kinds)
-  # Counts, not a share of solves: the crown site is counted once per quadrature
-  # point of the mean-light integrand, so solves is not its denominator and
-  # dividing by it can report more than 100%.
-  message(sprintf("  at k_I = 40, over %.0f solves: %s %.0f, %s %.0f",
-                  solves, nm[light[1]], fired[light[1]],
-                  nm[light[2]], fired[light[2]]))
-  expect_gt(fired[[light[[2]]]], 0)
-  # The mean of floored points is at or above the floor, so the radiation site
-  # does not bind under mean light.
-  expect_equal(fired[[light[[1]]]], 0)
+  e <- walked$patch$environment
+  shortest <- min(walked$patch$species[[1]]$heights)
+  expect_lt(e$get_environment_at_height(shortest), 1e-4)
 
-  # The forward model keeps running, and the light floor is not what stops the
-  # gradient: below the floor the census is not a function of light at all, so
-  # the row is exactly zero for the model as evaluated rather than a row
-  # withheld.
   expect_gt(stand_census(walked)[[1]], 0)
   g <- incidence_swept(2.0, 5, k_I = 40, introductions = 20L)$gradient
-
-  # ⚠️ THE FLOOR'S ROW IS A DECLARED ZERO AND NOT A REFUSAL, WHICH IS THE
-  # WHOLE POINT OF THIS BLOCK. Below the floor the census is not a function of
-  # light at all, so the honest row is the zero -- and this stand answers, so
-  # that zero is what the gradient carries rather than what a refusal covered.
-  # Counted before it is read, because
-  # all(is.finite(x)) is TRUE of an empty vector.
+  # Counted before it is read, because all(is.finite(x)) is TRUE of an empty
+  # vector.
   expect_false(any(stand_gradient_refused(g)))
   expect_null(g$refusal[[1]])
   expect_gt(length(g$gradient[[1]]), 0)
   expect_true(all(is.finite(g$gradient[[1]])))
+})
 
-  # And the severance is readable rather than silent, which is the whole basis on
-  # which the zero is declared instead of refused. The forward tally cannot stand
-  # in for this: it counts every solve, where the sweep visits only the recorded
-  # steps.
-  swept <- incidence_swept(2.0, 5, k_I = 40, introductions = 20L)$swept
-  message(sprintf("  the sweep's own severances: %s",
-                  paste(sprintf("%s %.0f", nm[light], swept[light]),
-                        collapse = "  ")))
-  expect_gt(swept[[light[[2]]]], 0)
-  expect_equal(swept[[light[[1]]]], 0)
-  # A counter a rebind drops reports zero however often the clamp fires, which is
-  # why its storage is shared. And the sweep visits the
-  # recorded steps rather than every solve, so its tally is the smaller.
-  expect_lt(swept[[light[[2]]]], fired[[light[[2]]]])
-
+test_that("a clamp the sweep crosses is counted on both paths, through the rebind", {
+  # A stand started on soil dry enough that its potential sits at the
+  # retention curve's ceiling: the one site the ladder's drivers do not reach
+  # on a recorded step. It is what shows the differentiated tally survives the
+  # sweep's rebind -- a counter a rebind drops reports zero however often the
+  # clamp fires, which is why its storage is shared.
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 3
+  tr <- c(lma = 0.0825, hmat = 5.13, k_I = 0.5, a_l1 = 5.44, a_l2 = 0.306)
+  p <- add_strategies(p, trait_matrix(unname(tr), names(tr)),
+                      hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
+  full <- p$node_schedule_times[[1]]
+  p$node_schedule_times <- list(full[round(seq(1, length(full), length.out = 12))])
+  env <- ladder_environment(0.10)
+  env$set_soil_water_state(rep(0.05, 5))
+  ctrl <- Control()
+  ctrl$node_density_coordinate <- "birth_date"
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
+  census_clear_diagnostics_tf24(solver)
+  solver$run()
+  nm <- census_clamp_names_tf24()
+  fired <- stats::setNames(census_clamp_counts_tf24(solver)[[1]], nm)
+  g <- stand_gradient(solver, hyperpar = NULL)
+  swept <- stats::setNames(census_clamp_counts_differentiated_tf24(solver)[[1]], nm)
+  site <- "soil_potential_ceiling"
+  message(sprintf("  %s: forward %.0f, swept %.0f", site, fired[[site]], swept[[site]]))
+  expect_gt(fired[[site]], 0)
+  expect_gt(swept[[site]], 0)
+  # The sweep visits the recorded steps rather than every solve, so its tally
+  # is the smaller.
+  expect_lt(swept[[site]], fired[[site]])
+  # The row it severs is a declared zero, not a refusal.
+  expect_false(any(stand_gradient_refused(g)))
+  expect_true(all(is.finite(g$gradient)))
   # Named from the enum, so a site cannot be counted under its neighbour's name.
-  expect_true(all(c("light_floor", "light_floor_crown") %in% nm))
   expect_length(fired, length(nm))
   expect_length(swept, length(nm))
 })
@@ -186,24 +169,14 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
 # reading the code suggests. The classification lives here rather than in a
 # document because a document cannot fail.
 #
-# ⚠️ THE TEST IS THREE-WAY AND THE FIRST CASE SPLITS IN TWO, which reading the
-# code does not reveal:
-#
-#   the model's own zero   the clamp IS a modelling statement, so the census
-#                          genuinely does not depend on what it masks. Declared,
-#                          and NOT a candidate for removal -- rooting_depth is
-#                          this, and it is the largest severance in the model.
-#   a guard's zero         a numerical floor, and the census is bit-identical
-#                          either side of it, so the row is exactly zero for the
-#                          model as evaluated. Declared, and a candidate for
-#                          removal by changing the FORWARD model.
-#   never binds            counted, and reported as never having fired, which is
-#                          the only thing that separates a guard that held from
-#                          one nothing reached.
+#   forward-only   a guard a drier stand reaches (the block above puts the
+#                  potential ceiling on the sweep), but on no step the sweep
+#                  visits on these drivers. Where it binds, its row is a declared
+#                  zero, readable through the count.
+#   never          counted, and reported as never having fired, which is the
+#                  only thing that separates a guard that held from one nothing
+#                  reached.
 clamp_class <- list(
-  rooting_depth          = "model",
-  light_floor            = "guard",
-  light_floor_crown      = "guard",
   soil_moisture_floor    = "forward-only",
   soil_potential_ceiling = "forward-only",
   soil_conductivity      = "forward-only",
@@ -247,7 +220,9 @@ test_that("every clamp site is classified, and by a measured incidence", {
 
   # Never means never, on both paths and both drivers. A site in this class that
   # starts firing is a regime the suite has never seen — including the leaf's
-  # stomatal corner, which a stand does not reach.
+  # stomatal corner, which a stand does not reach. Every zero below is a zero
+  # of a live tally: the dry-start block above is what shows a site that fires
+  # is counted on both paths.
   for (s in names(clamp_class)[unlist(clamp_class) == "never"]) {
     expect_equal(wet_s[[s]], 0, label = paste(s, "fired on the wet driver"))
     expect_equal(dry_s[[s]], 0, label = paste(s, "fired on the drought driver"))
@@ -262,20 +237,9 @@ test_that("every clamp site is classified, and by a measured incidence", {
                  label = paste(s, "reached the differentiated path"))
   }
 
-  # The model's own zero binds on EVERY driver including the control, which is
-  # what says it is the model rather than a corner.
-  expect_gt(wet_s[["rooting_depth"]], 0)
-  expect_gt(dry_s[["rooting_depth"]], 0)
-
-  # And a guard's zero does not bind on the control, which is what makes it a
-  # guard rather than the model. Which driver DOES reach the light floor is the
-  # light-floor block below, on the k_I the site needs rather than on this one.
-  expect_equal(wet_s[["light_floor"]], 0)
-  expect_equal(wet_s[["light_floor_crown"]], 0)
-
-  # Both drivers still answer, carrying those declared zeros. A severance that
-  # made the gradient wrong would have to show up as a refusal or as a
-  # disagreement with a rebuilt difference, and neither is here.
+  # Both drivers still answer. A severance that made the gradient wrong would
+  # have to show up as a refusal or as a disagreement with a rebuilt
+  # difference, and neither is here.
   expect_false(any(stand_gradient_refused(incidence_swept(2.0, 5)$gradient)))
   expect_false(any(stand_gradient_refused(incidence_swept(0.10, 5)$gradient)))
 })

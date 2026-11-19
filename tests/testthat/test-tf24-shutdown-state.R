@@ -115,3 +115,38 @@ test_that("a shut-down plant stops depleting the soil", {
   # And the column holds its water: nothing drains, nothing is taken up.
   expect_equal(min(out$env$soil_moist$soil_moist), 0.02, tolerance = 1e-6)
 })
+
+test_that("a leaf in the canopy's shade is solved at the light it stands in", {
+  # Openness is not floored on its way to the leaf: darkness is an attainable
+  # state, and the leaf answers there. At zero light it fixes no carbon, pays
+  # its dark respiration and shuts, on every shading model; and as the light
+  # falls towards zero the answer goes continuously to that one.
+  at <- function(light, shading, theta = 0.30) {
+    m <- TF24_Model()
+    m$control$shading_model <- shading
+    ind <- TF24_Individual(m)
+    ind$set_state("height", 5)
+    env <- TF24_Environment()
+    env$set_soil_number_of_depths(5)
+    env$set_fixed_environment(light, 150)
+    tf24_aux_at(ind, env, theta)
+  }
+  R_d_25 <- TF24_Model()$pars$R_d_25
+  for (shading in c("mean-light", "crown-centre", "deep-crown")) {
+    for (theta in c(0.30, 0.10)) {
+      dark <- at(0, shading, theta)
+      label <- sprintf("%s at theta = %g", shading, theta)
+      expect_true(all(is.finite(dark)), label = label)
+      expect_equal(dark[["assimilation"]], -R_d_25, tolerance = 1e-12,
+                   label = label)
+      expect_lt(dark[["transpiration"]], 1e-12)
+      expect_lt(dark[["stom_cond_CO2"]], 1e-8)
+    }
+    # Below an openness of 1e-4 the light still reaches the leaf.
+    dim <- vapply(c(1e-6, 1e-5, 1e-4), function(l)
+      at(l, shading)[["assimilation"]], 0)
+    expect_true(all(diff(dim) > 0), label = shading)
+    expect_equal(at(1e-12, shading)[["assimilation"]], -R_d_25,
+                 tolerance = 1e-9, label = shading)
+  }
+})

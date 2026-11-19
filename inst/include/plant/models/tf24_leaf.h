@@ -339,9 +339,8 @@ void TF24_Model<S>::build_root_network(
   // function Q() used for the leaf canopy, but parameterised over soil depth
   // instead of crown height. Q(z, rooting_depth, pars.root_depth_shape_eta)
   // gives the fraction of roots *below* depth z, so layer a holds
-  // root_mass_scale * (Q(z_{a-1}) - Q(z_a)). rooting_depth is capped at
-  // pars.rooting_depth_max and the loop breaks once Q reaches 0, so deeper
-  // layers stay at zero.
+  // root_mass_scale * (Q(z_{a-1}) - Q(z_a)). The loop breaks once Q reaches 0,
+  // so layers below the rooting depth stay at zero.
   //
   // The quantity is carbon PER UNIT LEAF AREA, and that is a hard requirement
   // rather than a convenience: the leaf is intensive, it takes resistances built
@@ -358,13 +357,7 @@ void TF24_Model<S>::build_root_network(
   root_carbon_per_leaf_area_.assign(soil_number_of_depths_, 0.0);
   root_carbon_value_.assign(soil_number_of_depths_, 0.0);
 
-  // Counted, and this one severs a state row rather than smoothing a number:
-  // above the cap the whole root profile stops depending on height, so every
-  // layer's carbon -- and the uptake built on it -- reads a constant.
-  if (height > pars.rooting_depth_max) {
-    note_clamp(CLAMP_ROOTING_DEPTH);
-  }
-  const S rooting_depth = std::min(height, pars.rooting_depth_max);
+  const S rooting_depth = rooting_depth_at(height);
   const S root_mass_scale = root_mass_carbon_scale * pars.a_r1;
 
   {
@@ -461,24 +454,14 @@ S TF24_Model<S>::solve_leaf_over_crown(
   };
 
   // Convert canopy openness (0-1) into the intercepted PPFD per unit leaf area:
-  // PPFD_above times openness times the extinction coefficient pars.k_I. The
-  // light floor (1e-4) matches the mean light's.
+  // PPFD_above times openness times the extinction coefficient pars.k_I.
+  //
+  // Not floored: darkness is an attainable state and the leaf answers there (no
+  // carboxylation, the stomata shut, respiration paid), so the leaf is solved
+  // at the light the canopy leaves. The light field is non-negative already --
+  // the spline read returns 0 where its interpolant undershoots.
   auto PPFD_int_at = [&](const S& light) -> S {
-    // Counted, not merely applied. Where this binds the cohort's light is a
-    // constant with respect to every other cohort's height, so the row is
-    // severed by the guard rather than by the model -- and the field is smooth
-    // underneath. An uncounted severance is indistinguishable from a true zero.
-    if (light < S(0.0001)) {
-      // Below the floor the light this cohort receives stops depending on
-      // any other cohort's height. The row is therefore exactly zero for the
-      // model AS EVALUATED -- every light below the floor gives a bit-identical
-      // census -- so the zero is the derivative of the function on the tape and
-      // not an answer withheld. What makes it readable rather than silent is the
-      // count, which is taken on this path because it is the only one a clamp
-      // severs anything on.
-      note_clamp(CLAMP_LIGHT_FLOOR);
-    }
-    return pars.k_I * std::max(light, S(0.0001)) * PPFD_above;
+    return pars.k_I * light * PPFD_above;
   };
 
   // Aggregate the leaf submodel over the crown according to the shading model.
@@ -495,21 +478,8 @@ S TF24_Model<S>::solve_leaf_over_crown(
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
     // crown (q integrates to one). PPFD_int_at then applies pars.k_I * PPFD_above,
     // exactly reproducing TF24's established average_radiation.
-    //
-    // Each point's light is floored at 1e-4 first; the floor has no stated
-    // physical basis. Counted here, because this is where the
-    // floor binds: the crown weights sum to one, so a mean of floored values
-    // cannot fall below the floor itself.
-    const auto floored = [this](const auto& light) {
-      using X = std::decay_t<decltype(light)>;
-      if (light < X(0.0001)) {
-        note_clamp(CLAMP_LIGHT_FLOOR_CROWN);
-        return X(0.0001);
-      }
-      return X(light);
-    };
-    optimise_at(PPFD_int_at(
-        environment.light_availability.crown_integral(height, crown, floored)));
+    optimise_at(PPFD_int_at(environment.light_availability.crown_integral(
+        height, crown, [](const auto& light) { return light; })));
   } else { // DeepCrown
     if constexpr (std::is_same_v<S, double>) {
       const std::vector<double> nodes =
