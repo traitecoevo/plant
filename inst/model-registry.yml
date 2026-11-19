@@ -1685,7 +1685,7 @@ parameters:
     symbol: '\theta_{\rm sat}'
     units: 'm³ m⁻³'
     class: hyperparameter
-    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves, the capacity a water pulse fills to, and the upper bound on each layer''s integrated moisture: a step that ends above it in any layer is rejected and retried smaller (Patch::ode_state_valid). One value for every layer unless set_soil_parameters gives one per layer'
+    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves, the capacity a water pulse fills to, and the upper bound on each layer''s integrated moisture: a step that ends above it in any layer is rejected and retried smaller (Patch::ode_state_valid), and a run that starts above it is refused. The balance keeps a layer below it only where $K_{\rm sat}$ does not fall with depth and $a_{\rm infil} = 1$ (TF24.layer_balance); otherwise a layer fills past it and the run stops, naming the layer. One value for every layer unless set_soil_parameters gives one per layer'
     source: 'TF24_Environment constructor default; no source recorded'
     placeholder: true
     code: plant::TF24_Environment::soil_moist_sat
@@ -3589,7 +3589,7 @@ equations:
     writes: [soil]
     kind: derivative
     overstorey: theory/soil-water.qmd
-    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Writes the rates of the moisture states in soil.'
+    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Nothing limits the inflow into a saturated layer: it is the drainage of the layer above, up to that layer''s $K_{\rm sat}$, so a $K_{\rm sat}$ that falls with depth, or $a_{\rm infil} < 1$ under rain heavier than $K_{\rm sat}$, fills a layer past $\theta_{\rm sat}$, which the run refuses (TF24.soil_moist_sat). Writes the rates of the moisture states in soil.'
   TF24.layer_uptake:
     model: TF24
     section: tf24_soil

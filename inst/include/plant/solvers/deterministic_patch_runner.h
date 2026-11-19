@@ -698,6 +698,24 @@ private:
   // One leg, with the bookkeeping the loop keeps per leg: refinement errors,
   // the history copy, a snapshot where one is due.
   void step_leg();
+
+  // Rethrow the exception being handled, naming the state the patch refused
+  // when the solver stopped because it could not leave one: odelia reports only
+  // that ode_state_valid() refused, and the patch kept why. Matched on odelia's
+  // wording, so a change to it loses the name and nothing else.
+  [[noreturn]] void rethrow_naming_refusal() {
+    try {
+      throw;
+    } catch (const std::exception& e) {
+      const std::string what = e.what();
+      const std::string& why = solver.get_system_ref().state_refusal();
+      if (!why.empty() &&
+          what.find("ode_state_valid() refused") != std::string::npos) {
+        util::stop(what + "; the refused state: " + why);
+      }
+      throw;
+    }
+  }
   void take_snapshot();
   bool begun = false;
   double next_snapshot = 0.0;
@@ -819,7 +837,7 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::run_sched
   } catch (...) {
     // A leg that threw leaves the solver mid-step; the next run begins afresh.
     begun = false;
-    throw;
+    rethrow_naming_refusal();
   }
   // Expose the final state through the `patch` accessor after the loop.
   patch = solver.get_system_ref();
@@ -841,7 +859,7 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::run_to(do
     // A leg that threw leaves the solver mid-step, so a caller that catches and
     // calls run_to() again begins afresh rather than continuing from it.
     begun = false;
-    throw;
+    rethrow_naming_refusal();
   }
   patch = solver.get_system_ref();
 }

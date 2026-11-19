@@ -555,23 +555,33 @@ public:
     vars.set_state(n + 1, vars.state(n + 1) + S(d_infiltration));
     vars.set_state(n + 4, vars.state(n + 4) + S(d_runoff));
   }
-  // Whether every layer of a state the solver proposes holds no more than its
-  // saturation, read from layer 0's entry at `first`; the accumulators after
-  // the layers are not bounded. Patch::ode_state_valid reads it, so a step
-  // that ends above saturation is rejected and retried smaller rather than
-  // committed: the moisture is a share of the pore space, and above
+  // Why a state the solver proposes is outside the soil's domain, read from
+  // layer 0's entry at `first`: empty when every layer holds no more than its
+  // saturation, and otherwise the first layer that holds more. The accumulators
+  // after the layers are not bounded. Patch::ode_state_valid reads it, so a
+  // step that ends above saturation is rejected and retried smaller rather
+  // than committed: the moisture is a share of the pore space, and above
   // saturation the retention curve gives a suction smaller than a saturated
   // soil's. Asked as "is it inside", so a NaN fails.
+  //
+  // ⚠️ A REFUSAL IS NOT ALWAYS AN OVERSHOOT. The balance itself can fill a layer
+  // past saturation: a layer's inflow is the drainage of the layer above, up to
+  // that layer's K_sat, and nothing limits it when the layer is full, so a
+  // K_sat that falls with depth, or a_infil < 1 under rain heavier than K_sat,
+  // overfills one. No smaller step escapes that, and the run stops, naming the
+  // layer, where it would otherwise carry on with moisture no soil can hold.
   template <class It>
-  bool soil_moisture_within_saturation(It first) const {
+  std::string saturation_refusal(It first) const {
     for (int i = 0; i < soil_number_of_depths; ++i, ++first) {
       const double sat =
         soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i);
       if (!(*first <= sat)) {
-        return false;
+        return "soil layer " + util::to_string(i + 1) + " holds moisture " +
+               util::format_double(*first) + ", above its saturation " +
+               util::format_double(sat);
       }
     }
-    return true;
+    return std::string();
   }
   // What a layer at `theta` can still accept, in metres of water: the cap
   // add_water_pulse_to_layer applies, factored out so a private column applies
@@ -1140,8 +1150,17 @@ public:
   // the run started from, so a second run on this patch starts where the first
   // did rather than silently continuing out of the first run's depleted soil.
   // Only Environment::clear() calls this.
+  //
+  // A layer set above its saturation is refused here, where every run takes
+  // its starting soil, rather than when set: the saturation can be changed
+  // after the moisture is, and a run could not leave such a state anyway.
   virtual void clear_state() {
     util::check_length(initial_states.size(), vars.state_size());
+    const std::string refusal = saturation_refusal(initial_states.begin());
+    if (!refusal.empty()) {
+      util::stop("The run cannot start: " + refusal +
+                 ". Set the soil water state at or below saturation");
+    }
     for (size_t i = 0; i < vars.state_size(); ++i) {
       vars.states[i] = S(initial_states[i]);
     }
