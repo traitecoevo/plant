@@ -171,6 +171,10 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
                         collapse = "  ")))
   expect_gt(swept[[light[[2]]]], 0)
   expect_equal(swept[[light[[1]]]], 0)
+  # The field itself stays above zero even here, so its own floor, which would
+  # sever the knots' rows, fires on neither path.
+  expect_equal(fired[["light_field_floor"]], 0)
+  expect_equal(swept[["light_field_floor"]], 0)
   # A counter a rebind drops reports zero however often the clamp fires, which is
   # why its storage is shared. And the sweep visits the
   # recorded steps rather than every solve, so its tally is the smaller.
@@ -200,6 +204,9 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
 #   never binds            counted, and reported as never having fired, which is
 #                          the only thing that separates a guard that held from
 #                          one nothing reached.
+#
+# A fourth label, "other model", marks a site in code a TF24 stand does not run.
+# It is asserted zero here and classified in its own model's tests.
 clamp_class <- list(
   rooting_depth          = "model",
   light_floor            = "guard",
@@ -227,7 +234,17 @@ clamp_class <- list(
   stomatal_flux          = "never",
   # The leaf-to-air vapour deficit held at its floor where a leaf cooled by the
   # energy balance reaches the dew point; these stands run without it.
-  vpd_leaf_floor         = "never"
+  vpd_leaf_floor         = "never",
+  # The light field's own floor, where a Hermite span undershoots zero. Never
+  # reached on a stand: not here, not at k_I = 40 (the light-floor block above),
+  # and not on FF16 stands; the floor is exercised on a field built to
+  # undershoot in test-environment.R.
+  light_field_floor      = "never",
+  # Sites in another model's code, which a TF24 stand never runs: FF16's growth
+  # cutoff (test-ff16-stand-gradient.R) and TF24f's newborn seat
+  # (test-tf24f-stand-gradient.R). Listed so the classification stays total.
+  production_cutoff      = "other model",
+  seed_position          = "other model"
 )
 
 test_that("every clamp site is classified, and by a measured incidence", {
@@ -252,6 +269,12 @@ test_that("every clamp site is classified, and by a measured incidence", {
     expect_equal(wet_s[[s]], 0, label = paste(s, "fired on the wet driver"))
     expect_equal(dry_s[[s]], 0, label = paste(s, "fired on the drought driver"))
     expect_equal(dry_f[[s]], 0, label = paste(s, "fired forward on drought"))
+  }
+
+  for (s in names(clamp_class)[unlist(clamp_class) == "other model"]) {
+    expect_equal(wet_s[[s]], 0)
+    expect_equal(dry_s[[s]], 0)
+    expect_equal(dry_f[[s]], 0)
   }
 
   # Forward-only means the sweep never met it, which is a weaker claim than

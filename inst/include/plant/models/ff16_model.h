@@ -3,6 +3,7 @@
 #define PLANT_PLANT_FF16_MODEL_H_
 
 #include <plant/gradients/census.h>
+#include <plant/gradients/clamp_sites.h>
 #include <plant/models/model.h>
 #include <plant/models/ff16_environment.h>
 #include <plant/numerics/qag.h>
@@ -706,6 +707,10 @@ public:
     function_integrator = src.function_integrator;
     crown = src.crown;
 
+    // Shared, not copied: a clamp on this path fires inside a per-unit copy that
+    // is then discarded, so the count has to land in storage the run still owns.
+    clamps.differentiated = src.clamps.differentiated;
+
     // The index maps and the slot numbers are a function of the names, so they
     // are derived rather than carried.
     refresh_indices();
@@ -758,6 +763,18 @@ public:
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
   crown_rule crown;
+
+  // The clamp sites this strategy reaches: the growth cutoff at zero net
+  // production. The list is shared with every model's, so the light field's
+  // site, which the environment reaches, reads beside it.
+  clamp_counter clamps;
+  void note_clamp(int site) {
+    if constexpr (std::is_same_v<S, double>) {
+      ++clamps.forward[site];
+    } else {
+      ++(*clamps.differentiated)[site];
+    }
+  }
 
 private:
   // Bind the competition profile and the assimilation implementation to one
@@ -946,6 +963,9 @@ void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
       vars.set_aux(AREA_SAPWOOD_AUX_INDEX, area_sapwood_);
     }
   } else {
+    // A counted site: the heartwood rates jump to zero here rather than reach
+    // it, so a cohort crossing it moves the run by a step its rows do not carry.
+    note_clamp(CLAMP_PRODUCTION_CUTOFF);
     vars.set_rate(HEIGHT_INDEX, S(0.0));
     vars.set_rate(FECUNDITY_INDEX, S(0.0));
     vars.set_rate(AREA_HEARTWOOD_INDEX, S(0.0));

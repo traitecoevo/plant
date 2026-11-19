@@ -512,11 +512,12 @@ public:
   // The same for the clamp sites, which are counted for the same reason: a
   // clamped row and a true zero are the same number.
   //
-  // The sites live in two objects and the list is one, so the environment's
-  // tally is ADDED to the species' rather than reported beside it -- a caller
-  // asking how often a site fired is asking about the site, not about which
-  // object happened to reach it. The environment is one, so its counts land on
-  // the first row.
+  // The sites live in several objects and the list is one, so the environment's
+  // tallies are ADDED to the species' rather than reported beside them -- a
+  // caller asking how often a site fired is asking about the site, not about
+  // which object happened to reach it. The environment is one, so its counts
+  // land on the first row. A model whose strategy or environment keeps no tally
+  // of its own (FF16's environment, FF16's leaf) contributes none.
   std::vector<std::vector<size_t>> clamp_counts() {
     const patch_type& live = solver.get_system_ref();
     std::vector<std::vector<size_t>> ret;
@@ -527,16 +528,20 @@ public:
       // The leaf's own sites keep ONE tally across both paths, because the leaf
       // solves in double on both and every rebound copy shares its storage. So the
       // forward share is the total less what the sweep was measured to take.
-      const std::vector<std::size_t> leaf_total = s->leaf.clamp_counts();
-      const std::vector<size_t>& swept = *s->clamps.differentiated;
-      for (std::size_t k = 0; k < leaf_total.size(); ++k) {
-        const std::size_t at = CLAMP_LEAF_FIRST + k;
-        if (at >= CLAMP_SITE_COUNT) { break; }
-        row[at] += leaf_total[k] > swept[at] ? leaf_total[k] - swept[at] : 0;
+      if constexpr (requires { s->leaf.clamp_counts(); }) {
+        const std::vector<std::size_t> leaf_total = s->leaf.clamp_counts();
+        const std::vector<size_t>& swept = *s->clamps.differentiated;
+        for (std::size_t k = 0; k < leaf_total.size(); ++k) {
+          const std::size_t at = CLAMP_LEAF_FIRST + k;
+          if (at >= CLAMP_SITE_COUNT) { break; }
+          row[at] += leaf_total[k] > swept[at] ? leaf_total[k] - swept[at] : 0;
+        }
       }
       ret.push_back(row);
     }
-    add_environment_clamps(ret, live.environment_clamps().forward);
+    for_each_environment_tally(live, [&](const clamp_counter& c) {
+      add_environment_clamps(ret, c.forward);
+    });
     return ret;
   }
   // And the same sites counted where the sweep runs, which is the only path a
@@ -549,7 +554,9 @@ public:
     for (size_t i = 0; i < live.size(); ++i) {
       ret.push_back(*live.at_species(i).strategy_ptr()->clamps.differentiated);
     }
-    add_environment_clamps(ret, *live.environment_clamps().differentiated);
+    for_each_environment_tally(live, [&](const clamp_counter& c) {
+      add_environment_clamps(ret, *c.differentiated);
+    });
     return ret;
   }
   // The smallest profit curvature the differentiated path met, one per species.
@@ -581,7 +588,7 @@ public:
       live.at_species(i).strategy_ptr()->leaf.clear_clamp_counts();
       *live.at_species(i).strategy_ptr()->curvature_margin = -1.0;
     }
-    live.environment_clamps().clear();
+    for_each_environment_tally(live, [](clamp_counter& c) { c.clear(); });
   }
   const std::vector<patch_type> &r_history() const { return history; }
 
@@ -652,6 +659,16 @@ private:
     x.set_start_time(parameters.initial_time);
   }
   void schedule_changed() {}
+
+  // The environment's tallies: its own, where it keeps one, and its light
+  // field's, which every model's has.
+  template <class F>
+  static void for_each_environment_tally(const patch_type& live, F&& f) {
+    if constexpr (requires(const environment_type& e) { e.clamps; }) {
+      f(live.environment_clamps());
+    }
+    f(live.light_field_clamps());
+  }
 
   // One environment serves every species, so its tally has no species of its own;
   // it lands on the first row rather than being dropped or duplicated. Private

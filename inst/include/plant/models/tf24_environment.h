@@ -473,6 +473,9 @@ public:
     // Shared, not copied, for the reason the strategy's is: this copy is the one
     // the sweep runs on and it is discarded afterwards.
     clamps.differentiated = src.clamps.differentiated;
+    // And the light field's, which is rebuilt rather than carried.
+    light_availability.clamps.differentiated =
+        src.light_availability.clamps.differentiated;
     // Derived from the state, so it is emptied rather than carried and the flag
     // says so.
     psi_soil_.assign(soil_number_of_depths, 0.0);
