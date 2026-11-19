@@ -205,9 +205,12 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # the sweep says: a zero passes most of them. A row whose four steps agree to
     # 1e-4 of its value is held to 1e-4 of it, or to three times its spread. The
     # floor is the reference's own resolution: it reads a column at one step for
-    # every metric, and its worst row, clamped's leaf_area in 2.a_l2, is read at
-    # 1e-5 where its 1e-6 reading lies 9e-05 away and agrees with the sweep to
-    # 2e-07. A reference aged by a moved step grid fails this floor first.
+    # every metric, so a sharply curved column carries that step's truncation
+    # error. The row nearest its tolerance, shaded's leaf_area in 2.a_f2, is read
+    # at 1e-3 and sits 7e-05 from the sweep, which a Richardson extrapolation of
+    # the difference matches to 1e-05: the margin there is the reference's error,
+    # not the sweep's. A reference aged by a moved step grid fails this floor
+    # first.
     resolved <- live & r$spread_raw < 1e-4 * abs(r$reference)
     expect_gt(sum(resolved), 150)
     own <- pmax(3 * r$spread_raw, 1e-4 * abs(r$reference))
