@@ -3,10 +3,10 @@
 # partials, with every derived parameter fixed. For lma the partial is 2.4
 # to 4 times the total.
 
-hyperpar_parameters <- function(lifetime = 3) {
+hyperpar_parameters <- function(lifetime = 3, lma = 0.0825) {
   p <- testing_parameters("TF24")
   p$max_patch_lifetime <- lifetime
-  add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),
+  add_strategies(p, trait_matrix(c(lma, 5.13), c("lma", "hmat")),
                  hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
 }
 
@@ -54,23 +54,21 @@ test_that("a trait's column is its partial plus each derived parameter's, chaine
 })
 
 test_that("the total agrees with a difference of the trait through add_strategies", {
-  skip_on_cran()
   run <- default_hyperpar_run()
   tot <- stand_gradient(run$solver, traits = "1.lma")
-  sched <- run$solver$schedule$times(1)
+  # The trait moves through add_strategies, on the run's own steps.
+  pinned <- pin_steps(run$solver)
   census_at <- function(lma) {
-    p <- testing_parameters("TF24")
-    p$max_patch_lifetime <- 3
-    p <- add_strategies(p, trait_matrix(c(lma, 5.13), c("lma", "hmat")),
-                        hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
-    p$node_schedule_times <- list(sched)
+    p <- pinned
+    p$strategies <- hyperpar_parameters(lma = lma)$strategies
     stand_census(run(p, Environment("TF24"), run$ctrl)$solver)
   }
-  h <- 1e-3 * 0.0825
+  h <- 1e-4 * 0.0825
   fd <- (census_at(0.0825 + h) - census_at(0.0825 - h)) / (2 * h)
-  # Measured 3e-5 to 8e-5 across two steps, which is the difference's own noise;
-  # the partial is 2.4 to 3.4 times off.
-  expect_equal(tot$gradient[names(fd), "1.lma"], fd, tolerance = 1e-3)
+  # Measured 3e-7 to 4e-7; the partial is 2.4 to 3.4 times off.
+  for (m in names(fd)) {
+    expect_equal(tot$gradient[m, "1.lma"], fd[[m]], tolerance = 1e-5, label = m)
+  }
 })
 
 test_that("a derived parameter is not a column of its own under a trade-off", {
