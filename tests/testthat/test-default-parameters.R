@@ -138,8 +138,21 @@ test_that("parameter_table groups every parameter of a model", {
   expect_setequal(tab$name[tab$group == "control"], names(Control()))
   expect_true("g_min" %in% tab$name[tab$group == "parameter"])
   expect_identical(tab$default[tab$name == "g_min"], "0")
-  expect_identical(tab$description[tab$name == "eta"], "Crown-shape parameter")
   expect_identical(attr(tab, "model"), "TF24")
+
+  # Descriptions, symbols and units come from the model registry, for every
+  # model parameter; Control's settings are not in it.
+  expect_identical(tab$description[tab$name == "lma"], "leaf mass per leaf area")
+  expect_identical(tab$symbol[tab$name == "lma"], "$\\phi$")
+  expect_identical(tab$unit[tab$name == "lma"], "kg m⁻²")
+  expect_true(all(is.na(tab$description[tab$group == "control"])))
+  expect_false(anyNA(tab$description[tab$group != "control"]))
+  # A derived copy the registry declines to list says why.
+  expect_match(tab$description[tab$name == "psi_crit"], "reaches nothing")
+  # A subclass reads its parent's entries as well as its own.
+  tab_f <- parameter_table("TF24f")
+  expect_identical(tab_f$description[tab_f$name == "lma"], "leaf mass per leaf area")
+  expect_false(is.na(tab_f$description[tab_f$name == "k_acclim"]))
 
   # FF16's narea is read by the trade-off but is not a field of pars.
   tab <- parameter_table("FF16")

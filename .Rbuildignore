@@ -6,13 +6,10 @@
 ^.*\.code-workspace$
 (^|/)\\.DS_Store$
 ^.devcontainer$
-^_pkgdown\.yml$
 ^pkgdown$
+^docs$
 ^scripts$
-^docker$
 ^Makefile$
-^ignore$
-^WIP$
 ^notes$
 ^plant_.+\.tar\.gz$
 ^.*\.Rproj$
@@ -23,12 +20,7 @@
 ^NEWS.md
 ^plant.Rcheck$
 ^check$
-^inst/docs/figures$
-^inst/scripts$
-^inst/website$
 ^inst/RcppR6_classes\.yml$
-^gh-pages$
 ^Meta$
-^water_bucket_submodel$
 ^LICENSE\.md$
 ^CLA\.md$

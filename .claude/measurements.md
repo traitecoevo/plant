@@ -29,6 +29,10 @@ Wall-clock on a Mac swings by up to 20% between rounds of the same binary, so a 
 
 The `profile-plant` skill has the profiling workflow. `scripts/bench_run.R` times a stand run and `scripts/bench_gradient.R` a reverse sweep, each for FF16 or TF24; `run_plant_benchmarks()` times only FF16's run and schedule refinement. A change to TF24, to the reverse sweep or to anything phylloptim reaches needs those paths timed as well as FF16's.
 
+## Solver agreement
+
+`scripts/stochastic_expectation.R` measures how far the stochastic solver's mean stand sits from the deterministic stand as the patch area grows, for FF16, K93 and TF24, against an installed plant; its results are on #601. With competition the two need not agree on a finite patch, so it reports the gap in standard errors of the stochastic mean. Without competition they must agree exactly, which `test-stochastic-expectation.R` checks.
+
 ## Evaluation records kept in `notes/`
 
 Each is a measured result, with the script that produced it. None runs on current code unless it says so.

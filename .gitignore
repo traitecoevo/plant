@@ -1,5 +1,5 @@
-inst/website
-gh-pages
+# pkgdown renders the reference site here; CI deploys it to gh-pages.
+docs/
 *Rproj*
 *.Rhistory*
 *plant.Rcheck

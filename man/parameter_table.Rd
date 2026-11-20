@@ -20,8 +20,11 @@ defaults to plant's frozen testing trade-offs
 A tibble with one row per parameter: \code{name}, \code{group},
   \code{default} (the strategy's or control's default, as text; read the
   exact double from \code{TF24_Model()$pars} or \code{Control()}),
-  \code{description}, \code{symbol} and \code{unit} where
-  \code{inst/docs} documents the name, \code{NA} otherwise.
+  \code{description}, \code{symbol} (LaTeX, in \code{$}) and \code{unit},
+  from the model's entries in the \code{\link{model_registry}} and those of
+  the models it extends, \code{NA} where it holds none (the
+  \code{control} rows, and a linked leaf parameter when phylloptim is not
+  installed).
 }
 \description{
 One table of everything a model can be told, so the options are visible in
@@ -56,5 +59,5 @@ tab[tab$group == "derived", "name"]
 }
 \seealso{
 \code{\link{default_parameters}}, \code{\link{generate_strategy}},
-  \code{\link{trait_matrix}}
+  \code{\link{trait_matrix}}, \code{\link{model_registry}}
 }
