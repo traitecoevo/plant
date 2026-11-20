@@ -319,6 +319,8 @@ OdeRunner:
     step: {return_type: void}
     set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
     set_state_from_system: {return_type: void}
+    advance_to_size: {return_type: double, args: [index: size_t, size: double, time_max: double], access: function, name_cpp: "plant::tools::advance_to_size"}
+    steps_taken: {return_type: "Rcpp::NumericMatrix", access: function, name_cpp: "plant::tools::steps_taken"}
 
 ScheduleEvent:
   name_cpp: "plant::ScheduleEvent"
