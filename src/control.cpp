@@ -71,9 +71,9 @@ Control::Control() {
   // ⚠️ The MAGNITUDE claim above is what this number rests on, and it holds. The
   // SIGN claim -- "every one strictly negative" -- does not: a TF24 stand run for
   // a century refuses on an interior point whose curvature is +34.414226, and no
-  // floor admits that point. The sweep was over static leaf
-  // states in the box named above; a stand integrated for 105 years reaches
-  // operating points outside it. So the guard's sign limb is live in practice and
+  // floor admits that point. The sweep was over static leaf states in the box
+  // named above; a stand integrated for 105 years reaches operating points
+  // outside it. So the guard's sign limb is live in practice and
   // is not a defensive branch -- which is why it says something different from the
   // floor limb when it fires.
   gradient_curvature_floor = 1e-3;

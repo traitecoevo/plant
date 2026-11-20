@@ -525,11 +525,10 @@ The pkgdown site is the **function reference only** (narrative articles live on 
 
 [.github/workflows/pkgdown.yaml](.github/workflows/pkgdown.yaml) builds it and deploys it to the `gh-pages` branch, which GitHub Pages serves, on every push to `master` and on nothing else. The public reference therefore describes the released package, not `develop`; a change to a docstring reaches the site with the next release.
 
-Every exported topic must appear in a `reference:` section, or the build stops. When you export a function, add it to `_pkgdown.yml` in the same PR, and check the config with:
+Every documented topic not marked `@keywords internal` must appear in a `reference:` section, or the build stops. When you export a function, add it to `_pkgdown.yml` in the same PR; R-CMD-check's Linux leg runs `pkgdown::check_pkgdown()` on every PR, so a missing topic fails there rather than at release. To preview the site, render it from an installed build, as the workflow does, rather than letting pkgdown compile plant again:
 
 ```r
-pkgdown::check_pkgdown()      # fails on a topic missing from the index
-pkgdown::build_site()         # a local preview, rendered into docs/ (gitignored)
+pkgdown::build_site(install = FALSE, new_process = FALSE)   # into docs/ (gitignored)
 ```
 
 Overstorey itself is a Quarto site with its own CI (`publish.yml`) — see that

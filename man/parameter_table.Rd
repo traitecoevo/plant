@@ -20,11 +20,13 @@ defaults to plant's frozen testing trade-offs
 A tibble with one row per parameter: \code{name}, \code{group},
   \code{default} (the strategy's or control's default, as text; read the
   exact double from \code{TF24_Model()$pars} or \code{Control()}),
-  \code{description}, \code{symbol} (LaTeX, in \code{$}) and \code{unit},
-  from the model's entries in the \code{\link{model_registry}} and those of
-  the models it extends, \code{NA} where it holds none (the
-  \code{control} rows, and a linked leaf parameter when phylloptim is not
-  installed).
+  \code{description}, \code{symbol} (LaTeX, in \code{$}) and \code{unit}
+  (Unicode, \code{"–"} for a dimensionless one), from the model's entries
+  in the \code{\link{model_registry}} and those of the models it extends.
+  These are \code{NA} where the registry holds no entry: the
+  \code{control} rows, a trait the trade-off reads that is not a field of
+  the model (FF16's \code{narea}), and a linked leaf parameter when
+  phylloptim is not installed.
 }
 \description{
 One table of everything a model can be told, so the options are visible in

@@ -158,6 +158,9 @@ test_that("parameter_table groups every parameter of a model", {
   tab <- parameter_table("FF16")
   expect_true("narea" %in% tab$name[tab$group == "trait"])
   expect_true(is.na(tab$default[tab$name == "narea"]))
+  # Every field of FF16 is documented; narea is the trade-off's input only.
+  expect_identical(tab$name[is.na(tab$description) & tab$group != "control"],
+                   "narea")
   expect_setequal(tab$name[tab$group == "derived"],
                   c("k_l", "d_I", "k_s", "r_s", "r_b", "a_f3", "a_p1", "a_p2", "r_l"))
 

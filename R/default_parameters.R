@@ -661,11 +661,13 @@ frozen_TF24_hyperpar <- function(lma_0=0.1978791,
 ##' @return A tibble with one row per parameter: \code{name}, \code{group},
 ##'   \code{default} (the strategy's or control's default, as text; read the
 ##'   exact double from \code{TF24_Model()$pars} or \code{Control()}),
-##'   \code{description}, \code{symbol} (LaTeX, in \code{$}) and \code{unit},
-##'   from the model's entries in the \code{\link{model_registry}} and those of
-##'   the models it extends, \code{NA} where it holds none (the
-##'   \code{control} rows, and a linked leaf parameter when phylloptim is not
-##'   installed).
+##'   \code{description}, \code{symbol} (LaTeX, in \code{$}) and \code{unit}
+##'   (Unicode, \code{"–"} for a dimensionless one), from the model's entries
+##'   in the \code{\link{model_registry}} and those of the models it extends.
+##'   These are \code{NA} where the registry holds no entry: the
+##'   \code{control} rows, a trait the trade-off reads that is not a field of
+##'   the model (FF16's \code{narea}), and a linked leaf parameter when
+##'   phylloptim is not installed.
 ##' @seealso \code{\link{default_parameters}}, \code{\link{generate_strategy}},
 ##'   \code{\link{trait_matrix}}, \code{\link{model_registry}}
 ##' @examples
@@ -749,7 +751,8 @@ parameter_table <- function(x, hyperpar = NULL) {
 
 ## The model registry's record of each of a model's parameters, by the field
 ## name parameter_table() lists: the model's own entries, then those of the
-## models it extends, so a subclass's entry wins where it restates one.
+## models it extends, so a subclass's entry (or its reason for declining one)
+## wins where it restates its parent's.
 parameter_docs <- function(model) {
   ## The version check matters to a document rendering linked equations, not
   ## to a table of meanings and units.
@@ -758,27 +761,29 @@ parameter_docs <- function(model) {
       invokeRestart("muffleWarning")
     }
   })
-  pars <- reg$parameters
   lineage <- registry_lineage(reg$models, model)
-  rank <- match(pars$model, lineage)
-  pars <- pars[!is.na(rank), , drop = FALSE]
-  pars <- pars[order(rank[!is.na(rank)]), , drop = FALSE]
+  ## Only fields of a strategy: an environment's entry can share a name with
+  ## a pars field without describing it.
+  pars <- reg$parameters
+  pars <- pars[grepl("_(Pars|Model)::", pars$code), , drop = FALSE]
   name <- ifelse(is.na(pars$field), sub("^.*::", "", pars$code), pars$field)
-  symbol <- ifelse(is.na(pars$symbol), NA_character_,
-                   paste0("$", pars$symbol, "$"))
-  docs <- data.frame(name = name, meaning = pars$meaning, symbol = symbol,
-                     units = pars$units, stringsAsFactors = FALSE)
+  docs <- data.frame(name = name, meaning = pars$meaning,
+                     symbol = ifelse(is.na(pars$symbol), NA_character_,
+                                     paste0("$", pars$symbol, "$")),
+                     units = pars$units, rank = match(pars$model, lineage),
+                     stringsAsFactors = FALSE)
   ## A field the registry declines to list as a parameter (a derived copy
   ## nothing reads) is described by the registry's reason for declining it.
   reasons <- reg$not_parameters
-  model_of <- sub("\\..*$", "", names(reasons))
-  rank <- match(model_of, lineage)
-  reasons <- reasons[!is.na(rank)][order(rank[!is.na(rank)])]
   none <- rep_len(NA_character_, length(reasons))
-  docs <- rbind(docs, data.frame(name = sub("^[^.]*\\.", "", names(reasons)),
-                                 meaning = unname(reasons), symbol = none,
-                                 units = none, stringsAsFactors = FALSE))
-  docs[!duplicated(docs$name), , drop = FALSE]
+  docs <- rbind(docs, data.frame(
+    name = sub("^[^.]*\\.", "", names(reasons)), meaning = unname(reasons),
+    symbol = none, units = none,
+    rank = match(sub("\\..*$", "", names(reasons)), lineage),
+    stringsAsFactors = FALSE))
+  docs <- docs[!is.na(docs$rank), , drop = FALSE]
+  docs <- docs[order(docs$rank), , drop = FALSE]
+  docs[!duplicated(docs$name), c("name", "meaning", "symbol", "units")]
 }
 
 ## The solar model the frozen FF16 trade-off integrates its assimilation day

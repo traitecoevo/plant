@@ -8,6 +8,7 @@
 ^.devcontainer$
 ^pkgdown$
 ^docs$
+^inst/website$
 ^scripts$
 ^Makefile$
 ^notes$
