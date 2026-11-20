@@ -292,11 +292,40 @@ test_that("a non-zero profile requires a terminal segment", {
   s$pars$L_tip <- 100
   expect_error(TF24_Individual(s), "terminal segment")
 
-  # The guard is scoped to an active profile: L_tip is ignored at beta == 0.
-  inert <- TF24_Model()
-  inert$pars$D_c <- 0
-  inert$pars$L_tip <- 100
-  expect_silent(TF24_Individual(inert))
+  # The segment's length is checked at any profile exponent: at beta == 0 the
+  # path is L_top - L_tip, so a long segment makes it negative there too.
+  linear <- TF24_Model()
+  linear$pars$D_c <- 0
+  linear$pars$L_tip <- 100
+  expect_error(TF24_Individual(linear), "terminal segment")
+  linear$pars$L_tip <- 0.02
+  expect_silent(TF24_Individual(linear))
+})
+
+test_that("a plant below its terminal segment is a domain error at run time", {
+  # The seed is checked once, above, but nothing holds a height above
+  # L_tip/eta_c during a run, and a trial stage can overshoot a newborn below
+  # it. There the path length and the conductance go negative. The rate path
+  # must refuse that as a domain error, which the stepper retries smaller,
+  # whatever the leaf would have done with it: with the energy balance on, the
+  # leaf refuses the negative conductance with an error the stepper cannot
+  # retry, and the run ends.
+  wet <- rep(0.25, 5)
+  s <- TF24_Model()
+  threshold <- s$pars$L_tip / ETA_C_AT_12
+  for (eb in c(0, 1)) {
+    s$pars$use_energy_balance <- eb
+    info <- sprintf("use_energy_balance = %d", eb)
+    expect_true(is.finite(
+      tf24_probe(s, wet, height = threshold * (1 + 1e-6))[["assimilation"]]),
+      info = info)
+    for (h in c(threshold * (1 - 1e-6), threshold / 2, NaN)) {
+      expect_error(tf24_probe(s, wet, height = h),
+                   "^TF24: a plant of height .* shorter than its stem's terminal segment.*; it is short by",
+                   class = "odelia::util::DomainError",
+                   info = sprintf("%s, height = %g", info, h))
+    }
+  }
 })
 
 test_that("widening reaches the plant, and helps more at greater height", {

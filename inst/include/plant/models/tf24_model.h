@@ -632,14 +632,14 @@ public:
   // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
   // The inverse of fraction_allocation_reproduction()'s logistic, and NaN where
   // the logistic does not rise with height (a_f2 <= 0) or hmat is not positive.
-  double asymptotic_height(double epsilon) const {
+  // At the strategy's scalar, because the layer is pinned here and its height
+  // moves with hmat and a_f2 under a gradient.
+  S asymptotic_height(double epsilon) const {
     using odelia::util::to_passive;
-    const double hmat = to_passive(pars.hmat);
-    const double a_f2 = to_passive(pars.a_f2);
-    if (!(hmat > 0.0) || !(a_f2 > 0.0)) {
-      return std::numeric_limits<double>::quiet_NaN();
+    if (!(to_passive(pars.hmat) > 0.0) || !(to_passive(pars.a_f2) > 0.0)) {
+      return S(std::numeric_limits<double>::quiet_NaN());
     }
-    return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
+    return pars.hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / pars.a_f2);
   }
   S fraction_allocation_growth(const S& height) const;
   // Rate of offspring production
@@ -893,8 +893,8 @@ public:
   // value and D_c's column comes back an exact zero -- a number that reads as an
   // answer. Read here, it carries whatever tape identity pars.D_c has at the
   // call. prepare_strategy() validates (beta, L_tip) off this same expression,
-  // so nothing reaches stem_hydraulics::effective_path_length that the guards
-  // there have not seen.
+  // and update_leaf_specific_conductance_max() refuses a height below the
+  // terminal segment before it calls stem_hydraulics::effective_path_length.
   S stem_path_exponent() const { return S(2.0) * pars.D_c + pars.theta_c; }
 
   // Derived / precomputed in prepare_strategy() (NOT user-set) -------------
@@ -1336,6 +1336,7 @@ void TF24_Model<S>::refuse_unsupported_traits() const {
       " is " + side);
   }
 
+  const double L_tip_value = odelia::util::to_passive(pars.L_tip);
   if (odelia::util::to_passive(stem_path_exponent()) != 0.0) {
     // L_tip is the anchor of both profiles, so it cannot be zero once either is
     // active: k_s(L) = K_s*(L/L_tip)^(2*D_c) diverges everywhere as L_tip -> 0,
@@ -1344,23 +1345,23 @@ void TF24_Model<S>::refuse_unsupported_traits() const {
     //
     // Written to reject zero and NaN as well as negatives: `L_tip < 0.0` alone
     // would let a zero through, which is the case this guard exists for.
-    const double L_tip_value = odelia::util::to_passive(pars.L_tip);
     if (L_tip_value <= 0.0 || std::isnan(L_tip_value)) {
       throw std::invalid_argument(
         "L_tip must be > 0 when D_c or theta_c is non-zero: the within-plant "
         "profiles are defined relative to the terminal segment, and L_tip -> 0 "
         "sends sapwood-specific conductivity to infinity everywhere");
     }
-    // A plant cannot be shorter than one terminal segment. Worth catching here
-    // rather than downstream: height_0 is solved from seed mass, so a user
-    // sweeping omega down at a fixed L_tip will eventually cross this, and the
-    // symptom is a negative path length, hence a negative conductance, hence an
-    // unattributable NaN twenty frames inside the leaf solver.
-    if (!(L_tip_value < odelia::util::to_passive(height_0 * eta_c))) {
-      throw std::invalid_argument(
-        "L_tip must be shorter than the birth-size flow path (height_0*eta_c): "
-        "a plant cannot be smaller than one terminal segment");
-    }
+  }
+  // A plant cannot be shorter than one terminal segment. Worth catching here
+  // rather than downstream: height_0 is solved from seed mass, so a user
+  // sweeping omega down at a fixed L_tip will eventually cross this, and the
+  // symptom is a negative path length, hence a negative conductance. Checked at
+  // any profile exponent, because the path is L_top - L_tip at beta == 0 too;
+  // with L_tip == 0 it asks only for a seed of positive height.
+  if (!(L_tip_value < odelia::util::to_passive(height_0 * eta_c))) {
+    throw std::invalid_argument(
+      "L_tip must be shorter than the birth-size flow path (height_0*eta_c): "
+      "a plant cannot be smaller than one terminal segment");
   }
 }
 

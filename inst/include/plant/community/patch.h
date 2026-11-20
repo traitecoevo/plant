@@ -718,7 +718,8 @@ private:
         // height that is not positive and finite would absorb nothing or every
         // cohort bar the youngest.
         for (const strategy_type& st : parameters.strategies) {
-          const double h = st.asymptotic_height(control.absorb_epsilon);
+          const double h = odelia::util::to_passive(
+              st.asymptotic_height(control.absorb_epsilon));
           if (!(h > 0.0) || !util::is_finite(h)) {
             util::stop("The absorbing height is " + util::to_string(h) +
                        " for a strategy, from hmat and a_f2: it needs a "

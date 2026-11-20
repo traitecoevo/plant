@@ -18,6 +18,11 @@ products using plant.
   * C++ calling `mortality_storage_dependent_dt(r)` -> `mortality_growth_dependent_dt(r)`
   * `a_st1`'s column of a `stand_gradient()` at `a_st1 = 0` -> ignore it; a small positive `a_st1` is the storage model, not this one
 
+* **`run(individual, sizes = )` reports each size at the instant it was reached, and stops at `time_max`.** It runs once, landing on each size in turn, where it re-ran a root-find per size and returned the last trial's state, which need not be the plant at the returned time. Times move by up to about 1e-4 and heights now miss their size by at most about 1e-5 m. The trajectory includes the step landed on each size, and ends at `time_max` rather than the first step past it. A size equal to the starting value is reached at time 0. Migration:
+  * `expect_warning(..., "Time exceeded time_max")` -> `"Time reached time_max"`
+  * a `time_max` of `NA`, `NaN` or below zero, or a non-finite size, is now refused -> give a non-negative `time_max` (`Inf` for no limit) and finite sizes
+  * code counting the rows of a run to sizes that starts at its first size -> that size is now a row, at time 0
+
 * **A TF24f stand gradient has a column for `k_acclim`.** TF24f's acclimation gain reaches the collar position's rate, and its column (`"<species>.k_acclim"`, before the birth rate) is refereed against pinned-step differences; before, the gain was active with neither a column nor a reason. Migration:
   * a TF24f gradient indexed by position -> index it by name; the birth rate's column moves one place, behind `k_acclim`'s
 

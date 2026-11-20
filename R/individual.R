@@ -1,31 +1,86 @@
 ## Support functions for growing an individual to a given size or time, which
 ## run() on an Individual calls.
 
-## Grows `individual` to each of `sizes` (increasing) of the state `size_name`,
-## finding the time each is reached by a root-find. Returns time (NA for a size not
-## reached), state (the ODE state at those times), individual (the plant at
-## each), trajectory (every step taken) and env. `time_max` stops an
-## unreachable size from running forever; `warn` warns when sizes are dropped,
-## and `filter` drops them from the result.
+## Grows `individual` to each of `sizes` (increasing) of the state `size_name`.
+## Returns time (NA for a size not reached), state (the ODE state at those
+## times), individual (the plant at each), trajectory (every step taken) and
+## env. `time_max` stops an unreachable size from running forever; `warn` warns
+## when sizes are dropped, and `filter` drops them from the result.
+##
+## One run reaches every size in turn: each size's time is located on the
+## interpolant of the step that crosses it, and the run lands there and goes
+## on from there (advance_to_size(), on odelia's Solver::advance_until). So a
+## size's time, state and individual describe the same instant, and the
+## trajectory holds the step landed on each size.
 individual_grow_to_sizes <- function(individual, sizes, size_name, env,
                                      time_max=Inf, warn=TRUE, filter=FALSE) {
-  obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
-  
-  polish <- function(i) {
-    grow_individual_to_size(obj$runner, sizes[[i]], size_name,
-                      obj$t0[[i]], obj$t1[[i]], obj$y0[i, ])
+  if (length(sizes) == 0L || anyNA(sizes) || is.unsorted(sizes)) {
+    stop("sizes must be non-empty and sorted")
   }
-  res <- lapply(seq_along(sizes), polish)
-  
-  state <- t(sapply(res, "[[", "state"))
-  colnames(state) <- colnames(obj$state)
+  if (!all(is.finite(sizes))) {
+    stop("sizes must be finite")
+  }
+  ode_names <- individual$ode_names
+  j <- match(size_name, ode_names)
+  if (is.na(j)) {
+    stop(sprintf("'%s' is not one of the ODE states: %s", size_name,
+                 paste(ode_names, collapse = ", ")))
+  }
+  if (individual$ode_state[[j]] > sizes[[1]]) {
+    stop("Individual already bigger than smallest target size")
+  }
+  strategy_name <- individual$strategy_name
+  runner <- OdeRunner(strategy_name)(
+    IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env))
+  if (!is.numeric(time_max) || length(time_max) != 1L || is.na(time_max) ||
+      time_max < 0) {
+    stop("time_max must be a single non-negative number")
+  }
+  ## odelia refuses an infinite time_max; the largest double is no limit.
+  until <- if (time_max == Inf) .Machine$double.xmax else time_max
 
-  ret <- list(time=vnapply(res, "[[", "time"),
+  n <- length(sizes)
+  time <- rep(NA_real_, n)
+  state <- matrix(NA_real_, n, length(ode_names), dimnames = list(NULL, ode_names))
+  at_size <- vector("list", n)
+  start <- c(runner$time, runner$state)
+
+  for (i in seq_len(n)) {
+    if (i > 1L && sizes[[i]] == sizes[[i - 1L]]) {
+      t <- time[[i - 1L]]
+    } else if (runner$state[[j]] >= sizes[[i]]) {
+      ## Reached already: where a run starts on the size, or lands a hair past
+      ## one barely above the last.
+      t <- runner$time
+    } else {
+      t <- tryCatch(runner$advance_to_size(j - 1L, sizes[[i]], until),
+                    error = function(e) {
+                      integration_failed(runner, e, n - i + 1L, warn)
+                      NULL
+                    })
+      if (is.null(t)) {
+        break
+      }
+      if (is.na(t)) {
+        if (warn) {
+          warning(sprintf("Time reached time_max, %d larger sizes dropped",
+                          n - i + 1L), immediate.=TRUE)
+        }
+        break
+      }
+    }
+    time[[i]] <- t
+    state[i, ] <- runner$state
+    at_size[i] <- list(runner$object$individual)
+  }
+
+  ret <- list(time=time,
               state=state,
-              individual=lapply(res, "[[", "individual"),
-              trajectory=cbind(time=obj$time, state=obj$state),
+              individual=at_size,
+              trajectory=rbind(start, runner$history_steps(), deparse.level = 0),
               env=env)
-  
+  colnames(ret$trajectory) <- c("time", ode_names)
+
   if (filter) {
     i <- !vlapply(ret$individual, is.null)
     if (!all(i)) {
@@ -101,113 +156,26 @@ get_individual_internals_fun <- function (individual) {
   get(paste0(individual$strategy_name, '_oderunner_individual_internals')) #!
 }
 
-grow_individual_bracket <- function(individual, sizes, size_name, env,
-                               time_max=Inf, warn=TRUE) {
-
-  if (length(sizes) == 0L || is.unsorted(sizes)) {
-    stop("sizes must be non-empty and sorted")
+## Warns that the run to `sizes` stopped on error `e`, with `dropped` sizes not
+## reached.
+integration_failed <- function(runner, e, dropped, warn) {
+  if (warn) {
+    msg <- c("Stopping early as integration failed with error: ",
+             conditionMessage(e),
+             sprintf("  %d larger sizes dropped", dropped))
+    warning(paste(msg, collapse="\n"), immediate.=TRUE)
   }
-  if (individual$state(size_name) > sizes[[1]]) {
-    stop("Individual already bigger than smallest target size")
-  }
-  strategy_name <- individual$strategy_name
-
-  # The internals accessor indexes states from zero.
-  size_index <- (which(individual$ode_names == size_name) - 1)
-
-  runner <- OdeRunner(strategy_name)(IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env))
-  internals <- get_individual_internals_fun(runner$object$individual)
-  i <- 1L
-  n <- length(sizes)
-  j <- rep_len(NA_integer_, n)
-
-  state <- list(list(time=runner$time, state=runner$state))
-
-  while (i <= n & runner$time < time_max) {
-
-    ok <- tryCatch({
-      runner$step()
-      TRUE
-    },
-    error=function(e) {
-      msg <- c("Stopping early as integration failed with error: ", e$message,
-               sprintf("  %d larger sizes dropped", sum(is.na(j))))
-      if (warn) {
-        warning(paste(msg, collapse="\n"), immediate.=TRUE)
-      }
-      ## ⚠️ BOTH HALVES, BECAUSE A PARKED RATE IS WHAT A DEAD PLANT LOOKS LIKE.
-      ## Every strategy's mortality_dt returns exactly zero once the accumulated
-      ## hazard reaches establishment_failure_hazard, so the rate alone cannot
-      ## separate "it died" from "it failed for some other reason" -- it reads
-      ## zero for both. The hazard is the fact and the rate is the proxy, so a
-      ## plant is taken to have died if either says so.
-      rates <- runner$object$individual$ode_rates
-      states <- runner$object$individual$ode_state
-      if (rates[[2]] < 1e-10 && states[[2]] < 700) {
-        warning("Integration may have failed for reasons other than mortality",
-                immediate.=TRUE)
-      }
-      FALSE
-    })
-    if (!ok) {
-      break
-    }
-    state <- c(state, list(list(time=runner$time, state=runner$state)))
-
-
-    while (i <= n && internals(runner)$state(size_index) > sizes[[i]]) {
-      j[[i]] <- length(state) - 1L
-      i <- i + 1L
-    }
-    if (runner$time >= time_max) {
-      if (warn) {
-        warning(sprintf("Time exceeded time_max, %d larger sizes dropped",
-                        sum(is.na(j))), immediate.=TRUE)
-      }
-      break
-    }
-  }
-
-
-  t <- vnapply(state, "[[", "time")
-  m <- t(sapply(state, "[[", "state"))
-
-  k <- j + 1L
-  colnames(m) <- runner$object$individual$ode_names
-  list(t0=t[j],
-       t1=t[k],
-       y0=m[j, , drop=FALSE],
-       y1=m[k, , drop=FALSE],
-       time=t,
-       state=m,
-       index=j,
-       runner=runner)
-}
-
-##' @noRd
-##' @importFrom stats uniroot
-grow_individual_to_size <- function(runner, size, size_name, t0, t1, y0) {
-
-  
-  # The internals accessor indexes states from zero.
-  size_index <- (which(runner$object$individual$ode_names == size_name) - 1)
-
-  internals <- get_individual_internals_fun(runner$object$individual)
-  f <- function(t1) {
-    runner$set_state(y0, t0)
-    ## odelia's Solver steps adaptively over a vector of times whose first
-    ## element must be the current time (t0 after set_state); advance to t1.
-    runner$advance_adaptive(c(t0, t1))
-    internals(runner)$state(size_index) - size
-  }
-
-  if (is.na(t0) || is.na(t1) || any(is.na(y0))) {
-    y0[] <- NA_real_
-    list(time=NA_real_, state=y0, individual=NULL)
-  } else {
-    root <- uniroot(f, lower=t0, upper=t1)
-    
-    list(time=root$root, state=runner$state, individual=runner$object$individual)
+  ## ⚠️ BOTH HALVES, BECAUSE A PARKED RATE IS WHAT A DEAD PLANT LOOKS LIKE.
+  ## Every strategy's mortality_dt returns exactly zero once the accumulated
+  ## hazard reaches establishment_failure_hazard, so the rate alone cannot
+  ## separate "it died" from "it failed for some other reason" -- it reads
+  ## zero for both. The hazard is the fact and the rate is the proxy, so a
+  ## plant is taken to have died if either says so.
+  rates <- runner$object$individual$ode_rates
+  states <- runner$object$individual$ode_state
+  if (rates[[2]] < 1e-10 && states[[2]] < 700) {
+    warning("Integration may have failed for reasons other than mortality",
+            immediate.=TRUE)
   }
 }
 
