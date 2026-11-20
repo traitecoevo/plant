@@ -346,8 +346,83 @@ test_that("the top layer survives an export and a resume", {
                tolerance = 1e-3)
 })
 
-test_that("a gradient refuses the top layer", {
-  s <- run(ff16(10), control = ctrl(absorb = 0.05), record = "states")$solver
-  expect_error(stand_gradient(s, metrics = "leaf_area", hyperpar = NULL),
-               "the absorbing top layer is not differentiable")
+test_that("the gradient across the layer, from a resume, is the pinned-step difference", {
+  ## Absorption runs inside the insertion map the sweep transposes, so what an
+  ## absorbed cohort carries into the layer and the height the layer is pinned at
+  ## are differentiated with the rest; hmat and a_f2 reach the stand through that
+  ## height and S_D through the layer's fitness weight. The run is resumed from a
+  ## burn-in, so the sweep starts at the exported state and holds it fixed, as
+  ## the difference does. hmat is lowered so cohorts reach the height in years.
+  ##
+  ## Two selections on state are held, and the referee must stay inside both:
+  ## which cohorts each introduction absorbs, checked below leg by leg, and
+  ## which of the layer and the tallest live cohort is the canopy top, which
+  ## switches as a cohort grows through the absorbing height between
+  ## introductions. On this stand a relative step of 1e-5 in hmat crosses such a
+  ## switch, and the difference is off by 6e-5 where the sweep is not; 1e-6 is
+  ## inside it.
+  absorb_control <- function() {
+    Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
+            absorb_epsilon = 0.05)
+  }
+  stand <- function(lifetime) {
+    p <- testing_parameters("FF16")
+    p$fitness_weighting <- "none"
+    p$max_patch_lifetime <- lifetime
+    p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
+                        birth_rate = 2)
+    p$node_schedule_times <- list(node_schedule_times_periodic(0, lifetime, 0.5))
+    p
+  }
+  burn <- new_solver(stand(40), absorb_control())
+  burn$run_to(15)
+  expect_gt(burn$patch$species[[1]]$top_layer$density, 0)
+  p <- set_initial_state(stand(19), export_patch_state(burn))
+  p$node_schedule_times <- list(node_schedule_times_periodic(15, 19, 0.5))
+  solver <- run(p, NULL, absorb_control(), record = "states")$solver
+  expect_equal(solver$ode_times[[1]], 15)
+
+  ## The stand's census and fitness, and the leg at which each cohort left the
+  ## integrated set.
+  measure <- function(q) {
+    s <- new_solver(q, absorb_control())
+    s$collect <- TRUE
+    s$run()
+    retired <- lapply(s$history, function(h) h$species[[1]]$retired)
+    n <- length(retired[[length(retired)]])
+    leg <- vapply(seq_len(n), function(k) {
+      at <- which(vapply(retired, function(r) length(r) >= k && r[[k]], logical(1)))
+      if (length(at) > 0) at[[1]] else NA_integer_
+    }, integer(1))
+    list(metrics = c(stand_census(s), stand_fitness(s)), leg = leg)
+  }
+  base <- measure(p)
+  ## Cohorts are absorbed after the resume, not only before it.
+  expect_gt(sum(base$leg > 1, na.rm = TRUE), 1)
+
+  metrics <- c("leaf_area", "mass_above_ground", "1.net_reproduction_ratio")
+  g <- stand_gradient(solver, metrics = metrics, hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  q <- pin_steps(solver)
+  for (name in c("hmat", "a_f2", "S_D", "lma", "k_I", "d_I")) {
+    x <- q$strategies[[1]]$pars[[name]]
+    h <- 1e-6 * abs(x)
+    at <- function(v) {
+      r <- q
+      r$strategies[[1]]$pars[[name]] <- v
+      measure(r)
+    }
+    up <- at(x + h)
+    down <- at(x - h)
+    expect_identical(up$leg, base$leg, label = paste(name, "+"))
+    expect_identical(down$leg, base$leg, label = paste(name, "-"))
+    for (m in metrics) {
+      fd <- (up$metrics[[m]] - down$metrics[[m]]) / (2 * h)
+      ## Each metric on its own scale: a column that is zero, S_D's in the
+      ## census, is judged against the metric's largest column.
+      scale <- max(abs(g$gradient[m, paste0("1.", c("hmat", "lma", "k_I"))]))
+      expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd),
+                1e-6 * max(abs(fd), 1e-3 * scale), label = paste(m, name))
+    }
+  }
 })

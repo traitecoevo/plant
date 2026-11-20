@@ -350,14 +350,13 @@ public:
                  "size-density coordinate only. Set "
                  "control$node_density_coordinate = \"birth_date\" and re-run.");
     }
-    // Absorption is a selection on state that moves density between blocks; its
-    // transpose is not written, so a sweep across it would be a different
-    // function's derivative with every number finite.
-    if (control.absorb_epsilon > 0.0) {
-      util::stop(std::string(entry) +
-                 ": the absorbing top layer is not differentiable yet. Set "
-                 "control$absorb_epsilon = 0 and re-run.");
-    }
+    // The absorbing top layer needs nothing here. Absorption runs inside the
+    // insertion map the sweep transposes, at the sweep's scalar, so what an
+    // absorbed cohort carries into the layer and the height the layer is pinned
+    // at are differentiated with it. Which cohorts go is a selection on state,
+    // read off the recorded values and held fixed, as a pinned-step difference
+    // holds it while no cohort sits at the absorbing height.
+
     // A constant field is exogenous to the run that stands in it, but the sweep's
     // rebound patches rebuild their field from their own state, so a sweep of a
     // run in one would transpose a different run's field. run_mutant_constant()

@@ -158,11 +158,19 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   where it belongs to none), or \code{NULL} where the metric answered; and
 ##'   \code{control}, the entries the gradient was taken at.
 ##'
-##'   Refused outright, with an error: a run on the height coordinate, with the
-##'   absorbing top layer, in a constant field, or with a rain pulse that filled
-##'   a soil layer and shed the rest, which sets the layer whatever it held; and
-##'   a trade-off that derives a parameter an equation reads and that has no
-##'   column.
+##'   Refused outright, with an error: a run on the height coordinate, in a
+##'   constant field, or with a rain pulse that filled a soil layer and shed the
+##'   rest, which sets the layer whatever it held; and a trade-off that derives a
+##'   parameter an equation reads and that has no column.
+##'
+##'   A run resumed from \code{\link{export_patch_state}()} is differentiated
+##'   from its resume time, with the exported state held fixed: how that state
+##'   depends on the traits is not in the gradient. That is exact for an
+##'   invader, which starts empty, and an approximation for a resident, to be
+##'   stated beside any resident gradient taken that way. With the absorbing
+##'   top layer on (\code{Control$absorb_epsilon}), which cohorts are absorbed
+##'   is held as the run chose it, and what they carry into the layer and the
+##'   height it is pinned at move with the traits.
 ##'
 ##' @section Traits and parameters:
 ##' A column is the derivative as its trait moves through the construction that
