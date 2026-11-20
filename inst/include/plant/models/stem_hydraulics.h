@@ -42,9 +42,13 @@ namespace stem_hydraulics {
 // collapsed configuration is bit-identical to the old expression rather than
 // merely equal to it (invariance criterion I7).
 //
-// PRECONDITIONS, validated once in TF24_Model::prepare_strategy() rather
-// than here, because this sits on the compute_rates path:
+// PRECONDITIONS, checked by the caller rather than here, because this sits on
+// the compute_rates path:
 //   beta == 0  ||  0 < L_tip < L_top
+// TF24_Model::prepare_strategy() checks L_tip and the seed's L_top once; the
+// rate path checks L_tip < L_top on every call, before forming the path
+// (TF24_Model::update_leaf_specific_conductance_max), since a trial stage can
+// take a newborn below the terminal segment.
 // Templated on the scalar because it sits on the rate path, which the census
 // gradient records: L_top is height*eta_c and both L_tip and beta are model
 // parameters carrying gradient columns, so all three arrive active on a
