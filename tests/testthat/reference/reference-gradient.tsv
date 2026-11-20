@@ -1459,3 +1459,73 @@ clamped	2	L_tip	leaf_area	-0.6322078791032304	-0.63220786800100015	-0.6322085126
 clamped	2	L_tip	mass_above_ground	-0.527278148920729	-0.5272781444798369	-0.52727868760094043	-0.52507601946555349	-0.5272781444798369	1.0000000000000001e-05	4.4408920985006262e-09	
 clamped	2	L_tip	area_stem	-0.00018525424792283085	-0.00018525424609323966	-0.00018525443412438955	-0.00018422489335121229	-0.00018525424609323966	1.0000000000000001e-05	1.829591193174343e-12	
 clamped	2	recruitment_decay	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing recruitment_decay moved 0 registered parameters ()
+wet	1	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+wet	1	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	1	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	1	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	1	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	1	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	1	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	2	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+wet	2	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	2	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	2	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	2	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	2	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+wet	2	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	1	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+drought	1	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	1	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	1	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	1	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	1	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	1	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	2	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+drought	2	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	2	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	2	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	2	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	2	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+drought	2	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	1	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+seasonal	1	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	1	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	1	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	1	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	1	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	1	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	2	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+seasonal	2	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	2	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	2	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	2	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	2	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+seasonal	2	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	1	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+shaded	1	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	1	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	1	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	1	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	1	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	1	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	2	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+shaded	2	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	2	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	2	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	2	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	2	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+shaded	2	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	1	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+clamped	1	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	1	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	1	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	1	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	1	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	1	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	2	a_cr1	NA	                NA	                NA	                NA	                NA	                NA	                NA	                NA	differencing a_cr1 moved 0 registered parameters ()
+clamped	2	r_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	2	r_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	2	r_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	2	k_cr	leaf_area	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	2	k_cr	mass_above_ground	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	
+clamped	2	k_cr	area_stem	                 0	                 0	                 0	                 0	                 0	1.0000000000000001e-05	                 0	

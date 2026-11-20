@@ -365,14 +365,7 @@ struct TF24_Pars {
       no_gradient{"alpha_NIR", "the leaf supplies no row for it"},
       no_gradient{"use_energy_balance",
                   "a gate, compared rather than differentiated"},
-      // The coarse-root pool is opt-in: at the default a_cr1 = 0 it is empty, so
-      // r_cr and k_cr multiply zero and a column would be an exact zero that
-      // reads as an answer. No gradient fixture runs with the pool on.
-      no_gradient{"a_cr1",
-                  "the coarse-root pool is opt-in and has no gradient fixture"},
-      no_gradient{"r_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
-      no_gradient{"k_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
-      // Flexible allometry is opt-in the same way: at a_pl0 = 0 nothing
+      // Flexible allometry is opt-in: at the default a_pl0 = 0 nothing
       // is withheld, so the other four gate parameters multiply zero.
       no_gradient{"a_pl0",
                   "flexible allometry is opt-in and has no gradient fixture"},
@@ -429,6 +422,10 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(r_s),
       PLANT_TF24_AD_PARAMETER(r_b),
       PLANT_TF24_AD_PARAMETER(r_r),
+      // r_cr and k_cr multiply the coarse-root mass, so at the default a_cr1 = 0
+      // their columns are exact zeros by construction, as FF16's are. They are
+      // registered all the same: the zero is the value's, not the parameter's,
+      // and a_cr1's own column is live at zero.
       PLANT_TF24_AD_PARAMETER(r_cr),
       PLANT_TF24_AD_PARAMETER(r_l),
       PLANT_TF24_AD_PARAMETER(a_y),

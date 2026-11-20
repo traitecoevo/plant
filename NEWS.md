@@ -13,6 +13,10 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **A TF24 or TF24f stand gradient has columns for the coarse-root pool's `a_cr1`, `r_cr` and `k_cr`, as FF16's has.** TF24 refused all three, because at the default `a_cr1 = 0` the pool is empty and `r_cr` and `k_cr` multiply its mass; FF16 offered them. Both models now offer them, and `?stand_gradient` says that at `a_cr1 = 0` the columns of `r_cr` and `k_cr` are exact zeros by construction; `a_cr1`'s is live there. Each column agrees with pinned-step differences to 2e-7, with the pool on and off. No number moves. Migration:
+  * a TF24 or TF24f gradient indexed by position -> index it by name; `a_cr1` sits after `a_r1`, `r_cr` after `r_r` and `k_cr` after `k_r`, so every column after `a_r1` moves
+  * `stand_gradient(x, traits = "1.a_cr1")` (or `r_cr`, `k_cr`) on TF24, which was refused by name -> it answers
+
 * **TF24f reports its leaf solves' operating points and its curvature margin, which were TF24's alone; the readers take the model's name.** TF24f's solves were not tallied, so a run could not say how often a leaf was shut or a collar tracked. Each solve is now tallied by the kind the leaf was left in: a newborn's optimum as TF24's is, a tracked collar as `prescribed`, a leaf with no feasible interval as `hydraulic-shutdown`. FF16 solves no leaf and is refused by name. No number moves. Migration (internal, reached as `plant:::`):
   * `census_operating_point_counts_tf24(scm)` -> `census_operating_point_counts(scm, "TF24")`, or `"TF24f"`
   * `census_operating_point_names_tf24()` -> `census_operating_point_names()`

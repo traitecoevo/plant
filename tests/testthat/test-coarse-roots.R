@@ -179,3 +179,66 @@ test_that("coarse roots stay out of TF24's water uptake", {
 
   expect_identical(water_aux(0.3), water_aux(0.0))
 })
+
+test_that("TF24's coarse-root columns are pinned-step differences, and zero while the pool is empty", {
+  ## Both models offer a_cr1, r_cr and k_cr as gradient columns. With the pool
+  ## on, each is checked against a central difference of runs pinned to the
+  ## recorded steps, metric by metric on its own scale; they agree to 2e-8
+  ## here and to 2e-7 on other stands.
+  ## At the default a_cr1 = 0 the pool is empty, so r_cr's and k_cr's columns
+  ## are exact zeros by construction, while a_cr1's is live: it is the cost of
+  ## starting a pool, and reaches the seed's mass too.
+  stand <- function(a_cr1) {
+    p <- testing_parameters("TF24")
+    p$max_patch_lifetime <- 3
+    p <- add_strategies(p, trait_matrix(c(0, 6), c("TF24_floor_lambda_o", "hmat")),
+                        hyperpar = default_hyperpar("TF24"), birth_rate = 10)
+    full <- p$node_schedule_times[[1]]
+    p$node_schedule_times <-
+      list(full[round(seq(1, length(full), length.out = 12))])
+    p$strategies[[1]]$pars$a_cr1 <- a_cr1
+    p
+  }
+  env <- function() {
+    e <- Environment("TF24")
+    e$set_soil_water_state(rep(0.428 * 0.5, e$get_soil_number_of_depths()))
+    e$extrinsic_drivers_set_constant("rainfall", 1)
+    e
+  }
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  metrics_of <- function(q) {
+    s <- run(q, env(), ctrl)$solver
+    c(stand_census(s), stand_fitness(s))
+  }
+  traits <- c("a_cr1", "r_cr", "k_cr")
+  gradient_at <- function(a_cr1) {
+    solver <- run(stand(a_cr1), env(), ctrl, record = "states")$solver
+    g <- stand_gradient(solver, traits = paste0("1.", traits), hyperpar = NULL)
+    expect_false(any(stand_gradient_refused(g)))
+    list(g = g$gradient, pinned = pin_steps(solver))
+  }
+
+  on <- gradient_at(0.25)
+  for (name in traits) {
+    fd <- central_difference(on$pinned, 1, name, NULL, metrics_of)
+    for (m in rownames(on$g)) {
+      expect_equal(on$g[m, paste0("1.", name)], fd[[m]], tolerance = 1e-6,
+                   label = paste(m, name))
+    }
+  }
+
+  off <- gradient_at(0)
+  expect_true(all(off$g[, c("1.r_cr", "1.k_cr")] == 0))
+  ## A relative step moves nothing at zero, so a_cr1 takes an absolute one.
+  h <- 1e-6
+  at <- function(v) {
+    q <- off$pinned
+    q$strategies[[1]]$pars$a_cr1 <- v
+    metrics_of(q)
+  }
+  fd <- (at(h) - at(-h)) / (2 * h)
+  for (m in rownames(off$g)) {
+    expect_gt(abs(off$g[m, "1.a_cr1"]), 0)
+    expect_equal(off$g[m, "1.a_cr1"], fd[[m]], tolerance = 1e-6, label = m)
+  }
+})
