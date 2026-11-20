@@ -176,9 +176,8 @@ mortality.dt <- function(traits, h, env) {
 }
 
 height.at.birth <- function(traits) {
-  ## TODO(#482): These are hard-coded for now, but the upper limit could be
-  ## got at directly if we had a couple of extra functions to compute
-  ## height from total area.
+  ## At the reference traits the seedling is about 0.34 m tall, inside this
+  ## bracket; a much larger seed mass (omega) would need a wider one.
   hmin <- 1e-16
   hmax <- 1
   f <- function(h)

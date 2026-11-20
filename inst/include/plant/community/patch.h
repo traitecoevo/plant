@@ -256,6 +256,12 @@ public:
   // caller to. Pushing the nodes is how the wider state is computed, so this
   // patch is left holding it and a walk re-seats it below it.
   //
+  // It is everything the run did at that instant: the scheduled actions there
+  // first, in the order the run applied them, then the nodes. A recorded
+  // insertion row holds the state after both, so a map leaving the actions out
+  // is a different function from the run's -- the sweep would transpose the
+  // wrong one, and a tangent walking the recording would run without them.
+  //
   // The species are the schedule's, looked up by the time the insertion happened
   // -- which is what lets the solver ask for this knowing only a recorded time.
   template <typename It>
@@ -273,6 +279,11 @@ public:
   // own fast sub-model over the event's nominal duration with the patch's
   // demography frozen; to this solver that is still one instantaneous jump.
   EventRecord apply_event(const ScheduleEvent& event);
+
+  // What an event does to the state, at this patch's scalar, and what it reports
+  // having applied: apply_event without the record and the field rebuild. The
+  // run and the insertion map both act through it, so the two are one function.
+  std::vector<double> apply_action(const ScheduleEvent& event);
 
   // Scale every selected node's density by phi, and report how many nodes were
   // touched. Shared by harvest and climate extremes, which differ only in how phi
@@ -365,6 +376,11 @@ public:
   // strategy's, so a caller adds the two rather than reading them apart; this is
   // the one route to it, because the environment itself is not the caller's.
   clamp_counter& environment_clamps() const { return environment.clamps; }
+  // And the light field's, which the environment holds and every model reads
+  // through, so this one exists for every model.
+  clamp_counter& light_field_clamps() const {
+    return environment.light_availability.clamps;
+  }
 
   // The insertion map's whole Jacobian, by forward tangent: one row per wider state entry
   // and one column per input, the state's entries first and the traits after.
@@ -380,6 +396,11 @@ public:
   // committed and clamped by whoever reads it next. Walks the state vector in
   // the order ode_state writes it.
   bool ode_state_valid(const std::vector<double>& y) const;
+
+  // Why ode_state_valid refused the last state it refused, and empty once it
+  // accepts one. The solver reports only that a state was refused, so a run
+  // that stops because it cannot leave one appends this to say which.
+  const std::string& state_refusal() const { return state_refusal_; }
 
   // Each state's tolerance multiplier on an adaptive step: the soil's on its
   // layers and 1 elsewhere, whatever the step's start time.
@@ -513,6 +534,15 @@ public:
   void set_introduction_times(const std::vector<std::vector<double>>& times) {
     parameters.node_schedule_times = times;
   }
+  // The actions the run applies at its insertions, held for the same reason:
+  // the insertion map applies them, and a walk knows only a recorded time. In
+  // schedule order, which within an instant is the order they are applied in.
+  // Shared and immutable, so a sweep's reseats and rebinds copy a pointer
+  // rather than the list.
+  void set_scheduled_actions(std::vector<ScheduleEvent> actions) {
+    scheduled_actions =
+      std::make_shared<const std::vector<ScheduleEvent>>(std::move(actions));
+  }
 
   introduction introduced_at(double time) const;
   // How many nodes species `i` holds at a recorded `time`: what it was initialised
@@ -564,6 +594,9 @@ public:
   void overwrite_parameters(const parameters_type& p);
 
 private:
+  // What state_refusal() returns: a diagnostic, written by a const check.
+  mutable std::string state_refusal_;
+
   using base_type::parameters;
   using base_type::area;
   using base_type::environment;
@@ -604,6 +637,9 @@ private:
 
   void compute_environment();
   void compute_rates();
+
+  // See set_scheduled_actions(). Null where none were set, which is none.
+  std::shared_ptr<const std::vector<ScheduleEvent>> scheduled_actions;
 
   // Set where a run is asked to keep its field, read by store_solved().
   bool keep_field = false;
@@ -687,7 +723,8 @@ private:
         // height that is not positive and finite would absorb nothing or every
         // cohort bar the youngest.
         for (const strategy_type& st : parameters.strategies) {
-          const double h = st.asymptotic_height(control.absorb_epsilon);
+          const double h = odelia::util::to_passive(
+              st.asymptotic_height(control.absorb_epsilon));
           if (!(h > 0.0) || !util::is_finite(h)) {
             util::stop("The absorbing height is " + util::to_string(h) +
                        " for a strategy, from hmat and a_f2: it needs a "
@@ -823,6 +860,7 @@ void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
   util::check_length(from.species.size(), species.size());
   area = from.area;
   control = from.control;
+  scheduled_actions = from.scheduled_actions;
   for (size_t i = 0; i < species.size(); ++i) {
     // The strategy object stays where it is, so every node pointing at it reads
     // the values written; a TF24 strategy's leaf is copied with them.
@@ -1884,7 +1922,10 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
     if (skip_retired && n->retired()) {
       continue;
     }
-    const double phi = select(n->height());
+    // The selection is on the passive height and phi is a constant, so at an
+    // active scalar the event shifts the two states by a constant: the rows it
+    // carries are the identity's.
+    const double phi = select(odelia::util::to_passive(n->height()));
     if (phi >= 1.0) {
       continue;
     }
@@ -1892,10 +1933,10 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
       refuse_whole();
     }
     const double log_phi = std::log(phi);
-    const double before = n->get_density();
+    const double before = odelia::util::to_passive(n->get_density());
     n->set_log_density(n->get_log_density() + log_phi);
     if (util::is_finite(before)) {
-      density_removed += before - n->get_density();
+      density_removed += before - odelia::util::to_passive(n->get_density());
     }
     n->individual.set_state("mortality",
                             n->individual.state(MORTALITY_INDEX) - log_phi);
@@ -1923,7 +1964,21 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
   rec.target = event.target;
   rec.target_index = event.target_index;
   rec.requested = event.params;
+  rec.applied = apply_action(event);
 
+  // Anything that changed the vegetation changes the light profile too, and
+  // every cohort's rates are computed against it.
+  if (event.type != EventType::ResourcePulse) {
+    // The field is tabulated on fixed fractions of height_max, so a rebuild
+    // needs nothing rescaled.
+    compute_environment();
+  }
+  return rec;
+}
+
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::apply_action(const ScheduleEvent& event) {
+  std::vector<double> applied;
   // Which species the event reaches: one, or all of them.
   std::vector<size_t> targets;
   if (event.target == EventTarget::Species) {
@@ -1972,10 +2027,10 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
                  util::to_string(environment.n_resources()) + " resources");
     }
     if constexpr (HasPrivateWater<T>) {
-      rec.applied = private_water_pulse(event.target_index, event.params.at(0));
+      applied = private_water_pulse(event.target_index, event.params.at(0));
     } else {
-      rec.applied = environment.add_resource_pulse(event.target_index,
-                                                   event.params.at(0));
+      applied = environment.add_resource_pulse(event.target_index,
+                                               event.params.at(0));
     }
     break;
   }
@@ -2001,7 +2056,7 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     const auto r = scale_targets([&](double size) {
       return (size >= size_min && size <= size_max) ? phi : 1.0;
     });
-    rec.applied = {fraction, static_cast<double>(r.first), r.second};
+    applied = {fraction, static_cast<double>(r.first), r.second};
     break;
   }
 
@@ -2028,19 +2083,11 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
     const double phi =
       climate_extreme_survival(intensity, duration, threshold, sensitivity);
     const auto r = scale_targets([&](double) { return phi; });
-    rec.applied = {1.0 - phi, static_cast<double>(r.first), r.second};
+    applied = {1.0 - phi, static_cast<double>(r.first), r.second};
     break;
   }
   }
-
-  // Anything that changed the vegetation changes the light profile too, and
-  // every cohort's rates are computed against it.
-  if (event.type != EventType::ResourcePulse) {
-    // The field is tabulated on fixed fractions of height_max, so a rebuild
-    // needs nothing rescaled.
-    compute_environment();
-  }
-  return rec;
+  return applied;
 }
 
 template <typename T, typename E>
@@ -2219,8 +2266,25 @@ template <typename It>
 void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
                                  It x, std::vector<value_type>& y) {
   set_state_and_boundary(x, time);
+  bool vegetation_moved = false;
+  if (scheduled_actions) {
+    for (const ScheduleEvent& action : *scheduled_actions) {
+      if (util::identical(action.time_introduction(), time)) {
+        apply_action(action);
+        vegetation_moved |= action.type != EventType::ResourcePulse;
+      }
+    }
+  }
   absorb_tall();
   push_nodes(species_index, time);
+  // The field the loaded state built is the one before the actions. A walk
+  // reads the next step's first rates off this patch, and the run took them in
+  // the field after a harvest or a climate extreme, so it is rebuilt where one
+  // moved the vegetation. A pulse moves only the soil, which the rates read
+  // from the state.
+  if (vegetation_moved) {
+    compute_environment();
+  }
   y.assign(ode_size(), value_type(0.0));
   ode_state(y.begin());
 }
@@ -2301,12 +2365,24 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   // ODE vector, it is where integrator overshoot shows up (TF24's soil water,
   // driven past its bounds by a step inherited across a discrete change), and
   // the completed step's state never reaches check_finite_ode_state(), which
-  // runs per stage. Finiteness only -- a node's log_density is legitimately
-  // -Inf, so this must not be extended over the species block.
+  // runs per stage. Finiteness -- a node's log_density is legitimately -Inf, so
+  // this must not be extended over the species block -- and, for a soil, each
+  // layer at or below its saturation.
+  state_refusal_.clear();
   const size_t n_env = environment.ode_size();
   if (n_env > 0 && y.size() >= n_env) {
     for (size_t i = y.size() - n_env; i < y.size(); ++i) {
       if (!util::is_finite(y[i])) {
+        state_refusal_ = "environment state " +
+                         util::to_string(i - (y.size() - n_env) + 1) +
+                         " is " + util::format_double(y[i]);
+        return false;
+      }
+    }
+    if constexpr (HasSoil<E>) {
+      const auto first = y.begin() + static_cast<std::ptrdiff_t>(y.size() - n_env);
+      state_refusal_ = environment.saturation_refusal(first);
+      if (!state_refusal_.empty()) {
         return false;
       }
     }
@@ -2335,13 +2411,21 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   // Asked as "is it inside", so a NaN fails: NaN < 0.0 is false, and a test
   // for being outside lets it through.
   const auto inside = [](double v) { return v >= 0.0 && util::is_finite(v); };
+  const auto refuse = [&](size_t s, const std::string& where, size_t i,
+                          double v) {
+    state_refusal_ = "species " + util::to_string(s + 1) + ", " + where + ": '" +
+                     T::state_names()[i] + "' is " + util::format_double(v) +
+                     ", outside [0, Inf)";
+    return false;
+  };
   const size_t stride = node_type::ode_size();
   size_t at = 0;
-  for (const auto& sp : species) {
+  for (size_t s = 0; s < species.size(); ++s) {
+    const auto& sp = species[s];
     for (size_t k = 0; k < sp.size(); ++k, at += stride) {
       for (const size_t i : bounded) {
         if (!inside(y[at + i])) {
-          return false;
+          return refuse(s, "node " + util::to_string(k + 1), i, y[at + i]);
         }
       }
     }
@@ -2353,12 +2437,15 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
     if (sp.top_ode_size() > 0) {
       const size_t density_at = at + individual_type::ode_size();
       if (!util::is_finite(y[density_at])) {
+        state_refusal_ = "species " + util::to_string(s + 1) +
+                         ": the top layer's density is " +
+                         util::format_double(y[density_at]);
         return false;
       }
       if (y[density_at] > 0.0) {
         for (const size_t i : bounded) {
           if (!inside(y[at + i])) {
-            return false;
+            return refuse(s, "top layer", i, y[at + i]);
           }
         }
       }

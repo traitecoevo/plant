@@ -128,6 +128,13 @@ jobs:
           cat "$makevars"
           echo "R_MAKEVARS_USER=$makevars" >> "$GITHUB_ENV"
 
+      # The reference site deploys only from master, so a topic missing from
+      # its index would otherwise first fail at release. Reads man/ only.
+      - name: Check the pkgdown index
+        if: runner.os == 'Linux'
+        run: pkgdown::check_pkgdown()
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           args: 'c("--no-manual", "--as-cran")'

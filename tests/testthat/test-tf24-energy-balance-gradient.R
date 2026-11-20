@@ -5,37 +5,13 @@
 # light (k_I) is the pinned-step central difference. Filled without the NIR
 # slot, the k_I column misses NIR's share of the heat load.
 
-eb_stand_parameters <- function() {
-  p <- testing_parameters("TF24")
-  p$max_patch_lifetime <- 6
-  lma <- p$strategy_default$pars[["lma"]]
-  p <- add_strategies(p, trait_matrix(c(0, 6, lma),
-                                      c("TF24_floor_lambda_o", "hmat", "lma")),
-                      hyperpar = default_hyperpar("TF24"), birth_rate = 10)
-  p$strategies[[1]]$pars$use_energy_balance <- 1
-  full <- p$node_schedule_times[[1]]
-  p$node_schedule_times <-
-    list(full[round(seq(1, length(full), length.out = 12))])
-  p
-}
-
-eb_stand_run <- function(p, record = TRUE) {
-  env <- Environment("TF24")
-  env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
-  env$extrinsic_drivers_set_constant("rainfall", 1)
-  run(p, env,
-      Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
-              ode_tol_abs = 1e-6),
-      record = if (record) "states" else character(0))$solver
-}
-
 test_that("with the energy balance on, the light field's column is the pinned-step difference", {
-  p <- eb_stand_parameters()
-  solver <- eb_stand_run(p)
+  p <- tf24_fitness_stand_parameters(energy_balance = TRUE)
+  solver <- tf24_fitness_stand_run(p)
   off <- p
   off$strategies[[1]]$pars$use_energy_balance <- 0
   # The balance is live here: it moves fitness by orders of magnitude.
-  expect_gt(stand_fitness(eb_stand_run(off, record = FALSE))[[1]],
+  expect_gt(stand_fitness(tf24_fitness_stand_run(off, record = FALSE))[[1]],
             10 * stand_fitness(solver)[[1]])
 
   metrics <- c("1.net_reproduction_ratio", "1.offspring_production")
@@ -44,17 +20,10 @@ test_that("with the energy balance on, the light field's column is the pinned-st
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
 
-  pinned <- solver$parameters
-  pinned$ode_times <- solver$ode_times
-  pinned$ode_step_sizes <- solver$ode_step_sizes
+  pinned <- pin_steps(solver)
+  fitness_of <- function(q) stand_fitness(tf24_fitness_stand_run(q, record = FALSE))
   for (name in names) {
-    x <- pinned$strategies[[1]]$pars[[name]]
-    h <- 1e-5 * abs(x)
-    up <- down <- pinned
-    up$strategies[[1]]$pars[[name]] <- x + h
-    down$strategies[[1]]$pars[[name]] <- x - h
-    fd <- (stand_fitness(eb_stand_run(up, record = FALSE)) -
-           stand_fitness(eb_stand_run(down, record = FALSE))) / (2 * h)
+    fd <- central_difference(pinned, 1, name, NULL, fitness_of, rel = 1e-5)
     for (metric in metrics) {
       expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd[[metric]]),
                 1e-5 * abs(fd[[metric]]), label = paste(metric, name))

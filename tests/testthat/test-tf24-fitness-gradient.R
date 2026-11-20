@@ -4,45 +4,15 @@
 # (test-ff16-fitness-gradient.R). Each row is refereed on its own scale: the
 # fitness sits orders of magnitude away from the census.
 #
-# The stand reproduces: hmat is lowered to 6 m so cohorts mature inside its six
-# years, and it is dense enough at a birth rate of 10 to hold an equilibrium.
-
-fitness_stand_parameters <- function(birth_rate, lma_factor = 1) {
-  p <- testing_parameters("TF24")
-  p$max_patch_lifetime <- 6
-  lma <- p$strategy_default$pars[["lma"]]
-  p <- add_strategies(p, trait_matrix(c(0, 6, lma * lma_factor),
-                                      c("TF24_floor_lambda_o", "hmat", "lma")),
-                      hyperpar = default_hyperpar("TF24"), birth_rate = birth_rate)
-  full <- p$node_schedule_times[[1]]
-  p$node_schedule_times <-
-    list(full[round(seq(1, length(full), length.out = 12))])
-  p
-}
-
-fitness_stand_environment <- function() {
-  env <- Environment("TF24")
-  env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
-  env$extrinsic_drivers_set_constant("rainfall", 1)
-  env
-}
-
-fitness_stand_control <- function() {
-  Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
-          ode_tol_abs = 1e-6)
-}
-
-fitness_stand_run <- function(p, record = TRUE) {
-  run(p, fitness_stand_environment(), fitness_stand_control(),
-      record = if (record) "states" else character(0))$solver
-}
+# The stand is tf24_fitness_stand_parameters(): it reproduces, and is dense
+# enough at a birth rate of 10 to hold an equilibrium.
 
 # The stand at a birth rate of 10, recorded once for the two tests that read it.
 fitness_stand_at_10 <- local({
   built <- NULL
   function() {
     if (is.null(built)) {
-      built <<- fitness_stand_run(fitness_stand_parameters(10))
+      built <<- tf24_fitness_stand_run(tf24_fitness_stand_parameters(10))
     }
     built
   }
@@ -85,8 +55,8 @@ test_that("TF24's fitness and census gradients are the pinned-step central diffe
   expect_false(any(stand_gradient_refused(g)))
   expect_gt(g$value[["1.net_reproduction_ratio"]], 1)
   # The branch these rows are taken on: the stand's leaves sit interior.
-  kinds <- stats::setNames(census_operating_point_counts_tf24(solver)[[1]],
-                           census_operating_point_names_tf24())
+  kinds <- stats::setNames(census_operating_point_counts(solver, "TF24")[[1]],
+                           census_operating_point_names())
   expect_gt(kinds[["interior"]], 0)
 
   pinned <- pin_steps(solver)
@@ -98,7 +68,7 @@ test_that("TF24's fitness and census gradients are the pinned-step central diffe
   # 5e-3 at 1e-4. All are held to 1e-4.
   rounding_floor <- "a_d0"
   measure <- function(q) {
-    s <- fitness_stand_run(q, record = FALSE)
+    s <- tf24_fitness_stand_run(q, record = FALSE)
     c(stand_fitness(s), stand_census(s))[metrics]
   }
   for (name in c(names, "birth_rate")) {
@@ -126,7 +96,7 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
   # birth-rate column of offspring production J.
   b <- 10
   for (k in 1:8) {
-    resident <- fitness_stand_run(fitness_stand_parameters(b))
+    resident <- tf24_fitness_stand_run(tf24_fitness_stand_parameters(b))
     g <- stand_gradient(resident, metrics = "1.offspring_production",
                         traits = "1.birth_rate", hyperpar = NULL)
     J <- g$value[["1.offspring_production"]]
@@ -143,13 +113,13 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
 
   # An invader at the resident's traits has the resident's ratio, one.
   resident$keep_states <- TRUE
-  resident$run_mutant(fitness_stand_parameters(1))
+  resident$run_mutant(tf24_fitness_stand_parameters(1))
   expect_equal(resident$patch$net_reproduction_ratios, 1, tolerance = 1e-8)
 
   # An invader at lma x0.9, differentiated in the recorded field of the
   # resident's equilibrium: the sweep against a central difference of
   # invasions of the same recording.
-  invader <- fitness_stand_parameters(1, 0.9)
+  invader <- tf24_fitness_stand_parameters(1, 0.9)
   resident$run_mutant(invader)
   gi <- stand_gradient(resident, metrics = "1.net_reproduction_ratio",
                        traits = c("1.lma", "1.hmat"), hyperpar = NULL)

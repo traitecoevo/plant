@@ -184,3 +184,38 @@ test_that("the gradient refuses what it cannot differentiate, by name", {
   solver <- run(p, NULL, Control(node_density_coordinate = "birth_date"))$solver
   expect_error(stand_gradient(solver, hyperpar = NULL), "No census is declared for the K93 model")
 })
+
+test_that("FF16's growth cutoff is counted where suppressed cohorts reach it", {
+  # At zero net production FF16 sets the height, fecundity and heartwood rates
+  # to zero. Height and fecundity reach zero there anyway, so for them it is a
+  # kink; the heartwood rates jump, so a cohort crossing the cutoff moves the
+  # run by a step the sweep does not carry. Between such steps the sweep is the
+  # pinned run's derivative. Counted, so a gradient taken where it binds says so.
+  #
+  # At k_I = 4 suppressed cohorts reach it. There a line fitted to the pinned
+  # run over 1e-3 of a_p1 either side is 0.9% shallower than mass_above_ground's
+  # column and 3.7% than area_stem's; leaf_area, which reads no heartwood, is
+  # within 5e-4. At the default k_I nothing reaches it.
+  counts <- function(k_I) {
+    p <- testing_parameters("FF16")
+    p$max_patch_lifetime <- 5
+    p <- add_strategies(p, trait_matrix(c(0.0825, k_I), c("lma", "k_I")),
+                        birth_rate = list(2))
+    solver <- run(p, NULL, referee_control(), record = "states")$solver
+    fired <- census_clamp_counts(solver, "FF16")
+    g <- stand_gradient(solver, metrics = "mass_above_ground",
+                        traits = "1.a_p1", hyperpar = NULL)
+    expect_false(any(stand_gradient_refused(g)))
+    list(fired = fired, swept = census_clamp_counts(solver, "FF16", TRUE))
+  }
+  shaded <- counts(4)
+  expect_gt(sum(shaded$fired[, "production_cutoff"]), 0)
+  expect_gt(sum(shaded$swept[, "production_cutoff"]), 0)
+  open <- counts(0.5)
+  expect_equal(sum(open$fired[, "production_cutoff"]), 0)
+  expect_equal(sum(open$swept[, "production_cutoff"]), 0)
+  # FF16 reaches no other site, the light field's floor included.
+  others <- setdiff(colnames(shaded$fired), "production_cutoff")
+  expect_true(all(shaded$fired[, others] == 0))
+  expect_true(all(shaded$swept[, others] == 0))
+})
