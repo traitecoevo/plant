@@ -22,6 +22,48 @@ h_abs <- function(epsilon) {
   s$pars$hmat * (1 + log((1 - epsilon) / epsilon) / s$pars$a_f2)
 }
 
+# Run a solver with its legs collected, and return the stand's census and
+# fitness with the leg at which each cohort of species 1 left the integrated
+# set (NA for one still in it): what a referee across the layer must hold.
+absorbing_run <- function(solver) {
+  solver$collect <- TRUE
+  solver$run()
+  retired <- lapply(solver$history, function(h) h$species[[1]]$retired)
+  n <- length(retired[[length(retired)]])
+  leg <- vapply(seq_len(n), function(k) {
+    at <- which(vapply(retired, function(r) length(r) >= k && r[[k]], logical(1)))
+    if (length(at) > 0) at[[1]] else NA_integer_
+  }, integer(1))
+  list(metrics = c(stand_census(solver), stand_fitness(solver)), leg = leg)
+}
+
+# Each named column of species 1 against a central difference of `measure`
+# over the pinned parameters `q`, at a relative step of 1e-6, with both runs
+# absorbing the cohorts `base` absorbed, leg by leg. Each metric is judged on
+# its own scale, so a column that is zero (S_D's in the census) is judged
+# against the metric's largest column.
+expect_layer_gradient <- function(g, q, measure, base, metrics, names) {
+  for (name in names) {
+    x <- q$strategies[[1]]$pars[[name]]
+    h <- 1e-6 * abs(x)
+    at <- function(v) {
+      r <- q
+      r$strategies[[1]]$pars[[name]] <- v
+      measure(r)
+    }
+    up <- at(x + h)
+    down <- at(x - h)
+    expect_identical(up$leg, base$leg, label = paste(name, "+"))
+    expect_identical(down$leg, base$leg, label = paste(name, "-"))
+    for (m in metrics) {
+      fd <- (up$metrics[[m]] - down$metrics[[m]]) / (2 * h)
+      scale <- max(abs(g$gradient[m, paste0("1.", names)]))
+      expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd),
+                1e-6 * max(abs(fd), 1e-3 * scale), label = paste(m, name))
+    }
+  }
+}
+
 test_that("the top layer is off by default and refused where it cannot work", {
   expect_equal(Control()$absorb_epsilon, 0)
   expect_false(run(ff16(5))$solver$patch$species[[1]]$top_layer$on)
@@ -382,19 +424,8 @@ test_that("the gradient across the layer, from a resume, is the pinned-step diff
   solver <- run(p, NULL, absorb_control(), record = "states")$solver
   expect_equal(solver$ode_times[[1]], 15)
 
-  ## The stand's census and fitness, and the leg at which each cohort left the
-  ## integrated set.
   measure <- function(q) {
-    s <- new_solver(q, absorb_control())
-    s$collect <- TRUE
-    s$run()
-    retired <- lapply(s$history, function(h) h$species[[1]]$retired)
-    n <- length(retired[[length(retired)]])
-    leg <- vapply(seq_len(n), function(k) {
-      at <- which(vapply(retired, function(r) length(r) >= k && r[[k]], logical(1)))
-      if (length(at) > 0) at[[1]] else NA_integer_
-    }, integer(1))
-    list(metrics = c(stand_census(s), stand_fitness(s)), leg = leg)
+    absorbing_run(new_solver(q, absorb_control()))
   }
   base <- measure(p)
   ## Cohorts are absorbed after the resume, not only before it.
@@ -403,26 +434,40 @@ test_that("the gradient across the layer, from a resume, is the pinned-step diff
   metrics <- c("leaf_area", "mass_above_ground", "1.net_reproduction_ratio")
   g <- stand_gradient(solver, metrics = metrics, hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  q <- pin_steps(solver)
-  for (name in c("hmat", "a_f2", "S_D", "lma", "k_I", "d_I")) {
-    x <- q$strategies[[1]]$pars[[name]]
-    h <- 1e-6 * abs(x)
-    at <- function(v) {
-      r <- q
-      r$strategies[[1]]$pars[[name]] <- v
-      measure(r)
-    }
-    up <- at(x + h)
-    down <- at(x - h)
-    expect_identical(up$leg, base$leg, label = paste(name, "+"))
-    expect_identical(down$leg, base$leg, label = paste(name, "-"))
-    for (m in metrics) {
-      fd <- (up$metrics[[m]] - down$metrics[[m]]) / (2 * h)
-      ## Each metric on its own scale: a column that is zero, S_D's in the
-      ## census, is judged against the metric's largest column.
-      scale <- max(abs(g$gradient[m, paste0("1.", c("hmat", "lma", "k_I"))]))
-      expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd),
-                1e-6 * max(abs(fd), 1e-3 * scale), label = paste(m, name))
-    }
+  expect_layer_gradient(g, pin_steps(solver), measure, base, metrics,
+                        c("hmat", "a_f2", "S_D", "lma", "k_I", "d_I"))
+})
+
+test_that("a TF24 gradient across the layer is the pinned-step difference", {
+  ## TF24 pins its layer by its own asymptotic_height(), so its columns through
+  ## the layer's height are refereed on their own.
+  tf24_control <- function() {
+    Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
+            absorb_epsilon = 0.05, ode_step_size_max = 0.05)
   }
+  wet <- function() {
+    env <- Environment("TF24")
+    env$extrinsic_drivers_set_constant("rainfall", 1)
+    env
+  }
+  p <- testing_parameters("TF24")
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 25
+  p <- add_strategies(p, trait_matrix(c(0.0825, 2), c("lma", "hmat")),
+                      hyperpar = default_hyperpar("TF24"), birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 25, 1))
+  solver <- run(p, wet(), tf24_control(), record = "states")$solver
+  measure <- function(q) {
+    absorbing_run(DeterministicPatchRunner("TF24", "TF24_Env")(
+      q, wet(), empty_events(), tf24_control()))
+  }
+  base <- measure(p)
+  expect_gt(sum(!is.na(base$leg)), 1)
+  metrics <- c("leaf_area", "1.net_reproduction_ratio")
+  g <- stand_gradient(solver, metrics = metrics,
+                      traits = paste0("1.", c("hmat", "a_f2", "S_D", "lma")),
+                      hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  expect_layer_gradient(g, pin_steps(solver), measure, base, metrics,
+                        c("hmat", "a_f2", "S_D", "lma"))
 })
