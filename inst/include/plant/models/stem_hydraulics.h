@@ -35,7 +35,7 @@ namespace stem_hydraulics {
 // so a caller wanting a conductance forms K_s * theta / L_eff. L_top is the
 // representative flow-path length: for TF24 that is height * eta_c, the
 // leaf-area-weighted mean leaf height, not the full height (see the call site
-// in TF24_Model::net_mass_production_dt).
+// in TF24_Model::update_leaf_specific_conductance_max).
 //
 // beta == 0 recovers L_eff = L_top - L_tip, the height-linear model, and with
 // L_tip == 0 it returns L_top having performed no arithmetic at all, so the

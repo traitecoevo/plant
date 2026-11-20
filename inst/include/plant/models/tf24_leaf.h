@@ -298,6 +298,7 @@ stop_below_terminal_segment(double height, double eta_c, double L_tip) {
       "height*eta_c = " + util::format_double(height * eta_c) +
       " m must be longer than L_tip = " + util::format_double(L_tip) +
       " m, i.e. height > L_tip/eta_c = " + util::format_double(L_tip / eta_c) +
+      " m; it is short by " + util::format_double(L_tip - height * eta_c) +
       " m");
 }
 

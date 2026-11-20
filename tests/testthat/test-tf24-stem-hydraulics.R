@@ -292,11 +292,14 @@ test_that("a non-zero profile requires a terminal segment", {
   s$pars$L_tip <- 100
   expect_error(TF24_Individual(s), "terminal segment")
 
-  # The guard is scoped to an active profile: L_tip is ignored at beta == 0.
-  inert <- TF24_Model()
-  inert$pars$D_c <- 0
-  inert$pars$L_tip <- 100
-  expect_silent(TF24_Individual(inert))
+  # The segment's length is checked at any profile exponent: at beta == 0 the
+  # path is L_top - L_tip, so a long segment makes it negative there too.
+  linear <- TF24_Model()
+  linear$pars$D_c <- 0
+  linear$pars$L_tip <- 100
+  expect_error(TF24_Individual(linear), "terminal segment")
+  linear$pars$L_tip <- 0.02
+  expect_silent(TF24_Individual(linear))
 })
 
 test_that("a plant below its terminal segment is a domain error at run time", {
@@ -318,7 +321,7 @@ test_that("a plant below its terminal segment is a domain error at run time", {
       info = info)
     for (h in c(threshold * (1 - 1e-6), threshold / 2, NaN)) {
       expect_error(tf24_probe(s, wet, height = h),
-                   "^TF24: a plant of height .* shorter than its stem's terminal segment",
+                   "^TF24: a plant of height .* shorter than its stem's terminal segment.*; it is short by",
                    class = "odelia::util::DomainError",
                    info = sprintf("%s, height = %g", info, h))
     }
