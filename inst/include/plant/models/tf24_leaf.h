@@ -288,12 +288,45 @@ void TF24_Model<S>::record_leaf_outputs(const S& PPFD_int,
   }
 }
 
+// Out of line and cold, so the message is built only when it is thrown and
+// does not bloat the rate path it guards.
+[[noreturn, gnu::cold, gnu::noinline]] inline void
+stop_below_terminal_segment(double height, double eta_c, double L_tip) {
+  odelia::util::stop_domain(
+      "TF24: a plant of height " + util::format_double(height) +
+      " m is shorter than its stem's terminal segment: the flow path "
+      "height*eta_c = " + util::format_double(height * eta_c) +
+      " m must be longer than L_tip = " + util::format_double(L_tip) +
+      " m, i.e. height > L_tip/eta_c = " + util::format_double(L_tip / eta_c) +
+      " m; it is short by " + util::format_double(L_tip - height * eta_c) +
+      " m");
+}
+
 // The stem's leaf-specific conductance at this height and Huber value, the
 // one the leaf's supply solve is handed. Kept as
 // leaf_specific_conductance_max_ too, which the sapwood controller reads.
 template <typename S>
 S TF24_Model<S>::update_leaf_specific_conductance_max(
     const S& height, const S& sapwood_departure) {
+  // ⚠️ A DOMAIN ERROR, NOT A STOP. prepare_strategy() checks that the seed is
+  // longer than the terminal segment, but nothing holds a height there during
+  // a run: a Runge-Kutta trial stage can overshoot a newborn below it. The path
+  // length, and with it the conductance, then goes negative. That is no state
+  // the model can reach, so the stepper should reject it and retry smaller.
+  // The leaf's own failure there is no stand-in: its supply solve is infeasible
+  // (also a domain error), but with the energy balance on set_physiology
+  // refuses the negative conductance first, with an error nothing translates,
+  // and the run ends. Written as an inside test so a NaN height is refused too.
+  // Read off passive values, so a recording pass puts nothing on the tape.
+  {
+    using odelia::util::to_passive;
+    const double L_top_value = to_passive(height) * to_passive(eta_c);
+    const double L_tip_value = to_passive(pars.L_tip);
+    if (!(L_top_value > L_tip_value)) [[unlikely]] {
+      stop_below_terminal_segment(to_passive(height), to_passive(eta_c),
+                                  L_tip_value);
+    }
+  }
   // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
   //   the whole-stem value while pars.D_c == 0 (kg m^-1 s^-1 MPa^-1)
@@ -526,10 +559,7 @@ S TF24_Model<S>::solve_leaf_over_crown(
           function_integrator.integrate_vector(soil_y[a], 0.0, height);
       }
     } else {
-      util::stop("shading_model '" + this->control.shading_model +
-                 "' is not differentiable: its crown means pass through Leaf, "
-                 "which carries double. Use crown-centre or mean-light "
-                 "shading for a gradient.");
+      util::stop(gradient_refusal());
     }
   }
   return PPFD_int_used;
@@ -573,9 +603,7 @@ void TF24_Model<S>::measure_dprofit_dkmax(
   if (odelia::util::to_passive(pars.a_sw) > 0.0) {
     using odelia::util::to_passive;
     if constexpr (!std::is_same_v<S, double>) {
-      refuse("sapwood acclimation (a_sw > 0) is not differentiable: its "
-             "sensitivity is a finite difference through the leaf, which "
-             "carries no rows");
+      refuse(gradient_refusal());
     }
     const double kmax = to_passive(leaf_specific_conductance_max);
     const double profit_base = leaf.carbon();

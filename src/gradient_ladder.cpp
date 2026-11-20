@@ -18,20 +18,19 @@
 // `test_uniroot` establish that a test-only export living here is this package's
 // existing convention rather than a new concession.
 //
-// THE PREFIX PARTITIONS THEM, and that is worth keeping true. Of the twenty-eight
-// entry points here, twenty are prefixed `ladder_` and are called from
-// `tests/testthat/` and nowhere else. The eight spelled `census_` are the ones
-// `NEWS.md` publishes with migration lines, so the prefix says which of them a
-// rename would contradict a published note about.
+// THE PREFIX PARTITIONS THEM, and that is worth keeping true. Of the
+// twenty-five entry points here, twenty are prefixed `ladder_` and are called
+// from `tests/testthat/` and nowhere else. The five spelled `census_` are the
+// ones `NEWS.md` publishes with migration lines, so the prefix says which of
+// them a rename would contradict a published note about. The operating-point
+// counts and the curvature margin serve every model that reports them, from
+// census_gradient.cpp.
 //
-// TWO OF THE EIGHT ARE HERE BECAUSE THE PUBLISHED HALF MISLEADS WITHOUT THEM.
+// ONE OF THE FIVE IS HERE BECAUSE THE PUBLISHED HALF MISLEADS WITHOUT IT.
 // `census_clamp_counts_tf24` counts every solve the forward run made, and a
 // caller asking whether a GRADIENT carries a severance reads it and gets the
 // wrong answer -- the sweep visits the recorded steps and fewer of them, which
-// is what `census_clamp_counts_differentiated_tf24` reports. `gradient_control`
-// publishes the curvature floor and `stand_gradient_compare` refuses two
-// gradients taken at different ones, and `census_curvature_margin_tf24` is the
-// only thing that says how close a run came to it.
+// is what `census_clamp_counts_differentiated_tf24` reports.
 //
 // WHAT EARNS A PLACE HERE is a map read at a point, which the shipped answer
 // cannot report: `stand_gradient` returns one number per (metric, trait) over a
@@ -981,39 +980,9 @@ census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatch
   return census_gradient_to_r(obj_->census_trait_gradient(at));
 }
 
-// The forward run's classification tally: one row per species, one column per
-// operating-point kind in census_operating_point_names_tf24() order.
-//
-// The leaf classifies by the branch taken and the next plant overwrites it, so a
-// run's incidence is not recoverable afterwards from anything but this. It is
-// what says whether a regime the gradient refuses is rare or is most of the run.
-// [[Rcpp::export]]
-std::vector<std::vector<double>>
-census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
-  const std::vector<std::vector<size_t>> counts = obj_->operating_point_counts();
-  std::vector<std::vector<double>> ret;
-  ret.reserve(counts.size());
-  for (const std::vector<size_t>& row : counts) {
-    ret.push_back(std::vector<double>(row.begin(), row.end()));
-  }
-  return ret;
-}
-
 // [[Rcpp::export]]
 void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
   obj_->clear_diagnostics();
-}
-
-// The kinds, in the order the counts are reported.
-// [[Rcpp::export]]
-std::vector<std::string> census_operating_point_names_tf24() {
-  std::vector<std::string> ret;
-  ret.reserve(plant::Leaf::operating_point_kind_count);
-  for (size_t k = 0; k < plant::Leaf::operating_point_kind_count; ++k) {
-    ret.push_back(plant::Leaf::operating_point_kind_name(
-        static_cast<plant::Leaf::OperatingPointKind>(k)));
-  }
-  return ret;
 }
 
 // How often each counted clamp fired on the forward run, one row per species.
@@ -1056,14 +1025,4 @@ std::vector<std::string> census_clamp_names_tf24() {
     ret.push_back(plant::clamp_site_name(i));
   }
   return ret;
-}
-
-// The smallest profit curvature the differentiated path met, one per species, or
-// -1 where it met none. The guard on it refuses a row rather than returning
-// amplification, and a guard that held reports the same green as a guard nothing
-// reached -- so the distance to the floor is reported rather than assumed.
-// [[Rcpp::export]]
-std::vector<double>
-census_curvature_margin_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
-  return obj_->curvature_margins();
 }

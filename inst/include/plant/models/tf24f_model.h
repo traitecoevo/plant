@@ -148,11 +148,10 @@ public:
                    const phylloptim::SupplyInputs<S>& supply, double slope,
                    Leaf::HeldCoords<S>& held) override;
 
-  // The collar potential at position z between the ends a and b. Written from
-  // the nearer end, so the distance to that end keeps its precision.
+  // The collar potential at position z between the ends a and b: phylloptim's,
+  // so the position the slope is differenced in is this one.
   static double collar_at(double z, double a, double b) {
-    return z > 0.0 ? b - (b - a) / (1.0 + std::exp(z))
-                   : a + (b - a) / (1.0 + std::exp(-z));
+    return Leaf::collar_at_position(z, a, b);
   }
 
   // The feasible collar interval at the leaf's current inputs, each end
@@ -185,21 +184,6 @@ public:
   // How far inside either end a newborn is seated, as a fraction of the
   // interval: an optimum on an end has no finite logit.
   static constexpr double seed_margin = 1e-4;
-
-  // The step in z over which a differentiated pass differences the marginal
-  // for its slope in the position. Near an end a step in z is a step in the
-  // log of the distance to it, which is the coordinate the marginal is smooth
-  // in there. Against differences of runs pinned to the recorded steps, a step
-  // of 1e-2 leaves errors of 1e-4 in the columns whose traits move the ends,
-  // and 1e-3 or 1e-4 leaves 1e-6.
-  static constexpr double marginal_step = 1e-4;
-
-  // How far, in MPa, the slope's probes keep from a kink in uptake (see
-  // collar_on_tape): twice the width of the noise in phylloptim's marginal
-  // next to a layer's potential, measured at 1.5e-6 MPa either side. Not
-  // wider: a drying layer's potential follows the collar, and the barrier
-  // holds a collar near the dry end, where the probes are 1e-8 MPa apart.
-  static constexpr double kink_clearance = 3e-6;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_collar_position = -1;
@@ -369,12 +353,20 @@ template <typename S>
 void TF24f_Model<S>::solve_leaf() try {
   constexpr auto curve = phylloptim::Leaf::CostCurve::TF24_floor;
   Leaf& leaf = this->leaf;
+  // Tallied as TF24's solve tallies, by the kind the leaf was left in: a
+  // newborn's optimum is classified as TF24's is, a shut leaf as shut, and a
+  // tracked collar as prescribed.
+  const auto tally = [this, &leaf] {
+    ++this->operating_point_counts[
+        static_cast<size_t>(leaf.operating_point_kind())];
+  };
   if (initializing_) {
     // Birth: the interval first, because the optimiser prepares its own and
     // leaves the leaf at the optimum set_initial_states reads. The
     // curve-typed form, for the reason TF24_Model::solve_leaf gives.
     seed_open_ = collar_interval(seed_a_, seed_b_, seed_capped_);
     leaf.template find_root_collar_psi_for<curve>();
+    tally();
     return;
   }
   double a, b;
@@ -383,6 +375,7 @@ void TF24f_Model<S>::solve_leaf() try {
     // Shut: the leaf is at its own operating point, whatever the position.
     marginal_ = 0.0;
     width_ = 0.0;
+    tally();
     return;
   }
   const double collar =
@@ -395,6 +388,7 @@ void TF24f_Model<S>::solve_leaf() try {
   width_ = b - a;
   // The marginal moved the leaf; put its outputs back at the collar.
   leaf.template profit_at_collar_psi<curve>(collar, a, b);
+  tally();
 } catch (const phylloptim::util::infeasible_error& e) {
   odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
 }
@@ -422,29 +416,39 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
   this->net_mass_production_dt(environment, vars);
   // With no interval the leaf is shut wherever the position is: the middle.
   double z = 0.0;
+  bool held = false;
   if (seed_open_) {
     // An optimum the solve left on a bracket end it did not polish can sit a
     // bracket tolerance outside the polished interval, so the position is
-    // held to [0, 1] before the margin seats it inside.
-    const double u = std::min(
-        std::max((this->leaf.opt_root_psi_ - seed_a_) / (seed_b_ - seed_a_),
-                 0.0),
-        1.0);
+    // held to [0, 1] before the margin seats it inside. An optimum pinned to
+    // an end sits exactly on it, which is inside.
+    const double raw =
+        (this->leaf.opt_root_psi_ - seed_a_) / (seed_b_ - seed_a_);
+    const double u = std::min(std::max(raw, 0.0), 1.0);
+    held = !(raw >= 0.0 && raw <= 1.0);
     const double seated = seed_margin + (1.0 - 2.0 * seed_margin) * u;
     z = std::log(seated / (1.0 - seated));
   }
   if constexpr (std::is_same_v<S, double>) {
+    if (held) {
+      this->note_clamp(CLAMP_SEED_POSITION);
+    }
     vars.set_state(state_idx_collar_position, z);
   } else {
     // The same value, with the rows of the optimum and of both ends where a
     // differentiated pass recorded them: at an interior optimum the collar's
-    // are the implicit function theorem's. Where the record refused, or the
-    // position was held to [0, 1], the value alone.
+    // are the implicit function theorem's. Where the position was held to
+    // [0, 1], the value alone, which are the rows of a held position: it is a
+    // constant. The seat this decides is the one counted, so a seat that
+    // takes no rows is counted whichever reading dropped them.
+    const bool rows = seed_on_tape_ && !held;
+    if (seed_open_ && !rows) {
+      this->note_clamp(CLAMP_SEED_POSITION);
+    }
     vars.set_state(state_idx_collar_position,
-                   seed_on_tape_
-                       ? S(S(z) + (seed_position_ -
-                                   S(odelia::util::to_passive(seed_position_))))
-                       : S(z));
+                   rows ? S(S(z) + (seed_position_ -
+                                    S(odelia::util::to_passive(seed_position_))))
+                        : S(z));
   }
 }
 
@@ -487,11 +491,10 @@ typename TF24f_Model<S>::ends_on_tape TF24f_Model<S>::interval_on_tape(
 // ends'. At a shut leaf it is the leaf's own collar, as TF24 places it.
 //
 // M's rows in the traits, the soil and the light come from the marginal at the
-// collar held; its row in the collar is a supplied slope, dM/dz over dpsi/dz,
-// with dM/dz a difference of the double marginal in z at fixed ends: central,
-// or from one side where the stencil would reach a kink in uptake.
-// The tape's own dM/dcollar is wrong by a factor of about eight (phylloptim's
-// profit_curvature_at_collar says why). Where no flow reaches the collar the
+// collar held; its row in the collar is a supplied slope, phylloptim's
+// marginal_slope_at in the position at fixed ends, whose probes keep clear of
+// uptake's kinks. The tape's own dM/dcollar is wrong by a factor of about
+// eight (marginal_slope_at says why). Where no flow reaches the collar the
 // marginal is phylloptim's 0.0, a constant.
 template <typename S>
 S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
@@ -516,6 +519,8 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
         seed_position_ = log(seated / (1.0 - seated));
         seed_on_tape_ = true;
       }
+      // Outside [0, 1] nothing is recorded, and set_initial_states seats the
+      // value alone and counts it.
     }
     return collar;
   }
@@ -540,85 +545,16 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
     marginal_ = S(marginal);
     return collar;
   }
-  // ⚠️ NO PROBE OF THE SLOPE MAY LAND NEAR A KINK IN UPTAKE, OR ACROSS ONE.
-  // Each rooted layer's uptake has one at the layer's own potential, where the
-  // root conductivity's mean over the span from soil to collar is 0/0. The
-  // marginal's slope jumps there, and phylloptim's marginal is noisy next to
-  // one: a probe that landed on a layer's potential read 4% low, and put an
-  // error of 4% into an invader's gradient. So a stencil is used only if every
-  // probe keeps kink_clearance from every kink and none lies across one from
-  // the collar: the central one, else three points out on one side, which
-  // leave out the marginal at the collar, as that may itself sit in the noise.
-  // A layer's gravity balance, where its flow changes sign, is smooth.
-  const std::vector<double>& soil = leaf.supply_psi_soil();
-  const std::size_t rooted = static_cast<std::size_t>(
-      std::max(0, std::min(leaf.roots_.max_soil_layer,
-                           static_cast<int>(soil.size()))));
-  const double h = marginal_step;
-  auto usable = [&](std::initializer_list<double> steps) {
-    for (const double dz : steps) {
-      const double c = collar_at(z + dz, bound_a_, bound_b_);
-      for (std::size_t i = 0; i < rooted; ++i) {
-        const double kink = soil[i];
-        if (std::abs(kink - c) < kink_clearance ||
-            (kink - at) * (kink - c) <= 0.0) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
   // Placed once at the collar and read by the marginal here and by the billing
   // after, which adds only the collar's channel.
   leaf.template place_held_coords<S>(collar, draw, in, held);
   const S M_held =
       leaf.template dprofit_dcollar_at<curve, S>(S(at), draw, in, held);
-  // dM/dz at fixed ends. The marginal moves the leaf, so its outputs are put
-  // back at the collar before anything reads them.
-  auto marginal_at = [&](double dz, bool& ok) {
-    return leaf.dprofit_droot_collar_psi(collar_at(z + dz, bound_a_, bound_b_),
-                                         &ok);
-  };
-  // Next to an end a step in z is a small fraction of kink_clearance in the
-  // collar, so where no stencil keeps clear the step widens tenfold, twice.
-  // With none usable the slope stays NaN, and is refused below.
-  double dM_dz = std::numeric_limits<double>::quiet_NaN();
-  for (double step = h; step <= 100.0 * h; step *= 10.0) {
-    if (usable({step, -step})) {
-      bool up_ok = false, down_ok = false;
-      const double up = marginal_at(step, up_ok);
-      const double down = marginal_at(-step, down_ok);
-      // One side is enough: next to an end with no flow, the far neighbour
-      // has no marginal to read.
-      if (up_ok && down_ok) {
-        dM_dz = (up - down) / (2.0 * step);
-      } else if (up_ok) {
-        dM_dz = (up - marginal) / step;
-      } else if (down_ok) {
-        dM_dz = (marginal - down) / step;
-      }
-      break;
-    }
-    // Second order from the side away from the kink, by the quadratic through
-    // the three points one, two and three steps out, read back at the collar.
-    const double side = usable({-step, -2.0 * step, -3.0 * step})  ? -1.0
-                        : usable({step, 2.0 * step, 3.0 * step}) ? 1.0
-                                                                  : 0.0;
-    if (side != 0.0) {
-      bool ok1 = false, ok2 = false, ok3 = false;
-      const double m1 = marginal_at(side * step, ok1);
-      const double m2 = marginal_at(side * 2.0 * step, ok2);
-      const double m3 = marginal_at(side * 3.0 * step, ok3);
-      if (ok1 && ok2 && ok3) {
-        dM_dz = -side * (2.5 * m1 - 4.0 * m2 + 1.5 * m3) / step;
-      }
-      break;
-    }
-  }
-  leaf.template profit_at_collar_psi<curve>(at, bound_a_, bound_b_);
-  const double dpsi_dz =
-      (bound_b_ - bound_a_) / (2.0 + std::exp(z) + std::exp(-z));
-  const double dM_dcollar = dM_dz / dpsi_dz;
+  // In the position rather than the potential: next to an end a step in z is
+  // a step in the log of the distance to it, where the marginal is smooth, and
+  // the barrier holds a collar there. The slope puts the leaf back at the collar.
+  const double dM_dcollar = leaf.template marginal_slope_at<curve>(
+      at, bound_a_, bound_b_, Leaf::SlopeCoordinate::Position);
   if (!std::isfinite(dM_dcollar)) {
     this->refuse("TF24f gradient: the marginal profit's slope at the tracked "
                  "collar " + util::format_double(at) + " MPa is " +

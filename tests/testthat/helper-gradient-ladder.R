@@ -1441,10 +1441,19 @@ ladder_zero_outside_every_rate <- function() {
   "S_D"
 }
 
+# The coarse-root pool's respiration and turnover rates. They multiply the pool's
+# mass, which is a_cr1 times the sapwood's, and a_cr1 is zero by default, so at
+# it neither moves any rate. A property of a_cr1's value rather than of the two
+# parameters: with the pool on both are live (test-coarse-roots.R).
+ladder_zero_while_the_pool_is_empty <- function() {
+  c("r_cr", "k_cr")
+}
+
 ladder_zero_by_construction <- function() {
   c(ladder_zero_at_an_interior_optimum(),
     ladder_zero_outside_the_metric_support(),
-    ladder_zero_outside_every_rate())
+    ladder_zero_outside_every_rate(),
+    ladder_zero_while_the_pool_is_empty())
 }
 
 # Which cause a declared zero is claimed to have. Named so a check can measure
@@ -1455,6 +1464,8 @@ ladder_zero_cause <- function(name) {
     "a limit the operating point is away from: moves no rate at all"
   } else if (bare %in% ladder_zero_outside_every_rate()) {
     "a factor of the fitness alone: moves no rate at all"
+  } else if (bare %in% ladder_zero_while_the_pool_is_empty()) {
+    "a rate of the empty coarse-root pool: moves no rate at a_cr1 = 0"
   } else if (bare %in% ladder_zero_outside_the_metric_support()) {
     "outside the metric support: reaches no rate the census reads"
   } else {
@@ -1723,6 +1734,15 @@ ladder_shortlist <- function() {
 # rather than a trait, because only three of them are traits the fixture carries.
 ladder_birth_size_parameters <- function() {
   c("lma", "rho", "omega", "theta", "a_l1", "a_l2", "a_r1", "a_b1")
+}
+
+# A ninth reaches birth size, because mass_live counts the coarse-root pool, and
+# is kept apart from the eight because its default is zero: the whole-run
+# differences the eight are refereed by take a step relative to the parameter's
+# value, which moves nothing at zero. Its column is refereed against pinned-step differences, at zero and with
+# the pool on, in test-coarse-roots.R.
+ladder_birth_size_parameters_at_zero <- function() {
+  "a_cr1"
 }
 
 # Which registered parameters a trait moves through the hyperparameter function,

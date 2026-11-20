@@ -46,8 +46,8 @@ parity_range_gap <- character(0)
 parity_of <- function(solver) {
   g <- stand_gradient(solver, hyperpar = NULL)
   refused_metric <- stand_gradient_refused(g)
-  counts <- census_operating_point_counts_tf24(solver)[[1]]
-  names(counts) <- census_operating_point_names_tf24()
+  counts <- census_operating_point_counts(solver, "TF24")[[1]]
+  names(counts) <- census_operating_point_names()
   rec <- solver$store_recording()
   unrowed <- vapply(rec, function(r) sum(!is.finite(r$state)), 0)
   list(refused_metric = refused_metric, gradient = g,

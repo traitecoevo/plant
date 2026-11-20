@@ -22,6 +22,48 @@ h_abs <- function(epsilon) {
   s$pars$hmat * (1 + log((1 - epsilon) / epsilon) / s$pars$a_f2)
 }
 
+# Run a solver with its legs collected, and return the stand's census and
+# fitness with the leg at which each cohort of species 1 left the integrated
+# set (NA for one still in it): what a referee across the layer must hold.
+absorbing_run <- function(solver) {
+  solver$collect <- TRUE
+  solver$run()
+  retired <- lapply(solver$history, function(h) h$species[[1]]$retired)
+  n <- length(retired[[length(retired)]])
+  leg <- vapply(seq_len(n), function(k) {
+    at <- which(vapply(retired, function(r) length(r) >= k && r[[k]], logical(1)))
+    if (length(at) > 0) at[[1]] else NA_integer_
+  }, integer(1))
+  list(metrics = c(stand_census(solver), stand_fitness(solver)), leg = leg)
+}
+
+# Each named column of species 1 against a central difference of `measure`
+# over the pinned parameters `q`, at a relative step of 1e-6, with both runs
+# absorbing the cohorts `base` absorbed, leg by leg. Each metric is judged on
+# its own scale, so a column that is zero (S_D's in the census) is judged
+# against the metric's largest column.
+expect_layer_gradient <- function(g, q, measure, base, metrics, names) {
+  for (name in names) {
+    x <- q$strategies[[1]]$pars[[name]]
+    h <- 1e-6 * abs(x)
+    at <- function(v) {
+      r <- q
+      r$strategies[[1]]$pars[[name]] <- v
+      measure(r)
+    }
+    up <- at(x + h)
+    down <- at(x - h)
+    expect_identical(up$leg, base$leg, label = paste(name, "+"))
+    expect_identical(down$leg, base$leg, label = paste(name, "-"))
+    for (m in metrics) {
+      fd <- (up$metrics[[m]] - down$metrics[[m]]) / (2 * h)
+      scale <- max(abs(g$gradient[m, paste0("1.", names)]))
+      expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd),
+                1e-6 * max(abs(fd), 1e-3 * scale), label = paste(m, name))
+    }
+  }
+}
+
 test_that("the top layer is off by default and refused where it cannot work", {
   expect_equal(Control()$absorb_epsilon, 0)
   expect_false(run(ff16(5))$solver$patch$species[[1]]$top_layer$on)
@@ -346,8 +388,127 @@ test_that("the top layer survives an export and a resume", {
                tolerance = 1e-3)
 })
 
-test_that("a gradient refuses the top layer", {
-  s <- run(ff16(10), control = ctrl(absorb = 0.05), record = "states")$solver
-  expect_error(stand_gradient(s, metrics = "leaf_area", hyperpar = NULL),
-               "the absorbing top layer is not differentiable")
+test_that("the gradient across the layer, from a resume, is the pinned-step difference", {
+  ## Absorption runs inside the insertion map the sweep transposes, so what an
+  ## absorbed cohort carries into the layer and the height the layer is pinned at
+  ## are differentiated with the rest; hmat and a_f2 reach the stand through that
+  ## height and S_D through the layer's fitness weight. The run is resumed from a
+  ## burn-in, so the sweep starts at the exported state and holds it fixed, as
+  ## the difference does. hmat is lowered so cohorts reach the height in years.
+  ##
+  ## Two selections on state are held, and the referee must stay inside both:
+  ## which cohorts each introduction absorbs, checked below leg by leg, and
+  ## which of the layer and the tallest live cohort is the canopy top, which
+  ## switches as a cohort grows through the absorbing height between
+  ## introductions. On this stand a relative step of 1e-5 in hmat crosses such a
+  ## switch, and the difference is off by 6e-5 where the sweep is not; 1e-6 is
+  ## inside it.
+  absorb_control <- function() {
+    Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
+            absorb_epsilon = 0.05)
+  }
+  stand <- function(lifetime) {
+    p <- testing_parameters("FF16")
+    p$fitness_weighting <- "none"
+    p$max_patch_lifetime <- lifetime
+    p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
+                        birth_rate = 2)
+    p$node_schedule_times <- list(node_schedule_times_periodic(0, lifetime, 0.5))
+    p
+  }
+  burn <- new_solver(stand(40), absorb_control())
+  burn$run_to(15)
+  expect_gt(burn$patch$species[[1]]$top_layer$density, 0)
+  p <- set_initial_state(stand(19), export_patch_state(burn))
+  p$node_schedule_times <- list(node_schedule_times_periodic(15, 19, 0.5))
+  solver <- run(p, NULL, absorb_control(), record = "states")$solver
+  expect_equal(solver$ode_times[[1]], 15)
+
+  measure <- function(q) {
+    absorbing_run(new_solver(q, absorb_control()))
+  }
+  base <- measure(p)
+  ## Cohorts are absorbed after the resume, not only before it: the layer's
+  ## fitness weight only decays between absorptions, so a rise is an absorption
+  ## (a frozen cohort that never established adds nothing to it).
+  expect_gt(solver$patch$species[[1]]$top_layer$weight,
+            burn$patch$species[[1]]$top_layer$weight)
+
+  ## Offspring production reads the layer's birth-rate-scaled weight.
+  metrics <- c("leaf_area", "mass_above_ground", "1.net_reproduction_ratio",
+               "1.offspring_production")
+  g <- stand_gradient(solver, metrics = metrics, hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  expect_layer_gradient(g, pin_steps(solver), measure, base, metrics,
+                        c("hmat", "a_f2", "S_D", "lma", "k_I", "d_I"))
+})
+
+test_that("a gradient across an event that reached the stand is refused with the layer", {
+  ## The layer carries its density, not its log, so a harvest scales it rather
+  ## than shifting it, and the sweep would cross the event as if it changed
+  ## nothing: 17% off in S_D's fitness column on this stand run to 25 years
+  ## and harvested at 20.25, every number finite. An event that touched no
+  ## cohort is still crossed.
+  p <- add_strategies(testing_parameters("FF16"),
+                      trait_matrix(c(0.0825, 3), c("lma", "hmat")), birth_rate = 2)
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 14
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 14, 0.5))
+  layered <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.05)
+  with_events <- function(...) {
+    run(p, NULL, layered, events = events(node_introductions(p), ...),
+        record = "states")$solver
+  }
+  cut <- with_events(harvest(time = 10.25, fraction = 0.5, size_min = 3))
+  expect_gt(cut$event_log$applied[[1]][[2]], 0)
+  expect_error(stand_gradient(cut, metrics = "leaf_area", hyperpar = NULL),
+               "does not transpose an event on the layer")
+  missed <- with_events(harvest(time = 10.25, fraction = 0.5, size_min = 100))
+  expect_equal(missed$event_log$applied[[1]][[2]], 0)
+  expect_false(any(stand_gradient_refused(
+    stand_gradient(missed, metrics = "leaf_area", hyperpar = NULL))))
+  ## An invader is harvested with the residents' stand, and refused the same way.
+  q <- cut$parameters
+  q$strategies <- add_strategies(testing_parameters("FF16"),
+                                 trait_matrix(c(0.09, 3), c("lma", "hmat")),
+                                 birth_rate = 2)$strategies
+  cut$run_mutant(q)
+  expect_error(stand_gradient(cut, metrics = "1.net_reproduction_ratio",
+                              hyperpar = NULL),
+               "does not transpose an event on the layer")
+})
+
+test_that("a TF24 gradient across the layer is the pinned-step difference", {
+  ## TF24 pins its layer by its own asymptotic_height(), so its columns through
+  ## the layer's height are refereed on their own.
+  tf24_control <- function() {
+    Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
+            absorb_epsilon = 0.05, ode_step_size_max = 0.05)
+  }
+  wet <- function() {
+    env <- Environment("TF24")
+    env$extrinsic_drivers_set_constant("rainfall", 1)
+    env
+  }
+  p <- testing_parameters("TF24")
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 25
+  p <- add_strategies(p, trait_matrix(c(0.0825, 2), c("lma", "hmat")),
+                      hyperpar = default_hyperpar("TF24"), birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 25, 1))
+  solver <- run(p, wet(), tf24_control(), record = "states")$solver
+  measure <- function(q) {
+    absorbing_run(DeterministicPatchRunner("TF24", "TF24_Env")(
+      q, wet(), empty_events(), tf24_control()))
+  }
+  base <- measure(p)
+  ## The run starts empty, so a layer holding density absorbed something.
+  expect_gt(solver$patch$species[[1]]$top_layer$density, 0)
+  metrics <- c("leaf_area", "1.net_reproduction_ratio")
+  g <- stand_gradient(solver, metrics = metrics,
+                      traits = paste0("1.", c("hmat", "a_f2", "S_D", "lma")),
+                      hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  expect_layer_gradient(g, pin_steps(solver), measure, base, metrics,
+                        c("hmat", "a_f2", "S_D", "lma"))
 })

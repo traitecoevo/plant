@@ -83,3 +83,29 @@ test_that("resource spline value is floored at zero (#253)", {
   # Away from the undershoot the knots are reproduced untouched.
   expect_equal(vapply(hh, env$light_availability$get_value_at_height, numeric(1)), ee)
 })
+
+test_that("the light field's floor is counted on both paths", {
+  # Where the floor fires, the field's value stops depending on the knots, so a
+  # gradient row through it is zero for that reason and not for an ecological
+  # one; the count is what tells the two apart. No stand reaches it -- not FF16
+  # or TF24 at k_I = 40, nor K93's test stands -- so it is exercised on a field
+  # built to undershoot, the one above.
+  hh <- c(0, 1, 2, 3, 4, 5)
+  ee <- c(1, 1, 1, 0.02, 0.02, 0.02)
+  slope <- c(0, 0, -12, -12, 0, 0)
+  grid <- seq(0, 5, by = 0.05)
+  got <- test_light_field_floor(c(hh, ee, slope), grid)
+  floored <- sum(got$value == 0)
+  expect_gt(floored, 0)
+  # The same reads at the tangent scalar, each counted on its own path.
+  expect_identical(got$value_active, got$value)
+  expect_equal(got$forward, floored)
+  expect_equal(got$differentiated, floored)
+  expect_equal(got$forward_at_tangent, 0)
+
+  # A field that stays above zero counts nothing.
+  calm <- test_light_field_floor(c(hh, ee, rep(0, length(hh))), grid)
+  expect_true(all(calm$value > 0))
+  expect_equal(calm$forward, 0)
+  expect_equal(calm$differentiated, 0)
+})

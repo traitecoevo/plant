@@ -9,6 +9,7 @@
 #include <odelia/implicit_node.hpp>
 #include <odelia/tangent.hpp>
 #include <plant/models/canopy_shape.h>
+#include <plant/gradients/clamp_sites.h>
 #include <plant/util.h>
 #include <array>
 #include <algorithm> // std::max, for the resource-availability floor
@@ -129,9 +130,23 @@ public:
     }
     S value = spline(height / height_max_);
     if (!(0.0 < odelia::util::to_passive(value))) {
+      note_clamp(CLAMP_LIGHT_FIELD_FLOOR);
       return S(0.0);
     }
     return value;
+  }
+
+  // The floor above is a clamp site, and the spline is the one object every
+  // model's field is read through, so it keeps its own tally of it. Mutable
+  // because a read is const and a tally is not state. The differentiated half is
+  // shared by an environment's rebind, for the reason the strategy's is.
+  mutable clamp_counter clamps;
+  void note_clamp(int site) const {
+    if constexpr (std::is_same_v<S, double>) {
+      ++clamps.forward[site];
+    } else {
+      ++(*clamps.differentiated)[site];
+    }
   }
 
   // The integral over a crown of height `height` of phi(E, p...), where E is the
@@ -180,6 +195,9 @@ public:
           read = spline.read_linear(h * s / top);
           reads_knots = 0.0 < read.value;
           E = reads_knots ? read.value : 0.0;
+          if (!reads_knots) {
+            note_clamp(CLAMP_LIGHT_FIELD_FLOOR);
+          }
         }
         const auto f = odelia::ode::value_and_partials(phi, E, to_passive(p)...);
         total += crown.weight[j] * f.value;

@@ -73,18 +73,22 @@ struct TF24_Pars {
   S S_D    = 0.25;           // Probability of survival during dispersal
   S a_d0   = 0.1;            // Parameter for seedling survival
   S d_I    = 0.01;           // Baseline intrinsic mortality [/yr]
-  // a_dG1 / a_dG2 shape the *storage-dependent* growth mortality:
-  //   mortality_storage_dependent_dt(r) = a_dG1 * exp(-a_dG2 * r),  r = S/S_max.
+  // a_dG1 / a_dG2 shape the growth-dependent mortality, read at relative reserves:
+  //   mortality_growth_dependent_dt(r) = a_dG1 * exp(-a_dG2 * r),  r = S/S_max.
   // ⚠️ DO NOT feed productivity_area to this exponent in place of r: under deep
   // carbon deficit it overflows to ~1e32. Reserves keep r in [0,1], so the term
-  // is bounded in [a_dG1*e^-a_dG2, a_dG1].
+  // is bounded in [a_dG1*e^-a_dG2, a_dG1]. The one exception is a_st1 = 0, the
+  // model without storage, which reads productivity_area as FF16 does and takes
+  // its overflow with it.
   S a_dG1  = 5.5;            // Max growth-related (low-reserve) mortality [/yr]
-  S a_dG2  = 20.0;           // Sensitivity of mortality to relative reserves
+  S a_dG2  = 20.0;           // Sensitivity of mortality to relative reserves (or to production per leaf area at a_st1 = 0)
   // * NSC storage pool -- buffers growth & mortality against short-term
   //   productivity swings. See Stefaniak et al. 2026 (plantNSC) for the design.
   //   Carbon first charges storage; growth/reproduction are mobilised from it,
   //   but gated so growth only proceeds when reserves are ample (a plant should
   //   not grow down its stores). Reserves-based mortality rises as they deplete.
+  //   a_st1 = 0 switches the pool off, giving the model without storage:
+  //   growth at production's positive part, FF16's mortality, a_st2/a_st3 inert.
   S a_st1  = 0.10;           // Storage capacity per unit sapwood mass [kg NSC / kg]
   S a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
   S a_st3  = 0.8;            // Initial storage at birth [fraction of capacity]
@@ -362,14 +366,7 @@ struct TF24_Pars {
       no_gradient{"alpha_NIR", "the leaf supplies no row for it"},
       no_gradient{"use_energy_balance",
                   "a gate, compared rather than differentiated"},
-      // The coarse-root pool is opt-in: at the default a_cr1 = 0 it is empty, so
-      // r_cr and k_cr multiply zero and a column would be an exact zero that
-      // reads as an answer. No gradient fixture runs with the pool on.
-      no_gradient{"a_cr1",
-                  "the coarse-root pool is opt-in and has no gradient fixture"},
-      no_gradient{"r_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
-      no_gradient{"k_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
-      // Flexible allometry is opt-in the same way: at a_pl0 = 0 nothing
+      // Flexible allometry is opt-in: at the default a_pl0 = 0 nothing
       // is withheld, so the other four gate parameters multiply zero.
       no_gradient{"a_pl0",
                   "flexible allometry is opt-in and has no gradient fixture"},
@@ -426,6 +423,10 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(r_s),
       PLANT_TF24_AD_PARAMETER(r_b),
       PLANT_TF24_AD_PARAMETER(r_r),
+      // r_cr and k_cr multiply the coarse-root mass, so at the default a_cr1 = 0
+      // their columns are exact zeros by construction, as FF16's are. They are
+      // registered all the same: the zero is the value's, not the parameter's,
+      // and a_cr1's own column is live at zero.
       PLANT_TF24_AD_PARAMETER(r_cr),
       PLANT_TF24_AD_PARAMETER(r_l),
       PLANT_TF24_AD_PARAMETER(a_y),

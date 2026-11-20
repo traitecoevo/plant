@@ -2,30 +2,15 @@
 # reproduction ratio and offspring production, with the census's shape,
 # refereed the way the census is -- a central difference of runs pinned to the
 # recorded steps at a tight seed-height root tolerance (see
-# test-ff16-stand-gradient.R for why both).
+# test-ff16-stand-gradient.R and ff16_referee_control() for why both).
 #
-# The stand is built to reproduce: hmat is lowered to 3 m so cohorts mature
-# inside the run, which is what puts the reproduction parameters on the path.
+# The stand reproduces (ff16_stand_parameters()), which is what puts the
+# reproduction parameters on the path.
 
-fitness_control <- function(...) {
-  Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
-          ...)
-}
-
-fitness_parameters <- function(lifetime = 8, lma = 0.0825, hmat = 3,
-                               birth_rate = 2) {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- lifetime
-  m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
-  add_strategies(p, m, birth_rate = as.list(rep(birth_rate, length(lma))))
-}
-
-fitness_stand <- function(..., ctrl = fitness_control()) {
-  run(fitness_parameters(...), NULL, ctrl, record = "states")$solver
-}
+fitness_stand <- function(...) ff16_stand_run(ff16_stand_parameters(...))
 
 # The stand's fitness metrics for a run of `p`.
-fitness_of <- function(p) stand_fitness(run(p, NULL, fitness_control())$solver)
+fitness_of <- function(p) stand_fitness(run(p, NULL, ff16_referee_control())$solver)
 
 test_that("FF16 reports its fitness under the names the gradient uses", {
   solver <- fitness_stand(lma = c(0.0825, 0.2))
@@ -114,8 +99,7 @@ test_that("the fitness gradient over a window is the pinned-step central differe
   # A window takes the weighted mean over its own cohorts. The weights are the
   # regime's, read at the birth dates, so they carry no derivative and the
   # normalisation divides the gradient as it divides the value.
-  p <- fitness_window(fitness_parameters(), 2, 5)
-  solver <- run(p, NULL, fitness_control(), record = "states")$solver
+  solver <- ff16_stand_run(fitness_window(ff16_stand_parameters(), 2, 5))
   g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
                                           "1.offspring_production"),
                       hyperpar = NULL)

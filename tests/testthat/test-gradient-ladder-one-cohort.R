@@ -200,7 +200,8 @@ test_that("every trait the block reads has a column, or is refused by name", {
   # because the block is one individual's physiology and no introduction is in it.
   declared <- c(ladder_zero_at_an_interior_optimum(),
                 ladder_zero_outside_the_cohort_block(),
-                ladder_zero_outside_every_rate())
+                ladder_zero_outside_every_rate(),
+                ladder_zero_while_the_pool_is_empty())
   unaccounted <- names(peak)[peak == 0 & !(names(peak) %in% c(refused, declared))]
   if (length(unaccounted) > 0) {
     message("\n  traits with no row in the block: ",

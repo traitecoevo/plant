@@ -319,6 +319,8 @@ OdeRunner:
     step: {return_type: void}
     set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
     set_state_from_system: {return_type: void}
+    advance_to_size: {return_type: double, args: [index: size_t, size: double, time_max: double], access: function, name_cpp: "plant::tools::advance_to_size"}
+    history_steps: {return_type: "Rcpp::NumericMatrix", access: function, name_cpp: "plant::tools::history_steps"}
 
 ScheduleEvent:
   name_cpp: "plant::ScheduleEvent"
@@ -1114,7 +1116,6 @@ StochasticPatch:
     compute_rates:
       return_type: void
       name_cpp: r_compute_rates
-    # TODO(#483): Not 100% sure this is needed from R:
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
