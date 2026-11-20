@@ -345,12 +345,10 @@ public:
     // A private root-zone column couples cohorts through the patch -- the
     // mixing and land-transfer terms of Patch::private_water_exchange -- outside
     // the per-cohort block the recording describes, so its gradient would be a
-    // different function's.
-    if constexpr (HasPrivateWater<T>) {
-      util::stop(std::string(entry) +
-                 ": TF24w's private root-zone water is not differentiable. "
-                 "Use TF24.");
-    }
+    // different function's. No census is declared for TF24w, so no gradient
+    // entry point is compiled for it, and this keeps it that way.
+    static_assert(!HasPrivateWater<T>,
+                  "TF24w's private root-zone water is not differentiable");
     if (!plant::density_in_birth_date(control,
                                       T::density_in_birth_date_default)) {
       util::stop(std::string(entry) +
@@ -374,6 +372,26 @@ public:
       util::stop(std::string(entry) +
                  ": this run stands in a constant field (run_mutant_constant), which "
                  "the reverse-mode gradient does not transpose.");
+    }
+  }
+
+  // What a strategy rules out whatever its trajectory, refused before the run
+  // is recorded -- which can mean repeating it -- rather than met in the first
+  // differentiated rate evaluation. Asked only by the entry points that
+  // differentiate the rates: the census's state adjoint at one state does not
+  // read a sapwood controller's sensitivity, and answers with one on.
+  void require_differentiable_rates(const char* entry) const {
+    if constexpr (requires(const T& s) {
+                    { s.gradient_refusal() } -> std::convertible_to<std::string>;
+                  }) {
+      for (size_t i = 0; i < patch.size(); ++i) {
+        const std::string why =
+          patch.at_species(i).strategy_ptr()->gradient_refusal();
+        if (!why.empty()) {
+          util::stop(std::string(entry) + ": species " +
+                     util::to_string(static_cast<int>(i + 1)) + ": " + why);
+        }
+      }
     }
   }
 
@@ -1509,6 +1527,7 @@ census_gradient
 DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
                                  const std::vector<std::string>& which_metrics) {
   require_birth_date_coordinate("census_trait_gradient");
+  require_differentiable_rates("census_trait_gradient");
   // Which rows to sweep, resolved against the strategy's own list before
   // anything runs, so the shape of the answer is known on the refusal path too.
   // Named rather than positional: a caller indexing by position gets a different
@@ -1662,6 +1681,7 @@ std::vector<double>
 DeterministicPatchRunner<T, E>::census_trait_tangent(const std::vector<double>& direction,
                                 std::vector<double>& value) {
   require_birth_date_coordinate("census_trait_tangent");
+  require_differentiable_rates("census_trait_tangent");
 
   const recording rec = store_recording();
   patch_type& live = solver.get_system_ref();
@@ -1762,6 +1782,7 @@ DeterministicPatchRunner<T, E>::census_initial_state_tangent(const std::vector<d
                                         std::vector<double>& value,
                                         size_t segment) {
   require_birth_date_coordinate("census_initial_state_tangent");
+  require_differentiable_rates("census_initial_state_tangent");
 
   const std::vector<tangent> reached =
     pinned_run_from<tangent>(segment,

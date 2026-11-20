@@ -789,6 +789,25 @@ public:
   void refuse_unsupported_traits() const;
   void construct_leaf();
 
+  // Why no gradient through the rates exists for this strategy, whatever the
+  // run's trajectory, or empty where one may. The runner asks before a sweep,
+  // and the leaf's own guards say the same words if one is reached anyway.
+  std::string gradient_refusal() const {
+    // Deep-crown's crown means pass through the leaf at double.
+    if (shading_model_ == ShadingModel::DeepCrown) {
+      return "shading_model '" + this->control.shading_model +
+             "' is not differentiable: its crown means pass through Leaf, "
+             "which carries double. Use crown-centre or mean-light shading "
+             "for a gradient.";
+    }
+    if (odelia::util::to_passive(pars.a_sw) > 0.0) {
+      return "sapwood acclimation (a_sw > 0) is not differentiable: its "
+             "sensitivity is a finite difference through the leaf, which "
+             "carries no rows";
+    }
+    return "";
+  }
+
   // The same strategy at scalar U.
 
   // Another strategy's values, written into this one. prepare_strategy() is

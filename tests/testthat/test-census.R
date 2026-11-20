@@ -375,23 +375,42 @@ test_that("the gradient refuses, by name, what the strategy cannot differentiate
     p <- edit(p)
     run(p, Environment("TF24"), ctrl, record = "states")$solver
   }
+  # Each is a property of the strategy alone, so it is refused before the run
+  # is recorded, naming the entry point and the species.
   # Deep-crown shading's crown means pass through the leaf at double.
   solver <- short(ctrl = Control(shading_model = "deep-crown"))
   expect_error(stand_gradient(solver, metrics = "leaf_area", hyperpar = NULL),
-               "shading_model 'deep-crown' is not differentiable")
+               "species 1: shading_model 'deep-crown' is not differentiable")
   # Sapwood acclimation's sensitivity is a difference through the leaf, which
-  # carries no rows: every metric is refused and says why.
+  # carries no rows.
   solver <- short(function(p) {
     p$strategies[[1]]$pars$a_sw <- 0.1
     p
   })
-  g <- stand_gradient(solver, hyperpar = NULL)
-  expect_true(all(stand_gradient_refused(g)))
-  expect_true(all(is.na(g$gradient)))
-  for (r in g$refusal) {
-    expect_match(r$reason, "sapwood acclimation \\(a_sw > 0\\) is not differentiable")
-    expect_equal(r$species, 1L)
-  }
+  expect_error(stand_gradient(solver, hyperpar = NULL),
+               "census_trait_gradient: species 1: sapwood acclimation \\(a_sw > 0\\) is not differentiable")
+  # The tangent reference differentiates the same rates, and is refused alike
+  # rather than answering without the controller's sensitivity.
+  direction <- rep(1, length(census_trait_names(solver, "TF24")))
+  expect_error(ladder_trajectory_tangent_tf24(solver, direction),
+               "census_trait_tangent: species 1: sapwood acclimation")
+  # The census's state adjoint at one state reads no sapwood sensitivity, and
+  # still answers.
+  expect_true(all(is.finite(stand_census_state_adjoint(solver))))
+})
+
+test_that("TF24w has no stand gradient", {
+  # Its private root-zone columns couple cohorts outside the recorded block, so
+  # no census is declared for it, and no gradient entry point is compiled.
+  p <- testing_parameters("TF24w")
+  p$max_patch_lifetime <- 0.3
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"),
+                      hyperpar = default_hyperpar("TF24"), birth_rate = 20)
+  p$node_schedule_times <- list(c(0, 0.1, 0.2))
+  solver <- run(p, Environment("TF24w"),
+                control(node_density_coordinate = "birth_date"))$solver
+  expect_error(stand_gradient(solver, hyperpar = NULL),
+               "No census is declared for the TF24w model")
 })
 
 test_that("an empty request and an incomparable pair are refused", {

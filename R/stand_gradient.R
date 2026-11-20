@@ -160,8 +160,11 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'
 ##'   Refused outright, with an error: a run on the height coordinate or in a
 ##'   constant field; with the absorbing top layer on, a run with a harvest or
-##'   climate extreme that reached any cohort; and a trade-off that derives a
-##'   parameter an equation reads and that has no column.
+##'   climate extreme that reached any cohort; a strategy no gradient exists
+##'   for whatever its run (TF24's deep-crown shading or sapwood acclimation,
+##'   \code{a_sw > 0}), refused before a run that kept no states is repeated;
+##'   and a trade-off that derives a parameter an equation reads and that has
+##'   no column.
 ##'
 ##'   A run resumed from \code{\link{export_patch_state}()} is differentiated
 ##'   from its resume time, with the exported state held fixed: how that state
