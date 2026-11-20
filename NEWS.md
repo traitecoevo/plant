@@ -1435,8 +1435,8 @@ were not previously recorded here:
   by the branch taken and the next plant overwrites it, and a clamp that severs a
   row leaves a number indistinguishable from a true zero -- so neither was
   recoverable after a run. Additions only:
-  * `census_operating_point_counts(scm, model)` -> per-species counts by kind
-  * `census_operating_point_names()`     -> the kinds, in that order
+  * `census_operating_point_counts_tf24(scm)` -> per-species counts by kind
+  * `census_operating_point_names_tf24()`     -> the kinds, in that order
   * `census_clamp_counts_tf24(scm)`           -> per-species counts by clamp site
   * `census_clamp_names_tf24()`               -> the sites, in that order
   * `census_clear_diagnostics_tf24(scm)`       -> reset both, per run
@@ -1448,7 +1448,7 @@ were not previously recorded here:
   curvature floor and `stand_gradient_compare` refuses two gradients taken at
   different ones, and nothing said how close a run came. Additions only:
   * `census_clamp_counts_differentiated_tf24(scm)` -> per-species counts where the sweep ran
-  * `census_curvature_margin(scm, model)`          -> the smallest profit curvature met, or -1 for none
+  * `census_curvature_margin_tf24(scm)`            -> the smallest profit curvature met, or -1 for none
 
 * **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
   `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called
