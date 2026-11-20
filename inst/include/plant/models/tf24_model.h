@@ -142,7 +142,7 @@ public:
   // to (root_P50, root_c) and vulnerability_curve_ncontrol from 100 to 400; and
   // the half of v9 that took the light field's and the census's trapezium widths
   // from the coordinate the density is carried in.
-  static constexpr int scientific_version = 16;
+  static constexpr int scientific_version = 17;
 
   // calculate the amount of water transpired relativised by leaf area index.
 
@@ -682,13 +682,16 @@ public:
   S height_given_mass_leaf(const S& mass_leaf_) const;
 
 
-  S mortality_dt(const S& relative_reserves, const S& cumulative_mortality) const;
+  // carbon_status is the relative reserves r = S/S_max, or production per leaf
+  // area when a_st1 = 0 leaves the plant no pool.
+  S mortality_dt(const S& carbon_status, const S& cumulative_mortality) const;
   S mortality_growth_independent_dt()const ;
-  // Storage-dependent growth mortality: rises smoothly as relative
-  // reserves r = S/S_max deplete, bounded in [a_dG1*e^-a_dG2, a_dG1].
-  S mortality_storage_dependent_dt(const S& relative_reserves) const;
+  // Growth-dependent mortality, a_dG1 * exp(-a_dG2 * carbon_status): with
+  // storage it rises smoothly as reserves deplete, bounded in
+  // [a_dG1*e^-a_dG2, a_dG1]; without, it is FF16's and unbounded.
+  S mortality_growth_dependent_dt(const S& carbon_status) const;
   // NSC storage capacity S_max = a_st1 * mass_sapwood [kg NSC], at the
-  // sapwood the plant carries.
+  // sapwood the plant carries. a_st1 = 0 is the model without storage.
   S storage_capacity(const S& area_leaf, const S& height,
                      const S& sapwood_departure) const;
   // Initialise the storage state for a newly germinated individual.
