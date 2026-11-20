@@ -6,38 +6,26 @@
 # field is exogenous to the invader and carries no derivative. The referee is
 # the same invasion at perturbed traits, which steps where the resident stepped.
 
-mutant_control <- function(...) {
-  Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
-          ...)
-}
-
-resident_parameters <- function(lma = 0.0825, hmat = 3, lifetime = 8,
-                                birth_rate = 2) {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- lifetime
-  m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
-  add_strategies(p, m, birth_rate = as.list(rep(birth_rate, length(lma))))
-}
-
 # The invaders' parameters: the resident's, with the strategies replaced. They
 # carry the resident's node schedule, which is what the pinned run introduces by.
 mutant_parameters <- function(solver, lma, hmat = 3) {
   p <- solver$parameters
-  m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
-  q <- add_strategies(testing_parameters("FF16"), m,
-                      birth_rate = as.list(rep(2, length(lma))))
-  p$strategies <- q$strategies
+  p$strategies <- ff16_stand_parameters(lma, hmat)$strategies
   p$node_schedule_times <- rep(p$node_schedule_times[1], length(lma))
   p
 }
 
-mutant_fitness <- function(solver, lma) {
-  solver$run_mutant(mutant_parameters(solver, lma))
-  stand_fitness(solver)
+# The invaders' fitness when `p` is run as the mutant set in the resident `solver`,
+# which pins each run to the resident's steps.
+mutant_fitness_of <- function(solver) {
+  function(p) {
+    solver$run_mutant(p)
+    stand_fitness(solver)
+  }
 }
 
 test_that("a mutant's fitness gradient is the difference across pinned runs", {
-  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  solver <- ff16_stand_run()
   resident <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                              traits = "1.lma", hyperpar = NULL)
 
@@ -53,16 +41,10 @@ test_that("a mutant's fitness gradient is the difference across pinned runs", {
 
   # Each column against a central difference of the pinned run itself. The
   # recording stands; only the invader's parameter moves.
+  pm <- mutant_parameters(solver, 0.0825)
   for (name in c("lma", "omega", "a_f1", "k_I")) {
-    x <- solver$parameters$strategies[[1]]$pars[[name]]
-    h <- 1e-5 * abs(x)
-    at <- function(v) {
-      p <- mutant_parameters(solver, 0.0825)
-      p$strategies[[1]]$pars[[name]] <- v
-      solver$run_mutant(p)
-      stand_fitness(solver)[["1.net_reproduction_ratio"]]
-    }
-    fd <- (at(x + h) - at(x - h)) / (2 * h)
+    fd <- central_difference(pm, 1, name, "1.net_reproduction_ratio",
+                             mutant_fitness_of(solver), rel = 1e-5)
     expect_equal(g$gradient["1.net_reproduction_ratio", paste0("1.", name)], fd,
                  tolerance = 1e-5, label = name)
   }
@@ -75,22 +57,16 @@ test_that("a mutant's fitness gradient is the difference across pinned runs", {
 })
 
 test_that("several invaders against one resident each carry their own columns", {
-  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  solver <- ff16_stand_run()
   solver$run_mutant(mutant_parameters(solver, c(0.07, 0.1)))
   g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
                                           "2.net_reproduction_ratio"),
                       traits = c("1.lma", "2.lma"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
+  pm <- mutant_parameters(solver, c(0.07, 0.1))
   for (i in 1:2) {
-    x <- solver$parameters$strategies[[i]]$pars$lma
-    h <- 1e-5 * x
-    at <- function(v) {
-      p <- mutant_parameters(solver, c(0.07, 0.1))
-      p$strategies[[i]]$pars$lma <- v
-      solver$run_mutant(p)
-      stand_fitness(solver)[[paste0(i, ".net_reproduction_ratio")]]
-    }
-    fd <- (at(x + h) - at(x - h)) / (2 * h)
+    fd <- central_difference(pm, i, "lma", paste0(i, ".net_reproduction_ratio"),
+                             mutant_fitness_of(solver), rel = 1e-5)
     expect_equal(g$gradient[paste0(i, ".net_reproduction_ratio"),
                             paste0(i, ".lma")], fd,
                  tolerance = 1e-5, label = paste0(i, ".lma"))
@@ -98,7 +74,7 @@ test_that("several invaders against one resident each carry their own columns", 
 })
 
 test_that("a sweep of an invasion that kept no states runs it again, as an invasion", {
-  solver <- run(resident_parameters(lifetime = 3), NULL, mutant_control())$solver
+  solver <- run(ff16_stand_parameters(lifetime = 3), NULL, ff16_referee_control())$solver
   solver$run_mutant(mutant_parameters(solver, 0.0825))
   again <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                           hyperpar = NULL)
@@ -109,17 +85,8 @@ test_that("a sweep of an invasion that kept no states runs it again, as an invas
   expect_identical(again$gradient, kept$gradient)
 })
 
-# The invaders' fitness when `p` is run as the mutant set in the resident `solver`,
-# which pins each run to the resident's steps.
-mutant_fitness_of <- function(solver) {
-  function(p) {
-    solver$run_mutant(p)
-    stand_fitness(solver)
-  }
-}
-
 test_that("invaders do not shade each other, and an invader's birth rate reaches only its output", {
-  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  solver <- ff16_stand_run()
   solver$run_mutant(mutant_parameters(solver, c(0.07, 0.1)))
   g <- stand_gradient(solver, metrics = c("1.net_reproduction_ratio",
                                           "1.offspring_production"),
@@ -140,7 +107,7 @@ test_that("an invader introduced after the pinned run starts has a gradient", {
   # The invader's patch is empty, and FF16's environment carries no state, so
   # the pinned run steps with no state until its first cohort; the sweep passes
   # those steps over.
-  solver <- run(resident_parameters(), NULL, mutant_control(), record = "states")$solver
+  solver <- ff16_stand_run()
   p <- mutant_parameters(solver, 0.09)
   tt <- p$node_schedule_times[[1]]
   p$node_schedule_times <- list(tt[tt >= 1])
@@ -160,14 +127,14 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   # The resident resumes at 6 and its first cohort after the resume is born at
   # 6 itself, in the field of the state the resident resumed from. Establishment
   # reads it, so a_d0 is the column that shows the wrong canopy.
-  p <- resident_parameters(lifetime = 12)
+  p <- ff16_stand_parameters(lifetime = 12)
   p$fitness_weighting <- "none"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))
-  burn <- run(p, NULL, mutant_control(), until = 0)$solver
+  burn <- run(p, NULL, ff16_referee_control(), until = 0)$solver
   burn$run_to(6)
   state <- export_patch_state(burn)
   p2 <- set_initial_state(p, state)
-  solver <- run(p2, NULL, mutant_control(), record = "states")$solver
+  solver <- run(p2, NULL, ff16_referee_control(), record = "states")$solver
   pm <- mutant_parameters(solver, 0.09)
   pm$initial_state <- numeric(0)
   pm$n_initial_cohorts <- integer(0)
@@ -190,8 +157,8 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
 })
 
 test_that("an invader's gradient through the run's harvest is the difference across invasions", {
-  p <- resident_parameters()
-  solver <- run(p, NULL, mutant_control(),
+  p <- ff16_stand_parameters()
+  solver <- run(p, NULL, ff16_referee_control(),
                 events = events(events_default(p),
                                 harvest(time = 4, fraction = 0.5)), record = "states")$solver
   pm <- mutant_parameters(solver, 0.09)

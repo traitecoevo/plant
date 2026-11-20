@@ -82,9 +82,6 @@ for (x in names(strategy_types)) {
 
   })
 
-  ## TODO(#482): Not done yet:
-  ##   * Check that the initial conditions are actually correct
-  ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {
     plant <- Individual(x, e)(s)
     node <- Node(x, e)(s)

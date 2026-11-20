@@ -147,9 +147,6 @@ test_that("run() grows an individual to sizes", {
   }
 })
 
-## TODO(#482): another useful function could be to construct splines for
-## arbitrary variables during a run; we end up with all the state here
-## so that should be fairly straightforward.
 test_that("run() grows an individual to sizes, and stops at time_max", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()

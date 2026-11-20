@@ -12,7 +12,7 @@
 ##
 ## Run against the installed plant:
 ##
-##   Rscript inst/scripts/stochastic_expectation.R [results.csv] [quick]
+##   Rscript scripts/stochastic_expectation.R [results.csv] [quick]
 ##
 ## It writes one row per model, patch age, area and death-check interval:
 ##
