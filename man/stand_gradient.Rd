@@ -81,8 +81,8 @@ With \code{hyperpar = NULL} every parameter the model can differentiate
 has a column, and each is a partial derivative with every other parameter
 fixed.
 
-A column can be zero because of another parameter's value. FF16 and TF24
-both offer the coarse-root pool's \code{a_cr1}, \code{r_cr} and
+A column can be zero because of another parameter's value. FF16, TF24
+and TF24f offer the coarse-root pool's \code{a_cr1}, \code{r_cr} and
 \code{k_cr}. At the default \code{a_cr1 = 0} the pool is empty, so the
 columns of its respiration and turnover rates, \code{r_cr} and
 \code{k_cr}, are exact zeros by construction, not findings about the pool;

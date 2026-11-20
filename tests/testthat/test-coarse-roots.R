@@ -183,7 +183,8 @@ test_that("coarse roots stay out of TF24's water uptake", {
 test_that("TF24's coarse-root columns are pinned-step differences, and zero while the pool is empty", {
   ## Both models offer a_cr1, r_cr and k_cr as gradient columns. With the pool
   ## on, each is checked against a central difference of runs pinned to the
-  ## recorded steps, metric by metric on its own scale; they agree to 2e-8.
+  ## recorded steps, metric by metric on its own scale; they agree to 2e-8
+  ## here and to 2e-7 on other stands.
   ## At the default a_cr1 = 0 the pool is empty, so r_cr's and k_cr's columns
   ## are exact zeros by construction, while a_cr1's is live: it is the cost of
   ## starting a pool, and reaches the seed's mass too.

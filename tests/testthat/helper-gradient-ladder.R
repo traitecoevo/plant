@@ -1739,9 +1739,9 @@ ladder_birth_size_parameters <- function() {
 }
 
 # A ninth reaches birth size, because mass_live counts the coarse-root pool, and
-# is kept apart from the eight because its default is zero: every difference
-# above takes a step relative to the parameter's value, which moves nothing at
-# zero. Its column is refereed against pinned-step differences, at zero and with
+# is kept apart from the eight because its default is zero: the whole-run
+# differences the eight are refereed by take a step relative to the parameter's
+# value, which moves nothing at zero. Its column is refereed against pinned-step differences, at zero and with
 # the pool on, in test-coarse-roots.R.
 ladder_birth_size_parameters_at_zero <- function() {
   "a_cr1"
