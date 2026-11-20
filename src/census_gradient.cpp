@@ -1,6 +1,7 @@
 #include <plant.h>
 
-// The census exports stand_gradient() and stand_census() call.
+// The census exports stand_gradient() and stand_census() call, and the
+// diagnostics that say what regimes a run's leaf solves met.
 
 // One body per question, and one export per question that takes the runner and
 // its model's name, read on the R side off the runner's own class. A metric is
@@ -149,6 +150,43 @@ SEXP with_census_runner(SEXP x, const std::string& model, F&& f) {
   });
 }
 
+// A model whose strategy classifies each leaf solve's operating point and
+// records the profit curvature its gradient met. Read off
+// the strategy rather than listed by name, so a model that declares them is
+// served without an entry here.
+template <class Runner>
+concept reports_incidence = requires(typename Runner::strategy_type& s) {
+  s.operating_point_counts;
+  s.curvature_margin;
+};
+
+// Calls f with the runner `x` holds, for a model that reports incidence, and
+// refuses any other census model by name.
+template <class F>
+SEXP with_incidence_runner(SEXP x, const std::string& model, F&& f) {
+  return with_census_runner(x, model, [&](auto& runner) -> SEXP {
+    using Runner = std::decay_t<decltype(runner)>;
+    if constexpr (reports_incidence<Runner>) {
+      return f(runner);
+    } else {
+      Rcpp::stop("The " + model + " model solves no leaf, so it has no "
+                 "operating points or curvature margin to report; TF24 and "
+                 "TF24f report them");
+      return R_NilValue;
+    }
+  });
+}
+
+// A per-species tally, as R reads it: one numeric vector per species.
+SEXP counts_to_r(const std::vector<std::vector<size_t>>& counts) {
+  std::vector<std::vector<double>> ret;
+  ret.reserve(counts.size());
+  for (const std::vector<size_t>& row : counts) {
+    ret.push_back(std::vector<double>(row.begin(), row.end()));
+  }
+  return Rcpp::wrap(ret);
+}
+
 }  // namespace
 
 // The gradient and, per metric, whether it was refused. External linkage:
@@ -230,6 +268,47 @@ SEXP census_trait_gradient(SEXP x, std::string model,
 SEXP census_gradient_control(SEXP x, std::string model) {
   return with_census_runner(x, model,
                             [](auto& runner) { return control_of(runner); });
+}
+
+// The run's incidence, for every model whose leaf solve reports it: the
+// regimes its solves met. The clamp counts have readers of their own.
+
+// The forward run's classification tally: one row per species, one column per
+// operating-point kind in census_operating_point_names() order. The leaf
+// classifies by the branch taken and the next plant overwrites it, so a run's
+// incidence is not recoverable afterwards from anything but this. It is what
+// says whether a regime the gradient refuses is rare or is most of the run.
+// [[Rcpp::export]]
+SEXP census_operating_point_counts(SEXP x, std::string model) {
+  return with_incidence_runner(x, model, [](auto& runner) {
+    return counts_to_r(runner.operating_point_counts());
+  });
+}
+
+// The kinds, in the order the counts are reported.
+// [[Rcpp::export]]
+std::vector<std::string> census_operating_point_names() {
+  std::vector<std::string> ret;
+  ret.reserve(plant::Leaf::operating_point_kind_count);
+  for (size_t k = 0; k < plant::Leaf::operating_point_kind_count; ++k) {
+    ret.push_back(plant::Leaf::operating_point_kind_name(
+        static_cast<plant::Leaf::OperatingPointKind>(k)));
+  }
+  return ret;
+}
+
+// The smallest profit curvature the differentiated path met, one per species,
+// or -1 where it met none. The guard on it refuses a row rather than returning
+// amplification, and a guard that held reports the same green as a guard
+// nothing reached -- so the distance to the floor is reported rather than
+// assumed. gradient_control publishes the floor and stand_gradient_compare
+// refuses two gradients taken at different ones, and this is the only thing
+// that says how close a run came to it.
+// [[Rcpp::export]]
+SEXP census_curvature_margin(SEXP x, std::string model) {
+  return with_incidence_runner(x, model, [](auto& runner) {
+    return Rcpp::wrap(runner.curvature_margins());
+  });
 }
 
 // [[Rcpp::export]]

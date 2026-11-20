@@ -13,6 +13,11 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **TF24f reports its leaf solves' operating points and its curvature margin, which were TF24's alone; the readers take the model's name.** TF24f's solves were not tallied, so a run could not say how often a leaf was shut or a collar tracked. Each solve is now tallied by the kind the leaf was left in: a newborn's optimum as TF24's is, a tracked collar as `prescribed`, a leaf with no feasible interval as `hydraulic-shutdown`. FF16 solves no leaf and is refused by name. No number moves. Migration (internal, reached as `plant:::`):
+  * `census_operating_point_counts_tf24(scm)` -> `census_operating_point_counts(scm, "TF24")`, or `"TF24f"`
+  * `census_operating_point_names_tf24()` -> `census_operating_point_names()`
+  * `census_curvature_margin_tf24(scm)` -> `census_curvature_margin(scm, "TF24")`, or `"TF24f"`
+
 * **The clamp counts carry three more sites, and FF16's and TF24f's runs report them too.** Three places that replace a value by a bound were not counted, so a row they zeroed read the same as a true zero: the light field's own floor at zero (`light_field_floor`, every model), FF16's growth cutoff at zero net production (`production_cutoff`) and TF24f's hold of a newborn's position to its interval (`seed_position`). FF16's cutoff binds where cohorts are suppressed (at `k_I = 4`, not at the default); the other two fired on no stand measured. An internal reader, `plant:::census_clamp_counts(x, model, differentiated = FALSE)`, returns the counts for FF16, TF24 and TF24f as a species-by-site matrix; like the `_tf24` readers it is not exported. No number moves. Migration:
   * a row of `census_clamp_counts_tf24()` or `census_clamp_counts_differentiated_tf24()` indexed by position -> index it by `census_clamp_names_tf24()`; the leaf's sites move three places
 

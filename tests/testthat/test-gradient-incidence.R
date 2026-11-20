@@ -30,8 +30,8 @@ incidence_built <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
     solver <- ladder_driver_stand(rain, lifetime, k_I, introductions = introductions)
     incidence_cache[[key]] <- list(
       solver = solver,
-      kinds = stats::setNames(census_operating_point_counts_tf24(solver)[[1]],
-                              census_operating_point_names_tf24()),
+      kinds = stats::setNames(census_operating_point_counts(solver, "TF24")[[1]],
+                              census_operating_point_names()),
       clamps = stats::setNames(census_clamp_counts_tf24(solver)[[1]],
                                census_clamp_names_tf24()))
   }
@@ -48,7 +48,7 @@ incidence_swept <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
     entry$swept <-
       stats::setNames(census_clamp_counts_differentiated_tf24(entry$solver)[[1]],
                       census_clamp_names_tf24())
-    entry$curvature <- census_curvature_margin_tf24(entry$solver)[[1]]
+    entry$curvature <- census_curvature_margin(entry$solver, "TF24")[[1]]
     incidence_cache[[key]] <- entry
   }
   entry
@@ -76,10 +76,10 @@ test_that("the classification tally is the route to a regime's incidence", {
   # its own: clearing is destructive and every other block here reads a shared
   # one. A patch lifetime of 1 is the shortest stand that carries cohorts.
   solver <- ladder_driver_stand(2.0, 1)
-  counts <- census_operating_point_counts_tf24(solver)[[1]]
+  counts <- census_operating_point_counts(solver, "TF24")[[1]]
   expect_gt(sum(counts), 0)
   census_clear_diagnostics_tf24(solver)
-  expect_equal(sum(census_operating_point_counts_tf24(solver)[[1]]), 0)
+  expect_equal(sum(census_operating_point_counts(solver, "TF24")[[1]]), 0)
 })
 
 test_that("a dry stand is interior throughout, and answers", {

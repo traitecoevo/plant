@@ -18891,6 +18891,40 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// census_operating_point_counts
+SEXP census_operating_point_counts(SEXP x, std::string model);
+RcppExport SEXP _plant_census_operating_point_counts(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_operating_point_counts(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// census_operating_point_names
+std::vector<std::string> census_operating_point_names();
+RcppExport SEXP _plant_census_operating_point_names() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(census_operating_point_names());
+    return rcpp_result_gen;
+END_RCPP
+}
+// census_curvature_margin
+SEXP census_curvature_margin(SEXP x, std::string model);
+RcppExport SEXP _plant_census_curvature_margin(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_curvature_margin(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // census_clamp_counts
 SEXP census_clamp_counts(SEXP x, std::string model, bool differentiated);
 RcppExport SEXP _plant_census_clamp_counts(SEXP xSEXP, SEXP modelSEXP, SEXP differentiatedSEXP) {
@@ -19157,17 +19191,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// census_operating_point_counts_tf24
-std::vector<std::vector<double>> census_operating_point_counts_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_operating_point_counts_tf24(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_operating_point_counts_tf24(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // census_clear_diagnostics_tf24
 void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_census_clear_diagnostics_tf24(SEXP obj_SEXP) {
@@ -19176,16 +19199,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     census_clear_diagnostics_tf24(obj_);
     return R_NilValue;
-END_RCPP
-}
-// census_operating_point_names_tf24
-std::vector<std::string> census_operating_point_names_tf24();
-RcppExport SEXP _plant_census_operating_point_names_tf24() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(census_operating_point_names_tf24());
-    return rcpp_result_gen;
 END_RCPP
 }
 // census_clamp_counts_tf24
@@ -19217,17 +19230,6 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     rcpp_result_gen = Rcpp::wrap(census_clamp_names_tf24());
-    return rcpp_result_gen;
-END_RCPP
-}
-// census_curvature_margin_tf24
-std::vector<double> census_curvature_margin_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_census_curvature_margin_tf24(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(census_curvature_margin_tf24(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -21407,6 +21409,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_census_undifferentiable", (DL_FUNC) &_plant_census_undifferentiable, 1},
     {"_plant_census_trait_gradient", (DL_FUNC) &_plant_census_trait_gradient, 3},
     {"_plant_census_gradient_control", (DL_FUNC) &_plant_census_gradient_control, 2},
+    {"_plant_census_operating_point_counts", (DL_FUNC) &_plant_census_operating_point_counts, 2},
+    {"_plant_census_operating_point_names", (DL_FUNC) &_plant_census_operating_point_names, 0},
+    {"_plant_census_curvature_margin", (DL_FUNC) &_plant_census_curvature_margin, 2},
     {"_plant_census_clamp_counts", (DL_FUNC) &_plant_census_clamp_counts, 3},
     {"_plant_ladder_block_jacobian_forward_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_forward_tf24, 2},
     {"_plant_ladder_block_value_tf24", (DL_FUNC) &_plant_ladder_block_value_tf24, 2},
@@ -21429,13 +21434,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ladder_census_trait_direct_tf24", (DL_FUNC) &_plant_ladder_census_trait_direct_tf24, 1},
     {"_plant_ladder_census_trait_difference_tf24", (DL_FUNC) &_plant_ladder_census_trait_difference_tf24, 2},
     {"_plant_census_trait_gradient_split_tf24", (DL_FUNC) &_plant_census_trait_gradient_split_tf24, 2},
-    {"_plant_census_operating_point_counts_tf24", (DL_FUNC) &_plant_census_operating_point_counts_tf24, 1},
     {"_plant_census_clear_diagnostics_tf24", (DL_FUNC) &_plant_census_clear_diagnostics_tf24, 1},
-    {"_plant_census_operating_point_names_tf24", (DL_FUNC) &_plant_census_operating_point_names_tf24, 0},
     {"_plant_census_clamp_counts_tf24", (DL_FUNC) &_plant_census_clamp_counts_tf24, 1},
     {"_plant_census_clamp_counts_differentiated_tf24", (DL_FUNC) &_plant_census_clamp_counts_differentiated_tf24, 1},
     {"_plant_census_clamp_names_tf24", (DL_FUNC) &_plant_census_clamp_names_tf24, 0},
-    {"_plant_census_curvature_margin_tf24", (DL_FUNC) &_plant_census_curvature_margin_tf24, 1},
     {"_plant_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_schedule_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_make_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_schedule__Parameters___FF16__FF16_Env, 1},
     {"_plant_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_schedule_default__Parameters___K93__K93_Env, 1},
