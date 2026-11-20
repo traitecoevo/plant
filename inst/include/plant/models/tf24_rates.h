@@ -109,15 +109,10 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // smooth Ppos adds up to storage_prod_eps / 2, which is 2% of a newborn's
   // production in full sun and 23% at a fifth of it.
   //
-  // A switch has no derivative, so a gradient at a_st1 = 0 is refused: a_st1's
-  // column would otherwise be an exact zero that reads as an answer.
+  // A gradient at a_st1 = 0 is every other trait's in the model without
+  // storage. a_st1's own column reads zero there, since nothing on this branch
+  // reads it, but a switch has no derivative, so that zero is not one.
   const bool has_storage = odelia::util::to_passive(pars.a_st1) > 0.0;
-  if constexpr (!std::is_same_v<S, double>) {
-    if (!has_storage) {
-      refuse("storage capacity a_st1 = 0 is not differentiable: it switches "
-             "the storage pool off, so a_st1 has no derivative there");
-    }
-  }
   const S growth_flux =
     has_storage ? S(Ppos * G) : (P > 0.0 ? P : S(0.0));
 

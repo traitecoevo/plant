@@ -592,7 +592,7 @@ test_that("a negative storage capacity is refused", {
   }
 })
 
-test_that("a stand without storage runs, and its gradient is refused", {
+test_that("a stand without storage runs, and its gradient answers", {
   skip_on_cran()
   p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 0.3
@@ -608,11 +608,15 @@ test_that("a stand without storage runs, and its gradient is refused", {
   expect_gt(sp$size, 1)
   expect_identical(patch$ode_state[at], rep(0, sp$size))
 
+  # Every other trait's column is the no-storage model's derivative. a_st1's
+  # reads zero, because nothing on that branch reads it.
   g <- stand_gradient(res$solver, hyperpar = NULL)
-  expect_true(all(stand_gradient_refused(g)))
-  for (r in g$refusal) {
-    expect_match(r$reason, "a_st1 = 0 is not differentiable")
-  }
+  expect_false(any(stand_gradient_refused(g)))
+  expect_true(all(is.finite(g$gradient)))
+  st1 <- grep("\\.a_st1$", colnames(g$gradient))
+  expect_length(st1, 1)
+  expect_true(all(g$gradient[, st1] == 0))
+  expect_true(any(g$gradient[, grep("\\.lma$", colnames(g$gradient))] != 0))
 })
 
 test_that("a seeded plant carries its seed's leaf area, whatever departure it had", {
