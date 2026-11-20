@@ -1623,7 +1623,7 @@ parameters:
     symbol: '\alpha_{\rm dG1}'
     units: 'yr⁻¹'
     class: hyperparameter
-    meaning: 'storage-dependent mortality rate with empty reserves'
+    meaning: 'growth-dependent mortality rate with empty reserves, or at zero production when a_st1 = 0'
     source: 'TF24_Pars default; the header follows Stefaniak et al. 2026, Eq. 6'
     placeholder: true
     code: plant::TF24_Pars::a_dG1
@@ -1633,7 +1633,7 @@ parameters:
     symbol: '\alpha_{\rm dG2}'
     units: '–'
     class: hyperparameter
-    meaning: 'sensitivity of mortality to relative reserves'
+    meaning: 'sensitivity of mortality to relative reserves; when a_st1 = 0, to production per leaf area, in m² yr kg⁻¹'
     source: TF24_Pars default
     placeholder: true
     code: plant::TF24_Pars::a_dG2
@@ -3212,10 +3212,10 @@ equations:
     latex: |
       F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
     code: plant::TF24_Model::compute_rates
-    reads: [TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
+    reads: [TF24.a_st1, TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
     writes: []
     kind: closed_form
-    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. Not on an Overstorey page.'
+    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. At $\alpha_{\rm st1} = 0$, the model without storage, $F = \max(\dot{B}, 0)$ instead. Not on an Overstorey page.'
   TF24.storage_ode:
     model: TF24
     section: tf24_storage
@@ -3223,10 +3223,10 @@ equations:
     latex: |
       \frac{{\rm d}S}{{\rm d}t} = \frac{q_{\rm c}\,(1 - r) - q_{\rm d}\,r}{1 + \tau_{\rm o} \, (q_{\rm c} + q_{\rm d}) / S_{\max}}, \qquad q_{\rm c} = \dot{B}_{+}\,(1 - G(r)), \qquad q_{\rm d} = \dot{B}_{+} - \dot{B}
     code: plant::TF24_Model::compute_rates
-    reads: [TF24.storage_relaxation_offset]
+    reads: [TF24.a_st1, TF24.storage_relaxation_offset]
     writes: []
     kind: derivative
-    note: 'The charge $q_{\rm c}$ is the surplus the gate withheld and the drain $q_{\rm d}$ the shortfall met from reserves; each is limited by the room the other leaves, so $S$ stays in $[0, S_{\max}]$ with no clamp. At capacity the withheld charge leaves the budget: the pool is capped by withholding, not by spending. The divisor is taken as 1 where $S_{\max} = 0$. Not on an Overstorey page.'
+    note: 'The charge $q_{\rm c}$ is the surplus the gate withheld and the drain $q_{\rm d}$ the shortfall met from reserves; each is limited by the room the other leaves, so $S$ stays in $[0, S_{\max}]$ with no clamp. At capacity the withheld charge leaves the budget: the pool is capped by withholding, not by spending. At $\alpha_{\rm st1} = 0$, the model without storage, ${\rm d}S/{\rm d}t = 0$ and $S$ stays at its birth value of zero. Not on an Overstorey page.'
   TF24.storage_initial:
     model: TF24
     section: tf24_storage
@@ -3463,14 +3463,14 @@ equations:
   TF24.mortality_storage:
     model: TF24
     section: tf24_mortality
-    title: Storage-dependent mortality
+    title: Growth-dependent mortality
     latex: |
       d_{{\rm S}}(r) = \alpha_{{\rm dG1}} \exp(-\alpha_{{\rm dG2}} \, r)
-    code: plant::TF24_Model::mortality_storage_dependent_dt
-    reads: [TF24.a_dG1, TF24.a_dG2]
+    code: plant::TF24_Model::mortality_growth_dependent_dt
+    reads: [TF24.a_dG1, TF24.a_dG2, TF24.a_st1]
     writes: []
     kind: closed_form
-    note: 'FF16''s growth-dependent form with relative reserves $r$ in place of production per leaf area, so it is bounded in $[\alpha_{\rm dG1} e^{-\alpha_{\rm dG2}}, \alpha_{\rm dG1}]$ and death is gradual as reserves run down. The header follows Stefaniak et al. 2026, Eq. 6. Not on an Overstorey page.'
+    note: 'FF16''s growth-dependent form with relative reserves $r$ in place of production per leaf area, so it is bounded in $[\alpha_{\rm dG1} e^{-\alpha_{\rm dG2}}, \alpha_{\rm dG1}]$ and death is gradual as reserves run down. At $\alpha_{\rm st1} = 0$, the model without storage, it reads production per leaf area as FF16 does, unbounded. The header follows Stefaniak et al. 2026, Eq. 6. Not on an Overstorey page.'
   TF24.establishment:
     model: TF24
     section: tf24_mortality
