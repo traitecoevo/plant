@@ -568,7 +568,6 @@ public:
   // layers' inputs, and the sweep differentiates through them.
   std::vector<S> resource_uptake;
 
-  // TODO: should we use auxilliary in internals
   std::vector<S> water_flux;
   std::vector<double> z;
   std::vector<double> z_mid;
@@ -1006,7 +1005,6 @@ public:
   std::vector<double> get_soil_layer_widths() const { return dz; }
 
 
-  // TODO: I wonder if this needs a better name? See also environment.h
   Internals<double> r_internals() const {
     Internals<double> out(vars.state_size(), vars.aux_size(), vars.resource_size());
     out.states = rebind(vars.states);
