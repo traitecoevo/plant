@@ -161,7 +161,6 @@ void rescale(ForwardIterator first, ForwardIterator last,
   }
 }
 
-// TODO(#483): Probably move these out to their own file?
 // Integration via the trapezium rule, for any containers that
 // implement the basics of iteration (const_iterator, begin, size)
 // The integrand's scalar comes out, so a vector of double integrates to a

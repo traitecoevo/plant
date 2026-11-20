@@ -77,9 +77,10 @@ census_r <- function(species, pars, eta, include_boundary = TRUE,
 #
 # ⚠️ SIX NODES RATHER THAN THE SEVENTY-EIGHT A DEFAULT SCHEDULE FILLS IN IS WHAT
 # MAKES THE BOUNDARY NODE READABLE. It is the reduction's closing grid point and
-# the one part of the adjoint no state column reports, so G3 reads it as the gap
-# between two references -- and that gap is 2.5e-07 of the main term here against
-# 6.1e-09 under a default schedule, where the reference's own floor is 9.5e-11.
+# the one part of the adjoint no state column reports, so the birth-date-grid
+# test reads it as the gap between two references -- and that gap is 2.5e-07 of
+# the main term here against 6.1e-09 under a default schedule, where the
+# reference's own floor is 9.5e-11.
 #
 # What it does not carry is the claim that a real trajectory REACHES such a
 # state. Nothing here claims that; the premise is a guard on vacuity.
@@ -116,8 +117,8 @@ census_stand <- local({
 # census_state_and_trait_rows rebuilds it through set_state_and_boundary, from a
 # light field every cohort's height and density enters by the same product the
 # census integrates. Holding it fixed leaves a gap that grows with the stand --
-# 2.5e-07 here, 8.6e-05 on one grown to a lifetime of 12 -- and G3 below
-# measures it rather than absorbing it in a tolerance.
+# 2.5e-07 here, 8.6e-05 on one grown to a lifetime of 12 -- and the
+# birth-date-grid test below measures it rather than absorbing it in a tolerance.
 census_of_state <- function(solver, column, birth_date = TRUE) {
   strategy <- solver$parameters$strategies[[1]]
   patch <- solver$patch
@@ -134,7 +135,7 @@ census_of_state <- function(solver, column, birth_date = TRUE) {
   }
 }
 
-test_that("G1: the census value matches an independent R reduction", {
+test_that("the census value matches an independent R reduction", {
   solver <- census_stand()
   species <- solver$patch$species[[1]]
   strategy <- solver$parameters$strategies[[1]]
@@ -144,7 +145,7 @@ test_that("G1: the census value matches an independent R reduction", {
   expect_equal(unname(got), unname(expected[names(got)]), tolerance = 1e-12)
 })
 
-test_that("G2: the boundary node is in the reduction", {
+test_that("the census reduction includes the boundary node", {
   solver <- census_stand()
   species <- solver$patch$species[[1]]
   strategy <- solver$parameters$strategies[[1]]
@@ -161,7 +162,7 @@ test_that("G2: the boundary node is in the reduction", {
                tolerance = 1e-12)
 })
 
-test_that("G3: the state adjoint is the census's derivative on the birth-date grid", {
+test_that("the state adjoint is the census's derivative on the birth-date grid", {
   # A height is state and a birth date is not, so which one the grid is built
   # from decides whether a cohort's height moves the quadrature as well as the
   # integrand. On this coordinate it does not.
@@ -240,7 +241,7 @@ test_that("G3: the state adjoint is the census's derivative on the birth-date gr
   expect_lt(max(abs(got - boundary_held) / abs(got)), 1e-10)
 })
 
-test_that("G4: the state adjoint reaches every state a metric reads", {
+test_that("the state adjoint reaches every state a metric reads", {
   # An exact zero in this design is the signature of a missing accumulator and
   # never of true insensitivity, so a state a metric demonstrably reads must have
   # an adjoint.
@@ -249,13 +250,13 @@ test_that("G4: the state adjoint reaches every state a metric reads", {
   # sums the three masses and heartwood MASS, so both read a heartwood state
   # directly and linearly: the adjoint is the quadrature weight times the density,
   # with no allometry in between, which is what makes this checkable by hand.
-  # G1 shows the census VALUE carries them, so the reduction is right and it is
-  # the recording of it that would not be.
+  # The R-reduction test shows the census VALUE carries them, so the reduction
+  # is right and it is the recording of it that would not be.
   #
-  # Exact rather than approximate, and the reason is the finding G3 rests on: a
-  # heartwood state is not in the light field, so these two columns carry no
-  # boundary-node channel and nothing else stands between the weight and the
-  # answer.
+  # Exact rather than approximate, and the reason is the finding the
+  # birth-date-grid test rests on: a heartwood state is not in the light field,
+  # so these two columns carry no boundary-node channel and nothing else stands
+  # between the weight and the answer.
   solver <- census_stand()
   adjoint <- stand_census_state_adjoint(solver)
   species <- solver$patch$species[[1]]
@@ -288,7 +289,7 @@ test_that("G4: the state adjoint reaches every state a metric reads", {
   expect_true(any(adjoint["leaf_area", h_cols] != 0))
 })
 
-test_that("G5: the entry point refuses to compare across two Controls", {
+test_that("stand_gradient_compare() refuses to compare across two Controls", {
   a <- list(gradient = matrix(1, 1, 1, dimnames = list("leaf_area", "lma")),
             control = c(GSS_tol_abs = 1e-3, ci_abs_tol = 1e-3,
                         node_gradient_eps = 1e-6, schedule_eps = 1e-3,
@@ -300,7 +301,7 @@ test_that("G5: the entry point refuses to compare across two Controls", {
                matrix(0, 1, 1, dimnames = list("leaf_area", "lma")))
 })
 
-test_that("G6: no census metric has an all-zero state sensitivity", {
+test_that("no census metric has an all-zero state sensitivity", {
   # A structural claim about the adjoint rather than one about the shape of the
   # distribution, so it reads the stand every other block uses.
   solver <- census_stand()

@@ -523,6 +523,102 @@ test_that("the capacity a test computes is the capacity the model uses", {
   expect_equal(S0 / s$pars$a_st3, tf24_storage_capacity_r(h0), tolerance = 1e-12)
 })
 
+test_that("a_st1 = 0 is the model without storage", {
+  # Zero capacity switches the pool off: production's positive part goes to
+  # growth, the pool stays empty, and mortality reads production per leaf area.
+  # Read through the reserve gate instead, it left r = 0, so growth ran at
+  # G(0) ~ 27% of production and mortality sat at its maximum a_dG1.
+  s <- TF24_Model()
+  s$pars$a_st1 <- 0
+  p <- s$pars
+  env <- Environment("TF24")
+  env$set_soil_water_state(rep(0.4, env$get_soil_number_of_depths()))
+  env$time <- 5
+
+  born <- Individual("TF24", "TF24_Env")(s)
+  env$set_fixed_environment(1, height_max = 150)
+  born$set_initial_states(env)
+  expect_identical(born$state("storage"), 0)
+
+  # At maturation height half of growth goes to seed, so fecundity reads the
+  # growth flux whole: fecundity = F * a_f1 / 2 / (omega + a_f3).
+  height <- p$hmat
+  f_r <- p$a_f1 / (1 + exp(p$a_f2 * (1 - height / p$hmat)))
+  for (light in c(1, 0.02)) {
+    env$set_fixed_environment(light, height_max = 150)
+    ind <- Individual("TF24", "TF24_Env")(s)
+    ind$set_state("height", height)
+    ind$compute_rates(env)
+    P <- ind$aux("net_mass_production_dt")
+    A <- ind$aux("competition_effect")
+    label <- sprintf("light = %g", light)
+
+    expect_identical(ind$rate("storage"), 0, info = label)
+    expect_equal(ind$rate("fecundity"),
+                 max(P, 0) * f_r / (p$omega + p$a_f3),
+                 tolerance = 1e-12, info = label)
+    expect_equal(ind$rate("mortality"),
+                 p$d_I + p$a_dG1 * exp(-p$a_dG2 * P / A),
+                 tolerance = 1e-12, info = label)
+    if (light == 1) {
+      expect_gt(P, 0)                    # non-vacuity: the plant grows
+      expect_gt(ind$rate("height"), 0)
+      expect_lt(ind$rate("mortality"), p$d_I + 0.01 * p$a_dG1)
+    } else {
+      expect_lt(P, 0)                    # non-vacuity: a carbon deficit
+      expect_identical(ind$rate("height"), 0)
+      expect_identical(ind$rate("fecundity"), 0)
+      # Unbounded, as before the pool: the deficit takes it past a_dG1.
+      expect_gt(ind$rate("mortality"), p$d_I + p$a_dG1)
+    }
+
+    # The pool's other parameters reach nothing.
+    s2 <- TF24_Model()
+    s2$pars$a_st1 <- 0
+    s2$pars$a_st2 <- 0.7
+    s2$pars$a_st3 <- 0.2
+    ind2 <- Individual("TF24", "TF24_Env")(s2)
+    ind2$set_state("height", height)
+    ind2$compute_rates(env)
+    expect_identical(ind2$internals$rates, ind$internals$rates, info = label)
+  }
+})
+
+test_that("a negative storage capacity is refused", {
+  for (bad in c(-0.1, NaN)) {
+    s <- TF24_Model()
+    s$pars$a_st1 <- bad
+    expect_error(Individual("TF24", "TF24_Env")(s), "a_st1 must be >= 0")
+  }
+})
+
+test_that("a stand without storage runs, and its gradient answers", {
+  skip_on_cran()
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 0.3
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
+  p$strategies[[1]]$pars$a_st1 <- 0
+  p$node_schedule_times <- list(c(0, 0.1, 0.2))
+  res <- run(p, Environment("TF24"), Control(), record = "states")
+  # Each node's states are one block of the patch's state, oldest first.
+  patch <- res$solver$patch
+  sp <- patch$species[[1]]
+  states <- sp$new_node$ode_names
+  at <- match("storage", states) + (seq_len(sp$size) - 1) * length(states)
+  expect_gt(sp$size, 1)
+  expect_identical(patch$ode_state[at], rep(0, sp$size))
+
+  # Every other trait's column is the no-storage model's derivative. a_st1's
+  # reads zero, because nothing on that branch reads it.
+  g <- stand_gradient(res$solver, hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  expect_true(all(is.finite(g$gradient)))
+  st1 <- grep("\\.a_st1$", colnames(g$gradient))
+  expect_length(st1, 1)
+  expect_true(all(g$gradient[, st1] == 0))
+  expect_true(any(g$gradient[, grep("\\.lma$", colnames(g$gradient))] != 0))
+})
+
 test_that("a seeded plant carries its seed's leaf area, whatever departure it had", {
   # set_initial_states rests the departures at zero, so the carried leaf area
   # it leaves must be the seed's own, not one scaled by an earlier departure.

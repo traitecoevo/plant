@@ -265,15 +265,9 @@ test_that("mutant method densities, TF24", {
   p0$max_patch_lifetime <- 6
   p1 <- add_strategies(p0, trait_matrix(0, "TF24_floor_lambda_o"),
                        hyperpar = default_hyperpar("TF24"), birth_rate = 1)
-  full <- p1$node_schedule_times[[1]]
-  p1$node_schedule_times <-
-    list(full[round(seq(1, length(full), length.out = 20))])
+  p1 <- thin_node_schedule(p1, 20)
 
-  env <- Environment("TF24")
-  env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
-  env$extrinsic_drivers_set_constant("rainfall", 1)
-
-  solver <- run(p1, env = env, control = ctrl)$solver
+  solver <- run(p1, env = tf24_half_wet_environment(), control = ctrl)$solver
   resident_rr <- solver$patch$net_reproduction_ratios
 
   # Not assertions about the model, just guards that the pinned run below has
@@ -322,19 +316,14 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
     p <- add_strategies(p, trait_matrix(c(0, lma * lma_factor),
                                         c("TF24_floor_lambda_o", "lma")),
                         hyperpar = default_hyperpar("TF24"), birth_rate = 1)
-    full <- p$node_schedule_times[[1]]
-    p$node_schedule_times <-
-      list(full[round(seq(1, length(full), length.out = 20))])
+    p <- thin_node_schedule(p, 20)
     s <- p$strategies[[1]]
     s$pars$storage_relaxation_offset <- offset
     p$strategies[[1]] <- s
     p
   }
   run_offset <- function(offset) {
-    env <- Environment("TF24")
-    env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
-    env$extrinsic_drivers_set_constant("rainfall", 1)
-    run(stand(1, offset), env = env,
+    run(stand(1, offset), env = tf24_half_wet_environment(),
         control = Control(node_density_coordinate = "birth_date"))$solver
   }
 
