@@ -68,83 +68,91 @@ test_that("get_plant_internals_fun", {
 
 test_that("run() grows an individual to sizes", {
   for (x in names(strategy_types)) {
-    #cat(x)
     env <- Environment(x)
-
-    heights <- seq(1, 10)
-    
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
-
     pp <- Individual(x, e)(s)
 
-    if(grepl("K93", x))
-      heights <- subset(heights, heights >  pp$strategy$pars$height_0)
-
-    res <- grow_individual_bracket(pp, heights, "height", env)
-
-    expect_identical(res$t0, res$time[res$index])
-    expect_identical(res$t1, res$time[res$index + 1L])
-    expect_identical(res$y0, res$state[res$index,])
-    expect_identical(res$y1, res$state[res$index + 1L,])
-    ## We really do bracket the size:
-    expect_true(all(res$y0[,"height"] < heights))
-    expect_true(all(res$y1[,"height"] > heights))
-    expect_inherits(res$runner, sprintf("OdeRunner<%s>", x))
-
-    ## Then, do the search for a single case:
-    i <- 3L
-    tmp <- grow_individual_to_size(res$runner,
-                             heights[[i]], "height",
-                             res$t0[[i]], res$t1[[i]], res$y0[i,])
-
-    ## The plant lies within the time range expected:
-    expect_gte(tmp$time, res$t0[[i]])
-    expect_lte(tmp$time, res$t1[[i]])
- 
-    j1 <- match("height", names(res$y0[i,]))
-    expect_true(all(tmp$state[j1] > res$y0[i,j1]))
-    expect_true(all(tmp$state[j1] < res$y1[i,j1]))
-
-    ## test using <= & >= for fecundity & mortality, as unlike other size, fecundity could be zero
-    j2 <- match(c("fecundity", "mortality"), names(res$y0[i,]))
-    expect_true(all(tmp$state[j2] >= res$y0[i,j2]))
-    expect_true(all(tmp$state[j2] <= res$y1[i,j2]))
-
-    if (interactive()) {
-      par(mfrow=c(3,1))
-      ll <- c(res$y0[i,], res$y1[i,], tmp$state)
-      y_min <- min(ll)
-      y_max <- max(ll)
-      plot(res$y0[i,],col="blue", type="l", ylim=c(y_min, y_max), main=x)
-      points(tmp$state > res$y0[i,], col = "green", pch = 2)
-      points(tmp$state < res$y1[i,], col = "pink", pch = 4)
-      lines(tmp$state)
-      lines(res$y1[i,], col = "red", pch = 17)
-      plot(tmp$state - res$y0[i,], col = "green", pch = 2)
-      plot(tmp$state - res$y1[i,], col = "pink", pch = 4)
+    heights <- seq(1, 10)
+    if (grepl("K93", x)) {
+      heights <- subset(heights, heights > pp$strategy$pars$height_0)
     }
-    
-    ## Do all plants using the proper function:
-    obj <- run(Individual(x, e)(s), sizes = heights, size_name = "height", env = env)
+
+    obj <- run(pp, sizes = heights, size_name = "height", env = env)
     expect_inherits(obj$time, "numeric")
-    expect_true(all(obj$time >= res$t0))
-    expect_true(all(obj$time <= res$t1))
-
-    expect_true(all(obj$state[,j1] >= res$y0[,j1]))
-    expect_true(all(obj$state[,j1] <= res$y1[,j1]))
-    expect_true(all(obj$state[,j2] >= res$y0[,j2]))
-    expect_true(all(obj$state[,j2] <= res$y1[,j2]))
-
+    expect_true(all(diff(obj$time) > 0))
+    expect_equal(colnames(obj$state), pp$ode_names)
     expect_equal(length(obj$individual), length(heights))
-    expect_true(all(sapply(obj$individual, inherits, sprintf("Individual<%s,%s>",x,e))))
-    # Tolerance relaxed from 1e-6 to 1e-4 for the ratio-first competition
-    # optimisation (develop #471): q()/Q()/compute_competition now use the cached
-    # u = z/height ratio (a reciprocal-multiply), so grown heights differ from the
-    # pre-optimisation reference at the ~1e-6 level -- well within the solver's
-    # meaningful accuracy. (FF16/K93 sit at ~4-7e-7, TF24 at ~1.3e-6.)
-    expect_equal(sapply(obj$individual, function(p) p$state("height")), heights, tolerance=1e-4)
+    expect_true(all(sapply(obj$individual, inherits, sprintf("Individual<%s,%s>", x, e))))
+
+    ## Each size's time is located on the interpolant of the step that
+    ## crosses it, cubic Hermite under Cash-Karp, so the height there misses
+    ## the size by the rate times that interpolant's error in time: up to
+    ## ~8e-6 m in FF16. The largest miss is checked, not a pooled mean.
+    expect_lt(max(abs(obj$state[, "height"] - heights)), 1e-5)
+
+    ## Time, state and individual describe the same instant: the individual
+    ## holds the state, and a run landing on each time in turn holds it too,
+    ## to the bit.
+    runner <- OdeRunner(x)(IndividualRunner(x, e)(pp, env))
+    for (i in seq_along(heights)) {
+      expect_identical(obj$individual[[i]]$ode_state, unname(obj$state[i, ]))
+      runner$advance_adaptive(c(runner$time, obj$time[[i]]))
+      expect_identical(runner$state, unname(obj$state[i, ]))
+    }
+
+    ## The trajectory starts where the plant did and holds each size's step.
+    expect_equal(colnames(obj$trajectory), c("time", pp$ode_names))
+    expect_identical(unname(obj$trajectory[1, ]), c(0, pp$ode_state))
+    expect_true(all(diff(obj$trajectory[, "time"]) > 0))
+    k <- match(obj$time, obj$trajectory[, "time"])
+    expect_false(anyNA(k))
+    expect_identical(unname(obj$trajectory[k, -1]), unname(obj$state))
   }
+})
+
+test_that("run() to sizes reports a repeated size, or one already reached, at once", {
+  x <- "FF16"
+  env <- Environment(x)
+  pp <- Individual(x, "FF16_Env")(FF16_Model())
+  h0 <- pp$state("height")
+  obj <- run(pp, sizes = c(h0, 2, 2, 3), env = env)
+  expect_identical(obj$time[[1]], 0)
+  expect_identical(obj$time[[2]], obj$time[[3]])
+  expect_identical(obj$state[2, ], obj$state[3, ])
+  expect_gt(obj$time[[4]], obj$time[[3]])
+
+  ## A landing can stop a hair past its size; a next size inside that hair
+  ## is reached where the run stands.
+  d <- run(pp, sizes = 5, env = env)$state[1, "height"] - 5
+  if (d > 0) {
+    obj <- run(pp, sizes = c(5, 5 + d / 2), env = env)
+    expect_identical(obj$time[[2]], obj$time[[1]])
+  }
+
+  expect_error(run(pp, sizes = 2, size_name = "leaf_area", env = env),
+               "'leaf_area' is not one of the ODE states")
+  expect_error(run(pp, sizes = c(3, 2), env = env), "sorted")
+  expect_error(run(pp, sizes = c(2, Inf), env = env), "finite")
+  expect_error(run(pp, sizes = h0 / 2, env = env), "already bigger")
+  for (bad in list(NA_real_, NaN, -Inf, -1, c(1, 2))) {
+    expect_error(run(pp, sizes = 2, env = env, time_max = bad),
+                 "time_max must be a single non-negative number")
+  }
+})
+
+test_that("a run to sizes that fails warns with the error and what was dropped", {
+  pp <- Individual("FF16", "FF16_Env")(FF16_Model())
+  env <- Environment("FF16")
+  runner <- OdeRunner("FF16")(IndividualRunner("FF16", "FF16_Env")(pp, env))
+  e <- simpleError("the step failed")
+  ## This plant's mortality rate is not zero, so the failure is not read as
+  ## possibly something other than its death, and only the first warning is
+  ## given.
+  expect_warning(integration_failed(runner, e, 3L, TRUE),
+                 "integration failed with error: \nthe step failed\n  3 larger sizes dropped",
+                 fixed = TRUE)
+  expect_silent(integration_failed(runner, e, 3L, FALSE))
 })
 
 test_that("run() grows an individual to sizes, and stops at time_max", {
@@ -170,7 +178,7 @@ test_that("run() grows an individual to sizes, and stops at time_max", {
     if(x %in% c("FF16", "TF24")){
       expect_warning(res2 <- run(pl, sizes = sizes2, size_name = "height", env = env,
                                  time_max = 100),
-                "Time exceeded time_max")
+                "Time reached time_max")
       expect_equal(length(res2$time), length(sizes2))
       expect_equal(dplyr::last(res2$time), NA_real_)
       expect_false(any(is.na(res2$time[-length(sizes2)])))
@@ -192,7 +200,8 @@ test_that("run() grows an individual to sizes, and stops at time_max", {
       cmp <- res2
       i <- !is.na(cmp$time)
       expect_equal(res4$time, cmp$time[i])
-      expect_equal(res4$plant, cmp$plant[i])
+      expect_equal(lapply(res4$individual, function(p) p$ode_state),
+                   lapply(cmp$individual[i], function(p) p$ode_state))
       expect_equal(res4$state, cmp$state[i,])
       expect_equal(res4$trajectory, cmp$trajectory)
 
@@ -240,10 +249,10 @@ test_that("Sensible behaviour on integration failure", {
   sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- run(pl, sizes = sizes, size_name = "height", env = env,
                             time_max = 10, warn = TRUE, filter = TRUE),
-                  "Time exceeded time_max")
+                  "Time reached time_max")
   expect_inherits(res$individual, "list")
   expect_equal(nrow(res$state), length(res$time))
-  expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tolerance = 1E-5)
+  expect_lt(max(abs(res$state[, "height"] - sizes[seq_along(res$time)])), 1e-5)
 
   ## As reported in issue #174
   ##
@@ -272,10 +281,12 @@ test_that("Sensible behaviour on integration failure", {
   env$set_fixed_environment(1.0, height_max = 150)
      
   sizes <- seq_range(c(pl$state("height"), 50), 50)
+  ## This plant never grows. The first size is its starting height, reached
+  ## at the start; it reaches none of the others.
   expect_warning(res <- run(pl, sizes = sizes, size_name = "height", env = env,
                             time_max = 1000, warn = TRUE, filter = TRUE),
-                  "50 larger sizes dropped")
-  expect_equal(res$individual, list())
-  expect_equal(res$time, numeric(0))
-  expect_equal(nrow(res$state), 0)
+                  "Time reached time_max, 49 larger sizes dropped")
+  expect_equal(length(res$individual), 1L)
+  expect_identical(res$time, 0)
+  expect_equal(nrow(res$state), 1)
 })
