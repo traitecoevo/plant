@@ -1309,6 +1309,13 @@ void TF24_Model<S>::refuse_unsupported_traits() const {
       "D_c to vary the height dependence of resistance.");
   }
 
+  // A negative capacity seeds a newborn below empty, where the solver refuses
+  // every step. Written to refuse NaN.
+  if (!(odelia::util::to_passive(pars.a_st1) >= 0.0)) {
+    throw std::invalid_argument(
+      "a_st1 must be >= 0; a_st1 = 0 is the model without storage");
+  }
+
   // A negative offset can zero the storage rate's divisor or flip its sign.
   if (!(odelia::util::to_passive(pars.storage_relaxation_offset) >= 0.0)) {
     throw std::invalid_argument("storage_relaxation_offset must be >= 0");

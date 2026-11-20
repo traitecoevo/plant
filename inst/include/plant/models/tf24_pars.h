@@ -73,7 +73,7 @@ struct TF24_Pars {
   S S_D    = 0.25;           // Probability of survival during dispersal
   S a_d0   = 0.1;            // Parameter for seedling survival
   S d_I    = 0.01;           // Baseline intrinsic mortality [/yr]
-  // a_dG1 / a_dG2 shape the *storage-dependent* growth mortality:
+  // a_dG1 / a_dG2 shape the growth-dependent mortality, read at relative reserves:
   //   mortality_growth_dependent_dt(r) = a_dG1 * exp(-a_dG2 * r),  r = S/S_max.
   // ⚠️ DO NOT feed productivity_area to this exponent in place of r: under deep
   // carbon deficit it overflows to ~1e32. Reserves keep r in [0,1], so the term
@@ -81,13 +81,13 @@ struct TF24_Pars {
   // model without storage, which reads productivity_area as FF16 does and takes
   // its overflow with it.
   S a_dG1  = 5.5;            // Max growth-related (low-reserve) mortality [/yr]
-  S a_dG2  = 20.0;           // Sensitivity of mortality to relative reserves
+  S a_dG2  = 20.0;           // Sensitivity of mortality to relative reserves (or to production per leaf area at a_st1 = 0)
   // * NSC storage pool -- buffers growth & mortality against short-term
   //   productivity swings. See Stefaniak et al. 2026 (plantNSC) for the design.
   //   Carbon first charges storage; growth/reproduction are mobilised from it,
   //   but gated so growth only proceeds when reserves are ample (a plant should
   //   not grow down its stores). Reserves-based mortality rises as they deplete.
-  //   a_st1 = 0 switches the pool off and is the model without storage exactly:
+  //   a_st1 = 0 switches the pool off, giving the model without storage:
   //   growth at production's positive part, FF16's mortality, a_st2/a_st3 inert.
   S a_st1  = 0.10;           // Storage capacity per unit sapwood mass [kg NSC / kg]
   S a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
