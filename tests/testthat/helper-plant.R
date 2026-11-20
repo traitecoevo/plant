@@ -70,6 +70,16 @@ ff16_parameters <- function(lifetime) {
   add_strategies(p, trait_matrix(0.0825, "lma"))
 }
 
+# A one-species stand's node schedule thinned to `n` introductions spread
+# evenly over the one it carries, its first and last kept: a cheaper stand on
+# the same span of birth dates.
+thin_node_schedule <- function(p, n) {
+  stopifnot(length(p$node_schedule_times) == 1L)
+  full <- p$node_schedule_times[[1]]
+  p$node_schedule_times <- list(full[round(seq(1, length(full), length.out = n))])
+  p
+}
+
 # d(metric)/d(name) for species `species` by a centred difference of two runs at
 # x * (1 +- rel), where `measure(p)` runs p and returns its named metrics. With
 # `metric` NULL, every metric `measure` returns, from the same two runs. The

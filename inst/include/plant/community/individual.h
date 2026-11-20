@@ -140,7 +140,6 @@ public:
   }
 
   value_type net_mass_production_dt(const environment_type &environment) {
-    // TODO(#483):  maybe reuse intervals? default false
     return strategy->net_mass_production_dt(environment, vars);
   }
 

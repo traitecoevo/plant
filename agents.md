@@ -431,12 +431,7 @@ Rules:
 
 Every baseline the suite compares against, and what may re-bless it, is listed in [.claude/measurements.md](.claude/measurements.md).
 
-`testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file
-per component (`test-deterministic-patch-runner.R`, `test-patch.R`, `test-model-ff16.R`,
-`test-leaf.r`, …). Shared setup is in `helper-plant.R`. Regression baselines for
-FF16 are in `tests/testthat/FF16_reference/` and checked by
-`test-model-ff16-reference-comparison.R` — if you intentionally change FF16
-numerics you may need to regenerate these.
+`testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file per component (`test-deterministic-patch-runner.R`, `test-patch.R`, `test-model-ff16.R`, `test-leaf.r`, …). Shared setup is in `helper-plant.R`, and the stands the gradient tests share are in `helper-ff16.R` and `helper-tf24.R`. Regression baselines for FF16 are in `tests/testthat/FF16_reference/` and checked by `test-model-ff16-reference-comparison.R` — if you intentionally change FF16 numerics you may need to regenerate these.
 
 Run the suite with `make test` or `devtools::test()`; a single file with
 `devtools::test_active_file()` or `testthat::test_file(...)`.
@@ -521,16 +516,15 @@ guidance for someone *changing the code* → this file.
 
 ### Generating the website (pkgdown reference)
 
-The pkgdown site is the **function reference only** (narrative articles live on Overstorey, above). It is built from roxygen output and config in [pkgdown/](pkgdown/) (`_pkgdown.yml` defines the navbar + `reference:` layout). There is **no CI workflow** for it — build and deploy manually:
+The pkgdown site is the **function reference only** (narrative articles live on Overstorey, above). It is built from roxygen output and the config in [pkgdown/_pkgdown.yml](pkgdown/_pkgdown.yml), whose `reference:` sections group the topics and whose navbar links out to Overstorey for the guides.
+
+[.github/workflows/pkgdown.yaml](.github/workflows/pkgdown.yaml) builds it and deploys it to the `gh-pages` branch, which GitHub Pages serves, on every push to `master` and on nothing else. The public reference therefore describes the released package, not `develop`; a change to a docstring reaches the site with the next release.
+
+Every documented topic not marked `@keywords internal` must appear in a `reference:` section, or the build stops. When you export a function, add it to `_pkgdown.yml` in the same PR; R-CMD-check's Linux leg runs `pkgdown::check_pkgdown()` on every PR, so a missing topic fails there rather than at release. To preview the site, render it from an installed build, as the workflow does, rather than letting pkgdown compile plant again:
 
 ```r
-devtools::document()          # refresh man/ first (or: make roxygen)
-pkgdown::build_site()         # renders into the gh-pages destination
+pkgdown::build_site(install = FALSE, new_process = FALSE)   # into docs/ (gitignored)
 ```
-
-`_pkgdown.yml` sets `destination: gh-pages`; the rendered site is published from
-the repo's `gh-pages` branch (`pkgdown::deploy_to_branch()` does the build +
-push in one step). The navbar links out to Overstorey for the guides.
 
 Overstorey itself is a Quarto site with its own CI (`publish.yml`) — see that
 repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.

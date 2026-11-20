@@ -15,7 +15,7 @@ eta_c_of <- function(p) 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
 
 ## Published FF16 allometric derivatives, written out here rather than read back
 ## from the strategy, so the C++ is compared against the documented formulas
-## (inst/docs/FF16/FF16-eqns.csv) and not against itself.
+## (the registry's FF16.tissue_costs) and not against itself.
 dmass_sapwood_darea_leaf_r <- function(p, area_leaf) {
   p$rho * eta_c_of(p) * p$a_l1 * p$theta * (p$a_l2 + 1) * area_leaf^p$a_l2
 }

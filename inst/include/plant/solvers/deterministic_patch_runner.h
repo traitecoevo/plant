@@ -314,21 +314,29 @@ public:
     }
   }
 
-  // The sweep crosses an event as if it left the state's rows unchanged. That
-  // holds for a harvest or a climate extreme, a constant shift in log density,
-  // and for a pulse the layer takes whole. A pulse that fills a layer and sheds
-  // the rest sets the layer to saturation whatever it held, which the sweep
-  // would carry back as the state it replaced.
+  // The sweep crosses an event with that event's own Jacobian: a harvest or a
+  // climate extreme as a shift in log density, a pulse as the map it applied,
+  // capped or not.
+  //
+  // With the absorbing top layer on, a harvest or a climate extreme is not a
+  // shift in log density. The layer carries its density and weights as they
+  // are, and the event scales them by its survival fraction. An event at an
+  // introduction instant also comes between the recorded state and the
+  // absorption the sweep replays from it. Both would leave every number finite
+  // and wrong (17% in S_D's fitness column on a test stand), so an event that
+  // reached any cohort is refused.
   void require_transposable_events(const char* entry) const {
+    const bool layer = control.absorb_epsilon > 0.0;
     for (const EventRecord& rec : event_log) {
-      if (rec.type == EventType::ResourcePulse && rec.applied.size() > 1 &&
-          rec.applied[1] > 0.0) {
-        util::stop(std::string(entry) + ": the pulse at t = " +
-                   util::format_double(rec.time) + " filled layer " +
-                   util::to_string(static_cast<int>(rec.target_index + 1)) +
-                   " and shed " + util::format_double(rec.applied[1]) +
-                   ", and the reverse-mode gradient has no row for a capped "
-                   "pulse. Give pulses the layer can take whole.");
+      if (layer &&
+          (rec.type == EventType::Harvest ||
+           rec.type == EventType::ClimateExtreme) &&
+          rec.applied.size() > 1 && rec.applied[1] > 0.0) {
+        util::stop(std::string(entry) + ": the event at t = " +
+                   util::format_double(rec.time) + " removed density with the "
+                   "absorbing top layer on, and the reverse-mode gradient does "
+                   "not transpose an event on the layer. Set "
+                   "control$absorb_epsilon = 0, or difference the metric.");
       }
     }
   }
@@ -337,12 +345,10 @@ public:
     // A private root-zone column couples cohorts through the patch -- the
     // mixing and land-transfer terms of Patch::private_water_exchange -- outside
     // the per-cohort block the recording describes, so its gradient would be a
-    // different function's.
-    if constexpr (HasPrivateWater<T>) {
-      util::stop(std::string(entry) +
-                 ": TF24w's private root-zone water is not differentiable. "
-                 "Use TF24.");
-    }
+    // different function's. No census is declared for TF24w, so no gradient
+    // entry point is compiled for it, and this keeps it that way.
+    static_assert(!HasPrivateWater<T>,
+                  "TF24w's private root-zone water is not differentiable");
     if (!plant::density_in_birth_date(control,
                                       T::density_in_birth_date_default)) {
       util::stop(std::string(entry) +
@@ -350,14 +356,13 @@ public:
                  "size-density coordinate only. Set "
                  "control$node_density_coordinate = \"birth_date\" and re-run.");
     }
-    // Absorption is a selection on state that moves density between blocks; its
-    // transpose is not written, so a sweep across it would be a different
-    // function's derivative with every number finite.
-    if (control.absorb_epsilon > 0.0) {
-      util::stop(std::string(entry) +
-                 ": the absorbing top layer is not differentiable yet. Set "
-                 "control$absorb_epsilon = 0 and re-run.");
-    }
+    // The absorbing top layer needs nothing here. Absorption runs inside the
+    // insertion map the sweep transposes, at the sweep's scalar, so what an
+    // absorbed cohort carries into the layer and the height the layer is pinned
+    // at are differentiated with it. Which cohorts go is a selection on state,
+    // read off the recorded values and held fixed, as a pinned-step difference
+    // holds it while no cohort sits at the absorbing height.
+
     // A constant field is exogenous to the run that stands in it, but the sweep's
     // rebound patches rebuild their field from their own state, so a sweep of a
     // run in one would transpose a different run's field. run_mutant_constant()
@@ -367,6 +372,26 @@ public:
       util::stop(std::string(entry) +
                  ": this run stands in a constant field (run_mutant_constant), which "
                  "the reverse-mode gradient does not transpose.");
+    }
+  }
+
+  // What a strategy rules out whatever its trajectory, refused before the run
+  // is recorded -- which can mean repeating it -- rather than met in the first
+  // differentiated rate evaluation. Asked only by the entry points that
+  // differentiate the rates: the census's state adjoint at one state does not
+  // read a sapwood controller's sensitivity, and answers with one on.
+  void require_differentiable_rates(const char* entry) const {
+    if constexpr (requires(const T& s) {
+                    { s.gradient_refusal() } -> std::convertible_to<std::string>;
+                  }) {
+      for (size_t i = 0; i < patch.size(); ++i) {
+        const std::string why =
+          patch.at_species(i).strategy_ptr()->gradient_refusal();
+        if (!why.empty()) {
+          util::stop(std::string(entry) + ": species " +
+                     util::to_string(static_cast<int>(i + 1)) + ": " + why);
+        }
+      }
     }
   }
 
@@ -715,6 +740,24 @@ private:
   // One leg, with the bookkeeping the loop keeps per leg: refinement errors,
   // the history copy, a snapshot where one is due.
   void step_leg();
+
+  // Rethrow the exception being handled, naming the state the patch refused
+  // when the solver stopped because it could not leave one: odelia reports only
+  // that ode_state_valid() refused, and the patch kept why. Matched on odelia's
+  // wording, so a change to it loses the name and nothing else.
+  [[noreturn]] void rethrow_naming_refusal() {
+    try {
+      throw;
+    } catch (const std::exception& e) {
+      const std::string what = e.what();
+      const std::string& why = solver.get_system_ref().state_refusal();
+      if (!why.empty() &&
+          what.find("ode_state_valid() refused") != std::string::npos) {
+        util::stop(what + "; the refused state: " + why);
+      }
+      throw;
+    }
+  }
   void take_snapshot();
   bool begun = false;
   double next_snapshot = 0.0;
@@ -836,7 +879,7 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::run_sched
   } catch (...) {
     // A leg that threw leaves the solver mid-step; the next run begins afresh.
     begun = false;
-    throw;
+    rethrow_naming_refusal();
   }
   // Expose the final state through the `patch` accessor after the loop.
   patch = solver.get_system_ref();
@@ -858,7 +901,7 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::run_to(do
     // A leg that threw leaves the solver mid-step, so a caller that catches and
     // calls run_to() again begins afresh rather than continuing from it.
     begun = false;
-    throw;
+    rethrow_naming_refusal();
   }
   patch = solver.get_system_ref();
 }
@@ -1310,6 +1353,15 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::reset() {
   // Refreshed where the run that uses it begins, which is the one place both
   // the patch and the solver are put back to t = 0.
   patch.set_introduction_times(parameters.node_schedule_times);
+  // The insertion map applies the actions too, so it is handed the ones this
+  // run applies.
+  std::vector<ScheduleEvent> actions;
+  for (const ScheduleEvent& e : schedule.get_events()) {
+    if (!e.is_node_introduction()) {
+      actions.push_back(e);
+    }
+  }
+  patch.set_scheduled_actions(std::move(actions));
   this->restart();
   // Sync the snapshot back from the solver's reset system.
   patch = solver.get_system_ref();
@@ -1492,6 +1544,7 @@ census_gradient
 DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
                                  const std::vector<std::string>& which_metrics) {
   require_birth_date_coordinate("census_trait_gradient");
+  require_differentiable_rates("census_trait_gradient");
   // Which rows to sweep, resolved against the strategy's own list before
   // anything runs, so the shape of the answer is known on the refusal path too.
   // Named rather than positional: a caller indexing by position gets a different
@@ -1645,6 +1698,7 @@ std::vector<double>
 DeterministicPatchRunner<T, E>::census_trait_tangent(const std::vector<double>& direction,
                                 std::vector<double>& value) {
   require_birth_date_coordinate("census_trait_tangent");
+  require_differentiable_rates("census_trait_tangent");
 
   const recording rec = store_recording();
   patch_type& live = solver.get_system_ref();
@@ -1745,6 +1799,7 @@ DeterministicPatchRunner<T, E>::census_initial_state_tangent(const std::vector<d
                                         std::vector<double>& value,
                                         size_t segment) {
   require_birth_date_coordinate("census_initial_state_tangent");
+  require_differentiable_rates("census_initial_state_tangent");
 
   const std::vector<tangent> reached =
     pinned_run_from<tangent>(segment,

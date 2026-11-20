@@ -1,32 +1,31 @@
 url: https://traitecoevo.github.io/plant/
 
-destination: gh-pages
+# The function reference only: the guides, theory and worked examples live on
+# Overstorey, which the navbar and sidebar link to. .github/workflows/pkgdown.yaml
+# renders this site into docs/ and deploys it to gh-pages on every push to
+# master, so the site describes the released package.
 
 template:
   bootstrap: 5
   bootswatch: cosmo
 
 navbar:
-  title: "plant"
-  type: inverse
-  left:
-    - text: "Home"
-      icon: fa-home
-      href: index.html
-    - text: "Documentation"
+  structure:
+    left: [reference, guides, news]
+    right: [search, github]
+  components:
+    guides:
+      text: Guides
       icon: fa-book
       href: https://traitecoevo.github.io/overstorey/
-    - text: "Package functions"
-      icon: fa-list
-      href: reference/index.html
+      aria-label: Guides and theory, on Overstorey
 
-  right:
-    - text: "News"
-      icon: fa-newspaper-o
-      href: news/index.html
-    - text: "Github"
-      icon: fa-github fa-lg
-      href: https://github.com/traitecoevo/plant
+home:
+  links:
+  - text: Guides and theory (Overstorey)
+    href: https://traitecoevo.github.io/overstorey/
+  - text: Project board
+    href: https://github.com/orgs/traitecoevo/projects/5
 
 reference:
 
@@ -79,6 +78,7 @@ reference:
   - Individual
   - optimise_individual_rate_at_size_by_trait
   - resource_compensation_point
+  - canopy_profile
   - Leaf
 
 - title: Outputs
@@ -99,6 +99,7 @@ reference:
   - model_registry
   - registry_equation
   - registry_values
+  - model_size
 
 - title: FF16 model
   contents:

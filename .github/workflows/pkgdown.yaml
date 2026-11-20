@@ -1,0 +1,51 @@
+# Renders the function reference with pkgdown and deploys it to the gh-pages
+# branch, which GitHub Pages serves at https://traitecoevo.github.io/plant/.
+# Only a push to master runs it, so the public reference always describes the
+# released package, never develop. The build installs plant from source, so it
+# takes as long as a check's install step.
+on:
+  push:
+    branches: [master]
+
+name: pkgdown
+
+permissions: read-all
+
+jobs:
+  pkgdown:
+    runs-on: ubuntu-latest
+    # One deploy at a time, and a newer push waits for the one in flight
+    # rather than racing it to gh-pages.
+    concurrency:
+      group: pkgdown
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+
+      # Builds into docs/ from the installed plant, so the reference examples
+      # run against what was just installed.
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      # clean: true removes pages for topics that no longer exist, so a
+      # function that was removed does not stay reachable on the site.
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          clean: true
+          branch: gh-pages
+          folder: docs

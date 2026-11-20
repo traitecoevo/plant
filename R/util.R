@@ -80,9 +80,9 @@ validate <- function(x, ...) {
 ##' @export
 `validate.Parameters` <- function(x, ...) {
   plant <- parent.env(environment())
-  ## TODO(#483): This uses an implementation detail of RcppR6 that is not
-  ## really OK to use; this could change at any moment.  Probably I'll
-  ## expose this in some RcppR6 generated code eventually.
+  ## Calls RcppR6's generated validator by its name,
+  ## Parameters___<T>__<E>__vdor, so a change to how RcppR6 names its
+  ## generated functions breaks this.
   types <- extract_RcppR6_template_types(x, "Parameters")
   constructor = do.call('sprintf', c("Parameters___%s__%s__vdor", types))
   get(constructor, plant, inherits=FALSE)(x)
