@@ -1354,7 +1354,7 @@ parameters:
     symbol: 'D_{\rm r,max}'
     units: 'm'
     class: trait
-    meaning: 'maximum rooting depth; rooting depth is $\min(H, D_{\rm r,max})$, and should not exceed the soil column'
+    meaning: 'maximum rooting depth, at which the rooting depth $D_{\rm r}$ saturates smoothly (TF24.root_profile); must be positive, and should not exceed the soil column'
     source: 'TF24_Pars default, the default soil depth'
     placeholder: false
     code: plant::TF24_Pars::rooting_depth_max
@@ -1623,7 +1623,7 @@ parameters:
     symbol: '\alpha_{\rm dG1}'
     units: 'yr⁻¹'
     class: hyperparameter
-    meaning: 'storage-dependent mortality rate with empty reserves'
+    meaning: 'growth-dependent mortality rate with empty reserves, or at zero production when a_st1 = 0'
     source: 'TF24_Pars default; the header follows Stefaniak et al. 2026, Eq. 6'
     placeholder: true
     code: plant::TF24_Pars::a_dG1
@@ -1633,7 +1633,7 @@ parameters:
     symbol: '\alpha_{\rm dG2}'
     units: '–'
     class: hyperparameter
-    meaning: 'sensitivity of mortality to relative reserves'
+    meaning: 'sensitivity of mortality to relative reserves; when a_st1 = 0, to production per leaf area, in m² yr kg⁻¹'
     source: TF24_Pars default
     placeholder: true
     code: plant::TF24_Pars::a_dG2
@@ -1685,7 +1685,7 @@ parameters:
     symbol: '\theta_{\rm sat}'
     units: 'm³ m⁻³'
     class: hyperparameter
-    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves and the capacity a water pulse fills to; not a bound on the integrated state. One value for every layer unless set_soil_parameters gives one per layer'
+    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves, the capacity a water pulse fills to, and the upper bound on each layer''s integrated moisture: a step that ends above it in any layer is rejected and retried smaller (Patch::ode_state_valid), and a run that starts above it is refused. The balance keeps a layer below it only where $K_{\rm sat}$ does not fall with depth and $a_{\rm infil} = 1$ (TF24.layer_balance); otherwise a layer fills past it and the run stops, naming the layer. One value for every layer unless set_soil_parameters gives one per layer'
     source: 'TF24_Environment constructor default; no source recorded'
     placeholder: true
     code: plant::TF24_Environment::soil_moist_sat
@@ -3046,7 +3046,7 @@ equations:
     title: The light handed to the leaf
     latex: |
       Q_{\rm above} = c_Q \, f_{\rm PAR} \, R_{\rm sw}, \qquad
-      Q_{\rm int} = k_{\rm I} \, \max\!\big(E, 10^{-4}\big) \, Q_{\rm above}, \qquad
+      Q_{\rm int} = k_{\rm I} \, E \, Q_{\rm above}, \qquad
       Q_{\rm NIR} = \frac{1 - f_{\rm PAR}}{c_Q \, f_{\rm PAR}} \, Q_{\rm int}
     code: plant::TF24_Model::net_mass_production_dt
     also: [plant::TF24_Model::solve_leaf_over_crown]
@@ -3059,7 +3059,7 @@ equations:
     section: tf24_light
     title: The light a crown is solved at
     latex: |
-      E = \int_0^{H} \max\!\big(E(z), 10^{-4}\big) \, q(z, H) \, {\rm d}z \ \text{(mean light)}, \qquad
+      E = \int_0^{H} E(z) \, q(z, H) \, {\rm d}z \ \text{(mean light)}, \qquad
       E = E(\eta_{\rm c} H) \ \text{(crown centre)}, \qquad
       \bar{y} = \int_0^{H} y\big(E(z)\big) \, q(z, H) \, {\rm d}z \ \text{(deep crown)}
     code: plant::TF24_Model::solve_leaf_over_crown
@@ -3098,13 +3098,13 @@ equations:
     section: tf24_hydraulics
     title: Fine roots over depth
     latex: |
-      Q_{\rm r}(z) = \left(1 - \left(z / D_{\rm r}\right)^{\eta_{\rm r}}\right)^{2} \ \text{for } z \le D_{\rm r}, \ 0 \text{ below}, \qquad D_{\rm r} = \min(H, D_{\rm r,max})
+      Q_{\rm r}(z) = \left(1 - \left(z / D_{\rm r}\right)^{\eta_{\rm r}}\right)^{2} \ \text{for } z \le D_{\rm r}, \ 0 \text{ below}, \qquad D_{\rm r} = D_{\rm r,max} - w \ln\!\left(1 + e^{(D_{\rm r,max} - H)/w}\right), \quad w = 0.05 \, D_{\rm r,max}
     code: plant::TF24_Model::Q
-    also: [plant::TF24_Model::build_root_network]
+    also: [plant::TF24_Model::build_root_network, plant::TF24_Model::rooting_depth_at]
     reads: [TF24.root_depth_shape_eta, TF24.rooting_depth_max]
     writes: []
     kind: closed_form
-    note: 'The crown profile''s cumulative form, laid over the soil: the fraction of fine-root mass deeper than $z$. Not on an Overstorey page.'
+    note: 'The crown profile''s cumulative form, laid over the soil: the fraction of fine-root mass deeper than $z$. The rooting depth $D_{\rm r}$ is a smooth minimum of the height and $D_{\rm r,max}$: it departs from $\min(H, D_{\rm r,max})$ only within a few $w$ of the cap, by $w \ln 2$ at it, and its slope in $H$ falls smoothly from 1 to 0. Not on an Overstorey page.'
   TF24.root_carbon:
     model: TF24
     section: tf24_hydraulics
@@ -3212,10 +3212,10 @@ equations:
     latex: |
       F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
     code: plant::TF24_Model::compute_rates
-    reads: [TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
+    reads: [TF24.a_st1, TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
     writes: []
     kind: closed_form
-    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. Not on an Overstorey page.'
+    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. At $\alpha_{\rm st1} = 0$, the model without storage, $F = \max(\dot{B}, 0)$ instead. Not on an Overstorey page.'
   TF24.storage_ode:
     model: TF24
     section: tf24_storage
@@ -3223,10 +3223,10 @@ equations:
     latex: |
       \frac{{\rm d}S}{{\rm d}t} = \frac{q_{\rm c}\,(1 - r) - q_{\rm d}\,r}{1 + \tau_{\rm o} \, (q_{\rm c} + q_{\rm d}) / S_{\max}}, \qquad q_{\rm c} = \dot{B}_{+}\,(1 - G(r)), \qquad q_{\rm d} = \dot{B}_{+} - \dot{B}
     code: plant::TF24_Model::compute_rates
-    reads: [TF24.storage_relaxation_offset]
+    reads: [TF24.a_st1, TF24.storage_relaxation_offset]
     writes: []
     kind: derivative
-    note: 'The charge $q_{\rm c}$ is the surplus the gate withheld and the drain $q_{\rm d}$ the shortfall met from reserves; each is limited by the room the other leaves, so $S$ stays in $[0, S_{\max}]$ with no clamp. At capacity the withheld charge leaves the budget: the pool is capped by withholding, not by spending. The divisor is taken as 1 where $S_{\max} = 0$. Not on an Overstorey page.'
+    note: 'The charge $q_{\rm c}$ is the surplus the gate withheld and the drain $q_{\rm d}$ the shortfall met from reserves; each is limited by the room the other leaves, so $S$ stays in $[0, S_{\max}]$ with no clamp. At capacity the withheld charge leaves the budget: the pool is capped by withholding, not by spending. At $\alpha_{\rm st1} = 0$, the model without storage, ${\rm d}S/{\rm d}t = 0$ and $S$ stays at its birth value of zero. Not on an Overstorey page.'
   TF24.storage_initial:
     model: TF24
     section: tf24_storage
@@ -3463,14 +3463,14 @@ equations:
   TF24.mortality_storage:
     model: TF24
     section: tf24_mortality
-    title: Storage-dependent mortality
+    title: Growth-dependent mortality
     latex: |
       d_{{\rm S}}(r) = \alpha_{{\rm dG1}} \exp(-\alpha_{{\rm dG2}} \, r)
-    code: plant::TF24_Model::mortality_storage_dependent_dt
-    reads: [TF24.a_dG1, TF24.a_dG2]
+    code: plant::TF24_Model::mortality_growth_dependent_dt
+    reads: [TF24.a_dG1, TF24.a_dG2, TF24.a_st1]
     writes: []
     kind: closed_form
-    note: 'FF16''s growth-dependent form with relative reserves $r$ in place of production per leaf area, so it is bounded in $[\alpha_{\rm dG1} e^{-\alpha_{\rm dG2}}, \alpha_{\rm dG1}]$ and death is gradual as reserves run down. The header follows Stefaniak et al. 2026, Eq. 6. Not on an Overstorey page.'
+    note: 'FF16''s growth-dependent form with relative reserves $r$ in place of production per leaf area, so it is bounded in $[\alpha_{\rm dG1} e^{-\alpha_{\rm dG2}}, \alpha_{\rm dG1}]$ and death is gradual as reserves run down. At $\alpha_{\rm st1} = 0$, the model without storage, it reads production per leaf area as FF16 does, unbounded. The header follows Stefaniak et al. 2026, Eq. 6. Not on an Overstorey page.'
   TF24.establishment:
     model: TF24
     section: tf24_mortality
@@ -3589,7 +3589,7 @@ equations:
     writes: [soil]
     kind: derivative
     overstorey: theory/soil-water.qmd
-    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Writes the rates of the moisture states in soil.'
+    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Nothing limits the inflow into a saturated layer: it is the drainage of the layer above, up to that layer''s $K_{\rm sat}$, so a $K_{\rm sat}$ that falls with depth, or $a_{\rm infil} < 1$ under rain heavier than $K_{\rm sat}$, fills a layer past $\theta_{\rm sat}$, which the run refuses (TF24.soil_moist_sat). Writes the rates of the moisture states in soil.'
   TF24.layer_uptake:
     model: TF24
     section: tf24_soil

@@ -8,7 +8,6 @@
 #include <vector>
 // #include <plant/plant_internals.h>
 
-// TODO: extra_state bounds, upper and lower limits
 namespace plant {
 
 // The first three state slots of every model, which about fifty readers address

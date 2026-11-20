@@ -15,17 +15,12 @@ namespace plant {
 // is what separates them, which is why a site is added to this list rather than
 // given a counter of its own.
 //
-// The sites live in two objects and the list is one, so a tally reads the same
-// however the site is reached.
+// The sites live in several objects (the strategy, the environment and the
+// light field it holds) and the list is one, so a tally reads the same however
+// the site is reached.
 enum clamp_site {
-  // The light floor, at two depths of the same constant. The crown one floors
-  // each quadrature point of the mean-light integrand and the radiation one
-  // floors the mean those points make -- so on the shipped shading model the
-  // crown site binds FIRST and the radiation site sees an already-floored mean.
-  CLAMP_LIGHT_FLOOR = 0,
-  CLAMP_LIGHT_FLOOR_CROWN,
   // The soil retention curve, which diverges as moisture goes to zero.
-  CLAMP_SOIL_MOISTURE_FLOOR,
+  CLAMP_SOIL_MOISTURE_FLOOR = 0,
   CLAMP_SOIL_POTENTIAL_CEILING,
   // A layer held at zero rate because it is at the residual and still drying.
   CLAMP_SOIL_POSITIVITY,
@@ -34,9 +29,18 @@ enum clamp_site {
   // The two water inputs, each a positive part over a spline that can undershoot.
   CLAMP_RAINFALL,
   CLAMP_INFILTRATION,
-  // Rooting depth capped: where it binds, the root profile stops responding to
-  // height, which is a state row rather than a numeric guard.
-  CLAMP_ROOTING_DEPTH,
+  // The light field itself floored at zero where a Hermite span undershoots
+  // below it. Every model's field is read through the one spline, so this is the
+  // only light site any model has; it is counted in the spline.
+  CLAMP_LIGHT_FIELD_FLOOR,
+  // FF16's growth cutoff: at zero net production the height, fecundity and
+  // heartwood rates are set to zero. Height and fecundity reach zero there
+  // anyway, so for them it is a kink; the heartwood rates jump to zero, so a
+  // cohort crossing it moves the run by a step the gradient does not carry.
+  CLAMP_PRODUCTION_CUTOFF,
+  // TF24f's newborn position, held to [0, 1] of its interval before it is
+  // seated. Where it binds the position is a constant and its rows are zero.
+  CLAMP_SEED_POSITION,
   // The leaf model's own sites, appended in phylloptim's enum order so that the two
   // lists fold by offset rather than by a name lookup. They are counted differently
   // from everything above: the leaf solves in double on BOTH paths, so which path a
@@ -52,15 +56,15 @@ enum clamp_site {
 
 inline const char* clamp_site_name(int site) {
   switch (site) {
-  case CLAMP_LIGHT_FLOOR:            return "light_floor";
-  case CLAMP_LIGHT_FLOOR_CROWN:      return "light_floor_crown";
   case CLAMP_SOIL_MOISTURE_FLOOR:    return "soil_moisture_floor";
   case CLAMP_SOIL_POTENTIAL_CEILING: return "soil_potential_ceiling";
   case CLAMP_SOIL_POSITIVITY:        return "soil_positivity";
   case CLAMP_SOIL_CONDUCTIVITY:      return "soil_conductivity";
   case CLAMP_RAINFALL:               return "rainfall";
   case CLAMP_INFILTRATION:           return "infiltration";
-  case CLAMP_ROOTING_DEPTH:          return "rooting_depth";
+  case CLAMP_LIGHT_FIELD_FLOOR:      return "light_field_floor";
+  case CLAMP_PRODUCTION_CUTOFF:      return "production_cutoff";
+  case CLAMP_SEED_POSITION:          return "seed_position";
   }
   // The leaf block's names are the leaf model's, taken by offset. Spelling them
   // again here would let the two lists disagree while both compiled.

@@ -567,8 +567,8 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
   env <- Environment("TF24")
   # ⚠️ THE LADDER'S LIGHT IS PINNED, not the model default. Its regimes were
   # designed at 1800 umol m^-2 s^-1 of PPFD above the canopy, and the model's
-  # default (SWdown 900, i.e. 2056.5) pushes `clamped` through enough clamps and
-  # shade deaths that a difference of whole runs stops converging: 100 of its
+  # default (SWdown 900, i.e. 2056.5) pushes `clamped` through enough shade
+  # deaths that a difference of whole runs stops converging: 100 of its
   # reference columns scatter by more than 1.5x across the four steps, against
   # 4 at this light, so the reference cannot referee it. This is that 1800
   # expressed as shortwave.
@@ -598,9 +598,7 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
 # decides is COST rather than regime: the default schedule derives its
 # introduction count from the lifetime, so a stand that wants the stiff regime
 # pays for cohorts it is not asking about. On the clamped driver at a lifetime
-# of 5, twenty introductions cost a small fraction of what its eighty-eight do,
-# with both light sites firing on both paths and the same overflow refusal
-# either way.
+# of 5, twenty introductions cost a small fraction of what its eighty-eight do.
 ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                 introductions = NULL) {
   p <- testing_parameters("TF24")
@@ -628,8 +626,8 @@ ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
 # than a sweep over rainfall: each one is chosen to reach a different kind of
 # operating point, and which kinds a regime actually reached is recorded beside
 # the numbers rather than assumed. The first three move the water and are what
-# reach an interior, a pinned and a shut point; the last two move the light and
-# are what reach the floor the clamp counter sees.
+# reach an interior, a pinned and a shut point; the last two move the light, and
+# `clamped`, the darker, puts its youngest cohorts in near-darkness.
 ladder_reference_regimes <- function() {
   list(
     list(name = "wet",      rain = 2.00, amplitude = 0),
@@ -1095,8 +1093,8 @@ ladder_regime_report <- function(x, level = c("patch", "stand")) {
           moisture),
     entry("net production strictly positive at every cohort",
           length(production) > 0 && all(production > 0), min(production)),
-    entry("light at every read at least 100 times the floor",
-          length(light) > 0 && all(light > 100 * 1e-4), min(light)),
+    entry("light at every read at least 1e-2 of the open sky",
+          length(light) > 0 && all(light > 1e-2), min(light)),
     entry("no two heights equal or in a small-integer ratio",
           ladder_non_commensurate(nodes$height), length(nodes$height)),
     entry("no two layers at the same moisture",
@@ -1443,10 +1441,19 @@ ladder_zero_outside_every_rate <- function() {
   "S_D"
 }
 
+# The coarse-root pool's respiration and turnover rates. They multiply the pool's
+# mass, which is a_cr1 times the sapwood's, and a_cr1 is zero by default, so at
+# it neither moves any rate. A property of a_cr1's value rather than of the two
+# parameters: with the pool on both are live (test-coarse-roots.R).
+ladder_zero_while_the_pool_is_empty <- function() {
+  c("r_cr", "k_cr")
+}
+
 ladder_zero_by_construction <- function() {
   c(ladder_zero_at_an_interior_optimum(),
     ladder_zero_outside_the_metric_support(),
-    ladder_zero_outside_every_rate())
+    ladder_zero_outside_every_rate(),
+    ladder_zero_while_the_pool_is_empty())
 }
 
 # Which cause a declared zero is claimed to have. Named so a check can measure
@@ -1457,6 +1464,8 @@ ladder_zero_cause <- function(name) {
     "a limit the operating point is away from: moves no rate at all"
   } else if (bare %in% ladder_zero_outside_every_rate()) {
     "a factor of the fitness alone: moves no rate at all"
+  } else if (bare %in% ladder_zero_while_the_pool_is_empty()) {
+    "a rate of the empty coarse-root pool: moves no rate at a_cr1 = 0"
   } else if (bare %in% ladder_zero_outside_the_metric_support()) {
     "outside the metric support: reaches no rate the census reads"
   } else {
@@ -1725,6 +1734,15 @@ ladder_shortlist <- function() {
 # rather than a trait, because only three of them are traits the fixture carries.
 ladder_birth_size_parameters <- function() {
   c("lma", "rho", "omega", "theta", "a_l1", "a_l2", "a_r1", "a_b1")
+}
+
+# A ninth reaches birth size, because mass_live counts the coarse-root pool, and
+# is kept apart from the eight because its default is zero: the whole-run
+# differences the eight are refereed by take a step relative to the parameter's
+# value, which moves nothing at zero. Its column is refereed against pinned-step differences, at zero and with
+# the pool on, in test-coarse-roots.R.
+ladder_birth_size_parameters_at_zero <- function() {
+  "a_cr1"
 }
 
 # Which registered parameters a trait moves through the hyperparameter function,

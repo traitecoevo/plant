@@ -109,11 +109,28 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   # stem curve (stem_P50) and the stem's conductance (K_s) move that end; lma
   # does not. Each column agrees to 1e-5; held to 1e-4.
   lifetime <- 10
+  p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
+  env <- function() tf24f_dry_pulses(lifetime)
+  solver <- run(p, env(), Control(), record = "states")$solver
   errors <- tf24f_gradient_errors(
-    tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07),
-    function() tf24f_dry_pulses(lifetime),
-    "1.offspring_production", c("lma", "stem_P50", "K_s", "k_acclim"))
+    p, env, "1.offspring_production", c("lma", "stem_P50", "K_s", "k_acclim"),
+    solver = solver)
   expect_lt(max(errors), 1e-4)
+
+  # A newborn is seated at its optimum's place in the interval, held to
+  # [0, 1], and where it is held the seat has no rows. Here about a quarter of
+  # the newborns' optima sit exactly on an end, which is inside, and none
+  # outside: the hold never binds, on the run or on the sweep. Counted, so that
+  # a zero row from it would read as one.
+  fired <- census_clamp_counts(solver, "TF24f")
+  swept <- census_clamp_counts(solver, "TF24f", differentiated = TRUE)
+  expect_equal(sum(fired[, "seed_position"]), 0)
+  expect_equal(sum(swept[, "seed_position"]), 0)
+  # No site fires on this stand on either path, so a zero here says only that
+  # the tallies are shaped: one row per species, every site named on both.
+  expect_equal(dim(fired), c(1L, length(census_clamp_names_tf24())))
+  expect_equal(colnames(fired), census_clamp_names_tf24())
+  expect_equal(dimnames(swept), dimnames(fired))
 })
 
 test_that("an invader's gradient holds where its collar meets a dry layer's potential", {
@@ -222,4 +239,50 @@ test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {
   expect_lt(median(fast), median(slow) / 2)
   expect_lt(max(fast), max(slow))
   expect_lt(median(fast), 0.02)
+})
+
+test_that("TF24f reports the regimes its leaf solves met, and its curvature margin", {
+  # A half-year stand, once in the default soil and once with the soil too dry
+  # for any collar to carry the residual flux. A newborn is seated by TF24's
+  # optimiser and classified as TF24's solve is; a tracked collar is
+  # prescribed; and a leaf with no feasible interval is shut, whatever the
+  # position.
+  kinds_of <- function(solver) {
+    stats::setNames(census_operating_point_counts(solver, "TF24f")[[1]],
+                    census_operating_point_names())
+  }
+  stand <- function(soil = NULL) {
+    p <- tf24f_gradient_parameters(lifetime = 0.5)
+    p$node_schedule_times <- list(c(0, 0.1, 0.2))
+    env <- Environment("TF24f")
+    if (!is.null(soil)) {
+      env$set_soil_water_state(rep(soil, env$get_soil_number_of_depths()))
+      env$extrinsic_drivers_set_constant("rainfall", 0)
+    }
+    run(p, env, Control(), record = "states")$solver
+  }
+
+  open <- stand()
+  kinds <- kinds_of(open)
+  expect_gt(kinds[["prescribed"]], 0)
+  expect_gt(kinds[["interior"]], 0)
+  expect_equal(kinds[["hydraulic-shutdown"]], 0)
+  # The margin is taken where the sweep runs, so a forward run has none, and a
+  # gradient over the seats' interior optima has a positive one.
+  expect_equal(census_curvature_margin(open, "TF24f"), -1)
+  g <- stand_gradient(open, metrics = "1.offspring_production", hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  expect_gt(census_curvature_margin(open, "TF24f"), 0)
+
+  shut <- kinds_of(stand(soil = 0.05))
+  expect_gt(shut[["hydraulic-shutdown"]], 0)
+  expect_equal(sum(shut), shut[["hydraulic-shutdown"]])
+
+  # A model that solves no leaf has none of these, and is told so by name.
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 0.3
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+  ff16 <- run(p, NULL, Control(node_density_coordinate = "birth_date"))$solver
+  expect_error(census_operating_point_counts(ff16, "FF16"),
+               "The FF16 model solves no leaf")
 })

@@ -2,7 +2,7 @@
 ## them must not move. Two checks: in-build invariances that hold on every
 ## platform, and a recorded baseline (scripts/capture-default-baseline.R),
 ## compared where it was recorded. It is re-blessed only for a deliberate change
-## to the default path, last when the seed-height root tolerance went to 1e-12.
+## to the default path, last at TF24's scientific version 17.
 
 test_that("default runs reproduce the recorded baseline", {
   skip_on_cran()

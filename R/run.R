@@ -86,7 +86,9 @@ print.plant_scenario <- function(x, ...) {
 ##'
 ##' A single plant is grown by \code{run(individual, times = )}, which reports
 ##' it at each time, or \code{run(individual, sizes = )}, which grows it to
-##' each size and finds the time it is reached by a root-find. A plant grown on its own
+##' each size: the time a size is reached is located on the step that crosses
+##' it, and the run lands there, so the time, state and plant reported for a
+##' size describe the same instant. A plant grown on its own
 ##' sees the environment it is given, not a patch's shading.
 ##'
 ##' @param x What to run: a scenario, a \code{Parameters} object, a
@@ -149,7 +151,8 @@ print.plant_scenario <- function(x, ...) {
 ##'   when each size was reached, \code{NA} for one that was not), \code{state} (the ODE
 ##'   state at each time, as a matrix), \code{individual} (a list of the plant
 ##'   at each) and \code{env}, and when grown to sizes \code{trajectory}, the
-##'   state at every step taken.
+##'   time and state at every step taken, the steps landed on each size
+##'   among them.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
 ##'   continuing it, \code{run_mutant()}, \code{run_until_converged()} --

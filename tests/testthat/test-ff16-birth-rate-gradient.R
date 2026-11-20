@@ -5,21 +5,13 @@
 # is carried at the working scalar so both routes are on the tape. A variable
 # birth rate is a driver and has no column.
 
-birth_control <- function(...) {
-  Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
-          ...)
-}
-
-birth_parameters <- function(birth_rate, lma = c(0.0825, 0.2), hmat = 3,
-                             lifetime = 8) {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- lifetime
-  m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
-  add_strategies(p, m, birth_rate = as.list(birth_rate))
+# Two species, at birth rates `b`, on the reproducing stand.
+birth_stand <- function(b) {
+  ff16_stand_run(ff16_stand_parameters(c(0.0825, 0.2), birth_rate = b))
 }
 
 test_that("the birth rate is a column, named per species, for a constant rate", {
-  solver <- run(birth_parameters(c(2, 1)), NULL, birth_control(), record = "states")$solver
+  solver <- birth_stand(c(2, 1))
   g <- stand_gradient(solver, metrics = "1.net_reproduction_ratio", hyperpar = NULL)
   expect_true(all(c("1.birth_rate", "2.birth_rate") %in% colnames(g$gradient)))
   expect_false(any(stand_gradient_refused(g)))
@@ -30,24 +22,17 @@ test_that("the birth rate is a column, named per species, for a constant rate", 
 
 test_that("d(fitness)/d(birth rate) is the pinned-step central difference", {
   b <- c(2, 1)
-  solver <- run(birth_parameters(b), NULL, birth_control(), record = "states")$solver
+  solver <- birth_stand(b)
   metrics <- c("1.net_reproduction_ratio", "2.net_reproduction_ratio",
                "1.offspring_production", "2.offspring_production")
   g <- stand_gradient(solver, metrics = metrics,
                       traits = c("1.birth_rate", "2.birth_rate"),
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  at <- function(b_) {
-    p <- birth_parameters(b_)
-    p$ode_times <- solver$ode_times
-    p$ode_step_sizes <- solver$ode_step_sizes
-    stand_fitness(run(p, NULL, birth_control())$solver)
-  }
+  p <- pin_steps(solver)
+  fitness_of <- function(q) stand_fitness(run(q, NULL, ff16_referee_control())$solver)
   for (j in 1:2) {
-    h <- 1e-5 * b[j]
-    up <- b; up[j] <- b[j] + h
-    dn <- b; dn[j] <- b[j] - h
-    fd <- (at(up) - at(dn)) / (2 * h)
+    fd <- central_difference(p, j, "birth_rate", NULL, fitness_of, rel = 1e-5)
     for (metric in metrics) {
       expect_equal(g$gradient[metric, paste0(j, ".birth_rate")], fd[[metric]],
                    tolerance = 1e-5, label = paste(metric, j))
@@ -69,18 +54,15 @@ test_that("a variable birth rate has no column rather than a zero", {
   p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
                       birth_rate = list(list(x = c(0, 3), y = c(2, 2))))
   expect_true(p$strategies[[1]]$is_variable_birth_rate)
-  solver <- run(p, NULL, birth_control(), record = "states")$solver
+  solver <- ff16_stand_run(p)
   g <- stand_gradient(solver, metrics = "1.net_reproduction_ratio", hyperpar = NULL)
   expect_false("1.birth_rate" %in% colnames(g$gradient))
   expect_error(stand_gradient(solver, traits = "1.birth_rate", hyperpar = NULL), "Unknown trait")
 })
 
 test_that("the birth-rate column passes through a hyperparameter function as itself", {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- 6
-  p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
-                      birth_rate = 2)
-  solver <- run(p, NULL, Control(node_density_coordinate = "birth_date"), record = "states")$solver
+  solver <- ff16_stand_run(ff16_stand_parameters(lifetime = 6),
+                       Control(node_density_coordinate = "birth_date"))
   through <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
                             traits = c("1.lma", "1.birth_rate"),
                             hyperpar = default_hyperpar("FF16"))

@@ -35,16 +35,20 @@ namespace stem_hydraulics {
 // so a caller wanting a conductance forms K_s * theta / L_eff. L_top is the
 // representative flow-path length: for TF24 that is height * eta_c, the
 // leaf-area-weighted mean leaf height, not the full height (see the call site
-// in TF24_Model::net_mass_production_dt).
+// in TF24_Model::update_leaf_specific_conductance_max).
 //
 // beta == 0 recovers L_eff = L_top - L_tip, the height-linear model, and with
 // L_tip == 0 it returns L_top having performed no arithmetic at all, so the
 // collapsed configuration is bit-identical to the old expression rather than
 // merely equal to it (invariance criterion I7).
 //
-// PRECONDITIONS, validated once in TF24_Model::prepare_strategy() rather
-// than here, because this sits on the compute_rates path:
+// PRECONDITIONS, checked by the caller rather than here, because this sits on
+// the compute_rates path:
 //   beta == 0  ||  0 < L_tip < L_top
+// TF24_Model::prepare_strategy() checks L_tip and the seed's L_top once; the
+// rate path checks L_tip < L_top on every call, before forming the path
+// (TF24_Model::update_leaf_specific_conductance_max), since a trial stage can
+// take a newborn below the terminal segment.
 // Templated on the scalar because it sits on the rate path, which the census
 // gradient records: L_top is height*eta_c and both L_tip and beta are model
 // parameters carrying gradient columns, so all three arrive active on a

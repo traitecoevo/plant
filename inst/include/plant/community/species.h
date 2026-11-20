@@ -29,7 +29,8 @@ namespace plant {
 // layer of a continuous patch is pinned at (Control::absorb_epsilon).
 template <typename T>
 concept HasAsymptoticHeight = requires(const T& s, double epsilon) {
-  { s.asymptotic_height(epsilon) } -> std::convertible_to<double>;
+  { odelia::util::to_passive(s.asymptotic_height(epsilon)) } ->
+    std::convertible_to<double>;
 };
 
 // A strategy whose cohorts each carry a private root-zone soil column (TF24w):
@@ -330,8 +331,10 @@ public:
     }
     return true;
   }
-  // The height the layer sits at, from the strategy's allocation to reproduction.
-  double absorb_height() const;
+  // The height the layer sits at, from the strategy's allocation to reproduction,
+  // at the strategy's scalar: the pinned height moves with the traits it is
+  // derived from, and the sweep carries that through every absorption.
+  value_type absorb_height() const;
   // Absorb every live cohort, bar the youngest, at or above absorb_height(), and
   // say how many. Under an arrival weighting a cohort the window weights is
   // never absorbed, so every cohort the fitness integral reads keeps its own
@@ -1257,13 +1260,13 @@ void Species<T,E>::compute_top_rates(const E& environment,
 }
 
 template <typename T, typename E>
-double Species<T,E>::absorb_height() const {
+typename Species<T,E>::value_type Species<T,E>::absorb_height() const {
   if constexpr (HasAsymptoticHeight<T>) {
     return strategy->asymptotic_height(control().absorb_epsilon);
   } else {
     util::stop("control$absorb_epsilon needs a strategy that declares an "
                "asymptotic height, and this one does not");
-    return 0.0;
+    return value_type(0.0);
   }
 }
 
@@ -1277,8 +1280,12 @@ size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
     return 0;
   }
   using odelia::util::to_passive;
-  const double h_abs = absorb_height();
-  const double S_D = to_passive(strategy->pars.S_D);
+  // Which cohorts go is a selection on state, read off the values; what they
+  // carry into the layer, and the height it is pinned at, are functions of the
+  // traits, and stay at the strategy's scalar so the sweep transposes them.
+  const value_type h_top = absorb_height();
+  const double h_abs = to_passive(h_top);
+  const value_type S_D = strategy->pars.S_D;
   size_t count = 0;
   // The youngest cohort is never absorbed: its quadrature weight is not final
   // until the next one is introduced.
@@ -1311,7 +1318,7 @@ size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
                           (top_density_ + added));
       }
     }
-    top_.set_state(HEIGHT_INDEX, value_type(h_abs));
+    top_.set_state(HEIGHT_INDEX, h_top);
     top_density_ += added;
     const value_type w = weight * c.patch_density() * S_D *
       c.survival_individual() / c.get_pr_patch_survival_at_birth();

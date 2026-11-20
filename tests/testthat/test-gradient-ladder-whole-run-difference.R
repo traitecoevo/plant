@@ -16,6 +16,12 @@
 # reference regenerated from the model it referees is not a reference, so a
 # disagreement here is a finding.
 #
+# The pinned grid is the run's own, so the reference is the derivative of the
+# DISCRETISED run, and any change that moves the steps a run takes ages it.
+# Re-capturing then is legitimate only once a difference with every step pinned
+# agrees with the sweep on the rows that moved: that is what separates an aged
+# reference from a wrong gradient.
+#
 # A residual is normalised per metric, over the columns the reference carries for
 # it, which is the convention `ladder_matrix_residual` uses. Normalising per
 # column instead makes every column whose whole row is at the difference's own
@@ -53,7 +59,7 @@ reference_stand <- function(regime) {
 }
 
 # The columns this reference carries no row for, and the reason is not that
-# nobody captured them. Two default to 0, so the capture's RELATIVE step
+# nobody captured them. Three default to 0, so the capture's RELATIVE step
 # `abs(value) * rel` is 0 and the difference moves no parameter at all; their
 # rows record that refusal and carry no metric, which reference_rows() drops.
 # S_D is captured: it enters no rate, so its census rows are zero by
@@ -65,7 +71,24 @@ reference_stand <- function(regime) {
 # notice a column the REFERENCE does not carry, so a reference missing columns
 # would pass with nothing said.
 reference_uncaptured_columns <- function() {
-  c("TF24_floor_lambda_o", "recruitment_decay")
+  c("TF24_floor_lambda_o", "recruitment_decay", "a_cr1")
+}
+
+# The rows held to a wider floor than their own scale, by name, with the floor.
+#
+# ⚠️ A STANDING DISAGREEMENT, NOT A RESOLVED ONE. On the darkest regime the slow
+# species stays small, so its height parameters reach the census only through
+# allocation at heights far below hmat, and their rows are a billionth of their
+# neighbours'. The difference of whole runs resolves those rows to 4e-05 across
+# steps 1e-05 to 1e-03 and sits 1.6e-04 to 2.5e-04 from the sweep at every one
+# of them, so the gap is in the sweep or in the model as run, not in the
+# difference. It was there before the rooting cap was smooth, read at 2e-04 at
+# the step the capture chose; the hard cap's kink then spread the four steps by
+# 1e-03, which left the rows unresolved and the gap unseen. The floor here is
+# the gap's size with room for the difference's own resolution, and nothing
+# wider: a row past it is a new finding.
+reference_rows_past_their_scale <- function() {
+  list(shaded = list(columns = c("2.hmat", "2.a_f2"), floor = 5e-4))
 }
 
 reference_compare <- function(regime, rows) {
@@ -87,8 +110,8 @@ reference_compare <- function(regime, rows) {
        observed = observed,
        # Which branches the run reached, summed over species, for whoever reads a
        # failure.
-       kinds = stats::setNames(Reduce(`+`, census_operating_point_counts_tf24(solver)),
-                               census_operating_point_names_tf24()),
+       kinds = stats::setNames(Reduce(`+`, census_operating_point_counts(solver, "TF24")),
+                               census_operating_point_names()),
        # Refusal is metric-level, so it broadcasts to the rows this picked out.
        refused = unname(stand_gradient_refused(got)[mine$metric]),
        # And the reason, so a regime refusing every metric can be checked
@@ -174,9 +197,10 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # The reference's own resolution, with a floor: where its four steps agreed
     # to round-off, the sweep is still only asked to agree to the truncation the
     # coarsest of them carries. Over 270 answered columns a regime, the worst
-    # reads 9.6e-04 on drought, 6.9e-05 on seasonal and 4.7e-05 on wet -- and all
-    # three are `theta` or `omega`, which reach the census through the channels
-    # the leaf boundary carries and are the last columns to resolve.
+    # reads 8.6e-04, on clamped's `theta`, whose four steps themselves spread by
+    # as much; no other regime reads above 3e-07. `theta` and `omega` reach the
+    # census through the channels the leaf boundary carries and are the last
+    # columns to resolve.
     tolerance <- pmax(3 * r$spread, 2e-3)
     over <- live & r$residual > tolerance
     # ⚠️ THIS RUNG IS THE ONLY ONE THAT SEES THE KNOT GRID, through this floor.
@@ -196,14 +220,20 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # And each row the reference resolves, on its own scale. The check above
     # divides by the metric's largest entry, so a small row passes it whatever
     # the sweep says: a zero passes most of them. A row whose four steps agree to
-    # 1e-4 of its value is held to 5e-4 of it, or to three times its spread. The
-    # floor is the reference's own age: it was captured on an earlier step grid,
-    # and on the rows it flags at 1e-4 a fresh pinned difference on today's grid
-    # agrees with the sweep to 1e-5 and with the reference to no better than
-    # 4e-4. Re-captured, the reference would take 1e-4.
+    # 1e-4 of its value is held to 1e-4 of it, or to three times its spread. The
+    # floor is the reference's own resolution: it reads a column at one step for
+    # every metric, so a sharply curved column carries that step's truncation
+    # error. A reference aged by a moved step grid fails this floor first. The
+    # rows named in reference_rows_past_their_scale() are held to the floor
+    # given there instead, which is their measured gap and no wider.
     resolved <- live & r$spread_raw < 1e-4 * abs(r$reference)
     expect_gt(sum(resolved), 150)
-    own <- pmax(3 * r$spread_raw, 5e-4 * abs(r$reference))
+    floor <- rep(1e-4, length(r$column))
+    past <- reference_rows_past_their_scale()[[r$name]]
+    if (!is.null(past)) {
+      floor[r$column %in% past$columns] <- past$floor
+    }
+    own <- pmax(3 * r$spread_raw, floor * abs(r$reference))
     gap <- abs(r$observed - r$reference)
     off <- resolved & gap > own
     expect_equal(sum(off), 0L,

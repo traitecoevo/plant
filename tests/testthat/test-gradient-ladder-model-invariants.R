@@ -155,7 +155,7 @@ test_that("the regime holds at the states a trajectory passed through", {
   # What has to hold at every solve is the physical regime, and that is this list.
   per_state <- c("soil moisture strictly interior on every layer",
                  "net production strictly positive at every cohort",
-                 "light at every read at least 100 times the floor")
+                 "light at every read at least 1e-2 of the open sky")
 
   collected <- list()
   for (k in at) {
@@ -393,11 +393,13 @@ test_that("each declared zero is zero for the cause it is declared for", {
     message(sprintf("  %-16s %-46s %s", name, ladder_zero_cause(name),
                     paste(unique(moved), collapse = " ")))
     if (name %in% c(ladder_zero_at_an_interior_optimum(),
-                    ladder_zero_outside_every_rate())) {
+                    ladder_zero_outside_every_rate(),
+                    ladder_zero_while_the_pool_is_empty())) {
       # The dry bound of a feasible interval the operating point is inside. It
       # moves nothing at all, and that is complementary slackness rather than a
       # missing row -- the same parameter carries the whole row at a pin. S_D
-      # moves nothing either: the fitness reads it directly.
+      # moves nothing either: the fitness reads it directly. Nor do the empty
+      # coarse-root pool's two rates.
       expect_length(moved, 0L)
     } else {
       # The two reproductive accumulators and nothing else. A third rate would

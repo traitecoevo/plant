@@ -70,14 +70,14 @@ for (rg in regimes) {
   solver <- ladder_run(p, env = ladder_environment(rg$rain,
                                                    if (is.null(rg$amplitude)) 0
                                                    else rg$amplitude))
-  counts <- census_operating_point_counts_tf24(solver)
+  counts <- census_operating_point_counts(solver, "TF24")
   for (s in seq_along(counts)) {
     kinds[[length(kinds) + 1L]] <- data.frame(
       regime = rg$name, species = s,
-      kind = census_operating_point_names_tf24(), count = counts[[s]],
+      kind = census_operating_point_names(), count = counts[[s]],
       stringsAsFactors = FALSE)
   }
-  reached <- census_operating_point_names_tf24()[
+  reached <- census_operating_point_names()[
     Reduce(`+`, counts) > 0]
   cat(sprintf("%-9s reached: %s\n", rg$name, paste(reached, collapse = " ")))
   flush(stdout())
@@ -132,7 +132,7 @@ cat(sprintf("\nwrote %d rows (%d could not be differenced) to %s\n",
             nrow(out), refused, outdir))
 # The coverage statement, by name. A kind no regime reached is what a later
 # reader needs to know before trusting the reference on that branch.
-all_kinds <- census_operating_point_names_tf24()
+all_kinds <- census_operating_point_names()
 seen <- unique(do.call(rbind, kinds)[do.call(rbind, kinds)$count > 0, "kind"])
 cat("kinds reached: ", paste(seen, collapse = " "), "\n")
 cat("kinds NOT reached: ",

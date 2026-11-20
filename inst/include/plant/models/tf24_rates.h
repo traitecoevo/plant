@@ -100,7 +100,21 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   const S P = net_mass_production_dt_;
   const S Ppos =
     0.5 * (P + sqrt(P * P + storage_prod_eps * storage_prod_eps));
-  const S growth_flux = Ppos * G;
+  // a_st1 = 0 is the model without storage, by a switch rather than as a
+  // limit: production's positive part goes straight to growth, the pool stays
+  // empty, and mortality reads production per leaf area (below). Read through
+  // the gate instead, a zero capacity leaves r = 0, which holds growth at G(0),
+  // about a quarter of production, and pins mortality at its maximum a_dG1. The
+  // positive part is the hard one the model used before the pool existed: the
+  // smooth Ppos adds up to storage_prod_eps / 2, which is 2% of a newborn's
+  // production in full sun and 23% at a fifth of it.
+  //
+  // A gradient at a_st1 = 0 is every other trait's in the model without
+  // storage. a_st1's own column reads zero there, since nothing on this branch
+  // reads it, but a switch has no derivative, so that zero is not one.
+  const bool has_storage = odelia::util::to_passive(pars.a_st1) > 0.0;
+  const S growth_flux =
+    has_storage ? S(Ppos * G) : (P > 0.0 ? P : S(0.0));
 
   const S fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
   const S fraction_allocation_growth_ = fraction_allocation_growth(height);
@@ -200,11 +214,18 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   //
   // The flow relaxes the pool over storage_max/(charge + drain), hours in a
   // seedling; the divisor adds storage_relaxation_offset to that time.
-  const S relaxation_rate =
-      storage_max > 0.0 ? (charge + drain) / storage_max : S(0.0);
-  vars.set_rate(state_idx_storage,
-                (charge * (1.0 - r) - drain * r) /
-                    (1.0 + relaxation_rate * pars.storage_relaxation_offset));
+  //
+  // Without a pool there is nothing to charge: the gate's withheld surplus
+  // would otherwise fill a state whose capacity is zero.
+  if (has_storage) {
+    const S relaxation_rate =
+        storage_max > 0.0 ? (charge + drain) / storage_max : S(0.0);
+    vars.set_rate(state_idx_storage,
+                  (charge * (1.0 - r) - drain * r) /
+                      (1.0 + relaxation_rate * pars.storage_relaxation_offset));
+  } else {
+    vars.set_rate(state_idx_storage, 0.0);
+  }
 
   // --- The two departures ---------------------------------------------------
   // Relative rates, so both are scale-free: the same withheld fraction thins a
@@ -241,9 +262,13 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
                   rebuild_rel * (exp(-sapwood_departure) - 1.0) +
                   pars.a_sw * sapwood_marginal_);
 
-  // Instantaneous mortality rate, driven by relative reserves r.
+  // Instantaneous mortality rate, driven by relative reserves r, or without a
+  // pool by production per leaf area.
+  // Two calls rather than one on a chosen argument, which would copy r.
+  const S& cumulative_mortality = vars.state(MORTALITY_INDEX);
   vars.set_rate(MORTALITY_INDEX,
-      mortality_dt(r, vars.state(MORTALITY_INDEX)));
+      has_storage ? mortality_dt(r, cumulative_mortality)
+                  : mortality_dt(P / area_leaf_, cumulative_mortality));
 
 }
 
@@ -453,17 +478,18 @@ S TF24_Model<S>::fecundity_dt(const S& net_mass_production_dt,
 }
 
 template <typename S>
-S TF24_Model<S>::mortality_dt(const S& relative_reserves,
+S TF24_Model<S>::mortality_dt(const S& carbon_status,
                               const S& cumulative_mortality) const {
 
   // Growth-dependent mortality is driven by relative NSC reserves
   // r = S/S_max (in [0,1]) rather than instantaneous productivity, so the rate
-  // is bounded (see mortality_storage_dependent_dt): death is gradual as
-  // reserves deplete rather than spiking under a carbon deficit.
+  // is bounded (see mortality_growth_dependent_dt): death is gradual as
+  // reserves deplete rather than spiking under a carbon deficit. Without a pool
+  // (a_st1 = 0) it is production per leaf area, and unbounded.
   if (mortality_hazard_live(cumulative_mortality)) {
     return
       mortality_growth_independent_dt() +
-      mortality_storage_dependent_dt(relative_reserves);
+      mortality_growth_dependent_dt(carbon_status);
  } else {
     // Mortality probability is 1, so the rate calculations have nothing left to
     // describe and the state does not move again.
@@ -476,13 +502,16 @@ S TF24_Model<S>::mortality_growth_independent_dt() const {
   return pars.d_I;
 }
 
-// Storage-dependent growth mortality, following Stefaniak et al. 2026
-// (Eq 6). Bounded in [a_dG1*exp(-a_dG2), a_dG1] for r in [0,1]: full reserves
-// (r=1) give near-zero excess mortality; empty reserves (r=0) give the finite
+// Growth-dependent mortality, FF16's form read at the plant's carbon status.
+// With storage that is the relative reserves r, following Stefaniak et al. 2026
+// (Eq 6): bounded in [a_dG1*exp(-a_dG2), a_dG1] for r in [0,1], full reserves
+// (r=1) giving near-zero excess mortality and empty reserves (r=0) the finite
 // maximum a_dG1. This boundedness is what keeps the ODE from overflowing.
+// Without storage it is production per leaf area, as in FF16, which a deep
+// carbon deficit takes to ~1e32.
 template <typename S>
-S TF24_Model<S>::mortality_storage_dependent_dt(const S& relative_reserves) const {
-  return pars.a_dG1 * exp(-pars.a_dG2 * relative_reserves);
+S TF24_Model<S>::mortality_growth_dependent_dt(const S& carbon_status) const {
+  return pars.a_dG1 * exp(-pars.a_dG2 * carbon_status);
 }
 
 // NSC storage capacity: scales with sapwood mass (per Daniel). mass_sapwood

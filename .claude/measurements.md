@@ -8,7 +8,7 @@ Each of these is compared bit for bit or at a stated tolerance by a test. None m
 
 | Baseline | What it pins | Read by | Re-blessed by |
 |---|---|---|---|
-| `tests/testthat/test_data/default_baseline.rds` | six runs that use no opt-in feature (FF16, K93, FF16 with a harvest, an invasion, a resume, TF24), last re-captured when the seed-height root tolerance went to 1e-12; compared only on macOS arm64, where it was recorded | `test-default-baseline.R`, through `default_baseline_cases()` in `helper-default-baseline.R` | `Rscript scripts/capture-default-baseline.R` against an installed build that has `run()` (the helper runs through it) |
+| `tests/testthat/test_data/default_baseline.rds` | six runs that use no opt-in feature (FF16, K93, FF16 with a harvest, an invasion, a resume, TF24), last re-captured at TF24's scientific version 17; compared only on macOS arm64, where it was recorded | `test-default-baseline.R`, through `default_baseline_cases()` in `helper-default-baseline.R` | `Rscript scripts/capture-default-baseline.R` against an installed build that has `run()` (the helper runs through it) |
 | `tests/testthat/reference/reference-gradient.tsv`, `reference-kinds.tsv` | the differenced reference the analytic leaf rows are refereed against, every step's reading, and which operating-point kinds each regime reached | `test-gradient-ladder-whole-run-difference.R` | `scripts/capture-reference-gradient.R`; read its header first, because the differenced implementation it used is gone |
 | `tests/testthat/FF16_reference/` | FF16 against Daniel's original R implementation of the growth model | `test-model-ff16-reference-comparison.R` | not re-blessed: it is an independent implementation |
 | `tests/testthat/_snaps/model-version.md` | each model's default `pars`, `control` and top-level science fields, against its `scientific_version` | `test-model-version.R` | `testthat::snapshot_accept("model-version")`, with the version bump |
@@ -28,6 +28,10 @@ Wall-clock on a Mac swings by up to 20% between rounds of the same binary, so a 
 - **Interleaved medians**, base and head alternated in one session, each build in its own library and one `Rscript` per build, since two builds of plant cannot load into one R session.
 
 The `profile-plant` skill has the profiling workflow. `scripts/bench_run.R` times a stand run and `scripts/bench_gradient.R` a reverse sweep, each for FF16 or TF24; `run_plant_benchmarks()` times only FF16's run and schedule refinement. A change to TF24, to the reverse sweep or to anything phylloptim reaches needs those paths timed as well as FF16's.
+
+## Solver agreement
+
+`scripts/stochastic_expectation.R` measures how far the stochastic solver's mean stand sits from the deterministic stand as the patch area grows, for FF16, K93 and TF24, against an installed plant; its results are on #601. With competition the two need not agree on a finite patch, so it reports the gap in standard errors of the stochastic mean. Without competition they must agree exactly, which `test-stochastic-expectation.R` checks.
 
 ## Evaluation records kept in `notes/`
 

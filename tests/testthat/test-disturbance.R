@@ -61,25 +61,3 @@ test_that("Weibull disturbance regime", {
   expect_equal(obj$icdf(1 - 0.9999375), m, tolerance = 0.0001)  
   expect_equal(obj$icdf(6.25302620663814e-05), m)  
   })
-
-# TODO(#482): check what this is for
-# test_that("Reference survival eps gives correct running time", {
-#   ## From falster-traitdiversity: src/base/ebt/site.cpp,
-#   ## site::solve_patchage_dist():
-#   f1 <- function(mean) {
-#     2.633 * mean / 3.0 * 4.0
-#   }
-#
-#   ## Wrapper for getting same out of our disturbance class:
-#   ctrl <- Control()
-#   eps <- ctrl$schedule_patch_survival
-#   f2 <- function(mean) {
-#     Disturbance(mean)$cdf(eps)
-#   }
-#
-#   age <- seq(1, 200, length.out=101)
-#   y1 <- f1(age)
-#   y2 <- sapply(age, f2)
-#
-#   expect_equal(y1, y2)
-# })
