@@ -158,12 +158,10 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   where it belongs to none), or \code{NULL} where the metric answered; and
 ##'   \code{control}, the entries the gradient was taken at.
 ##'
-##'   Refused outright, with an error: a run on the height coordinate, in a
-##'   constant field, or with a rain pulse that filled a soil layer and shed the
-##'   rest, which sets the layer whatever it held; with the absorbing top layer
-##'   on, a run with a harvest or climate extreme that reached any cohort; and a
-##'   trade-off that derives a parameter an equation reads and that has no
-##'   column.
+##'   Refused outright, with an error: a run on the height coordinate or in a
+##'   constant field; with the absorbing top layer on, a run with a harvest or
+##'   climate extreme that reached any cohort; and a trade-off that derives a
+##'   parameter an equation reads and that has no column.
 ##'
 ##'   A run resumed from \code{\link{export_patch_state}()} is differentiated
 ##'   from its resume time, with the exported state held fixed: how that state

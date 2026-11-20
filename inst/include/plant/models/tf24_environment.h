@@ -594,10 +594,14 @@ public:
   // add_water_pulse_to_layer applies, factored out so a private column applies
   // the same one.
   double pulse_capacity(const S& theta, size_t layer) const {
+    return std::max(0.0, odelia::util::to_passive(pulse_room(theta, layer)));
+  }
+  // The room below saturation at the state's scalar, unclamped: what a pulse
+  // that fills the layer adds to it.
+  S pulse_room(const S& theta, size_t layer) const {
     const S sat = S(
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer));
-    const S capacity_raw = (sat - theta) * dz[layer];
-    return std::max(0.0, odelia::util::to_passive(capacity_raw));
+    return (sat - theta) * dz[layer];
   }
   // At the working scalar: a step that substeps the soil reads it as the
   // layers' inputs, and the sweep differentiates through them.
@@ -1099,21 +1103,34 @@ public:
     // whatever the state is -- and the two doubles crossing the boundary are the
     // ARGUMENT and the report, which is why they are read passive here rather
     // than the state being narrowed.
+    //
+    // ⚠️ SO IS WHAT THE LAYER TAKES. The branch is chosen on passive values,
+    // but a pulse that fills the layer takes the room it had, which is a
+    // function of the state: the layer ends at saturation whatever it held, so
+    // its row in the state it replaced is zero, and infiltration and runoff
+    // move with that state, by -dz and +dz. A pulse taken whole, or shed whole
+    // by a layer already full, adds a constant. Taken passive, the filled
+    // branch would carry the identity's rows, and the stand gradient across
+    // the pulse would be finite and wrong.
     const S theta = vars.state(layer);
-    const double capacity = pulse_capacity(theta, layer);
-    const double accepted = std::min(depth, capacity);
-    const double excess = depth - accepted;
+    const S room = pulse_room(theta, layer);
+    const double capacity = std::max(0.0, odelia::util::to_passive(room));
+    const S accepted = !(capacity < depth) ? S(depth)
+                       : capacity > 0.0    ? room
+                                           : S(0.0);
+    const S excess = S(depth) - accepted;
 
-    vars.set_state(layer, theta + S(accepted / dz[layer]));
+    vars.set_state(layer, theta + accepted / dz[layer]);
     // Direct state increments, not rates: the trailing slots are integrated
     // from their rates during a leg, and a pulse happens between legs.
     const size_t n = soil_number_of_depths;
     vars.set_state(n,     vars.state(n)     + S(depth));     // sum_rainfall
-    vars.set_state(n + 1, vars.state(n + 1) + S(accepted));  // sum_infiltration
-    vars.set_state(n + 4, vars.state(n + 4) + S(excess));    // sum_pulse_runoff
+    vars.set_state(n + 1, vars.state(n + 1) + accepted);     // sum_infiltration
+    vars.set_state(n + 4, vars.state(n + 4) + excess);       // sum_pulse_runoff
 
     psi_soil_valid_ = false;
-    return {accepted, excess};
+    return {odelia::util::to_passive(accepted),
+            odelia::util::to_passive(excess)};
   }
 
   // R interface
