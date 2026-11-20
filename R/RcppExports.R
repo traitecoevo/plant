@@ -6741,6 +6741,10 @@ census_gradient_control <- function(x, model) {
     .Call('_plant_census_gradient_control', PACKAGE = 'plant', x, model)
 }
 
+census_clamp_counts <- function(x, model, differentiated = FALSE) {
+    .Call('_plant_census_clamp_counts', PACKAGE = 'plant', x, model, differentiated)
+}
+
 ladder_block_jacobian_forward_tf24 <- function(obj_, node) {
     .Call('_plant_ladder_block_jacobian_forward_tf24', PACKAGE = 'plant', obj_, node)
 }
@@ -7018,6 +7022,10 @@ test_stem_effective_path_length <- function(L_top, L_tip, beta) {
 
 test_uniroot <- function(f, min, max) {
     .Call('_plant_test_uniroot', PACKAGE = 'plant', f, min, max)
+}
+
+test_light_field_floor <- function(state, heights) {
+    .Call('_plant_test_light_field_floor', PACKAGE = 'plant', state, heights)
 }
 
 trapezium <- function(x, y) {

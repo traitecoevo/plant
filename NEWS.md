@@ -13,6 +13,9 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The clamp counts carry three more sites, and FF16's and TF24f's runs report them too.** Three places that replace a value by a bound were not counted, so a row they zeroed read the same as a true zero: the light field's own floor at zero (`light_field_floor`, every model), FF16's growth cutoff at zero net production (`production_cutoff`) and TF24f's hold of a newborn's position to its interval (`seed_position`). FF16's cutoff binds where cohorts are suppressed (at `k_I = 4`, not at the default); the other two fired on no stand measured. An internal reader, `plant:::census_clamp_counts(x, model, differentiated = FALSE)`, returns the counts for FF16, TF24 and TF24f as a species-by-site matrix; like the `_tf24` readers it is not exported. No number moves. Migration:
+  * a row of `census_clamp_counts_tf24()` or `census_clamp_counts_differentiated_tf24()` indexed by position -> index it by `census_clamp_names_tf24()`; the leaf's sites move three places
+
 * **A stand gradient of a TF24 or TF24f run with sapwood acclimation on (`a_sw > 0`) is refused with an error, where it returned every metric as not-a-number with a refusal.** No gradient exists for such a strategy whatever its trajectory, so it is refused before the run is recorded, as deep-crown shading is, and neither re-runs a run that kept no states only to refuse it. The message names the entry point and the species. No number moves. Migration:
   * `stand_gradient()` on an `a_sw > 0` run, read through `stand_gradient_refused()` -> expect an error; `stand_census_state_adjoint()` still answers on such a run
 

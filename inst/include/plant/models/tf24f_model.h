@@ -406,29 +406,39 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
   this->net_mass_production_dt(environment, vars);
   // With no interval the leaf is shut wherever the position is: the middle.
   double z = 0.0;
+  bool held = false;
   if (seed_open_) {
     // An optimum the solve left on a bracket end it did not polish can sit a
     // bracket tolerance outside the polished interval, so the position is
-    // held to [0, 1] before the margin seats it inside.
-    const double u = std::min(
-        std::max((this->leaf.opt_root_psi_ - seed_a_) / (seed_b_ - seed_a_),
-                 0.0),
-        1.0);
+    // held to [0, 1] before the margin seats it inside. An optimum pinned to
+    // an end sits exactly on it, which is inside.
+    const double raw =
+        (this->leaf.opt_root_psi_ - seed_a_) / (seed_b_ - seed_a_);
+    const double u = std::min(std::max(raw, 0.0), 1.0);
+    held = !(raw >= 0.0 && raw <= 1.0);
     const double seated = seed_margin + (1.0 - 2.0 * seed_margin) * u;
     z = std::log(seated / (1.0 - seated));
   }
   if constexpr (std::is_same_v<S, double>) {
+    if (held) {
+      this->note_clamp(CLAMP_SEED_POSITION);
+    }
     vars.set_state(state_idx_collar_position, z);
   } else {
     // The same value, with the rows of the optimum and of both ends where a
     // differentiated pass recorded them: at an interior optimum the collar's
-    // are the implicit function theorem's. Where the record refused, or the
-    // position was held to [0, 1], the value alone.
+    // are the implicit function theorem's. Where the position was held to
+    // [0, 1], the value alone, which are the rows of a held position: it is a
+    // constant. The seat this decides is the one counted, so a seat that
+    // takes no rows is counted whichever reading dropped them.
+    const bool rows = seed_on_tape_ && !held;
+    if (seed_open_ && !rows) {
+      this->note_clamp(CLAMP_SEED_POSITION);
+    }
     vars.set_state(state_idx_collar_position,
-                   seed_on_tape_
-                       ? S(S(z) + (seed_position_ -
-                                   S(odelia::util::to_passive(seed_position_))))
-                       : S(z));
+                   rows ? S(S(z) + (seed_position_ -
+                                    S(odelia::util::to_passive(seed_position_))))
+                        : S(z));
   }
 }
 
@@ -499,6 +509,8 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
         seed_position_ = log(seated / (1.0 - seated));
         seed_on_tape_ = true;
       }
+      // Outside [0, 1] nothing is recorded, and set_initial_states seats the
+      // value alone and counts it.
     }
     return collar;
   }

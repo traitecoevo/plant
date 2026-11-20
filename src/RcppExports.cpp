@@ -18891,6 +18891,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// census_clamp_counts
+SEXP census_clamp_counts(SEXP x, std::string model, bool differentiated);
+RcppExport SEXP _plant_census_clamp_counts(SEXP xSEXP, SEXP modelSEXP, SEXP differentiatedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type differentiated(differentiatedSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_clamp_counts(x, model, differentiated));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ladder_block_jacobian_forward_tf24
 Rcpp::NumericMatrix ladder_block_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_, int node);
 RcppExport SEXP _plant_ladder_block_jacobian_forward_tf24(SEXP obj_SEXP, SEXP nodeSEXP) {
@@ -19644,6 +19657,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type min(minSEXP);
     Rcpp::traits::input_parameter< double >::type max(maxSEXP);
     rcpp_result_gen = Rcpp::wrap(test_uniroot(f, min, max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_light_field_floor
+Rcpp::List test_light_field_floor(std::vector<double> state, std::vector<double> heights);
+RcppExport SEXP _plant_test_light_field_floor(SEXP stateSEXP, SEXP heightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double> >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type heights(heightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_light_field_floor(state, heights));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -21382,6 +21407,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_census_undifferentiable", (DL_FUNC) &_plant_census_undifferentiable, 1},
     {"_plant_census_trait_gradient", (DL_FUNC) &_plant_census_trait_gradient, 3},
     {"_plant_census_gradient_control", (DL_FUNC) &_plant_census_gradient_control, 2},
+    {"_plant_census_clamp_counts", (DL_FUNC) &_plant_census_clamp_counts, 3},
     {"_plant_ladder_block_jacobian_forward_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_forward_tf24, 2},
     {"_plant_ladder_block_value_tf24", (DL_FUNC) &_plant_ladder_block_value_tf24, 2},
     {"_plant_ladder_block_jacobian_reverse_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_reverse_tf24, 2},
@@ -21446,6 +21472,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
     {"_plant_test_stem_effective_path_length", (DL_FUNC) &_plant_test_stem_effective_path_length, 3},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
+    {"_plant_test_light_field_floor", (DL_FUNC) &_plant_test_light_field_floor, 2},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},

@@ -376,6 +376,11 @@ public:
   // strategy's, so a caller adds the two rather than reading them apart; this is
   // the one route to it, because the environment itself is not the caller's.
   clamp_counter& environment_clamps() const { return environment.clamps; }
+  // And the light field's, which the environment holds and every model reads
+  // through, so this one exists for every model.
+  clamp_counter& light_field_clamps() const {
+    return environment.light_availability.clamps;
+  }
 
   // The insertion map's whole Jacobian, by forward tangent: one row per wider state entry
   // and one column per input, the state's entries first and the traits after.
