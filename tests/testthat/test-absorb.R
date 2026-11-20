@@ -428,14 +428,54 @@ test_that("the gradient across the layer, from a resume, is the pinned-step diff
     absorbing_run(new_solver(q, absorb_control()))
   }
   base <- measure(p)
-  ## Cohorts are absorbed after the resume, not only before it.
-  expect_gt(sum(base$leg > 1, na.rm = TRUE), 1)
+  ## Cohorts are absorbed after the resume, not only before it: the layer's
+  ## fitness weight only decays between absorptions, so a rise is an absorption
+  ## (a frozen cohort that never established adds nothing to it).
+  expect_gt(solver$patch$species[[1]]$top_layer$weight,
+            burn$patch$species[[1]]$top_layer$weight)
 
-  metrics <- c("leaf_area", "mass_above_ground", "1.net_reproduction_ratio")
+  ## Offspring production reads the layer's birth-rate-scaled weight.
+  metrics <- c("leaf_area", "mass_above_ground", "1.net_reproduction_ratio",
+               "1.offspring_production")
   g <- stand_gradient(solver, metrics = metrics, hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_layer_gradient(g, pin_steps(solver), measure, base, metrics,
                         c("hmat", "a_f2", "S_D", "lma", "k_I", "d_I"))
+})
+
+test_that("a gradient across an event that reached the stand is refused with the layer", {
+  ## The layer carries its density, not its log, so a harvest scales it rather
+  ## than shifting it, and the sweep would cross the event as if it changed
+  ## nothing: 17% off in S_D's fitness column on this stand run to 25 years
+  ## and harvested at 20.25, every number finite. An event that touched no
+  ## cohort is still crossed.
+  p <- add_strategies(testing_parameters("FF16"),
+                      trait_matrix(c(0.0825, 3), c("lma", "hmat")), birth_rate = 2)
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 14
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 14, 0.5))
+  layered <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.05)
+  with_events <- function(...) {
+    run(p, NULL, layered, events = events(node_introductions(p), ...),
+        record = "states")$solver
+  }
+  cut <- with_events(harvest(time = 10.25, fraction = 0.5, size_min = 3))
+  expect_gt(cut$event_log$applied[[1]][[2]], 0)
+  expect_error(stand_gradient(cut, metrics = "leaf_area", hyperpar = NULL),
+               "does not transpose an event on the layer")
+  missed <- with_events(harvest(time = 10.25, fraction = 0.5, size_min = 100))
+  expect_equal(missed$event_log$applied[[1]][[2]], 0)
+  expect_false(any(stand_gradient_refused(
+    stand_gradient(missed, metrics = "leaf_area", hyperpar = NULL))))
+  ## An invader is harvested with the residents' stand, and refused the same way.
+  q <- cut$parameters
+  q$strategies <- add_strategies(testing_parameters("FF16"),
+                                 trait_matrix(c(0.09, 3), c("lma", "hmat")),
+                                 birth_rate = 2)$strategies
+  cut$run_mutant(q)
+  expect_error(stand_gradient(cut, metrics = "1.net_reproduction_ratio",
+                              hyperpar = NULL),
+               "does not transpose an event on the layer")
 })
 
 test_that("a TF24 gradient across the layer is the pinned-step difference", {
@@ -462,7 +502,8 @@ test_that("a TF24 gradient across the layer is the pinned-step difference", {
       q, wet(), empty_events(), tf24_control()))
   }
   base <- measure(p)
-  expect_gt(sum(!is.na(base$leg)), 1)
+  ## The run starts empty, so a layer holding density absorbed something.
+  expect_gt(solver$patch$species[[1]]$top_layer$density, 0)
   metrics <- c("leaf_area", "1.net_reproduction_ratio")
   g <- stand_gradient(solver, metrics = metrics,
                       traits = paste0("1.", c("hmat", "a_f2", "S_D", "lma")),

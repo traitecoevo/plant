@@ -319,8 +319,27 @@ public:
   // and for a pulse the layer takes whole. A pulse that fills a layer and sheds
   // the rest sets the layer to saturation whatever it held, which the sweep
   // would carry back as the state it replaced.
+  //
+  // With the absorbing top layer on, a harvest or a climate extreme is not a
+  // shift in log density. The layer carries its density and weights as they
+  // are, and the event scales them by its survival fraction. An event at an
+  // introduction instant also comes between the recorded state and the
+  // absorption the sweep replays from it. Both would leave every number finite
+  // and wrong (17% in S_D's fitness column on a test stand), so an event that
+  // reached any cohort is refused.
   void require_transposable_events(const char* entry) const {
+    const bool layer = control.absorb_epsilon > 0.0;
     for (const EventRecord& rec : event_log) {
+      if (layer &&
+          (rec.type == EventType::Harvest ||
+           rec.type == EventType::ClimateExtreme) &&
+          rec.applied.size() > 1 && rec.applied[1] > 0.0) {
+        util::stop(std::string(entry) + ": the event at t = " +
+                   util::format_double(rec.time) + " removed density with the "
+                   "absorbing top layer on, and the reverse-mode gradient does "
+                   "not transpose an event on the layer. Set "
+                   "control$absorb_epsilon = 0, or difference the metric.");
+      }
       if (rec.type == EventType::ResourcePulse && rec.applied.size() > 1 &&
           rec.applied[1] > 0.0) {
         util::stop(std::string(entry) + ": the pulse at t = " +
