@@ -155,7 +155,7 @@ test_that("the regime holds at the states a trajectory passed through", {
   # What has to hold at every solve is the physical regime, and that is this list.
   per_state <- c("soil moisture strictly interior on every layer",
                  "net production strictly positive at every cohort",
-                 "light at every read at least 100 times the floor")
+                 "light at every read at least 1e-2 of the open sky")
 
   collected <- list()
   for (k in at) {

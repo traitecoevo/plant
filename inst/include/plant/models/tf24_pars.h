@@ -252,11 +252,12 @@ struct TF24_Pars {
   // root_psi_crit changes nothing, and after root_P50 or root_c is set they
   // still describe the default curve.
   S root_psi_crit = root_b*power(log(1/0.05),1/root_c);
-  // Maximum rooting depth [m]. Rooting depth is min(height, rooting_depth_max),
-  // so this also bounds the depth over which roots can draw water. Should not
-  // exceed the soil column depth (TF24_Environment `depth`, default 1.5 m):
-  // layers below the column do not exist, so deepening roots alone gains
-  // nothing without deepening the soil as well.
+  // Maximum rooting depth [m], > 0. Rooting depth is height, saturating
+  // smoothly at this (TF24_Model::rooting_depth_at), so this also bounds the
+  // depth over which roots can draw water. Should not exceed the soil column
+  // depth (TF24_Environment `depth`, default 1.5 m): layers below the column
+  // do not exist, so deepening roots alone gains nothing without deepening the
+  // soil as well.
   S rooting_depth_max = 1.5;
   // * Stem hydraulic path
   // Within-plant anatomical profiles along the flow path, parameterised by

@@ -54,8 +54,8 @@ seasonal	2	solver-refused	0
 seasonal	2	non-finite-gradient	0
 seasonal	2	boundary-cold	0
 shaded	1	unsolved	0
-shaded	1	interior	3162
-shaded	1	boundary-soil	1849
+shaded	1	interior	3165
+shaded	1	boundary-soil	1942
 shaded	1	boundary-dry	0
 shaded	1	hydraulic-shutdown	0
 shaded	1	prescribed	0
@@ -63,8 +63,8 @@ shaded	1	solver-refused	0
 shaded	1	non-finite-gradient	0
 shaded	1	boundary-cold	0
 shaded	2	unsolved	0
-shaded	2	interior	3603
-shaded	2	boundary-soil	1566
+shaded	2	interior	3610
+shaded	2	boundary-soil	1655
 shaded	2	boundary-dry	0
 shaded	2	hydraulic-shutdown	0
 shaded	2	prescribed	0
@@ -72,8 +72,8 @@ shaded	2	solver-refused	0
 shaded	2	non-finite-gradient	0
 shaded	2	boundary-cold	0
 clamped	1	unsolved	0
-clamped	1	interior	3088
-clamped	1	boundary-soil	2067
+clamped	1	interior	3087
+clamped	1	boundary-soil	2020
 clamped	1	boundary-dry	0
 clamped	1	hydraulic-shutdown	0
 clamped	1	prescribed	0
@@ -81,8 +81,8 @@ clamped	1	solver-refused	0
 clamped	1	non-finite-gradient	0
 clamped	1	boundary-cold	0
 clamped	2	unsolved	0
-clamped	2	interior	2800
-clamped	2	boundary-soil	2513
+clamped	2	interior	2810
+clamped	2	boundary-soil	2455
 clamped	2	boundary-dry	0
 clamped	2	hydraulic-shutdown	0
 clamped	2	prescribed	0

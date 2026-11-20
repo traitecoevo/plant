@@ -495,7 +495,7 @@ test_that("a wide trait and environment sweep meets the criteria", {
   clamp_columns <- paste0("clamp_", sweep_clamp_names())
   # Counted over the points that finished: a point that errored has no count.
   for (set in unique(res$set[res$set != "FF16"])) {
-    counts <- res[res$set == set & !is.na(res$clamp_rooting_depth),
+    counts <- res[res$set == set & !is.na(res[[clamp_columns[[1]]]]),
                   clamp_columns, drop = FALSE]
     message(sprintf("  %-20s %s", set, paste(sprintf(
       "%s %d/%d", sweep_clamp_names(), colSums(counts > 0), nrow(counts)),

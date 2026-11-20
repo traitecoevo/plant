@@ -567,8 +567,8 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
   env <- Environment("TF24")
   # ⚠️ THE LADDER'S LIGHT IS PINNED, not the model default. Its regimes were
   # designed at 1800 umol m^-2 s^-1 of PPFD above the canopy, and the model's
-  # default (SWdown 900, i.e. 2056.5) pushes `clamped` through enough clamps and
-  # shade deaths that a difference of whole runs stops converging: 100 of its
+  # default (SWdown 900, i.e. 2056.5) pushes `clamped` through enough shade
+  # deaths that a difference of whole runs stops converging: 100 of its
   # reference columns scatter by more than 1.5x across the four steps, against
   # 4 at this light, so the reference cannot referee it. This is that 1800
   # expressed as shortwave.
@@ -598,9 +598,7 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
 # decides is COST rather than regime: the default schedule derives its
 # introduction count from the lifetime, so a stand that wants the stiff regime
 # pays for cohorts it is not asking about. On the clamped driver at a lifetime
-# of 5, twenty introductions cost a small fraction of what its eighty-eight do,
-# with both light sites firing on both paths and the same overflow refusal
-# either way.
+# of 5, twenty introductions cost a small fraction of what its eighty-eight do.
 ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                 introductions = NULL) {
   p <- testing_parameters("TF24")
@@ -628,8 +626,8 @@ ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
 # than a sweep over rainfall: each one is chosen to reach a different kind of
 # operating point, and which kinds a regime actually reached is recorded beside
 # the numbers rather than assumed. The first three move the water and are what
-# reach an interior, a pinned and a shut point; the last two move the light and
-# are what reach the floor the clamp counter sees.
+# reach an interior, a pinned and a shut point; the last two move the light, and
+# `clamped`, the darker, puts its youngest cohorts in near-darkness.
 ladder_reference_regimes <- function() {
   list(
     list(name = "wet",      rain = 2.00, amplitude = 0),
@@ -1095,8 +1093,8 @@ ladder_regime_report <- function(x, level = c("patch", "stand")) {
           moisture),
     entry("net production strictly positive at every cohort",
           length(production) > 0 && all(production > 0), min(production)),
-    entry("light at every read at least 100 times the floor",
-          length(light) > 0 && all(light > 100 * 1e-4), min(light)),
+    entry("light at every read at least 1e-2 of the open sky",
+          length(light) > 0 && all(light > 1e-2), min(light)),
     entry("no two heights equal or in a small-integer ratio",
           ladder_non_commensurate(nodes$height), length(nodes$height)),
     entry("no two layers at the same moisture",

@@ -1354,7 +1354,7 @@ parameters:
     symbol: 'D_{\rm r,max}'
     units: 'm'
     class: trait
-    meaning: 'maximum rooting depth; rooting depth is $\min(H, D_{\rm r,max})$, and should not exceed the soil column'
+    meaning: 'maximum rooting depth, at which the rooting depth $D_{\rm r}$ saturates smoothly (TF24.root_profile); must be positive, and should not exceed the soil column'
     source: 'TF24_Pars default, the default soil depth'
     placeholder: false
     code: plant::TF24_Pars::rooting_depth_max
@@ -3046,7 +3046,7 @@ equations:
     title: The light handed to the leaf
     latex: |
       Q_{\rm above} = c_Q \, f_{\rm PAR} \, R_{\rm sw}, \qquad
-      Q_{\rm int} = k_{\rm I} \, \max\!\big(E, 10^{-4}\big) \, Q_{\rm above}, \qquad
+      Q_{\rm int} = k_{\rm I} \, E \, Q_{\rm above}, \qquad
       Q_{\rm NIR} = \frac{1 - f_{\rm PAR}}{c_Q \, f_{\rm PAR}} \, Q_{\rm int}
     code: plant::TF24_Model::net_mass_production_dt
     also: [plant::TF24_Model::solve_leaf_over_crown]
@@ -3059,7 +3059,7 @@ equations:
     section: tf24_light
     title: The light a crown is solved at
     latex: |
-      E = \int_0^{H} \max\!\big(E(z), 10^{-4}\big) \, q(z, H) \, {\rm d}z \ \text{(mean light)}, \qquad
+      E = \int_0^{H} E(z) \, q(z, H) \, {\rm d}z \ \text{(mean light)}, \qquad
       E = E(\eta_{\rm c} H) \ \text{(crown centre)}, \qquad
       \bar{y} = \int_0^{H} y\big(E(z)\big) \, q(z, H) \, {\rm d}z \ \text{(deep crown)}
     code: plant::TF24_Model::solve_leaf_over_crown
@@ -3098,13 +3098,13 @@ equations:
     section: tf24_hydraulics
     title: Fine roots over depth
     latex: |
-      Q_{\rm r}(z) = \left(1 - \left(z / D_{\rm r}\right)^{\eta_{\rm r}}\right)^{2} \ \text{for } z \le D_{\rm r}, \ 0 \text{ below}, \qquad D_{\rm r} = \min(H, D_{\rm r,max})
+      Q_{\rm r}(z) = \left(1 - \left(z / D_{\rm r}\right)^{\eta_{\rm r}}\right)^{2} \ \text{for } z \le D_{\rm r}, \ 0 \text{ below}, \qquad D_{\rm r} = D_{\rm r,max} - w \ln\!\left(1 + e^{(D_{\rm r,max} - H)/w}\right), \quad w = 0.05 \, D_{\rm r,max}
     code: plant::TF24_Model::Q
-    also: [plant::TF24_Model::build_root_network]
+    also: [plant::TF24_Model::build_root_network, plant::TF24_Model::rooting_depth_at]
     reads: [TF24.root_depth_shape_eta, TF24.rooting_depth_max]
     writes: []
     kind: closed_form
-    note: 'The crown profile''s cumulative form, laid over the soil: the fraction of fine-root mass deeper than $z$. Not on an Overstorey page.'
+    note: 'The crown profile''s cumulative form, laid over the soil: the fraction of fine-root mass deeper than $z$. The rooting depth $D_{\rm r}$ is a smooth minimum of the height and $D_{\rm r,max}$: it departs from $\min(H, D_{\rm r,max})$ only within a few $w$ of the cap, by $w \ln 2$ at it, and its slope in $H$ falls smoothly from 1 to 0. Not on an Overstorey page.'
   TF24.root_carbon:
     model: TF24
     section: tf24_hydraulics

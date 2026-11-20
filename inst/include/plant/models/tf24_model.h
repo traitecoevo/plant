@@ -142,7 +142,7 @@ public:
   // to (root_P50, root_c) and vulnerability_curve_ncontrol from 100 to 400; and
   // the half of v9 that took the light field's and the census's trapezium widths
   // from the coordinate the density is carried in.
-  static constexpr int scientific_version = 16;
+  static constexpr int scientific_version = 17;
 
   // calculate the amount of water transpired relativised by leaf area index.
 
@@ -749,6 +749,10 @@ public:
   // canopy's own cumulative form is CanopyShape::Q, at pars.eta.
   S Q(const S& z, const S& rooting_depth, const S& eta_x) const;
 
+  // The depth a plant of this height roots to: its height, saturating smoothly
+  // at pars.rooting_depth_max.
+  S rooting_depth_at(const S& height) const;
+
   // The inverse of dheight_darea_leaf, so the allometry has one source.
   S darea_leaf_dheight(const S& area_leaf) const {
     return 1.0 / dheight_darea_leaf(area_leaf);
@@ -942,8 +946,9 @@ public:
   // Width of the replacement gate, in units of the marginal leaf return.
   double plasticity_gate_width = 0.02;
 
-  // The clamp sites this strategy reaches; the list itself is shared with the
-  // environment, which reaches the others.
+  // The clamp sites this strategy reaches, which are its leaf's and, in TF24f,
+  // its newborn's seat; the list itself is shared with the environment, which
+  // reaches the others.
   clamp_counter clamps;
 
   // Count a clamp against the path it fired on. Which path this is is a property
@@ -1326,6 +1331,12 @@ void TF24_Model<S>::refuse_unsupported_traits() const {
       "use a constant theta. A hydraulics-only theta profile would be "
       "physically inconsistent, so it is refused rather than half-applied. Use "
       "D_c to vary the height dependence of resistance.");
+  }
+
+  // The rooting depth's smooth cap is scaled by rooting_depth_max, so a value at
+  // or below zero leaves it no width. Written to refuse NaN.
+  if (!(odelia::util::to_passive(pars.rooting_depth_max) > 0.0)) {
+    throw std::invalid_argument("rooting_depth_max must be > 0");
   }
 
   // A negative capacity seeds a newborn below empty, where the solver refuses

@@ -79,6 +79,41 @@ test_that("rooting_depth_max reaches the root network", {
   expect_lt(psi_deep, psi_shallow)
 })
 
+test_that("the rooting depth saturates at its cap without a kink", {
+  # Over the same stratified column, the collar potential's one-sided slopes in
+  # height either side of the cap must agree to the difference's own truncation:
+  # the rooting depth's slope in height passes through the cap continuously, so
+  # a cap that switched the roots' contribution off at a point fails here.
+  stratified <- c(rep(0.04, 8), rep(0.35, 7))
+  at <- function(h) {
+    ind <- TF24_Individual(TF24_Model())
+    ind$set_state("height", h)
+    env <- TF24_Environment()
+    env$set_soil_number_of_depths(length(stratified))
+    env$set_soil_water_state(stratified)
+    ind$compute_rates(env)
+    stats::setNames(ind$internals$auxs, ind$aux_names)[["opt_root_psi"]]
+  }
+  cap <- TF24_Model()$pars$rooting_depth_max
+  d <- 1e-4
+  slope <- function(h0) c(left = (at(h0) - at(h0 - d)) / d,
+                          right = (at(h0 + d) - at(h0)) / d)
+  s <- slope(cap)
+  expect_lt(abs(s[["left"]] - s[["right"]]), 0.01 * abs(s[["left"]]))
+  # And the cap still binds: well above it, deepening no longer reaches the wet
+  # layers, so height moves the collar far less than it does below the cap.
+  expect_lt(abs(slope(cap + 0.3)[["left"]]), 0.2 * abs(slope(cap - 0.3)[["left"]]))
+})
+
+test_that("a rooting_depth_max that is not positive is refused", {
+  # The cap's smoothing width is a fraction of it, so zero leaves no width.
+  for (v in c(0, -1, NaN)) {
+    s <- TF24_Model()
+    s$pars$rooting_depth_max <- v
+    expect_error(TF24_Individual(s), "rooting_depth_max must be > 0")
+  }
+})
+
 test_that("exposing the root parameters left default behaviour unchanged", {
   # The defaults are the previously hard-coded constants, so a default run must
   # be unaffected by the move from strategy members to TF24_Pars.

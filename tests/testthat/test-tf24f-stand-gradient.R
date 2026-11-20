@@ -126,9 +126,11 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   swept <- census_clamp_counts(solver, "TF24f", differentiated = TRUE)
   expect_equal(sum(fired[, "seed_position"]), 0)
   expect_equal(sum(swept[, "seed_position"]), 0)
-  # Non-vacuity: TF24f's tallies are read, and TF24's sites fire on them.
-  expect_gt(sum(fired[, "rooting_depth"]), 0)
-  expect_gt(sum(swept[, "rooting_depth"]), 0)
+  # No site fires on this stand on either path, so a zero here says only that
+  # the tallies are shaped: one row per species, every site named on both.
+  expect_equal(dim(fired), c(1L, length(census_clamp_names_tf24())))
+  expect_equal(colnames(fired), census_clamp_names_tf24())
+  expect_equal(dimnames(swept), dimnames(fired))
 })
 
 test_that("an invader's gradient holds where its collar meets a dry layer's potential", {
