@@ -99,21 +99,25 @@ stand_census_state_adjoint <- function(x) {
 
 ##' The \code{Control} entries a census gradient depends on.
 ##'
-##' A chosen subset, not every entry that moves a gradient. Two are tolerances
-##' of the leaf's inner solves (\code{GSS_tol_abs}, \code{ci_abs_tol}), one is
-##' a finite-difference step (\code{node_gradient_eps}) and one the schedule's
-##' refinement tolerance (\code{schedule_eps}); not every model reads every one.
-##' The fifth, \code{gradient_curvature_floor}, moves no forward number and
-##' still decides which rows exist, by refusing a collar response the profit
-##' curvature is too small to support. The ODE tolerances, the step bounds and
-##' \code{offspring_height_tol} move the trajectory too and are the run's own
-##' \code{Control}, not listed here.
+##' The entries inside a rate evaluation and the schedule that move the
+##' gradient. Three are tolerances of a model's inner solves: the leaf's
+##' (\code{GSS_tol_abs}, \code{ci_abs_tol}) and a newborn's height
+##' (\code{offspring_height_tol}). One is a finite-difference step
+##' (\code{node_gradient_eps}) and one the schedule's refinement tolerance
+##' (\code{schedule_eps}). The sixth, \code{gradient_curvature_floor}, moves no
+##' forward number and still decides which rows exist, by refusing a collar
+##' response the profit curvature is too small to support. The list is the same
+##' for every model, so it holds entries a model does not read (FF16 reads
+##' neither leaf tolerance nor the floor): two of its gradients that differ only
+##' there are refused although they are equal, and no two that differ in one
+##' are compared. The ODE integrator's tolerances and step bounds move the
+##' trajectory too, and are the run's own \code{Control}, not listed here.
 ##' \code{stand_gradient} records these and \code{stand_gradient_compare}
 ##' refuses a pair that disagrees.
 ##'
 ##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
-##' @return A named numeric vector of length five.
+##' @return A named numeric vector of length six.
 ##' @export
 gradient_control <- function(x) {
   x <- as_solver(x)
@@ -138,6 +142,12 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'
 ##' @param x A run \code{DeterministicPatchRunner} object, or a \code{plant_run}, for the FF16, TF24 or TF24f model, on the
 ##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
+##'   The sweep reads the state at every step. A run that kept none (one run
+##'   without \code{record = "states"}) is run again inside this call to keep
+##'   them, which costs as much as the run did and gives the same numbers; the
+##'   solver keeps them afterwards (\code{x$keep_states} is then \code{TRUE}),
+##'   so a second call does not repeat it. Run with \code{record = "states"} to
+##'   pay for the run once.
 ##' @param metrics Metric names to differentiate; defaults to every metric the
 ##'   model declares: the census metrics (\code{\link{stand_census}}) and, for
 ##'   a model that declares its fitness differentiable, each species'
@@ -416,8 +426,8 @@ stand_gradient_refused <- function(g) {
 ##' Compare two stand gradients.
 ##'
 ##' Two gradients are comparable only if they were taken at the same
-##' \code{Control}: four of the five entries change the trajectory and so change
-##' the function being differentiated, and the fifth,
+##' \code{Control}: five of the six entries change the trajectory and so change
+##' the function being differentiated, and the sixth,
 ##' \code{gradient_curvature_floor}, decides which rows exist. See
 ##' \code{\link{gradient_control}}.
 ##'

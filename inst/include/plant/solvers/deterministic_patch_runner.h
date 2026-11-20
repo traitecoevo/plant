@@ -488,11 +488,15 @@ public:
   std::vector<Scalar> pinned_run_from(size_t from_segment, Fill fill);
 
   // The Control entries that move the trajectory or move which states answer,
-  // and so move the gradient. The curvature floor is here for the second reason
-  // rather than the first: it changes no forward number and still decides which
-  // rows exist.
+  // and so move the gradient: the tolerances and the step of the solves inside
+  // a rate evaluation, the schedule's refinement tolerance, and the curvature
+  // floor. The floor is here for the second reason rather than the first: it
+  // changes no forward number and still decides which rows exist. One list for
+  // every model, so an entry a model does not read can refuse a comparison of
+  // two of its gradients that are equal, and none can let through two that
+  // differ in it.
   //
-  // ⚠️ EACH NAME BESIDE ITS VALUE, because three of the five are 1e-3 at the
+  // ⚠️ EACH NAME BESIDE ITS VALUE, because three of the six are 1e-3 at the
   // defaults. Attached by position one file away, a transposed ci_abs_tol and
   // gradient_curvature_floor would leave both readable and plausible, and
   // stand_gradient_compare() refusing on the wrong pair. census_gradient.cpp
@@ -503,7 +507,8 @@ public:
             {"ci_abs_tol", control.ci_abs_tol},
             {"node_gradient_eps", control.node_gradient_eps},
             {"schedule_eps", control.schedule_eps},
-            {"gradient_curvature_floor", control.gradient_curvature_floor}};
+            {"gradient_curvature_floor", control.gradient_curvature_floor},
+            {"offspring_height_tol", control.offspring_height_tol}};
   }
 
   // ---- R interface -------------------------------------------------------
