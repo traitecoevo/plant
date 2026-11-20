@@ -88,18 +88,18 @@ test_that("run() grows an individual to sizes", {
     ## Each size's time is located on the interpolant of the step that
     ## crosses it, cubic Hermite under Cash-Karp, so the height there misses
     ## the size by the rate times that interpolant's error in time: up to
-    ## ~8e-6 m in FF16 (#804; the root-find before missed by up to 7e-5).
-    expect_equal(obj$state[, "height"], heights, tolerance = 1e-5)
+    ## ~8e-6 m in FF16. The largest miss is checked, not a pooled mean.
+    expect_lt(max(abs(obj$state[, "height"] - heights)), 1e-5)
 
-    ## Time, state and individual describe the same instant (#804): the
-    ## individual holds the state, and a run landing on each time in turn
-    ## holds it too, to the bit.
+    ## Time, state and individual describe the same instant: the individual
+    ## holds the state, and a run landing on each time in turn holds it too,
+    ## to the bit.
+    runner <- OdeRunner(x)(IndividualRunner(x, e)(pp, env))
     for (i in seq_along(heights)) {
       expect_identical(obj$individual[[i]]$ode_state, unname(obj$state[i, ]))
+      runner$advance_adaptive(c(runner$time, obj$time[[i]]))
+      expect_identical(runner$state, unname(obj$state[i, ]))
     }
-    runner <- OdeRunner(x)(IndividualRunner(x, e)(pp, env))
-    runner$advance_adaptive(c(0, obj$time))
-    expect_identical(runner$state, unname(obj$state[length(heights), ]))
 
     ## The trajectory starts where the plant did and holds each size's step.
     expect_equal(colnames(obj$trajectory), c("time", pp$ode_names))
@@ -122,10 +122,37 @@ test_that("run() to sizes reports a repeated size, or one already reached, at on
   expect_identical(obj$state[2, ], obj$state[3, ])
   expect_gt(obj$time[[4]], obj$time[[3]])
 
+  ## A landing can stop a hair past its size; a next size inside that hair
+  ## is reached where the run stands.
+  d <- run(pp, sizes = 5, env = env)$state[1, "height"] - 5
+  if (d > 0) {
+    obj <- run(pp, sizes = c(5, 5 + d / 2), env = env)
+    expect_identical(obj$time[[2]], obj$time[[1]])
+  }
+
   expect_error(run(pp, sizes = 2, size_name = "leaf_area", env = env),
                "'leaf_area' is not one of the ODE states")
   expect_error(run(pp, sizes = c(3, 2), env = env), "sorted")
+  expect_error(run(pp, sizes = c(2, Inf), env = env), "finite")
   expect_error(run(pp, sizes = h0 / 2, env = env), "already bigger")
+  for (bad in list(NA_real_, NaN, -Inf, -1, c(1, 2))) {
+    expect_error(run(pp, sizes = 2, env = env, time_max = bad),
+                 "time_max must be a single non-negative number")
+  }
+})
+
+test_that("a run to sizes that fails warns with the error and what was dropped", {
+  pp <- Individual("FF16", "FF16_Env")(FF16_Model())
+  env <- Environment("FF16")
+  runner <- OdeRunner("FF16")(IndividualRunner("FF16", "FF16_Env")(pp, env))
+  e <- simpleError("the step failed")
+  ## This plant's mortality rate is not zero, so the failure is not read as
+  ## possibly something other than its death, and only the first warning is
+  ## given.
+  expect_warning(integration_failed(runner, e, 3L, TRUE),
+                 "integration failed with error: \nthe step failed\n  3 larger sizes dropped",
+                 fixed = TRUE)
+  expect_silent(integration_failed(runner, e, 3L, FALSE))
 })
 
 test_that("run() grows an individual to sizes, and stops at time_max", {
@@ -173,7 +200,8 @@ test_that("run() grows an individual to sizes, and stops at time_max", {
       cmp <- res2
       i <- !is.na(cmp$time)
       expect_equal(res4$time, cmp$time[i])
-      expect_equal(res4$plant, cmp$plant[i])
+      expect_equal(lapply(res4$individual, function(p) p$ode_state),
+                   lapply(cmp$individual[i], function(p) p$ode_state))
       expect_equal(res4$state, cmp$state[i,])
       expect_equal(res4$trajectory, cmp$trajectory)
 
@@ -224,7 +252,7 @@ test_that("Sensible behaviour on integration failure", {
                   "Time reached time_max")
   expect_inherits(res$individual, "list")
   expect_equal(nrow(res$state), length(res$time))
-  expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tolerance = 1E-5)
+  expect_lt(max(abs(res$state[, "height"] - sizes[seq_along(res$time)])), 1e-5)
 
   ## As reported in issue #174
   ##

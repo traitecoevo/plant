@@ -2384,14 +2384,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// OdeRunner___FF16__steps_taken
-Rcpp::NumericMatrix OdeRunner___FF16__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_);
-RcppExport SEXP _plant_OdeRunner___FF16__steps_taken(SEXP obj_SEXP) {
+// OdeRunner___FF16__history_steps
+Rcpp::NumericMatrix OdeRunner___FF16__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___FF16__history_steps(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__steps_taken(obj_));
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__history_steps(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2530,14 +2530,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// OdeRunner___TF24__steps_taken
-Rcpp::NumericMatrix OdeRunner___TF24__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_);
-RcppExport SEXP _plant_OdeRunner___TF24__steps_taken(SEXP obj_SEXP) {
+// OdeRunner___TF24__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24__history_steps(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__steps_taken(obj_));
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__history_steps(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2676,14 +2676,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// OdeRunner___TF24f__steps_taken
-Rcpp::NumericMatrix OdeRunner___TF24f__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_);
-RcppExport SEXP _plant_OdeRunner___TF24f__steps_taken(SEXP obj_SEXP) {
+// OdeRunner___TF24f__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24f__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24f__history_steps(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24f__steps_taken(obj_));
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24f__history_steps(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2822,14 +2822,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// OdeRunner___TF24t__steps_taken
-Rcpp::NumericMatrix OdeRunner___TF24t__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_);
-RcppExport SEXP _plant_OdeRunner___TF24t__steps_taken(SEXP obj_SEXP) {
+// OdeRunner___TF24t__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24t__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24t__history_steps(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24t__steps_taken(obj_));
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24t__history_steps(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2968,14 +2968,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// OdeRunner___TF24w__steps_taken
-Rcpp::NumericMatrix OdeRunner___TF24w__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_);
-RcppExport SEXP _plant_OdeRunner___TF24w__steps_taken(SEXP obj_SEXP) {
+// OdeRunner___TF24w__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24w__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24w__history_steps(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24w__steps_taken(obj_));
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24w__history_steps(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3114,14 +3114,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// OdeRunner___K93__steps_taken
-Rcpp::NumericMatrix OdeRunner___K93__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_);
-RcppExport SEXP _plant_OdeRunner___K93__steps_taken(SEXP obj_SEXP) {
+// OdeRunner___K93__history_steps
+Rcpp::NumericMatrix OdeRunner___K93__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_);
+RcppExport SEXP _plant_OdeRunner___K93__history_steps(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__steps_taken(obj_));
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__history_steps(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -19907,7 +19907,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___FF16__set_state", (DL_FUNC) &_plant_OdeRunner___FF16__set_state, 3},
     {"_plant_OdeRunner___FF16__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___FF16__set_state_from_system, 1},
     {"_plant_OdeRunner___FF16__advance_to_size", (DL_FUNC) &_plant_OdeRunner___FF16__advance_to_size, 4},
-    {"_plant_OdeRunner___FF16__steps_taken", (DL_FUNC) &_plant_OdeRunner___FF16__steps_taken, 1},
+    {"_plant_OdeRunner___FF16__history_steps", (DL_FUNC) &_plant_OdeRunner___FF16__history_steps, 1},
     {"_plant_OdeRunner___FF16__time__get", (DL_FUNC) &_plant_OdeRunner___FF16__time__get, 1},
     {"_plant_OdeRunner___FF16__state__get", (DL_FUNC) &_plant_OdeRunner___FF16__state__get, 1},
     {"_plant_OdeRunner___FF16__times__get", (DL_FUNC) &_plant_OdeRunner___FF16__times__get, 1},
@@ -19920,7 +19920,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24__set_state", (DL_FUNC) &_plant_OdeRunner___TF24__set_state, 3},
     {"_plant_OdeRunner___TF24__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24__set_state_from_system, 1},
     {"_plant_OdeRunner___TF24__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24__advance_to_size, 4},
-    {"_plant_OdeRunner___TF24__steps_taken", (DL_FUNC) &_plant_OdeRunner___TF24__steps_taken, 1},
+    {"_plant_OdeRunner___TF24__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24__history_steps, 1},
     {"_plant_OdeRunner___TF24__time__get", (DL_FUNC) &_plant_OdeRunner___TF24__time__get, 1},
     {"_plant_OdeRunner___TF24__state__get", (DL_FUNC) &_plant_OdeRunner___TF24__state__get, 1},
     {"_plant_OdeRunner___TF24__times__get", (DL_FUNC) &_plant_OdeRunner___TF24__times__get, 1},
@@ -19933,7 +19933,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24f__set_state", (DL_FUNC) &_plant_OdeRunner___TF24f__set_state, 3},
     {"_plant_OdeRunner___TF24f__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24f__set_state_from_system, 1},
     {"_plant_OdeRunner___TF24f__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24f__advance_to_size, 4},
-    {"_plant_OdeRunner___TF24f__steps_taken", (DL_FUNC) &_plant_OdeRunner___TF24f__steps_taken, 1},
+    {"_plant_OdeRunner___TF24f__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24f__history_steps, 1},
     {"_plant_OdeRunner___TF24f__time__get", (DL_FUNC) &_plant_OdeRunner___TF24f__time__get, 1},
     {"_plant_OdeRunner___TF24f__state__get", (DL_FUNC) &_plant_OdeRunner___TF24f__state__get, 1},
     {"_plant_OdeRunner___TF24f__times__get", (DL_FUNC) &_plant_OdeRunner___TF24f__times__get, 1},
@@ -19946,7 +19946,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24t__set_state", (DL_FUNC) &_plant_OdeRunner___TF24t__set_state, 3},
     {"_plant_OdeRunner___TF24t__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24t__set_state_from_system, 1},
     {"_plant_OdeRunner___TF24t__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24t__advance_to_size, 4},
-    {"_plant_OdeRunner___TF24t__steps_taken", (DL_FUNC) &_plant_OdeRunner___TF24t__steps_taken, 1},
+    {"_plant_OdeRunner___TF24t__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24t__history_steps, 1},
     {"_plant_OdeRunner___TF24t__time__get", (DL_FUNC) &_plant_OdeRunner___TF24t__time__get, 1},
     {"_plant_OdeRunner___TF24t__state__get", (DL_FUNC) &_plant_OdeRunner___TF24t__state__get, 1},
     {"_plant_OdeRunner___TF24t__times__get", (DL_FUNC) &_plant_OdeRunner___TF24t__times__get, 1},
@@ -19959,7 +19959,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24w__set_state", (DL_FUNC) &_plant_OdeRunner___TF24w__set_state, 3},
     {"_plant_OdeRunner___TF24w__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24w__set_state_from_system, 1},
     {"_plant_OdeRunner___TF24w__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24w__advance_to_size, 4},
-    {"_plant_OdeRunner___TF24w__steps_taken", (DL_FUNC) &_plant_OdeRunner___TF24w__steps_taken, 1},
+    {"_plant_OdeRunner___TF24w__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24w__history_steps, 1},
     {"_plant_OdeRunner___TF24w__time__get", (DL_FUNC) &_plant_OdeRunner___TF24w__time__get, 1},
     {"_plant_OdeRunner___TF24w__state__get", (DL_FUNC) &_plant_OdeRunner___TF24w__state__get, 1},
     {"_plant_OdeRunner___TF24w__times__get", (DL_FUNC) &_plant_OdeRunner___TF24w__times__get, 1},
@@ -19972,7 +19972,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___K93__set_state", (DL_FUNC) &_plant_OdeRunner___K93__set_state, 3},
     {"_plant_OdeRunner___K93__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___K93__set_state_from_system, 1},
     {"_plant_OdeRunner___K93__advance_to_size", (DL_FUNC) &_plant_OdeRunner___K93__advance_to_size, 4},
-    {"_plant_OdeRunner___K93__steps_taken", (DL_FUNC) &_plant_OdeRunner___K93__steps_taken, 1},
+    {"_plant_OdeRunner___K93__history_steps", (DL_FUNC) &_plant_OdeRunner___K93__history_steps, 1},
     {"_plant_OdeRunner___K93__time__get", (DL_FUNC) &_plant_OdeRunner___K93__time__get, 1},
     {"_plant_OdeRunner___K93__state__get", (DL_FUNC) &_plant_OdeRunner___K93__state__get, 1},
     {"_plant_OdeRunner___K93__times__get", (DL_FUNC) &_plant_OdeRunner___K93__times__get, 1},

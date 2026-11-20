@@ -932,8 +932,8 @@ double OdeRunner___FF16__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solv
   return plant::tools::advance_to_size(*obj_, index, size, time_max);
 }
 // [[Rcpp::export]]
-Rcpp::NumericMatrix OdeRunner___FF16__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_) {
-  return plant::tools::steps_taken(*obj_);
+Rcpp::NumericMatrix OdeRunner___FF16__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_) {
+  return plant::tools::history_steps(*obj_);
 }
 // [[Rcpp::export]]
 double OdeRunner___FF16__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_) {
@@ -989,8 +989,8 @@ double OdeRunner___TF24__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solv
   return plant::tools::advance_to_size(*obj_, index, size, time_max);
 }
 // [[Rcpp::export]]
-Rcpp::NumericMatrix OdeRunner___TF24__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_) {
-  return plant::tools::steps_taken(*obj_);
+Rcpp::NumericMatrix OdeRunner___TF24__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_) {
+  return plant::tools::history_steps(*obj_);
 }
 // [[Rcpp::export]]
 double OdeRunner___TF24__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_) {
@@ -1046,8 +1046,8 @@ double OdeRunner___TF24f__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Sol
   return plant::tools::advance_to_size(*obj_, index, size, time_max);
 }
 // [[Rcpp::export]]
-Rcpp::NumericMatrix OdeRunner___TF24f__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_) {
-  return plant::tools::steps_taken(*obj_);
+Rcpp::NumericMatrix OdeRunner___TF24f__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_) {
+  return plant::tools::history_steps(*obj_);
 }
 // [[Rcpp::export]]
 double OdeRunner___TF24f__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_) {
@@ -1103,8 +1103,8 @@ double OdeRunner___TF24t__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Sol
   return plant::tools::advance_to_size(*obj_, index, size, time_max);
 }
 // [[Rcpp::export]]
-Rcpp::NumericMatrix OdeRunner___TF24t__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_) {
-  return plant::tools::steps_taken(*obj_);
+Rcpp::NumericMatrix OdeRunner___TF24t__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_) {
+  return plant::tools::history_steps(*obj_);
 }
 // [[Rcpp::export]]
 double OdeRunner___TF24t__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_) {
@@ -1160,8 +1160,8 @@ double OdeRunner___TF24w__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Sol
   return plant::tools::advance_to_size(*obj_, index, size, time_max);
 }
 // [[Rcpp::export]]
-Rcpp::NumericMatrix OdeRunner___TF24w__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_) {
-  return plant::tools::steps_taken(*obj_);
+Rcpp::NumericMatrix OdeRunner___TF24w__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_) {
+  return plant::tools::history_steps(*obj_);
 }
 // [[Rcpp::export]]
 double OdeRunner___TF24w__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_) {
@@ -1217,8 +1217,8 @@ double OdeRunner___K93__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solve
   return plant::tools::advance_to_size(*obj_, index, size, time_max);
 }
 // [[Rcpp::export]]
-Rcpp::NumericMatrix OdeRunner___K93__steps_taken(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_) {
-  return plant::tools::steps_taken(*obj_);
+Rcpp::NumericMatrix OdeRunner___K93__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_) {
+  return plant::tools::history_steps(*obj_);
 }
 // [[Rcpp::export]]
 double OdeRunner___K93__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_) {

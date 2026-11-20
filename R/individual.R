@@ -14,8 +14,11 @@
 ## trajectory holds the step landed on each size.
 individual_grow_to_sizes <- function(individual, sizes, size_name, env,
                                      time_max=Inf, warn=TRUE, filter=FALSE) {
-  if (length(sizes) == 0L || is.unsorted(sizes)) {
+  if (length(sizes) == 0L || anyNA(sizes) || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
+  }
+  if (!all(is.finite(sizes))) {
+    stop("sizes must be finite")
   }
   ode_names <- individual$ode_names
   j <- match(size_name, ode_names)
@@ -29,8 +32,12 @@ individual_grow_to_sizes <- function(individual, sizes, size_name, env,
   strategy_name <- individual$strategy_name
   runner <- OdeRunner(strategy_name)(
     IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env))
+  if (!is.numeric(time_max) || length(time_max) != 1L || is.na(time_max) ||
+      time_max < 0) {
+    stop("time_max must be a single non-negative number")
+  }
   ## odelia refuses an infinite time_max; the largest double is no limit.
-  until <- if (is.finite(time_max)) time_max else .Machine$double.xmax
+  until <- if (time_max == Inf) .Machine$double.xmax else time_max
 
   n <- length(sizes)
   time <- rep(NA_real_, n)
@@ -70,7 +77,7 @@ individual_grow_to_sizes <- function(individual, sizes, size_name, env,
   ret <- list(time=time,
               state=state,
               individual=at_size,
-              trajectory=rbind(start, runner$steps_taken(), deparse.level = 0),
+              trajectory=rbind(start, runner$history_steps(), deparse.level = 0),
               env=env)
   colnames(ret$trajectory) <- c("time", ode_names)
 

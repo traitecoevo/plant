@@ -841,8 +841,8 @@ OdeRunner___FF16__advance_to_size <- function(obj_, index, size, time_max) {
     .Call('_plant_OdeRunner___FF16__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
 }
 
-OdeRunner___FF16__steps_taken <- function(obj_) {
-    .Call('_plant_OdeRunner___FF16__steps_taken', PACKAGE = 'plant', obj_)
+OdeRunner___FF16__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___FF16__time__get <- function(obj_) {
@@ -893,8 +893,8 @@ OdeRunner___TF24__advance_to_size <- function(obj_, index, size, time_max) {
     .Call('_plant_OdeRunner___TF24__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
 }
 
-OdeRunner___TF24__steps_taken <- function(obj_) {
-    .Call('_plant_OdeRunner___TF24__steps_taken', PACKAGE = 'plant', obj_)
+OdeRunner___TF24__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___TF24__time__get <- function(obj_) {
@@ -945,8 +945,8 @@ OdeRunner___TF24f__advance_to_size <- function(obj_, index, size, time_max) {
     .Call('_plant_OdeRunner___TF24f__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
 }
 
-OdeRunner___TF24f__steps_taken <- function(obj_) {
-    .Call('_plant_OdeRunner___TF24f__steps_taken', PACKAGE = 'plant', obj_)
+OdeRunner___TF24f__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24f__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___TF24f__time__get <- function(obj_) {
@@ -997,8 +997,8 @@ OdeRunner___TF24t__advance_to_size <- function(obj_, index, size, time_max) {
     .Call('_plant_OdeRunner___TF24t__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
 }
 
-OdeRunner___TF24t__steps_taken <- function(obj_) {
-    .Call('_plant_OdeRunner___TF24t__steps_taken', PACKAGE = 'plant', obj_)
+OdeRunner___TF24t__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24t__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___TF24t__time__get <- function(obj_) {
@@ -1049,8 +1049,8 @@ OdeRunner___TF24w__advance_to_size <- function(obj_, index, size, time_max) {
     .Call('_plant_OdeRunner___TF24w__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
 }
 
-OdeRunner___TF24w__steps_taken <- function(obj_) {
-    .Call('_plant_OdeRunner___TF24w__steps_taken', PACKAGE = 'plant', obj_)
+OdeRunner___TF24w__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24w__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___TF24w__time__get <- function(obj_) {
@@ -1101,8 +1101,8 @@ OdeRunner___K93__advance_to_size <- function(obj_, index, size, time_max) {
     .Call('_plant_OdeRunner___K93__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
 }
 
-OdeRunner___K93__steps_taken <- function(obj_) {
-    .Call('_plant_OdeRunner___K93__steps_taken', PACKAGE = 'plant', obj_)
+OdeRunner___K93__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___K93__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___K93__time__get <- function(obj_) {

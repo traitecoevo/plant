@@ -68,12 +68,15 @@ double advance_to_size(Solver& solver, size_t index, double size,
   return t ? *t : NA_REAL;
 }
 
-// The steps `solver` has kept, one row each: the time, then the ODE state.
-// These are the steps that stand, so a step that crossed a size and was taken
-// back by advance_to_size() is not among them; the step that landed on the
-// size is.
+// The System the solver keeps in its history (Solver::get_history()), one row
+// each: the time, then the ODE state. A step pushes one entry; a step that
+// crossed a size and was taken back by advance_to_size() pushes none, and the
+// step that landed on the size pushes one. advance_adaptive() also pushes its
+// start, and set_state() does not clear the history, so on a runner driven
+// only by step() and advance_to_size() since it was built these are the steps
+// taken, after the start.
 template <typename Solver>
-Rcpp::NumericMatrix steps_taken(const Solver& solver) {
+Rcpp::NumericMatrix history_steps(const Solver& solver) {
   using System = typename Solver::system_type;
   const size_t n = solver.get_history_size();
   const size_t m = System::ode_size();
