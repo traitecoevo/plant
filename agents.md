@@ -431,12 +431,7 @@ Rules:
 
 Every baseline the suite compares against, and what may re-bless it, is listed in [.claude/measurements.md](.claude/measurements.md).
 
-`testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file
-per component (`test-deterministic-patch-runner.R`, `test-patch.R`, `test-model-ff16.R`,
-`test-leaf.r`, …). Shared setup is in `helper-plant.R`. Regression baselines for
-FF16 are in `tests/testthat/FF16_reference/` and checked by
-`test-model-ff16-reference-comparison.R` — if you intentionally change FF16
-numerics you may need to regenerate these.
+`testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file per component (`test-deterministic-patch-runner.R`, `test-patch.R`, `test-model-ff16.R`, `test-leaf.r`, …). Shared setup is in `helper-plant.R`, and the stands the gradient tests share are in `helper-ff16.R` and `helper-tf24.R`. Regression baselines for FF16 are in `tests/testthat/FF16_reference/` and checked by `test-model-ff16-reference-comparison.R` — if you intentionally change FF16 numerics you may need to regenerate these.
 
 Run the suite with `make test` or `devtools::test()`; a single file with
 `devtools::test_active_file()` or `testthat::test_file(...)`.
