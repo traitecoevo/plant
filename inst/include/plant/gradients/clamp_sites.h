@@ -40,7 +40,9 @@ enum clamp_site {
   CLAMP_ROOTING_DEPTH,
   // The light field itself floored at zero where a Hermite span undershoots
   // below it. Every model's field is read through the one spline, so this is the
-  // only light site FF16 and K93 have; it is counted in the spline.
+  // only light site FF16 and K93 have; it is counted in the spline. In TF24's
+  // crown integrand a point floored here is floored again by the light floor
+  // above, so light_floor_crown counts it too.
   CLAMP_LIGHT_FIELD_FLOOR,
   // FF16's growth cutoff: at zero net production the height, fecundity and
   // heartwood rates are set to zero. Height and fecundity reach zero there

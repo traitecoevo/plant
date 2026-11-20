@@ -436,9 +436,6 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
     z = std::log(seated / (1.0 - seated));
   }
   if constexpr (std::is_same_v<S, double>) {
-    // Counted on the forward path here; on the differentiated one where the
-    // record falls back to the value (collar_on_tape), so a seat is counted
-    // once on each.
     if (held) {
       this->note_clamp(CLAMP_SEED_POSITION);
     }
@@ -446,14 +443,18 @@ void TF24f_Model<S>::set_initial_states(const TF24_Environment<S>& environment,
   } else {
     // The same value, with the rows of the optimum and of both ends where a
     // differentiated pass recorded them: at an interior optimum the collar's
-    // are the implicit function theorem's. Where the record refused, or the
-    // position was held to [0, 1], the value alone, which are the rows of a
-    // held position: it is a constant.
+    // are the implicit function theorem's. Where the position was held to
+    // [0, 1], the value alone, which are the rows of a held position: it is a
+    // constant. The seat this decides is the one counted, so a seat that
+    // takes no rows is counted whichever reading dropped them.
+    const bool rows = seed_on_tape_ && !held;
+    if (seed_open_ && !rows) {
+      this->note_clamp(CLAMP_SEED_POSITION);
+    }
     vars.set_state(state_idx_collar_position,
-                   seed_on_tape_ && !held
-                       ? S(S(z) + (seed_position_ -
-                                   S(odelia::util::to_passive(seed_position_))))
-                       : S(z));
+                   rows ? S(S(z) + (seed_position_ -
+                                    S(odelia::util::to_passive(seed_position_))))
+                        : S(z));
   }
 }
 
@@ -524,11 +525,9 @@ S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
                                            ((collar - ends.a) / (ends.b - ends.a));
         seed_position_ = log(seated / (1.0 - seated));
         seed_on_tape_ = true;
-      } else {
-        // Held to [0, 1], so the seat is the value alone: counted, because a
-        // row zeroed here and a row that is zero read the same.
-        this->note_clamp(CLAMP_SEED_POSITION);
       }
+      // Outside [0, 1] nothing is recorded, and set_initial_states seats the
+      // value alone and counts it.
     }
     return collar;
   }
