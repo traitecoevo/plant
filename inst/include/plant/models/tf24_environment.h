@@ -572,10 +572,17 @@ public:
   // layer, where it would otherwise carry on with moisture no soil can hold.
   template <class It>
   std::string saturation_refusal(It first) const {
+    // The bound allows a few ulps above saturation. A capped rain pulse fills
+    // a layer to theta + (sat - theta) * dz / dz, which rounds to within an
+    // ulp or two of sat, either side, depending on how the compiler contracts
+    // it; and events are applied between steps, where nothing checks them. A
+    // full layer with no net flux would otherwise hold a rounding-level excess
+    // no step can remove, and every later step would be refused.
+    constexpr double rounding = 16 * std::numeric_limits<double>::epsilon();
     for (int i = 0; i < soil_number_of_depths; ++i, ++first) {
       const double sat =
         soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i);
-      if (!(*first <= sat)) {
+      if (!(*first <= sat * (1.0 + rounding))) {
         return "soil layer " + util::to_string(i + 1) + " holds moisture " +
                util::format_double(*first) + ", above its saturation " +
                util::format_double(sat);

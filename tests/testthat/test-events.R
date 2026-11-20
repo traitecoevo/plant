@@ -570,6 +570,9 @@ test_that("a soil layer above its saturation is refused", {
     at <- first + i
     full <- y; full[[at]] <- sat[[i]]
     expect_true(patch$ode_state_valid(full))
+    ## A pulse that fills a layer can round an ulp or two above saturation.
+    rounded <- y; rounded[[at]] <- sat[[i]] * (1 + 4 * .Machine$double.eps)
+    expect_true(patch$ode_state_valid(rounded))
     over <- y; over[[at]] <- sat[[i]] + 1e-12
     expect_false(patch$ode_state_valid(over))
     wet <- y; wet[[at]] <- 0.47
@@ -605,7 +608,8 @@ test_that("a step that carries a layer past saturation is retried, not committed
     first <- length(row$state) - env$ode_size
     max(row$state[first + seq_len(n)])
   }, 0)
-  expect_lte(max(layers), env$soil_moist_sat)
+  ## A capped pulse lands within a few ulps of saturation, either side.
+  expect_lte(max(layers), env$soil_moist_sat * (1 + 16 * .Machine$double.eps))
 })
 
 test_that("a run that would start above saturation is refused, naming the layer", {
