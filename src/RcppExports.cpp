@@ -2370,6 +2370,31 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// OdeRunner___FF16__advance_to_size
+double OdeRunner___FF16__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_, size_t index, double size, double time_max);
+RcppExport SEXP _plant_OdeRunner___FF16__advance_to_size(SEXP obj_SEXP, SEXP indexSEXP, SEXP sizeSEXP, SEXP time_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type time_max(time_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__advance_to_size(obj_, index, size, time_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// OdeRunner___FF16__history_steps
+Rcpp::NumericMatrix OdeRunner___FF16__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___FF16__history_steps(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__history_steps(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // OdeRunner___FF16__time__get
 double OdeRunner___FF16__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__time__get(SEXP obj_SEXP) {
@@ -2489,6 +2514,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
     OdeRunner___TF24__set_state_from_system(obj_);
     return R_NilValue;
+END_RCPP
+}
+// OdeRunner___TF24__advance_to_size
+double OdeRunner___TF24__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_, size_t index, double size, double time_max);
+RcppExport SEXP _plant_OdeRunner___TF24__advance_to_size(SEXP obj_SEXP, SEXP indexSEXP, SEXP sizeSEXP, SEXP time_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type time_max(time_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__advance_to_size(obj_, index, size, time_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// OdeRunner___TF24__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24__history_steps(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__history_steps(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___TF24__time__get
@@ -2612,6 +2662,31 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// OdeRunner___TF24f__advance_to_size
+double OdeRunner___TF24f__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_, size_t index, double size, double time_max);
+RcppExport SEXP _plant_OdeRunner___TF24f__advance_to_size(SEXP obj_SEXP, SEXP indexSEXP, SEXP sizeSEXP, SEXP time_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type time_max(time_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24f__advance_to_size(obj_, index, size, time_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// OdeRunner___TF24f__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24f__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24f__history_steps(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24f__history_steps(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // OdeRunner___TF24f__time__get
 double OdeRunner___TF24f__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24f__time__get(SEXP obj_SEXP) {
@@ -2731,6 +2806,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
     OdeRunner___TF24t__set_state_from_system(obj_);
     return R_NilValue;
+END_RCPP
+}
+// OdeRunner___TF24t__advance_to_size
+double OdeRunner___TF24t__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_, size_t index, double size, double time_max);
+RcppExport SEXP _plant_OdeRunner___TF24t__advance_to_size(SEXP obj_SEXP, SEXP indexSEXP, SEXP sizeSEXP, SEXP time_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type time_max(time_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24t__advance_to_size(obj_, index, size, time_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// OdeRunner___TF24t__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24t__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24t__history_steps(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24t__history_steps(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___TF24t__time__get
@@ -2854,6 +2954,31 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// OdeRunner___TF24w__advance_to_size
+double OdeRunner___TF24w__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_, size_t index, double size, double time_max);
+RcppExport SEXP _plant_OdeRunner___TF24w__advance_to_size(SEXP obj_SEXP, SEXP indexSEXP, SEXP sizeSEXP, SEXP time_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type time_max(time_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24w__advance_to_size(obj_, index, size, time_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// OdeRunner___TF24w__history_steps
+Rcpp::NumericMatrix OdeRunner___TF24w__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_);
+RcppExport SEXP _plant_OdeRunner___TF24w__history_steps(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24w__history_steps(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // OdeRunner___TF24w__time__get
 double OdeRunner___TF24w__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24w__time__get(SEXP obj_SEXP) {
@@ -2973,6 +3098,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___K93__set_state_from_system(obj_);
     return R_NilValue;
+END_RCPP
+}
+// OdeRunner___K93__advance_to_size
+double OdeRunner___K93__advance_to_size(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_, size_t index, double size, double time_max);
+RcppExport SEXP _plant_OdeRunner___K93__advance_to_size(SEXP obj_SEXP, SEXP indexSEXP, SEXP sizeSEXP, SEXP time_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type time_max(time_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__advance_to_size(obj_, index, size, time_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// OdeRunner___K93__history_steps
+Rcpp::NumericMatrix OdeRunner___K93__history_steps(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > obj_);
+RcppExport SEXP _plant_OdeRunner___K93__history_steps(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__history_steps(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___K93__time__get
@@ -18775,6 +18925,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// census_clamp_counts
+SEXP census_clamp_counts(SEXP x, std::string model, bool differentiated);
+RcppExport SEXP _plant_census_clamp_counts(SEXP xSEXP, SEXP modelSEXP, SEXP differentiatedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< bool >::type differentiated(differentiatedSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_clamp_counts(x, model, differentiated));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ladder_block_jacobian_forward_tf24
 Rcpp::NumericMatrix ladder_block_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_, int node);
 RcppExport SEXP _plant_ladder_block_jacobian_forward_tf24(SEXP obj_SEXP, SEXP nodeSEXP) {
@@ -19499,6 +19662,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_light_field_floor
+Rcpp::List test_light_field_floor(std::vector<double> state, std::vector<double> heights);
+RcppExport SEXP _plant_test_light_field_floor(SEXP stateSEXP, SEXP heightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double> >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type heights(heightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_light_field_floor(state, heights));
+    return rcpp_result_gen;
+END_RCPP
+}
 // trapezium
 double trapezium(const std::vector<double>& x, const std::vector<double>& y);
 RcppExport SEXP _plant_trapezium(SEXP xSEXP, SEXP ySEXP) {
@@ -19758,6 +19933,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___FF16__step", (DL_FUNC) &_plant_OdeRunner___FF16__step, 1},
     {"_plant_OdeRunner___FF16__set_state", (DL_FUNC) &_plant_OdeRunner___FF16__set_state, 3},
     {"_plant_OdeRunner___FF16__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___FF16__set_state_from_system, 1},
+    {"_plant_OdeRunner___FF16__advance_to_size", (DL_FUNC) &_plant_OdeRunner___FF16__advance_to_size, 4},
+    {"_plant_OdeRunner___FF16__history_steps", (DL_FUNC) &_plant_OdeRunner___FF16__history_steps, 1},
     {"_plant_OdeRunner___FF16__time__get", (DL_FUNC) &_plant_OdeRunner___FF16__time__get, 1},
     {"_plant_OdeRunner___FF16__state__get", (DL_FUNC) &_plant_OdeRunner___FF16__state__get, 1},
     {"_plant_OdeRunner___FF16__times__get", (DL_FUNC) &_plant_OdeRunner___FF16__times__get, 1},
@@ -19769,6 +19946,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24__step", (DL_FUNC) &_plant_OdeRunner___TF24__step, 1},
     {"_plant_OdeRunner___TF24__set_state", (DL_FUNC) &_plant_OdeRunner___TF24__set_state, 3},
     {"_plant_OdeRunner___TF24__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24__set_state_from_system, 1},
+    {"_plant_OdeRunner___TF24__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24__advance_to_size, 4},
+    {"_plant_OdeRunner___TF24__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24__history_steps, 1},
     {"_plant_OdeRunner___TF24__time__get", (DL_FUNC) &_plant_OdeRunner___TF24__time__get, 1},
     {"_plant_OdeRunner___TF24__state__get", (DL_FUNC) &_plant_OdeRunner___TF24__state__get, 1},
     {"_plant_OdeRunner___TF24__times__get", (DL_FUNC) &_plant_OdeRunner___TF24__times__get, 1},
@@ -19780,6 +19959,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24f__step", (DL_FUNC) &_plant_OdeRunner___TF24f__step, 1},
     {"_plant_OdeRunner___TF24f__set_state", (DL_FUNC) &_plant_OdeRunner___TF24f__set_state, 3},
     {"_plant_OdeRunner___TF24f__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24f__set_state_from_system, 1},
+    {"_plant_OdeRunner___TF24f__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24f__advance_to_size, 4},
+    {"_plant_OdeRunner___TF24f__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24f__history_steps, 1},
     {"_plant_OdeRunner___TF24f__time__get", (DL_FUNC) &_plant_OdeRunner___TF24f__time__get, 1},
     {"_plant_OdeRunner___TF24f__state__get", (DL_FUNC) &_plant_OdeRunner___TF24f__state__get, 1},
     {"_plant_OdeRunner___TF24f__times__get", (DL_FUNC) &_plant_OdeRunner___TF24f__times__get, 1},
@@ -19791,6 +19972,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24t__step", (DL_FUNC) &_plant_OdeRunner___TF24t__step, 1},
     {"_plant_OdeRunner___TF24t__set_state", (DL_FUNC) &_plant_OdeRunner___TF24t__set_state, 3},
     {"_plant_OdeRunner___TF24t__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24t__set_state_from_system, 1},
+    {"_plant_OdeRunner___TF24t__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24t__advance_to_size, 4},
+    {"_plant_OdeRunner___TF24t__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24t__history_steps, 1},
     {"_plant_OdeRunner___TF24t__time__get", (DL_FUNC) &_plant_OdeRunner___TF24t__time__get, 1},
     {"_plant_OdeRunner___TF24t__state__get", (DL_FUNC) &_plant_OdeRunner___TF24t__state__get, 1},
     {"_plant_OdeRunner___TF24t__times__get", (DL_FUNC) &_plant_OdeRunner___TF24t__times__get, 1},
@@ -19802,6 +19985,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24w__step", (DL_FUNC) &_plant_OdeRunner___TF24w__step, 1},
     {"_plant_OdeRunner___TF24w__set_state", (DL_FUNC) &_plant_OdeRunner___TF24w__set_state, 3},
     {"_plant_OdeRunner___TF24w__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___TF24w__set_state_from_system, 1},
+    {"_plant_OdeRunner___TF24w__advance_to_size", (DL_FUNC) &_plant_OdeRunner___TF24w__advance_to_size, 4},
+    {"_plant_OdeRunner___TF24w__history_steps", (DL_FUNC) &_plant_OdeRunner___TF24w__history_steps, 1},
     {"_plant_OdeRunner___TF24w__time__get", (DL_FUNC) &_plant_OdeRunner___TF24w__time__get, 1},
     {"_plant_OdeRunner___TF24w__state__get", (DL_FUNC) &_plant_OdeRunner___TF24w__state__get, 1},
     {"_plant_OdeRunner___TF24w__times__get", (DL_FUNC) &_plant_OdeRunner___TF24w__times__get, 1},
@@ -19813,6 +19998,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___K93__step", (DL_FUNC) &_plant_OdeRunner___K93__step, 1},
     {"_plant_OdeRunner___K93__set_state", (DL_FUNC) &_plant_OdeRunner___K93__set_state, 3},
     {"_plant_OdeRunner___K93__set_state_from_system", (DL_FUNC) &_plant_OdeRunner___K93__set_state_from_system, 1},
+    {"_plant_OdeRunner___K93__advance_to_size", (DL_FUNC) &_plant_OdeRunner___K93__advance_to_size, 4},
+    {"_plant_OdeRunner___K93__history_steps", (DL_FUNC) &_plant_OdeRunner___K93__history_steps, 1},
     {"_plant_OdeRunner___K93__time__get", (DL_FUNC) &_plant_OdeRunner___K93__time__get, 1},
     {"_plant_OdeRunner___K93__state__get", (DL_FUNC) &_plant_OdeRunner___K93__state__get, 1},
     {"_plant_OdeRunner___K93__times__get", (DL_FUNC) &_plant_OdeRunner___K93__times__get, 1},
@@ -21225,6 +21412,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_census_operating_point_counts", (DL_FUNC) &_plant_census_operating_point_counts, 2},
     {"_plant_census_operating_point_names", (DL_FUNC) &_plant_census_operating_point_names, 0},
     {"_plant_census_curvature_margin", (DL_FUNC) &_plant_census_curvature_margin, 2},
+    {"_plant_census_clamp_counts", (DL_FUNC) &_plant_census_clamp_counts, 3},
     {"_plant_ladder_block_jacobian_forward_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_forward_tf24, 2},
     {"_plant_ladder_block_value_tf24", (DL_FUNC) &_plant_ladder_block_value_tf24, 2},
     {"_plant_ladder_block_jacobian_reverse_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_reverse_tf24, 2},
@@ -21286,6 +21474,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
     {"_plant_test_stem_effective_path_length", (DL_FUNC) &_plant_test_stem_effective_path_length, 3},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
+    {"_plant_test_light_field_floor", (DL_FUNC) &_plant_test_light_field_floor, 2},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},

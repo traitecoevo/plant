@@ -92,6 +92,30 @@ Rcpp::NumericVector control_of(Runner& runner) {
   return out;
 }
 
+// How often each clamp site fired, one row per species and one column per site
+// named, the environment's sites on the first row. On the forward run, or with
+// `differentiated`, where the sweep ran, which is the only path a clamp severs a
+// row on.
+template <class Runner>
+Rcpp::NumericMatrix clamp_counts_of(Runner& runner, bool differentiated) {
+  const std::vector<std::vector<size_t>> counts =
+      differentiated ? runner.clamp_counts_differentiated()
+                     : runner.clamp_counts();
+  Rcpp::NumericMatrix ret(static_cast<int>(counts.size()),
+                          plant::CLAMP_SITE_COUNT);
+  for (size_t i = 0; i < counts.size(); ++i) {
+    for (int k = 0; k < plant::CLAMP_SITE_COUNT; ++k) {
+      ret(static_cast<int>(i), k) = static_cast<double>(counts[i][k]);
+    }
+  }
+  Rcpp::CharacterVector sites(plant::CLAMP_SITE_COUNT);
+  for (int k = 0; k < plant::CLAMP_SITE_COUNT; ++k) {
+    sites[k] = plant::clamp_site_name(k);
+  }
+  ret.attr("dimnames") = Rcpp::List::create(R_NilValue, sites);
+  return ret;
+}
+
 using TF24_runner = plant::DeterministicPatchRunner<plant::TF24_Model<double>,
                                                     plant::TF24_Environment<double>>;
 using TF24f_runner = plant::DeterministicPatchRunner<plant::TF24f_Model<double>,
@@ -284,5 +308,12 @@ std::vector<std::string> census_operating_point_names() {
 SEXP census_curvature_margin(SEXP x, std::string model) {
   return with_incidence_runner(x, model, [](auto& runner) {
     return Rcpp::wrap(runner.curvature_margins());
+  });
+}
+
+// [[Rcpp::export]]
+SEXP census_clamp_counts(SEXP x, std::string model, bool differentiated = false) {
+  return with_census_runner(x, model, [&](auto& runner) {
+    return clamp_counts_of(runner, differentiated);
   });
 }

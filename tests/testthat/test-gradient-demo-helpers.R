@@ -1,7 +1,6 @@
 test_that("gd_point() reads a value for every gradient column", {
   ## The gradient has a column for the constant birth rate, which is not a
   ## parameter: its value is the strategy's birth_rate_y.
-  skip_on_cran()
   source(guide_helpers("gradient_demo_helpers.R"), local = TRUE)
   pt <- gd_point(unlist(gd_traits()), lifetime = 1, refine = FALSE)
   expect_identical(names(pt$x), colnames(pt$gradient))
@@ -19,7 +18,6 @@ test_that("gd_point() reads a value for every gradient column", {
 test_that("gd_point() gives partials, and chaining them is stand_gradient()'s total", {
   ## The guide sets the partial beside the total. A gd_point() that took the
   ## gradient through the trade-offs `p` carries would make both columns the total.
-  skip_on_cran()
   source(guide_helpers("gradient_demo_helpers.R"), local = TRUE)
   tr <- unlist(gd_traits())
   pt <- gd_point(tr, lifetime = 1, refine = FALSE)

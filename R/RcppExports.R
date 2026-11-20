@@ -837,6 +837,14 @@ OdeRunner___FF16__set_state_from_system <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___FF16__set_state_from_system', PACKAGE = 'plant', obj_))
 }
 
+OdeRunner___FF16__advance_to_size <- function(obj_, index, size, time_max) {
+    .Call('_plant_OdeRunner___FF16__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
+}
+
+OdeRunner___FF16__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16__history_steps', PACKAGE = 'plant', obj_)
+}
+
 OdeRunner___FF16__time__get <- function(obj_) {
     .Call('_plant_OdeRunner___FF16__time__get', PACKAGE = 'plant', obj_)
 }
@@ -879,6 +887,14 @@ OdeRunner___TF24__set_state <- function(obj_, y, time) {
 
 OdeRunner___TF24__set_state_from_system <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___TF24__set_state_from_system', PACKAGE = 'plant', obj_))
+}
+
+OdeRunner___TF24__advance_to_size <- function(obj_, index, size, time_max) {
+    .Call('_plant_OdeRunner___TF24__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
+}
+
+OdeRunner___TF24__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___TF24__time__get <- function(obj_) {
@@ -925,6 +941,14 @@ OdeRunner___TF24f__set_state_from_system <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___TF24f__set_state_from_system', PACKAGE = 'plant', obj_))
 }
 
+OdeRunner___TF24f__advance_to_size <- function(obj_, index, size, time_max) {
+    .Call('_plant_OdeRunner___TF24f__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
+}
+
+OdeRunner___TF24f__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24f__history_steps', PACKAGE = 'plant', obj_)
+}
+
 OdeRunner___TF24f__time__get <- function(obj_) {
     .Call('_plant_OdeRunner___TF24f__time__get', PACKAGE = 'plant', obj_)
 }
@@ -967,6 +991,14 @@ OdeRunner___TF24t__set_state <- function(obj_, y, time) {
 
 OdeRunner___TF24t__set_state_from_system <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___TF24t__set_state_from_system', PACKAGE = 'plant', obj_))
+}
+
+OdeRunner___TF24t__advance_to_size <- function(obj_, index, size, time_max) {
+    .Call('_plant_OdeRunner___TF24t__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
+}
+
+OdeRunner___TF24t__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24t__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___TF24t__time__get <- function(obj_) {
@@ -1013,6 +1045,14 @@ OdeRunner___TF24w__set_state_from_system <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___TF24w__set_state_from_system', PACKAGE = 'plant', obj_))
 }
 
+OdeRunner___TF24w__advance_to_size <- function(obj_, index, size, time_max) {
+    .Call('_plant_OdeRunner___TF24w__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
+}
+
+OdeRunner___TF24w__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___TF24w__history_steps', PACKAGE = 'plant', obj_)
+}
+
 OdeRunner___TF24w__time__get <- function(obj_) {
     .Call('_plant_OdeRunner___TF24w__time__get', PACKAGE = 'plant', obj_)
 }
@@ -1055,6 +1095,14 @@ OdeRunner___K93__set_state <- function(obj_, y, time) {
 
 OdeRunner___K93__set_state_from_system <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___K93__set_state_from_system', PACKAGE = 'plant', obj_))
+}
+
+OdeRunner___K93__advance_to_size <- function(obj_, index, size, time_max) {
+    .Call('_plant_OdeRunner___K93__advance_to_size', PACKAGE = 'plant', obj_, index, size, time_max)
+}
+
+OdeRunner___K93__history_steps <- function(obj_) {
+    .Call('_plant_OdeRunner___K93__history_steps', PACKAGE = 'plant', obj_)
 }
 
 OdeRunner___K93__time__get <- function(obj_) {
@@ -6705,6 +6753,10 @@ census_curvature_margin <- function(x, model) {
     .Call('_plant_census_curvature_margin', PACKAGE = 'plant', x, model)
 }
 
+census_clamp_counts <- function(x, model, differentiated = FALSE) {
+    .Call('_plant_census_clamp_counts', PACKAGE = 'plant', x, model, differentiated)
+}
+
 ladder_block_jacobian_forward_tf24 <- function(obj_, node) {
     .Call('_plant_ladder_block_jacobian_forward_tf24', PACKAGE = 'plant', obj_, node)
 }
@@ -6970,6 +7022,10 @@ test_stem_effective_path_length <- function(L_top, L_tip, beta) {
 
 test_uniroot <- function(f, min, max) {
     .Call('_plant_test_uniroot', PACKAGE = 'plant', f, min, max)
+}
+
+test_light_field_floor <- function(state, heights) {
+    .Call('_plant_test_light_field_floor', PACKAGE = 'plant', state, heights)
 }
 
 trapezium <- function(x, y) {

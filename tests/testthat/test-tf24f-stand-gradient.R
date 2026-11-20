@@ -109,11 +109,26 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   # stem curve (stem_P50) and the stem's conductance (K_s) move that end; lma
   # does not. Each column agrees to 1e-5; held to 1e-4.
   lifetime <- 10
+  p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
+  env <- function() tf24f_dry_pulses(lifetime)
+  solver <- run(p, env(), Control(), record = "states")$solver
   errors <- tf24f_gradient_errors(
-    tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07),
-    function() tf24f_dry_pulses(lifetime),
-    "1.offspring_production", c("lma", "stem_P50", "K_s", "k_acclim"))
+    p, env, "1.offspring_production", c("lma", "stem_P50", "K_s", "k_acclim"),
+    solver = solver)
   expect_lt(max(errors), 1e-4)
+
+  # A newborn is seated at its optimum's place in the interval, held to
+  # [0, 1], and where it is held the seat has no rows. Here about a quarter of
+  # the newborns' optima sit exactly on an end, which is inside, and none
+  # outside: the hold never binds, on the run or on the sweep. Counted, so that
+  # a zero row from it would read as one.
+  fired <- census_clamp_counts(solver, "TF24f")
+  swept <- census_clamp_counts(solver, "TF24f", differentiated = TRUE)
+  expect_equal(sum(fired[, "seed_position"]), 0)
+  expect_equal(sum(swept[, "seed_position"]), 0)
+  # Non-vacuity: TF24f's tallies are read, and TF24's sites fire on them.
+  expect_gt(sum(fired[, "rooting_depth"]), 0)
+  expect_gt(sum(swept[, "rooting_depth"]), 0)
 })
 
 test_that("an invader's gradient holds where its collar meets a dry layer's potential", {

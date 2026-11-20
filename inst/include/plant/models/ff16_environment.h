@@ -215,6 +215,10 @@ public:
     light_profile_stepped = src.light_profile_stepped;
     layer_optical_depth = src.layer_optical_depth;
     layer_smoothing = src.layer_smoothing;
+    // The spline is rebuilt, but its tally is shared: a clamp on the
+    // differentiated path fires in this copy, which is discarded.
+    light_availability.clamps.differentiated =
+        src.light_availability.clamps.differentiated;
     if constexpr (!std::is_same_v<S, double>) {
       if (light_profile_stepped) {
         util::stop("The PPA stepped light profile is a staircase, so it has no "
