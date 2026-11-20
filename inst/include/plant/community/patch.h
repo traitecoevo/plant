@@ -381,6 +381,11 @@ public:
   // the order ode_state writes it.
   bool ode_state_valid(const std::vector<double>& y) const;
 
+  // Why ode_state_valid refused the last state it refused, and empty once it
+  // accepts one. The solver reports only that a state was refused, so a run
+  // that stops because it cannot leave one appends this to say which.
+  const std::string& state_refusal() const { return state_refusal_; }
+
   // Each state's tolerance multiplier on an adaptive step: the soil's on its
   // layers and 1 elsewhere, whatever the step's start time.
   void tolerance_scales(double time, std::vector<double>& scales) const;
@@ -564,6 +569,9 @@ public:
   void overwrite_parameters(const parameters_type& p);
 
 private:
+  // What state_refusal() returns: a diagnostic, written by a const check.
+  mutable std::string state_refusal_;
+
   using base_type::parameters;
   using base_type::area;
   using base_type::environment;
@@ -2301,12 +2309,24 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   // ODE vector, it is where integrator overshoot shows up (TF24's soil water,
   // driven past its bounds by a step inherited across a discrete change), and
   // the completed step's state never reaches check_finite_ode_state(), which
-  // runs per stage. Finiteness only -- a node's log_density is legitimately
-  // -Inf, so this must not be extended over the species block.
+  // runs per stage. Finiteness -- a node's log_density is legitimately -Inf, so
+  // this must not be extended over the species block -- and, for a soil, each
+  // layer at or below its saturation.
+  state_refusal_.clear();
   const size_t n_env = environment.ode_size();
   if (n_env > 0 && y.size() >= n_env) {
     for (size_t i = y.size() - n_env; i < y.size(); ++i) {
       if (!util::is_finite(y[i])) {
+        state_refusal_ = "environment state " +
+                         util::to_string(i - (y.size() - n_env) + 1) +
+                         " is " + util::format_double(y[i]);
+        return false;
+      }
+    }
+    if constexpr (HasSoil<E>) {
+      const auto first = y.begin() + static_cast<std::ptrdiff_t>(y.size() - n_env);
+      state_refusal_ = environment.saturation_refusal(first);
+      if (!state_refusal_.empty()) {
         return false;
       }
     }
@@ -2335,13 +2355,21 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   // Asked as "is it inside", so a NaN fails: NaN < 0.0 is false, and a test
   // for being outside lets it through.
   const auto inside = [](double v) { return v >= 0.0 && util::is_finite(v); };
+  const auto refuse = [&](size_t s, const std::string& where, size_t i,
+                          double v) {
+    state_refusal_ = "species " + util::to_string(s + 1) + ", " + where + ": '" +
+                     T::state_names()[i] + "' is " + util::format_double(v) +
+                     ", outside [0, Inf)";
+    return false;
+  };
   const size_t stride = node_type::ode_size();
   size_t at = 0;
-  for (const auto& sp : species) {
+  for (size_t s = 0; s < species.size(); ++s) {
+    const auto& sp = species[s];
     for (size_t k = 0; k < sp.size(); ++k, at += stride) {
       for (const size_t i : bounded) {
         if (!inside(y[at + i])) {
-          return false;
+          return refuse(s, "node " + util::to_string(k + 1), i, y[at + i]);
         }
       }
     }
@@ -2353,12 +2381,15 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
     if (sp.top_ode_size() > 0) {
       const size_t density_at = at + individual_type::ode_size();
       if (!util::is_finite(y[density_at])) {
+        state_refusal_ = "species " + util::to_string(s + 1) +
+                         ": the top layer's density is " +
+                         util::format_double(y[density_at]);
         return false;
       }
       if (y[density_at] > 0.0) {
         for (const size_t i : bounded) {
           if (!inside(y[at + i])) {
-            return false;
+            return refuse(s, "top layer", i, y[at + i]);
           }
         }
       }

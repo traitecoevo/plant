@@ -552,6 +552,102 @@ test_that("a state declared non-negative must be inside its domain", {
   }
 })
 
+test_that("a soil layer above its saturation is refused", {
+  ## Each layer against its own saturation, so the layers are given different
+  ## ones: 0.47 is above every layer's but the last's.
+  sat <- c(0.40, 0.42, 0.44, 0.46, 0.48)
+  env <- Environment("TF24")
+  set_tf24_soil(env, soil_moist_sat = sat, theta = sat / 2)
+  p <- add_strategies(testing_parameters("TF24"), trait_matrix(0.0825, "lma"))
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), control())
+  patch <- solver$patch
+  y <- patch$ode_state
+  expect_true(patch$ode_state_valid(y))
+
+  n <- length(sat)
+  first <- length(y) - env$ode_size
+  for (i in seq_len(n)) {
+    at <- first + i
+    full <- y; full[[at]] <- sat[[i]]
+    expect_true(patch$ode_state_valid(full))
+    ## A pulse that fills a layer can round an ulp or two above saturation.
+    rounded <- y; rounded[[at]] <- sat[[i]] * (1 + 4 * .Machine$double.eps)
+    expect_true(patch$ode_state_valid(rounded))
+    over <- y; over[[at]] <- sat[[i]] + 1e-12
+    expect_false(patch$ode_state_valid(over))
+    wet <- y; wet[[at]] <- 0.47
+    expect_identical(patch$ode_state_valid(wet), i == n)
+  }
+  ## The cumulative fluxes after the layers are totals in metres, not
+  ## moisture, and are not bounded by it.
+  totals <- y; totals[first + n + seq_len(env$ode_size - n)] <- 10
+  expect_true(patch$ode_state_valid(totals))
+})
+
+test_that("a step that carries a layer past saturation is retried, not committed", {
+  ## A pulse that fills the top layers, at a tolerance loose enough that error
+  ## control alone commits steps that overshoot saturation after it. Every
+  ## state the run commits is at or below saturation.
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 3
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
+  full <- p$node_schedule_times[[1]]
+  p$node_schedule_times <- list(full[round(seq(1, length(full), length.out = 12))])
+  env <- Environment("TF24")
+  env$set_soil_water_state(rep(0.3, env$get_soil_number_of_depths()))
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+  solver <- run(p, env,
+                Control(node_density_coordinate = "birth_date",
+                        ode_tol_rel = 1e-2, ode_tol_abs = 1e-2),
+                events = events(rainfall_pulse(time = c(1, 2), depth = 0.5)),
+                record = "states")$solver
+  expect_true(any(vapply(solver$event_log$applied, function(a) a[[2]], 0) > 0))
+
+  n <- env$get_soil_number_of_depths()
+  layers <- vapply(solver$store_recording(), function(row) {
+    first <- length(row$state) - env$ode_size
+    max(row$state[first + seq_len(n)])
+  }, 0)
+  ## A capped pulse lands within a few ulps of saturation, either side.
+  expect_lte(max(layers), env$soil_moist_sat * (1 + 16 * .Machine$double.eps))
+})
+
+test_that("a run that would start above saturation is refused, naming the layer", {
+  p <- add_strategies(testing_parameters("TF24"), trait_matrix(0.0825, "lma"))
+  p$max_patch_lifetime <- 0.1
+  env <- Environment("TF24")
+  env$set_soil_water_state(c(0.3, 0.3, 0.3, 0.3, 0.45))
+  expect_error(run(p, env),
+               "cannot start: soil layer 5 holds moisture 0.45, above its saturation 0.428")
+
+  ## Refused where the run starts, so a saturation lowered after the moisture
+  ## was set is caught too.
+  env <- Environment("TF24")
+  env$set_soil_water_state(rep(0.3, 5))
+  env$set_soil_parameters(5, c(0.40, 0.40, 0.28, 0.40, 0.40), NULL, NULL, NULL)
+  expect_error(run(p, env), "soil layer 3 holds moisture 0.3, above its saturation 0.28")
+
+  ## At saturation is inside. Checked where the runner seats its starting soil.
+  env <- Environment("TF24")
+  env$set_soil_water_state(rep(env$soil_moist_sat, 5))
+  expect_no_error(
+    DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), control()))
+})
+
+test_that("a column that fills a layer past saturation stops, naming the layer", {
+  ## A conductivity that falls with depth: the deepest layer takes the drainage
+  ## of the one above, up to that layer's K_sat, and passes on at most its own,
+  ## so it fills past saturation however small the step. The run stops, and says
+  ## which layer, rather than carry on with moisture no soil can hold.
+  env <- Environment("TF24")
+  set_tf24_soil(env, K_sat = c(163.0411, 163.0411, 163.0411, 20, 0.5))
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+  p <- add_strategies(testing_parameters("TF24"), trait_matrix(0.0825, "lma"))
+  p$max_patch_lifetime <- 0.5
+  expect_error(run(p, env),
+               "ode_state_valid\\(\\) refused .*the refused state: soil layer 5 holds moisture [0-9.]+, above its saturation 0.428")
+})
+
 # --- Review of #632 (@elijahmagistrado / GPT 5.6 Sol) -------------------------
 
 test_that("collected results carry the events and the log", {
