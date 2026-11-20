@@ -632,14 +632,14 @@ public:
   // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
   // The inverse of fraction_allocation_reproduction()'s logistic, and NaN where
   // the logistic does not rise with height (a_f2 <= 0) or hmat is not positive.
-  double asymptotic_height(double epsilon) const {
+  // At the strategy's scalar, because the layer is pinned here and its height
+  // moves with hmat and a_f2 under a gradient.
+  S asymptotic_height(double epsilon) const {
     using odelia::util::to_passive;
-    const double hmat = to_passive(pars.hmat);
-    const double a_f2 = to_passive(pars.a_f2);
-    if (!(hmat > 0.0) || !(a_f2 > 0.0)) {
-      return std::numeric_limits<double>::quiet_NaN();
+    if (!(to_passive(pars.hmat) > 0.0) || !(to_passive(pars.a_f2) > 0.0)) {
+      return S(std::numeric_limits<double>::quiet_NaN());
     }
-    return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
+    return pars.hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / pars.a_f2);
   }
   S fraction_allocation_growth(const S& height) const;
   // Rate of offspring production
