@@ -317,3 +317,25 @@ SEXP census_clamp_counts(SEXP x, std::string model, bool differentiated = false)
     return clamp_counts_of(runner, differentiated);
   });
 }
+
+// The clamp sites, in the order the counts' columns are reported. Read from
+// the enum so a site cannot be counted under its neighbour's name.
+// [[Rcpp::export]]
+std::vector<std::string> census_clamp_names() {
+  std::vector<std::string> ret;
+  ret.reserve(plant::CLAMP_SITE_COUNT);
+  for (int i = 0; i < plant::CLAMP_SITE_COUNT; ++i) {
+    ret.push_back(plant::clamp_site_name(i));
+  }
+  return ret;
+}
+
+// Every tally the run reports, back to zero: a count carried in from an
+// earlier run of the same runner reads as this run's.
+// [[Rcpp::export]]
+void census_clear_diagnostics(SEXP x, std::string model) {
+  with_census_runner(x, model, [](auto& runner) {
+    runner.clear_diagnostics();
+    return R_NilValue;
+  });
+}

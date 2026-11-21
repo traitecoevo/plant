@@ -107,9 +107,12 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   # interval within a dry spell and the barrier holds it there, while the end
   # itself moves as the soil dries: the collar's rows are then the end's. The
   # stem curve (stem_P50) and the stem's conductance (K_s) move that end; lma
-  # does not. Each column agrees to 1e-5; held to 1e-4.
-  lifetime <- 10
-  p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
+  # does not. Each column agrees to 1e-5; held to 1e-4. Five years and twenty
+  # introductions reach the dry end as often as the full schedule does, at a
+  # quarter of its cost.
+  lifetime <- 5
+  p <- thin_node_schedule(
+    tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07), 20)
   env <- function() tf24f_dry_pulses(lifetime)
   solver <- run(p, env(), Control(), record = "states")$solver
   errors <- tf24f_gradient_errors(
@@ -128,8 +131,8 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   expect_equal(sum(swept[, "seed_position"]), 0)
   # No site fires on this stand on either path, so a zero here says only that
   # the tallies are shaped: one row per species, every site named on both.
-  expect_equal(dim(fired), c(1L, length(census_clamp_names_tf24())))
-  expect_equal(colnames(fired), census_clamp_names_tf24())
+  expect_equal(dim(fired), c(1L, length(census_clamp_names())))
+  expect_equal(colnames(fired), census_clamp_names())
   expect_equal(dimnames(swept), dimnames(fired))
 })
 

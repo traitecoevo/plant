@@ -13,6 +13,12 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The clamp counts, their site names and the diagnostics reset take the model's name, as the operating-point readers do, and the four `_tf24` readers are gone.** `census_clamp_counts_tf24()`, `census_clamp_counts_differentiated_tf24()` and `census_clear_diagnostics_tf24()` read and reset TF24's runs alone, while FF16 and TF24f report the same sites. `census_clamp_counts(x, model, differentiated = FALSE)` returns the species-by-site matrix with the sites as its column names, `census_clamp_names()` the sites in that order, and `census_clear_diagnostics(x, model)` resets every tally the run reports, for FF16 (its clamps and the environment's) as well as TF24 and TF24f. No number moves. Migration (internal, reached as `plant:::`):
+  * `census_clamp_counts_tf24(scm)[[1]]` -> `census_clamp_counts(scm, "TF24")[1, ]`, a row named by site; `"TF24f"` or `"FF16"` for their runs
+  * `census_clamp_counts_differentiated_tf24(scm)[[1]]` -> `census_clamp_counts(scm, "TF24", differentiated = TRUE)[1, ]`
+  * `census_clamp_names_tf24()` -> `census_clamp_names()`
+  * `census_clear_diagnostics_tf24(scm)` -> `census_clear_diagnostics(scm, "TF24")`
+
 * **`gradient_control()` lists `offspring_height_tol`, so a stand gradient records six `Control` entries where it recorded five.** The tolerance of a newborn's height moves every census model's trajectory, and gradients taken at different values were compared as if they were of one function. The list stays one for every model, and its documentation now says what is in it and why. No number moves. Migration:
   * a gradient saved before this change, passed to `stand_gradient_compare()` with one taken after -> refused as "different Control entries"; take both again, or add `offspring_height_tol` (the run's `Control` value) to the saved one's `control`
   * code indexing `gradient_control()` by position -> index it by name; the new entry is last

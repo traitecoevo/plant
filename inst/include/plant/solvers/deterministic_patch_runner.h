@@ -608,15 +608,23 @@ public:
   //
   // One call rather than five, because a caller wanting one of them before a run
   // wants all of them: a count carried in from an earlier run reads as this run's.
+  // A model that keeps no leaf tally or no operating-point tally (FF16) clears
+  // the tallies it has.
   void clear_diagnostics() {
     const patch_type& live = solver.get_system_ref();
     for (size_t i = 0; i < live.size(); ++i) {
-      std::vector<size_t>& c =
-        live.at_species(i).strategy_ptr()->operating_point_counts;
-      c.assign(c.size(), 0);
-      live.at_species(i).strategy_ptr()->clamps.clear();
-      live.at_species(i).strategy_ptr()->leaf.clear_clamp_counts();
-      *live.at_species(i).strategy_ptr()->curvature_margin = -1.0;
+      const auto s = live.at_species(i).strategy_ptr();
+      s->clamps.clear();
+      if constexpr (requires { s->operating_point_counts; }) {
+        std::vector<size_t>& c = s->operating_point_counts;
+        c.assign(c.size(), 0);
+      }
+      if constexpr (requires { s->leaf.clear_clamp_counts(); }) {
+        s->leaf.clear_clamp_counts();
+      }
+      if constexpr (requires { s->curvature_margin; }) {
+        *s->curvature_margin = -1.0;
+      }
     }
     for_each_environment_tally(live, [](clamp_counter& c) { c.clear(); });
   }
