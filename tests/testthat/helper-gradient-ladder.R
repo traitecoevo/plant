@@ -617,7 +617,7 @@ ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                  empty_events(), ctrl)
   # The tallies accumulate, so a stand starts its own count rather than the
   # count of whatever ran before it in this process.
-  census_clear_diagnostics_tf24(solver)
+  census_clear_diagnostics(solver, "TF24")
   solver$run()
   solver
 }

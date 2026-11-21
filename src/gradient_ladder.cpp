@@ -19,18 +19,13 @@
 // existing convention rather than a new concession.
 //
 // THE PREFIX PARTITIONS THEM, and that is worth keeping true. Of the
-// twenty-five entry points here, twenty are prefixed `ladder_` and are called
-// from `tests/testthat/` and nowhere else. The five spelled `census_` are the
-// ones `NEWS.md` publishes with migration lines, so the prefix says which of
-// them a rename would contradict a published note about. The operating-point
-// counts and the curvature margin serve every model that reports them, from
+// twenty-one entry points here, twenty are prefixed `ladder_` and are called
+// from `tests/testthat/` and nowhere else. The one spelled `census_` is
+// published in `NEWS.md` with migration lines, so the prefix says which of them
+// a rename would contradict a published note about. The run's diagnostics (the
+// operating-point counts, the curvature margin, the clamp counts on both paths
+// and their reset) serve every model that reports them, from
 // census_gradient.cpp.
-//
-// ONE OF THE FIVE IS HERE BECAUSE THE PUBLISHED HALF MISLEADS WITHOUT IT.
-// `census_clamp_counts_tf24` counts every solve the forward run made, and a
-// caller asking whether a GRADIENT carries a severance reads it and gets the
-// wrong answer -- the sweep visits the recorded steps and fewer of them, which
-// is what `census_clamp_counts_differentiated_tf24` reports.
 //
 // WHAT EARNS A PLACE HERE is a map read at a point, which the shipped answer
 // cannot report: `stand_gradient` returns one number per (metric, trait) over a
@@ -978,51 +973,4 @@ census_trait_gradient_split_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatch
     at.push_back(static_cast<size_t>(s - 1));
   }
   return census_gradient_to_r(obj_->census_trait_gradient(at));
-}
-
-// [[Rcpp::export]]
-void census_clear_diagnostics_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
-  obj_->clear_diagnostics();
-}
-
-// How often each counted clamp fired on the forward run, one row per species.
-// A clamp masking a smooth function severs a gradient row, and a severed row and
-// a true zero are the same number -- so the honest treatment is to count it.
-// [[Rcpp::export]]
-std::vector<std::vector<double>>
-census_clamp_counts_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
-  const std::vector<std::vector<size_t>> counts = obj_->clamp_counts();
-  std::vector<std::vector<double>> ret;
-  ret.reserve(counts.size());
-  for (const std::vector<size_t>& row : counts) {
-    ret.push_back(std::vector<double>(row.begin(), row.end()));
-  }
-  return ret;
-}
-
-// The same sites counted where the sweep runs. A clamp only severs a row on the
-// differentiated path, so this is the tally that says whether a gradient carries
-// a severance -- the forward one says only that the guard is reachable.
-// [[Rcpp::export]]
-std::vector<std::vector<double>>
-census_clamp_counts_differentiated_tf24(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_) {
-  const std::vector<std::vector<size_t>> counts = obj_->clamp_counts_differentiated();
-  std::vector<std::vector<double>> ret;
-  ret.reserve(counts.size());
-  for (const std::vector<size_t>& row : counts) {
-    ret.push_back(std::vector<double>(row.begin(), row.end()));
-  }
-  return ret;
-}
-
-// The clamp sites, in the order the counts are reported. Read from the enum so a
-// site cannot be counted under its neighbour's name.
-// [[Rcpp::export]]
-std::vector<std::string> census_clamp_names_tf24() {
-  std::vector<std::string> ret;
-  ret.reserve(plant::CLAMP_SITE_COUNT);
-  for (int i = 0; i < plant::CLAMP_SITE_COUNT; ++i) {
-    ret.push_back(plant::clamp_site_name(i));
-  }
-  return ret;
 }

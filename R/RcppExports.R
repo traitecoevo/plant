@@ -6561,6 +6561,14 @@ TF24_Environment__get_soil_number_of_depths <- function(obj_) {
     .Call('_plant_TF24_Environment__get_soil_number_of_depths', PACKAGE = 'plant', obj_)
 }
 
+TF24_Environment__recipe <- function(obj_) {
+    .Call('_plant_TF24_Environment__recipe', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__set_recipe <- function(obj_, recipe) {
+    invisible(.Call('_plant_TF24_Environment__set_recipe', PACKAGE = 'plant', obj_, recipe))
+}
+
 TF24_Environment__add_resource_pulse <- function(obj_, layer, amount) {
     .Call('_plant_TF24_Environment__add_resource_pulse', PACKAGE = 'plant', obj_, layer, amount)
 }
@@ -6757,6 +6765,14 @@ census_clamp_counts <- function(x, model, differentiated = FALSE) {
     .Call('_plant_census_clamp_counts', PACKAGE = 'plant', x, model, differentiated)
 }
 
+census_clamp_names <- function() {
+    .Call('_plant_census_clamp_names', PACKAGE = 'plant')
+}
+
+census_clear_diagnostics <- function(x, model) {
+    invisible(.Call('_plant_census_clear_diagnostics', PACKAGE = 'plant', x, model))
+}
+
 ladder_block_jacobian_forward_tf24 <- function(obj_, node) {
     .Call('_plant_ladder_block_jacobian_forward_tf24', PACKAGE = 'plant', obj_, node)
 }
@@ -6839,22 +6855,6 @@ ladder_census_trait_difference_tf24 <- function(obj_, rel) {
 
 census_trait_gradient_split_tf24 <- function(obj_, splits) {
     .Call('_plant_census_trait_gradient_split_tf24', PACKAGE = 'plant', obj_, splits)
-}
-
-census_clear_diagnostics_tf24 <- function(obj_) {
-    invisible(.Call('_plant_census_clear_diagnostics_tf24', PACKAGE = 'plant', obj_))
-}
-
-census_clamp_counts_tf24 <- function(obj_) {
-    .Call('_plant_census_clamp_counts_tf24', PACKAGE = 'plant', obj_)
-}
-
-census_clamp_counts_differentiated_tf24 <- function(obj_) {
-    .Call('_plant_census_clamp_counts_differentiated_tf24', PACKAGE = 'plant', obj_)
-}
-
-census_clamp_names_tf24 <- function() {
-    .Call('_plant_census_clamp_names_tf24', PACKAGE = 'plant')
 }
 
 schedule_default__Parameters___FF16__FF16_Env <- function(p) {

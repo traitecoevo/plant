@@ -57,7 +57,7 @@ parity_of <- function(solver) {
        # Read after the sweep, so it is the sweep's own severances and not the
        # forward run's -- the two differ, and the forward one cannot say whether
        # a gradient carries a declared zero.
-       clamp = census_clamp_counts_differentiated_tf24(solver)[[1]],
+       clamp = census_clamp_counts(solver, "TF24", differentiated = TRUE)[1, ],
        kinds = counts[counts > 0],
        records = length(rec),
        unrowed_records = sum(unrowed > 0),
@@ -222,7 +222,7 @@ test_that("no driver's gradient crosses a clamp", {
   # incidence file's dry-start stand, whose sweep does cross one.
   by_name <- stats::setNames(parity_shared(), vapply(parity_shared(),
                                                      function(r) r$name, ""))
-  nm <- census_clamp_names_tf24()
+  nm <- census_clamp_names()
   for (d in names(by_name)) {
     c_d <- by_name[[d]]$clamp
     expect_length(c_d, length(nm))

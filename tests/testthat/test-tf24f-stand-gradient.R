@@ -107,29 +107,40 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
   # interval within a dry spell and the barrier holds it there, while the end
   # itself moves as the soil dries: the collar's rows are then the end's. The
   # stem curve (stem_P50) and the stem's conductance (K_s) move that end; lma
-  # does not. Each column agrees to 1e-5; held to 1e-4.
-  lifetime <- 10
-  p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
+  # does not. Held to 1e-4. Five years and twenty introductions reach the dry
+  # end as often as the full schedule does.
+  lifetime <- 5
+  p <- thin_node_schedule(
+    tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07), 20)
   env <- function() tf24f_dry_pulses(lifetime)
   solver <- run(p, env(), Control(), record = "states")$solver
+  # The stand does reach the dry end: past z = 6 the position puts the collar
+  # within 0.25% of the interval's width of its dry end, where the barrier
+  # holds it. Read off every cohort in every recorded state.
+  node <- solver$patch$species[[1]]$new_node
+  at <- match("collar_position", node$ode_names)
+  z <- unlist(lapply(solver$store_recording(), function(r) {
+    r$state[at + node$ode_size * (seq_len(length(r$state) %/% node$ode_size) - 1)]
+  }))
+  expect_gt(mean(z > 6), 0.1)
   errors <- tf24f_gradient_errors(
     p, env, "1.offspring_production", c("lma", "stem_P50", "K_s", "k_acclim"),
     solver = solver)
   expect_lt(max(errors), 1e-4)
 
   # A newborn is seated at its optimum's place in the interval, held to
-  # [0, 1], and where it is held the seat has no rows. Here about a quarter of
-  # the newborns' optima sit exactly on an end, which is inside, and none
-  # outside: the hold never binds, on the run or on the sweep. Counted, so that
-  # a zero row from it would read as one.
+  # [0, 1], and where it is held the seat has no rows. Here no newborn's
+  # optimum sits outside the interval (one exactly on an end is inside), so
+  # the hold never binds, on the run or on the sweep. Counted, so that a zero
+  # row from it would read as one.
   fired <- census_clamp_counts(solver, "TF24f")
   swept <- census_clamp_counts(solver, "TF24f", differentiated = TRUE)
   expect_equal(sum(fired[, "seed_position"]), 0)
   expect_equal(sum(swept[, "seed_position"]), 0)
   # No site fires on this stand on either path, so a zero here says only that
   # the tallies are shaped: one row per species, every site named on both.
-  expect_equal(dim(fired), c(1L, length(census_clamp_names_tf24())))
-  expect_equal(colnames(fired), census_clamp_names_tf24())
+  expect_equal(dim(fired), c(1L, length(census_clamp_names())))
+  expect_equal(colnames(fired), census_clamp_names())
   expect_equal(dimnames(swept), dimnames(fired))
 })
 

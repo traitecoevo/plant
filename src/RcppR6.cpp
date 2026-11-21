@@ -7467,6 +7467,14 @@ int TF24_Environment__get_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF2
   return obj_->get_soil_number_of_depths();
 }
 // [[Rcpp::export]]
+Rcpp::List TF24_Environment__recipe(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->recipe();
+}
+// [[Rcpp::export]]
+void TF24_Environment__set_recipe(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, Rcpp::List recipe) {
+  obj_->set_recipe(recipe);
+}
+// [[Rcpp::export]]
 std::vector<double> TF24_Environment__add_resource_pulse(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, plant::util::index layer, double amount) {
   return obj_->r_add_resource_pulse(layer, amount);
 }

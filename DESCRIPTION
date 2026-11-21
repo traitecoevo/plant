@@ -19,7 +19,7 @@ Depends:
     R (>= 4.5.0)
 Encoding: UTF-8
 License: AGPL (>= 3)
-LinkingTo: Rcpp, BH, odelia (== 0.11.3), phylloptim (== 0.40.0)
+LinkingTo: Rcpp, BH, odelia (== 0.11.3), phylloptim (== 0.40.2)
 Imports:
     Rcpp,
     R6,
@@ -48,13 +48,14 @@ Suggests:
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia@v0.11.3,
-    traitecoevo/phylloptim@1a81484c
+    traitecoevo/phylloptim@0d592ff6
 URL: https://traitecoevo.github.io/plant/, https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: model-ff16, deterministic-patch-runner, model-tf24, gradient-incidence,
-    gradient-ladder-factorisation, tf24-water-budget, stand-gradient-hyperpar,
-    model-tf24t, sample-size-distribution, tf24-fitness-gradient, model-tf24f
+Config/testthat/start-first: absorb, tf24f-stand-gradient, tf24-water-budget, model-tf24f,
+    deterministic-patch-runner, model-tf24, gradient-ladder-factorisation, model-tf24t,
+    density-coordinate, stand-gradient-hyperpar, gradient-incidence, tf24-fitness-gradient,
+    sample-size-distribution
 RoxygenNote: 7.3.3
