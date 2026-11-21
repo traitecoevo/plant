@@ -7,6 +7,7 @@ test_that("Defaults", {
     node_gradient_richardson_depth = 4, # size_t, so not int
     node_density_coordinate = "auto",
     absorb_epsilon = 0.0,
+    cohort_high_order = FALSE,
 
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,

@@ -348,6 +348,10 @@ public:
   // * R interface
   strategy_type r_get_strategy() const { return *strategy.get(); }
 
+  // The internal state at its own scalar, for a caller that evaluates the model
+  // at a state of its own: Species::crossing_interval sets a height on a copy.
+  const Internals<value_type>& internals() const { return vars; }
+
   // ! External R code depends on knowing r internals for like growing plant to
   // ! height or something
   // R takes a double, so the store is read out at its values.

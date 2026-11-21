@@ -688,6 +688,19 @@ private:
   // birth-date coordinate alone: on the height coordinate the transport term
   // can raise it. Refused at construction, where the control is first seen.
   void check_retirement_coordinate() const {
+    // The high-order cohort rules are written for the height coordinate's
+    // ordered heights, and neither the top layer nor the census reductions take
+    // them yet.
+    if (control.cohort_high_order) {
+      if (density_in_birth_date()) {
+        util::stop("control$cohort_high_order needs the height size-density "
+                   "coordinate (control$node_density_coordinate = \"height\")");
+      }
+      if (control.absorb_epsilon > 0.0) {
+        util::stop("control$cohort_high_order cannot be combined with the "
+                   "absorbing top layer (control$absorb_epsilon)");
+      }
+    }
     // A negative or NaN epsilon would read as "off" below, silently.
     if (!(control.absorb_epsilon >= 0.0)) {
       util::stop("control$absorb_epsilon must be zero (off) or in (0, 0.5)");
@@ -1206,8 +1219,10 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     }
     // The seed output of cohorts absorbed into the top layer after they were
     // absorbed: what they accrued before is still on their nodes.
-    return util::trapezium(times, net_prod_scaled) +
-      species[species_index].top_seeds(birth_scaled);
+    const value_type integral = control.cohort_high_order
+      ? util::simpson(times, net_prod_scaled)
+      : util::trapezium(times, net_prod_scaled);
+    return integral + species[species_index].top_seeds(birth_scaled);
   }
   // An arrival weighting is the weighted mean of lifetime output over the
   // cohorts the window weights, taken by the trapezium over THOSE cohorts
@@ -1248,6 +1263,9 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
   // was weighted by whatever regime absorbed it -- a burn-in run without the
   // window stamps every cohort one -- and counted here it would score the
   // burn-in's stand as the window's.
+  if (control.cohort_high_order) {
+    return util::simpson(t, num) / util::simpson(t, den);
+  }
   return util::trapezium(t, num) / util::trapezium(t, den);
 }
 

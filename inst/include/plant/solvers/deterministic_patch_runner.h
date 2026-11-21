@@ -341,7 +341,19 @@ public:
     }
   }
 
+  // The census reductions and their reverse sweeps take the trapezium over the
+  // cohorts, so with the high-order rules on they would integrate a different
+  // rule from the run they report on.
+  void require_trapezium_cohorts(const char* entry) const {
+    if (control.cohort_high_order) {
+      util::stop(std::string(entry) + ": the census and its gradients take the "
+                 "trapezium over the cohorts, and control$cohort_high_order is on. "
+                 "Set it to FALSE and re-run.");
+    }
+  }
+
   void require_birth_date_coordinate(const char* entry) const {
+    require_trapezium_cohorts(entry);
     // A private root-zone column couples cohorts through the patch -- the
     // mixing and land-transfer terms of Patch::private_water_exchange -- outside
     // the per-cohort block the recording describes, so its gradient would be a
@@ -1435,6 +1447,7 @@ Rcpp::List DeterministicPatchRunner<T, E>::r_store_recording() {
 
 template <typename T, typename E>
 std::vector<double> DeterministicPatchRunner<T, E>::census() const {
+  require_trapezium_cohorts("census");
   const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<double> ret;
   ret.reserve(metrics.size());

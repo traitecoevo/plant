@@ -90,6 +90,16 @@ struct Control {
   // coordinate only, and only for a strategy that declares an asymptotic height.
   double absorb_epsilon;
 
+  // The rules for the two integrals over the cohorts. False (the default) takes
+  // the trapezium for both. True takes product integration for the competition
+  // field -- the density interpolated between cohorts, times the leaf area above
+  // the height, integrated from that height (Species::product_reduce) -- and
+  // Simpson's rule for lifetime fitness. Opt-in while it is being evaluated:
+  // height coordinate only, no absorbing top layer, and no census or gradient,
+  // whose reductions still take the trapezium. The deterministic solver only:
+  // the stochastic one sums individuals and has no cohort integrals.
+  bool cohort_high_order;
+
   double ode_step_size_initial;
   double ode_step_size_min;
   double ode_step_size_max;

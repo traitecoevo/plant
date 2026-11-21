@@ -140,6 +140,12 @@ double trapezium(const std::vector<double>& x,
 }
 
 // [[Rcpp::export]]
+double simpson(const std::vector<double>& x,
+               const std::vector<double>& y) {
+  return plant::util::simpson(x, y);
+}
+
+// [[Rcpp::export]]
 std::vector<double> trapezium_vector(const std::vector<double>& x,
                                      const std::vector<double>& y) {
   return plant::util::trapezium_vector(x, y);

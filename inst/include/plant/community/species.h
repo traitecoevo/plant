@@ -519,6 +519,50 @@ private:
   }
   competition_split compute_competition_and_slope_split(const value_type& height) const;
 
+  // Whether the cohort integrals take the high-order rules
+  // (control$cohort_high_order): product integration for the competition field,
+  // Simpson for lifetime fitness.
+  bool high_order_on() const { return control().cohort_high_order; }
+
+  // The competition field by product integration. A cohort of height H adds leaf
+  // area above z only once H > z, and from zero there, so the integrand
+  // n(H) A(z; H) has a kink at H = z that no rule on the products n_k A(z; H_k)
+  // resolves. Instead the density alone is interpolated between cohorts, where
+  // it is smooth, and multiplied by the leaf area above z, which the model gives
+  // exactly at any height; each interval is integrated from max(z, its lower
+  // cohort) by 3-point Gauss-Legendre. As a cohort's height crosses z its
+  // interval shrinks to nothing, so the field is continuous in the state and the
+  // stepper sees no jump. Height coordinate, heights decreasing: Patch refuses
+  // the birth-date coordinate with the rule on.
+  competition_split product_reduce(const value_type& height) const;
+  // The cohorts' heights (tallest first) and densities in height, which the
+  // interpolant reads.
+  void product_grid(std::vector<double>& h, std::vector<value_type>& n) const;
+  // The density on interval i (between cohorts i and i + 1) at height hq: the
+  // log density quadratic through the pair of intervals holding it (pairs taken
+  // from the tallest; a trailing interval uses the last three cohorts), held
+  // within the interval's two end values so it cannot overshoot. Linear in the
+  // density where a cohort of the three carries none: its log is a sentinel, and
+  // a quadratic through it would reach far above the others.
+  static value_type interval_density(const std::vector<double>& h,
+                                     const std::vector<value_type>& n,
+                                     std::size_t i, double hq);
+  // The integral over [lo, h[i]] of interval_density() times the leaf area above
+  // `height`, from the model at `scratch` with its height set. Not doubled.
+  with_slope<value_type> product_interval(const std::vector<double>& h,
+                                          const std::vector<value_type>& n,
+                                          std::size_t i, double lo,
+                                          const value_type& height,
+                                          Internals<value_type>& scratch) const;
+  // The doubled split from the sum over intervals above cohort m and the
+  // interval below it: what product_reduce() and the field build both return.
+  competition_split product_close_split(with_slope<value_type> sum,
+                                        std::size_t m,
+                                        const std::vector<double>& h,
+                                        const std::vector<value_type>& n,
+                                        const value_type& height,
+                                        Internals<value_type>& scratch) const;
+
   // Cache for scan_heights(). ⚠️ EVERY PATH THAT CAN CHANGE A NODE HEIGHT MUST
   // CALL invalidate_height_scan(): a stale cache here reports the wrong ordering
   // and so the wrong competition profile, with nothing raised. Check the coverage
@@ -986,6 +1030,68 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
   };
   moments weight, weight_slope;
 
+  if (high_order_on()) {
+    // product_reduce() at every height, in the prefix form. An interval wholly
+    // above a height contributes the density-weighted leaf area above it, which
+    // separates as for the trapezium: the Gauss-Legendre samples of each
+    // interval are taken once for the whole height set, as moments, and a height
+    // reads the prefix over the intervals above its last reaching cohort m. Only
+    // the interval it cuts is evaluated per height.
+    if (birth_date) {
+      util::stop("control$cohort_high_order needs the height coordinate");
+    }
+    std::vector<double> h;
+    std::vector<value_type> dens;
+    product_grid(h, dens);
+    Internals<value_type> scratch = nodes[0].individual.internals();
+    std::vector<moments> pre(n);
+    for (std::size_t j = 0; j < n_moments; ++j) {
+      pre[0][j] = value_type(0.0);
+    }
+    moments mq;
+    for (std::size_t i = 0; i + 1 < n; ++i) {
+      pre[i + 1] = pre[i];
+      const double up = h[i], lo = h[i + 1];
+      if (!(up > lo)) {
+        continue;
+      }
+      const double half = (up - lo) / 2, mid = (up + lo) / 2;
+      for (std::size_t q = 0; q < 3; ++q) {
+        const double hq = half * util::gauss_legendre_3_x[q] + mid;
+        const value_type w = half * util::gauss_legendre_3_w[q] *
+                             interval_density(h, dens, i, hq);
+        scratch.set_state(HEIGHT_INDEX, value_type(hq));
+        strategy->update_dependent_aux(HEIGHT_INDEX, scratch);
+        const value_type sq =
+          w * strategy->compute_competition(value_type(0.0), scratch);
+        strategy->canopy_shape.crown_moments(value_type(1.0 / hq), mq);
+        for (std::size_t j = 0; j < n_moments; ++j) {
+          pre[i + 1][j] += sq * mq[j];
+        }
+      }
+    }
+    std::size_t crossing = n;
+    for (std::size_t k = 0; k < heights.size(); ++k) {
+      const value_type& height = heights[k];
+      if (scan.h_max < height) {
+        continue;  // no node reaches it; the empty split stands
+      }
+      while (crossing > 0 && nodes[crossing - 1].height() < height) {
+        --crossing;
+      }
+      const std::size_t m = crossing - 1;
+      strategy->canopy_shape.height_weights_and_slopes(height, weight,
+                                                       weight_slope);
+      with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
+      for (std::size_t j = 0; j < n_moments; ++j) {
+        sum.value += weight[j] * pre[m][j];
+        sum.slope += weight_slope[j] * pre[m][j];
+      }
+      out[k] = product_close_split(std::move(sum), m, h, dens, height, scratch);
+    }
+    return;
+  }
+
   if (!scan.decreasing) {
     // Crossed crowns on the birth-date coordinate, which TF24's reserve-gated
     // growth allows. The widths are in birth date and the heights do not move
@@ -1210,12 +1316,153 @@ Species<T,E>::compute_competition_and_slope_split(const value_type& height) cons
   if (size() == 0 || scan.h_max < height) {
     return competition_split();
   }
+  if (high_order_on()) {
+    return product_reduce(height);
+  }
   // Introduction times ascend by construction; -height ascends only while the
   // heights fall, and TF24's reserve-gated growth lets two cohorts cross.
   if (density_in_birth_date() || scan.decreasing) {
     return reduce_competition(height, {});
   }
   return reduce_competition(height, ascending_by_abscissa());
+}
+
+template <typename T, typename E>
+void Species<T,E>::product_grid(std::vector<double>& h,
+                                std::vector<value_type>& n) const {
+  h.resize(size());
+  n.resize(size());
+  for (std::size_t i = 0; i < size(); ++i) {
+    h[i] = odelia::util::to_passive(nodes[i].height());
+    n[i] = nodes[i].get_density();
+  }
+}
+
+template <typename T, typename E>
+typename Species<T,E>::value_type
+Species<T,E>::interval_density(const std::vector<double>& h,
+                               const std::vector<value_type>& n,
+                               std::size_t i, double hq) {
+  using std::exp;
+  using std::log;
+  const double t = (hq - h[i + 1]) / (h[i] - h[i + 1]);
+  const value_type linear = n[i + 1] + (n[i] - n[i + 1]) * t;
+  const std::size_t N = h.size();
+  if (N < 3) {
+    return linear;
+  }
+  std::size_t a = 2 * (i / 2);
+  if (a + 2 >= N) {
+    a = N - 3;
+  }
+  const double x0 = h[a], x1 = h[a + 1], x2 = h[a + 2];
+  if (!(n[a] > 0.0) || !(n[a + 1] > 0.0) || !(n[a + 2] > 0.0) ||
+      !(x0 > x1) || !(x1 > x2)) {
+    return linear;
+  }
+  const double b0 = (hq - x1) * (hq - x2) / ((x0 - x1) * (x0 - x2));
+  const double b1 = (hq - x0) * (hq - x2) / ((x1 - x0) * (x1 - x2));
+  const double b2 = (hq - x0) * (hq - x1) / ((x2 - x0) * (x2 - x1));
+  value_type l = b0 * log(n[a]) + b1 * log(n[a + 1]) + b2 * log(n[a + 2]);
+  const value_type lu = log(n[i]), ll = log(n[i + 1]);
+  const value_type& lo = ll < lu ? ll : lu;
+  const value_type& hi = ll < lu ? lu : ll;
+  if (l < lo) {
+    l = lo;
+  } else if (l > hi) {
+    l = hi;
+  }
+  return exp(l);
+}
+
+template <typename T, typename E>
+with_slope<typename Species<T,E>::value_type>
+Species<T,E>::product_interval(const std::vector<double>& h,
+                               const std::vector<value_type>& n,
+                               std::size_t i, double lo,
+                               const value_type& height,
+                               Internals<value_type>& scratch) const {
+  with_slope<value_type> ret{value_type(0.0), value_type(0.0)};
+  const double up = h[i];
+  if (!(up > lo)) {
+    return ret;
+  }
+  const double half = (up - lo) / 2, mid = (up + lo) / 2;
+  for (std::size_t q = 0; q < 3; ++q) {
+    const double hq = half * util::gauss_legendre_3_x[q] + mid;
+    const value_type w = half * util::gauss_legendre_3_w[q] *
+                         interval_density(h, n, i, hq);
+    scratch.set_state(HEIGHT_INDEX, value_type(hq));
+    strategy->update_dependent_aux(HEIGHT_INDEX, scratch);
+    const with_slope<value_type> a =
+      strategy->compute_competition_and_slope(height, scratch);
+    ret.value += w * a.value;
+    ret.slope += w * a.slope;
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+typename Species<T,E>::competition_split
+Species<T,E>::product_reduce(const value_type& height) const {
+  if (density_in_birth_date() || !scan_heights().decreasing) {
+    util::stop("control$cohort_high_order needs the height coordinate, with "
+               "the cohorts' heights in birth order");
+  }
+  std::vector<double> h;
+  std::vector<value_type> n;
+  product_grid(h, n);
+  const std::size_t N = size();
+  // The last cohort that reaches the height. The tallest does: the caller
+  // returned early where none does.
+  std::size_t m = 0;
+  while (m + 1 < N && !(nodes[m + 1].height() < height)) {
+    ++m;
+  }
+  Internals<value_type> scratch = nodes[0].individual.internals();
+  with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
+  for (std::size_t i = 0; i < m; ++i) {
+    const with_slope<value_type> f =
+      product_interval(h, n, i, h[i + 1], height, scratch);
+    sum.value += f.value;
+    sum.slope += f.slope;
+  }
+  return product_close_split(std::move(sum), m, h, n, height, scratch);
+}
+
+template <typename T, typename E>
+typename Species<T,E>::competition_split
+Species<T,E>::product_close_split(with_slope<value_type> sum, std::size_t m,
+                                  const std::vector<double>& h,
+                                  const std::vector<value_type>& n,
+                                  const value_type& height,
+                                  Internals<value_type>& scratch) const {
+  competition_split c;
+  c.x1 = abscissa_of(nodes[m], false);
+  c.at_x1 = nodes[m].compute_competition_and_slope(height);
+  if (!util::is_finite(c.at_x1.value) || !util::is_finite(c.at_x1.slope)) [[unlikely]] {
+    stop_non_finite_contribution(nodes[m], m, size(),
+                                 odelia::util::to_passive(height),
+                                 odelia::util::to_passive(c.at_x1.value),
+                                 odelia::util::to_passive(c.at_x1.slope));
+  }
+  if (m + 1 < size()) {
+    // The interval the height cuts, from the height itself.
+    const with_slope<value_type> cut = product_interval(
+      h, n, m, odelia::util::to_passive(height), height, scratch);
+    sum.value += cut.value;
+    sum.slope += cut.slope;
+    // Every cohort below contributes nothing, so neither does the boundary.
+    c.closes = false;
+  } else {
+    // Every cohort reaches the height: the closing interval to the boundary
+    // cohort stays a trapezium. It spans one introduction step, and it goes to
+    // zero with the youngest cohort's contribution, so the field stays
+    // continuous.
+    c.closes = closes_on(c.at_x1.value);
+  }
+  c.sum = {2.0 * sum.value, 2.0 * sum.slope};
+  return c;
 }
 
 template <typename T, typename E>

@@ -19687,6 +19687,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// simpson
+double simpson(const std::vector<double>& x, const std::vector<double>& y);
+RcppExport SEXP _plant_simpson(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(simpson(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // trapezium_vector
 std::vector<double> trapezium_vector(const std::vector<double>& x, const std::vector<double>& y);
 RcppExport SEXP _plant_trapezium_vector(SEXP xSEXP, SEXP ySEXP) {
@@ -21477,6 +21489,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
     {"_plant_test_light_field_floor", (DL_FUNC) &_plant_test_light_field_floor, 2},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
+    {"_plant_simpson", (DL_FUNC) &_plant_simpson, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},
     {"_plant_matrix_to_list", (DL_FUNC) &_plant_matrix_to_list, 1},

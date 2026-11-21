@@ -5,6 +5,7 @@
 #include <stddef.h> // size_t
 #include <RcppCommon.h> // as/wrap/SEXP
 #include <R_ext/Arith.h> // NA_REAL etc. (kept; widely relied on transitively)
+#include <array> // simpson weights
 #include <cmath> // std::isfinite
 #include <concepts> // std::integral, std::floating_point
 #include <iterator> // std::iterator_traits
@@ -181,6 +182,65 @@ typename ContainerY::value_type trapezium(const ContainerX& x,
     tot += (*x1++ - *x0++) * (*y1++ + *y0++);
   }
   return tot * 0.5;
+}
+
+// 3-point Gauss-Legendre on [-1, 1].
+inline constexpr double gauss_legendre_3_x[3] = {-0.7745966692414834, 0.0,
+                                                 0.7745966692414834};
+inline constexpr double gauss_legendre_3_w[3] = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
+
+// Simpson's rule on a non-uniform grid, as three weights on (y0, y1, y2): the
+// parabola through (x0, x1, x2) integrated over [x0, x2]. Where either interval
+// has zero width the parabola does not exist, and the weights are the
+// trapezium's on the two intervals.
+inline std::array<double, 3> simpson_pair_weights(double x0, double x1, double x2) {
+  const double h0 = x1 - x0, h1 = x2 - x1;
+  if (!(h0 > 0.0) || !(h1 > 0.0)) {
+    return {h0 / 2, (h0 + h1) / 2, h1 / 2};
+  }
+  const double s = (h0 + h1) / 6;
+  return {s * (2 - h1 / h0), s * (h0 + h1) * (h0 + h1) / (h0 * h1),
+          s * (2 - h0 / h1)};
+}
+
+// The same parabola integrated over [x1, x2] alone: the last interval of a grid
+// with an odd number of intervals.
+inline std::array<double, 3> simpson_end_weights(double x0, double x1, double x2) {
+  const double h0 = x1 - x0, h1 = x2 - x1;
+  if (!(h0 > 0.0) || !(h1 > 0.0)) {
+    return {0.0, h1 / 2, h1 / 2};
+  }
+  return {-h1 * h1 * h1 / (6 * h0 * (h0 + h1)), h1 / 6 * (3 + h1 / h0),
+          h1 * (2 * h1 + 3 * h0) / (6 * (h0 + h1))};
+}
+
+// Composite Simpson on a non-uniform grid: parabolas over consecutive pairs of
+// intervals from the first point, and the last interval of an odd count by
+// simpson_end_weights. Exact for quadratics. Two points take the trapezium.
+template <typename ContainerX, typename ContainerY>
+typename ContainerY::value_type simpson(const ContainerX& x,
+                                        const ContainerY& y) {
+  util::check_length(y.size(), x.size());
+  const size_t n = x.size();
+  if (n < 2) {
+    util::stop("Need at least two points for Simpson's rule");
+  }
+  typename ContainerY::value_type tot = 0.0;
+  if (n == 2) {
+    tot += (x[1] - x[0]) * (y[0] + y[1]) * 0.5;
+    return tot;
+  }
+  size_t i = 0;
+  for (; i + 2 < n; i += 2) {
+    const std::array<double, 3> w = simpson_pair_weights(x[i], x[i + 1], x[i + 2]);
+    tot += w[0] * y[i] + w[1] * y[i + 1] + w[2] * y[i + 2];
+  }
+  if (i + 1 < n) {
+    const std::array<double, 3> w =
+      simpson_end_weights(x[n - 3], x[n - 2], x[n - 1]);
+    tot += w[0] * y[n - 3] + w[1] * y[n - 2] + w[2] * y[n - 1];
+  }
+  return tot;
 }
 
 template <typename ContainerX, typename ContainerY>

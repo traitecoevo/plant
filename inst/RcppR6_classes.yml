@@ -430,6 +430,7 @@ Control:
     - node_gradient_richardson_depth: size_t
     - node_density_coordinate: std::string
     - absorb_epsilon: double
+    - cohort_high_order: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double

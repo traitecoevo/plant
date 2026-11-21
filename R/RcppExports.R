@@ -7032,6 +7032,10 @@ trapezium <- function(x, y) {
     .Call('_plant_trapezium', PACKAGE = 'plant', x, y)
 }
 
+simpson <- function(x, y) {
+    .Call('_plant_simpson', PACKAGE = 'plant', x, y)
+}
+
 trapezium_vector <- function(x, y) {
     .Call('_plant_trapezium_vector', PACKAGE = 'plant', x, y)
 }

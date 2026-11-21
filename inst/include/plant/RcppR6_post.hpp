@@ -536,6 +536,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["node_gradient_richardson_depth"] = Rcpp::wrap(x.node_gradient_richardson_depth);
   ret["node_density_coordinate"] = Rcpp::wrap(x.node_density_coordinate);
   ret["absorb_epsilon"] = Rcpp::wrap(x.absorb_epsilon);
+  ret["cohort_high_order"] = Rcpp::wrap(x.cohort_high_order);
   ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
   ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
@@ -590,6 +591,8 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("node_density_coordinate")) ret.node_density_coordinate = Rcpp::as<std::string >(xl["node_density_coordinate"]);
   // ret.absorb_epsilon = Rcpp::as<decltype(retabsorb_epsilon) >(xl["absorb_epsilon"]);
   if (xl.containsElementNamed("absorb_epsilon")) ret.absorb_epsilon = Rcpp::as<double >(xl["absorb_epsilon"]);
+  // ret.cohort_high_order = Rcpp::as<decltype(retcohort_high_order) >(xl["cohort_high_order"]);
+  if (xl.containsElementNamed("cohort_high_order")) ret.cohort_high_order = Rcpp::as<bool >(xl["cohort_high_order"]);
   // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
   if (xl.containsElementNamed("ode_step_size_initial")) ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
   // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);
