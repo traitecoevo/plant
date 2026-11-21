@@ -2026,6 +2026,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars<double>& x) {
   ret["alpha_NIR"] = Rcpp::wrap(x.alpha_NIR);
   ret["L_crown"] = Rcpp::wrap(x.L_crown);
   ret["g_min"] = Rcpp::wrap(x.g_min);
+  ret["use_stem_gravity"] = Rcpp::wrap(x.use_stem_gravity);
   ret.attr("class") = "TF24_Pars";
   return ret;
 }
@@ -2182,6 +2183,8 @@ template <> inline plant::TF24_Pars<double> as(SEXP x) {
   ret.L_crown = Rcpp::as<double >(xl["L_crown"]);
   // ret.g_min = Rcpp::as<decltype(retg_min) >(xl["g_min"]);
   ret.g_min = Rcpp::as<double >(xl["g_min"]);
+  // ret.use_stem_gravity = Rcpp::as<decltype(retuse_stem_gravity) >(xl["use_stem_gravity"]);
+  ret.use_stem_gravity = Rcpp::as<double >(xl["use_stem_gravity"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::TF24_Model<double>& x) {
