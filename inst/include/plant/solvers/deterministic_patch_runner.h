@@ -791,8 +791,11 @@ private:
   // taken in, kept from the first invasion until the next run(). Shared with
   // every patch that reads it, which keeps it alive however long they outlive it.
   std::shared_ptr<const std::vector<field_row>> invaded_run;
-  // Its harvests and extremes, which its invaders meet too.
+  // Its actions, which its invaders meet too.
   std::vector<ScheduleEvent> invaded_actions;
+  // Whether it resumed from a stand, which gives its first cohort a cell its
+  // invaders' first cohorts cannot have.
+  bool invaded_run_resumed = false;
   // The stepper reads the patch's scales only through this concept, so a
   // signature that drifted from it would leave every run unscaled, silently.
   static_assert(odelia::ode::ScalesTolerances<patch_type>);
@@ -881,6 +884,7 @@ template <typename T, typename E> void DeterministicPatchRunner<T, E>::run() {
     patch.read_fields_of(nullptr);
     invaded_run.reset();
     invaded_actions.clear();
+    invaded_run_resumed = false;
     schedule = make_schedule(parameters);
   }
   run_schedule();
@@ -1156,8 +1160,13 @@ void DeterministicPatchRunner<T, E>::run_mutant(parameters_type p) {
       run_schedule();
       keep_states = kept;
     }
+    // Every action of the residents' run, pulses included. A pulse moves only
+    // the environment, which an invader reads from the recording, but the
+    // residents' run stopped there and re-rated in the post-pulse field. An
+    // invader that stepped through would start its next step from rates taken
+    // in the pre-pulse field.
     for (const auto& e : schedule.get_events()) {
-      if (e.type != EventType::Harvest && e.type != EventType::ClimateExtreme) {
+      if (e.type == EventType::NodeIntroduction) {
         continue;
       }
       if (e.target == EventTarget::Species) {
@@ -1186,6 +1195,31 @@ void DeterministicPatchRunner<T, E>::run_mutant(parameters_type p) {
     }
     invaded_run =
         std::make_shared<const std::vector<field_row>>(std::move(rows));
+    invaded_run_resumed = std::any_of(
+        parameters.n_initial_cohorts.begin(), parameters.n_initial_cohorts.end(),
+        [](size_t n) { return n > 0; });
+  }
+  // On the birth-date coordinate a cohort's density carries establishment
+  // averaged over its cell, and the cell of the residents' first cohort after a
+  // resume reaches back over the interval before it, which their export
+  // carries. An invader's run starts at the resume, so its first cohort has
+  // half that cell. Its output then differs from a resident's of the same
+  // traits, by 20% under rain pulses, where establishment is close to a switch.
+  // A window that gives that cohort weight would score the difference.
+  if (invaded_run_resumed && p.disturbance != nullptr &&
+      p.disturbance->is_arrival_weighting() &&
+      plant::density_in_birth_date(control, T::density_in_birth_date_default)) {
+    const double t0 = invaded_run->front().time;
+    for (const auto& times : p.node_schedule_times) {
+      if (!times.empty() && util::identical(times.front(), t0) &&
+          p.disturbance->density(t0) > 0.0) {
+        util::stop("run_mutant: the invaders' first cohort is born at the "
+                   "resume time t = " + util::to_string(t0) + " and the window "
+                   "weights it, but its establishment cannot include the "
+                   "interval before the resume, as the residents' does. Open "
+                   "the window after the first introduction, or resume earlier");
+      }
+    }
   }
   if (!util::identical(p.initial_time, invaded_run->front().time)) {
     util::stop("run_mutant: the residents' run starts at t = " +
