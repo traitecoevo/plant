@@ -72,8 +72,8 @@ jobs:
       fail-fast: false
       matrix:
         # The dependency step is cache-sensitive: odelia, phylloptim and RcppR6
-        # are GitHub remotes with no binaries, so they build from source on a
-        # cold cache (a fresh branch or a dependency bump). Do not rank Linux
+        # are GitHub remotes with no binaries, so they build from source when
+        # the cached library predates a pin bump. Do not rank Linux
         # against macOS from single runs; macOS's check step varies by ~150 s on
         # unchanged code. Windows is the only leg tight enough to A/B on.
         config: ${{ fromJSON(needs.platforms.outputs.config) }}
@@ -88,6 +88,12 @@ jobs:
       # "Starting N test processes" line in the log to confirm this takes effect
       # rather than assuming it did.
       TESTTHAT_CPUS: 4
+      # Nothing else sets MAKEFLAGS, so without it R compiles plant, odelia and
+      # phylloptim one translation unit at a time. Four of plant's units take
+      # most of the compile, so -j4 roughly quarters a cold build. Each of
+      # those four peaks near 3 GB under clang; the macOS runner has 7 GB and
+      # 3 cores, the others 16 GB and 4.
+      MAKEFLAGS: ${{ matrix.config.os == 'macOS-latest' && '-j2' || '-j4' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -95,25 +101,58 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2
+        id: setup-r
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      # The package library is cached here rather than by setup-r-dependencies,
+      # so that only pushes save it. When a PR saved its own, GitHub restored
+      # that PR's copy ahead of develop's newer one, so every open PR rebuilt
+      # odelia and phylloptim after each pin bump, and the PR copies pushed the
+      # repository past its cache quota, evicting develop's. A PR now restores
+      # develop's library and leaves nothing behind.
+      - name: Restore the package library
+        id: library-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            ${{ env.R_LIBS_USER }}/*
+            !${{ env.R_LIBS_USER }}/pak
+            !${{ env.R_LIBS_USER }}/_cache
+          key: library-${{ runner.os }}-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('DESCRIPTION') }}
+          restore-keys: library-${{ runner.os }}-${{ steps.setup-r.outputs.installed-r-version }}-
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
+          cache: false
+
+      - name: Save the package library
+        if: github.event_name == 'push' && steps.library-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            ${{ env.R_LIBS_USER }}/*
+            !${{ env.R_LIBS_USER }}/pak
+            !${{ env.R_LIBS_USER }}/_cache
+          key: ${{ steps.library-cache.outputs.cache-primary-key }}
 
       # Compiling plant is the largest single step of a check, and most PRs
       # leave most translation units unchanged. ccache keys each object on its
       # preprocessed source and flags, so a header change still recompiles
       # everything that includes it. Set up after the dependencies so that
-      # odelia and phylloptim, which have their own cache, do not fill this one.
+      # odelia and phylloptim do not fill this cache. Only pushes save it, for
+      # the reason the package library is saved only on pushes, and a save
+      # keeps only the objects that run used, so the entry tracks one tree.
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ matrix.config.os }}-r-${{ matrix.config.r }}
           max-size: 500M
+          save: ${{ github.event_name == 'push' }}
+          evict-old-files: job
 
       # Wrap R's own compilers rather than naming any, so each platform keeps
       # the compiler and flags its R was built with. R_MAKEVARS_USER is read on
