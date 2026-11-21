@@ -7,31 +7,10 @@
 # the percent level; pinning the recorded times and sizes onto the perturbed runs
 # removes that.
 #
-# ⚠️ THE REFEREE RUNS AT A TIGHT SEED-HEIGHT ROOT TOLERANCE, set here although
-# it is the default, so a looser default cannot weaken the referee; the
-# gradient does not need it. The seed's height is a root-find's iterate in the
-# forward run and the exact root's derivative on the differentiated path
-# (implicit function theorem). A difference at `offspring_height_tol = 1e-8`
-# differentiates the iterate, whose stopping point moves with the trait
-# differently from the root: measured on this stand, d(mass)/d(lma) through
-# the FF16 trade-off function was off by 6.8e-4 at a relative step of 1e-4 and by 1.8e-4 at
-# 1e-5, while the sweep's answer did not move with the tolerance at all. At
-# 1e-12 the two agree to 2.5e-8.
-referee_control <- function(...) {
-  Control(node_density_coordinate = "birth_date", offspring_height_tol = 1e-12,
-          ...)
-}
+# The stands are helper-ff16.R's `ff16_stand()`, at `ff16_referee_control()`,
+# which says why the referee runs at a tight seed-height root tolerance.
 
-ff16_stand <- function(lifetime = 5, lma = 0.0825, birth_rate = 2,
-                       ctrl = referee_control(), ...) {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- lifetime
-  p <- add_strategies(p, trait_matrix(lma, "lma"),
-                      birth_rate = as.list(rep(birth_rate, length(lma))))
-  run(p, NULL, ctrl, record = "states", ...)$solver
-}
-
-census_of <- function(ctrl = referee_control()) {
+census_of <- function(ctrl = ff16_referee_control()) {
   function(p) stand_census(run(p, NULL, ctrl)$solver)
 }
 
@@ -109,7 +88,7 @@ test_that("respiration, turnover and net production differentiate in every param
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = list(2))
   p$strategies[[1]]$pars$a_cr1 <- 0.25
-  solver <- run(p, NULL, referee_control(), record = "states")$solver
+  solver <- run(p, NULL, ff16_referee_control(), record = "states")$solver
   g <- stand_gradient(solver, metrics = "mass_above_ground", hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   q <- pin_steps(solver)
@@ -133,7 +112,7 @@ test_that("a trait's total through the FF16 trade-off function is the difference
     p <- add_strategies(p, trait_matrix(v, "lma"), birth_rate = list(2))
     p$ode_times <- solver$ode_times
     p$ode_step_sizes <- solver$ode_step_sizes
-    stand_census(run(p, NULL, referee_control())$solver)[["mass_above_ground"]]
+    stand_census(run(p, NULL, ff16_referee_control())$solver)[["mass_above_ground"]]
   }
   fd <- (at(x + h) - at(x - h)) / (2 * h)
   expect_equal(g$gradient["mass_above_ground", "1.lma"], fd, tolerance = 1e-5)
@@ -145,7 +124,7 @@ test_that("both crown integrals differentiate through the light and the leaf rat
   # applies a_p1 after. lma reaches both through the light field and the height
   # the crown is read at.
   for (model in c("deep-crown", "mean-light")) {
-    ctrl <- referee_control(shading_model = model)
+    ctrl <- ff16_referee_control(shading_model = model)
     solver <- ff16_stand(lifetime = 5, ctrl = ctrl)
     g <- stand_gradient(solver, metrics = "mass_above_ground",
                         traits = c("1.lma", "1.a_p1"), hyperpar = NULL)
@@ -175,7 +154,7 @@ test_that("the gradient refuses what it cannot differentiate, by name", {
   solver <- ff16_stand(lifetime = 2, ctrl = Control())
   expect_error(stand_gradient(solver, hyperpar = NULL), "birth-date")
   # The PPA stepped light profile has no derivative to carry.
-  solver <- ff16_stand(lifetime = 2, ctrl = referee_control(shading_model = "ppa"))
+  solver <- ff16_stand(lifetime = 2, ctrl = ff16_referee_control(shading_model = "ppa"))
   expect_error(stand_gradient(solver, hyperpar = NULL), "staircase")
   # A model that declares no census.
   p <- testing_parameters("K93")
@@ -201,7 +180,7 @@ test_that("FF16's growth cutoff is counted where suppressed cohorts reach it", {
     p$max_patch_lifetime <- 5
     p <- add_strategies(p, trait_matrix(c(0.0825, k_I), c("lma", "k_I")),
                         birth_rate = list(2))
-    solver <- run(p, NULL, referee_control(), record = "states")$solver
+    solver <- run(p, NULL, ff16_referee_control(), record = "states")$solver
     fired <- census_clamp_counts(solver, "FF16")
     g <- stand_gradient(solver, metrics = "mass_above_ground",
                         traits = "1.a_p1", hyperpar = NULL)

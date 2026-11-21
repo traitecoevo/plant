@@ -13,6 +13,12 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The clamp counts, their site names and the diagnostics reset take the model's name, as the operating-point readers do, and the four `_tf24` readers are gone.** `census_clamp_counts_tf24()`, `census_clamp_counts_differentiated_tf24()` and `census_clear_diagnostics_tf24()` read and reset TF24's runs alone, while FF16 and TF24f report the same sites. `census_clamp_counts(x, model, differentiated = FALSE)` returns the species-by-site matrix with the sites as its column names, `census_clamp_names()` the sites in that order, and `census_clear_diagnostics(x, model)` resets every tally the run reports, for FF16 (its clamps and the environment's) as well as TF24 and TF24f. No number moves. Migration (internal, reached as `plant:::`):
+  * `census_clamp_counts_tf24(scm)` returned a list with one unnamed vector per species; `census_clamp_counts(scm, "TF24")` returns a species-by-site matrix with the sites as column names, so a species' row `[[i]]` -> `[i, ]`; `"TF24f"` or `"FF16"` for their runs
+  * `census_clamp_counts_differentiated_tf24(scm)[[1]]` -> `census_clamp_counts(scm, "TF24", differentiated = TRUE)[1, ]`
+  * `census_clamp_names_tf24()` -> `census_clamp_names()`
+  * `census_clear_diagnostics_tf24(scm)` -> `census_clear_diagnostics(scm, "TF24")`
+
 * **A scenario keeps its environment as a recipe, so a saved scenario or result runs after `readRDS()` (#824).** `scenario()` stores plain values for everything a run reads from the environment (for TF24, the soil column, its parameters, the starting soil water and the drivers), and each run builds the environment from them. A result read back runs again from its scenario: `run(res, until = res$time)` rebuilds it where it stood, taking the same steps, and `run(res)` carries it on to the end. **Semantic change:** a scenario is now a value, so a change made to an environment after `scenario()` was given it no longer reaches the scenario. Migration:
   * `sc$env` / `res$scenario$env` is a `plant_environment_recipe`, not an `Environment`; a method call on it, `res$scenario$env$get_soil_depths()` -> `Environment(res$scenario$env)$get_soil_depths()`. Reading a TF24 field (`$soil_moist_sat`, `$K_sat`, `$depth`, ...) works on the recipe unchanged
   * `sc <- scenario(p, env); env$...<- / env$set_...()`, relying on the change reaching `sc` -> configure `env` before `scenario()`, or call `scenario()` again

@@ -139,8 +139,7 @@ test_that("recording the soil water potential counts no clamp", {
     env
   }
   clamps <- function(res) {
-    stats::setNames(census_clamp_counts_tf24(res$solver)[[1]],
-                    census_clamp_names_tf24())
+    census_clamp_counts(res$solver, "TF24")[1, ]
   }
   recorded <- run(p, env = dry(), record = "steps")
   ## The run clamps the potential at its ceiling, and the record reads the

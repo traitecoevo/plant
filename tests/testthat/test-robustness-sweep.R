@@ -62,10 +62,11 @@
 #     as a_d0 rises. Its fitness is no higher; equality is allowed, because
 #     where P is large the change rounds away.
 #
-# Clamp sites are counted on TF24's forward run (census_clamp_counts_tf24),
-# every site the model and phylloptim's leaf list, phylloptim's vpd_leaf_floor
-# among them. That site binds only with the energy balance on, which is why the
-# third pass exists. FF16 has no counted clamp sites, so its rows carry none.
+# Clamp sites are counted on each model's forward run (census_clamp_counts):
+# every site the model and, for TF24, phylloptim's leaf list, phylloptim's
+# vpd_leaf_floor among them. That site binds only with the energy balance on,
+# which is why the third pass exists. FF16 reports its growth cutoff and the
+# light field's floor; the sites it cannot reach stay zero on its rows.
 
 sweep_enabled <- function() identical(Sys.getenv("PLANT_RUN_SWEEP"), "1")
 
@@ -328,7 +329,7 @@ sweep_growth <- function(r) {
   paste(bad, collapse = "; ")
 }
 
-sweep_clamp_names <- function() census_clamp_names_tf24()
+sweep_clamp_names <- function() census_clamp_names()
 
 # One point, run and judged. Never throws: a point that errors is a row saying
 # so, and at which stage, so the sweep reports every point rather than the
@@ -350,9 +351,7 @@ sweep_point <- function(model, x, energy_balance = FALSE) {
     row$finished <- isTRUE(r$complete)
     row$fitness <- r$net_reproduction_ratios[[1]]
     stage <- "clamp counts"
-    if (model == "TF24") {
-      clamps[] <- census_clamp_counts_tf24(r$solver)[[1]]
-    }
+    clamps[] <- census_clamp_counts(r$solver, model)[1, ]
     stage <- "tidy"
     row$growth <- sweep_growth(r)
     row$domain <- sweep_domain(r, model)
