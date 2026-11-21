@@ -73,7 +73,8 @@ more run keeps them.}
 
 \item{env, control, events}{For a \code{Parameters} object, as
 \code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
-the \code{Environment} it grows in, by default its model's.}
+the \code{Environment} it grows in, or a recipe of one, by default its
+model's.}
 
 \item{times, sizes}{For an \code{Individual}, the times to report it at, or
 the sizes to grow it to (increasing); give one.}

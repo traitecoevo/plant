@@ -6,6 +6,7 @@
 #include <plant/models/environment.h>
 #include <plant/models/resource_spline.h>
 #include <plant/models/leaf_model.h>
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <cmath>
@@ -1156,8 +1157,8 @@ public:
   // can keep: the soil column, its parameters, the water a run starts from and
   // the drivers. A run resets the time, the light field and the soil water to
   // the start, so those are not kept, and the water kept is the starting water.
-  // set_recipe() is the inverse: recipe() of the environment it sets is
-  // identical() to the one it was given.
+  // set_recipe() is the inverse: recipe() of a fresh environment it sets from a
+  // complete recipe is identical() to that recipe.
   Rcpp::List recipe() const {
     SEXP layered = R_NilValue;
     if (use_layered_soil_parameters) {
@@ -1188,53 +1189,114 @@ public:
   // recipe's own layer depths and total, which may differ from the running sum
   // of the widths in the last bits: set_soil_number_of_depths() builds them
   // from the total, and TF24's numbers move with that difference.
+  //
+  // Made for a fresh environment, which is the only one plant hands it. There a
+  // field the recipe lacks takes its default, so a recipe saved before a field
+  // was added still sets an environment. A recipe that sets the column resets
+  // what belongs to the old one, as the geometry setters do: the water starts
+  // at half the saturation in force, as the constructor's does, and any
+  // per-layer parameters the recipe does not give again are dropped. A name the
+  // recipe has and this does not know is refused, so a misspelt field is not
+  // dropped unseen.
   void set_recipe(Rcpp::List r) {
-    set_soil_layer_widths(Rcpp::as<std::vector<double>>(r["layer_widths"]));
-    const std::vector<double> depths =
-      Rcpp::as<std::vector<double>>(r["layer_depths"]);
-    const double total = Rcpp::as<double>(r["depth"]);
-    if (depths.size() != z.size()) {
-      util::stop("The recipe's layer_depths has " +
-                 util::to_string(depths.size()) + " entries for " +
-                 util::to_string(z.size()) + " layer_widths");
+    static const std::vector<std::string> known = {
+      "layer_widths", "layer_depths", "depth", "soil_moist_sat", "K_sat",
+      "a_psi", "n_psi", "layered_soil_parameters", "a_infil", "b_infil",
+      "f_PAR", "water_mixing_rate", "soil_water", "drivers"};
+    if (r.size() > 0 && Rf_isNull(r.names())) {
+      util::stop("A TF24 environment's recipe must be a named list");
     }
-    auto close = [](double a, double b) {
-      return std::abs(a - b) <= 64 * std::numeric_limits<double>::epsilon() *
-        std::max(std::abs(a), std::abs(b));
-    };
-    for (size_t i = 0; i < z.size(); ++i) {
-      if (!close(depths[i], z[i])) {
-        util::stop("The recipe's layer_depths are not the running sum of its "
-                   "layer_widths: layer " + util::to_string(i + 1) + " ends at " +
-                   util::format_double(depths[i]) + " m, its widths at " +
-                   util::format_double(z[i]) + " m");
+    const Rcpp::CharacterVector given =
+      r.size() == 0 ? Rcpp::CharacterVector() : Rcpp::CharacterVector(r.names());
+    for (R_xlen_t i = 0; i < given.size(); ++i) {
+      const std::string name = Rcpp::as<std::string>(given[i]);
+      if (std::find(known.begin(), known.end(), name) == known.end()) {
+        util::stop("A TF24 environment's recipe has no field '" + name + "'");
       }
     }
-    if (!close(total, z.back())) {
-      util::stop("The recipe's depth (" + util::format_double(total) +
-                 " m) is not the bottom of its last layer (" +
-                 util::format_double(z.back()) + " m)");
-    }
-    z = depths;
-    depth = total;
-    finalise_soil_geometry_();
+    auto has = [&r](const char* name) { return r.containsElementNamed(name); };
+    auto set_double = [&](const char* name, double& field) {
+      if (has(name)) {
+        field = Rcpp::as<double>(r[name]);
+      }
+    };
 
-    soil_moist_sat = Rcpp::as<double>(r["soil_moist_sat"]);
-    K_sat = Rcpp::as<double>(r["K_sat"]);
-    a_psi = Rcpp::as<double>(r["a_psi"]);
-    n_psi = Rcpp::as<double>(r["n_psi"]);
-    a_infil = Rcpp::as<double>(r["a_infil"]);
-    b_infil = Rcpp::as<double>(r["b_infil"]);
-    f_PAR = Rcpp::as<double>(r["f_PAR"]);
-    water_mixing_rate = Rcpp::as<double>(r["water_mixing_rate"]);
-    SEXP layered = r["layered_soil_parameters"];
-    if (!Rf_isNull(layered)) {
-      const Rcpp::List l(layered);
-      set_soil_parameters(soil_number_of_depths, SEXP(l["soil_moist_sat"]),
-                          SEXP(l["K_sat"]), SEXP(l["a_psi"]), SEXP(l["n_psi"]));
+    const bool column = has("layer_widths");
+    if (!column && (has("layer_depths") || has("depth"))) {
+      util::stop("A TF24 environment's recipe gives layer_depths or depth "
+                 "without the layer_widths they belong to");
     }
-    set_soil_water_state(Rcpp::as<std::vector<double>>(r["soil_water"]));
-    r_set_driver_recipe(r["drivers"]);
+    if (column) {
+      set_soil_layer_widths(Rcpp::as<std::vector<double>>(r["layer_widths"]));
+      const std::vector<double> depths = has("layer_depths")
+        ? Rcpp::as<std::vector<double>>(r["layer_depths"]) : z;
+      const double total = has("depth") ? Rcpp::as<double>(r["depth"]) : z.back();
+      if (depths.size() != z.size()) {
+        util::stop("The recipe's layer_depths has " +
+                   util::to_string(depths.size()) + " entries for " +
+                   util::to_string(z.size()) + " layer_widths");
+      }
+      // A running sum of n widths drifts from the product built from the total
+      // by about one rounding per layer, so the tolerance grows with n.
+      const double tol = 4.0 * static_cast<double>(z.size() + 1) *
+        std::numeric_limits<double>::epsilon();
+      auto close = [tol](double a, double b) {
+        return std::abs(a - b) <= tol * std::max(std::abs(a), std::abs(b));
+      };
+      for (size_t i = 0; i < z.size(); ++i) {
+        if (!close(depths[i], z[i])) {
+          util::stop("The recipe's layer_depths are not the running sum of its "
+                     "layer_widths: layer " + util::to_string(i + 1) +
+                     " ends " + util::format_double(depths[i] - z[i]) +
+                     " m from the sum of the widths above it");
+        }
+      }
+      if (!close(total, z.back())) {
+        util::stop("The recipe's depth is " +
+                   util::format_double(total - z.back()) +
+                   " m from the bottom of its last layer");
+      }
+      z = depths;
+      depth = total;
+      finalise_soil_geometry_();
+    }
+
+    set_double("soil_moist_sat", soil_moist_sat);
+    set_double("K_sat", K_sat);
+    set_double("a_psi", a_psi);
+    set_double("n_psi", n_psi);
+    set_double("a_infil", a_infil);
+    set_double("b_infil", b_infil);
+    set_double("f_PAR", f_PAR);
+    set_double("water_mixing_rate", water_mixing_rate);
+    if (has("layered_soil_parameters")) {
+      SEXP layered = r["layered_soil_parameters"];
+      if (Rf_isNull(layered)) {
+        use_layered_soil_parameters = false;
+        soil_moist_sat_layers.clear();
+        K_sat_layers.clear();
+        a_psi_layers.clear();
+        n_psi_layers.clear();
+      } else {
+        // A layer value left out takes the scalar field for every layer, as
+        // set_tf24_soil() reads NULL.
+        const Rcpp::List l(layered);
+        auto layer = [&l](const char* name) -> SEXP {
+          return l.containsElementNamed(name) ? SEXP(l[name]) : R_NilValue;
+        };
+        set_soil_parameters(soil_number_of_depths, layer("soil_moist_sat"),
+                            layer("K_sat"), layer("a_psi"), layer("n_psi"));
+      }
+    }
+    if (has("soil_water")) {
+      set_soil_water_state(Rcpp::as<std::vector<double>>(r["soil_water"]));
+    } else if (column) {
+      set_soil_water_state(
+        std::vector<double>(soil_number_of_depths, soil_moist_sat * 0.5));
+    }
+    if (has("drivers")) {
+      r_set_driver_recipe(r["drivers"]);
+    }
     // The memo is keyed by the time alone, which this leaves where it was.
     drivers_ = driver_memo{};
   }

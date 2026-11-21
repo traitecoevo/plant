@@ -15,7 +15,8 @@ rainfall_pulse(time, depth, layer = 1, env = NULL)
 i.e. rain. A deeper layer is irrigation, or a water table rising into the
 profile.}
 
-\item{env}{Optionally, the \code{Environment} the run will use. When given,
+\item{env}{Optionally, the \code{Environment} the run will use, or a
+scenario's recipe of one. When given,
 \code{rainfall_pulse()} warns if that environment still carries a non-zero
 continuous \code{rainfall} driver — pulses \emph{add to} the continuous
 forcing rather than replacing it, so supplying both silently double-counts
