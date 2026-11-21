@@ -2,68 +2,27 @@
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-test_that("IndividualRunner", {
-  for (x in names(strategy_types)) {
-
-    e <- environment_types[[x]]
-    p <- Individual(x, e)(strategy_types[[x]]())
-    env <- Environment(x)
-    p$compute_rates(env)
-
-    pr <- IndividualRunner(x, e)(p, env)
-    expect_inherits(pr, sprintf("IndividualRunner<%s,%s>",x,e))
-    expect_inherits(pr$individual, sprintf("Individual<%s,%s>",x,e))
-
-    expect_equal_internals(pr$individual$internals, p$internals)
-
-    ## This going to work with a *copy* of pr; so that won't propagate
-    ## back.
-    runner <- OdeRunner(x)(pr)
-    expect_inherits(runner, "OdeRunner")
-    expect_inherits(runner, sprintf("OdeRunner<%s>", x))
-    expect_equal(runner$time, 0.0)
-
-    expect_equal_internals((get_individual_internals_fun(p))(runner), p$internals)
-    
-    continue_if <- function(obj) {
-      obj$state[[1]] < 15
-    }
-    observer <- function(obj) {
-      c(obj$time, obj$state)
-    }
-    pr <- IndividualRunner(x, e)(Individual(x, e)(strategy_types[[x]]()), env)
-    runner <- OdeRunner(x)(pr)
-    ret <- list(observer(runner))
-    while (continue_if(runner)) {
-      runner$step()
-      ret <- c(ret, list(observer(runner)))
-    }
-
-    m <- do.call("rbind", ret)
-    colnames(m) <- c("time", runner$object$individual$ode_names)
-
-    if (interactive()) {
-      plot(height ~ time, as.data.frame(m))
-    }
-  }
-})
-
-test_that("get_plant_internals_fun", {
+test_that("run() to times grows a copy of the plant", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Individual(x, e)(strategy_types[[x]]())
     env <- Environment(x)
     p$compute_rates(env)
+    h0 <- p$state("height")
 
-    runner <- OdeRunner(x)(IndividualRunner(x, e)(p, env))
-    h0 <- runner$object$individual$state("height")
-    runner$step()
-    runner$step()
-    runner$step()
-    runner$step()
-    h1 <- runner$object$individual$state("height")
-    expect_gt(h1, h0) ## test that plants grow
+    res <- run(p, times = c(0, 0, 1, 2), env = env)
+    expect_inherits(res$individual[[1]], sprintf("Individual<%s,%s>", x, e))
+    ## At its starting time the plant reported is the one passed in.
+    expect_equal_internals(res$individual[[1]]$internals, p$internals)
+    expect_identical(res$state[1, ], res$state[2, ])
+    expect_true(all(diff(res$state[-1, "height"]) > 0))
+    ## The plant passed in is not grown.
+    expect_identical(p$state("height"), h0)
   }
+  p <- FF16_Individual()
+  expect_error(run(p, times = c(1, 0.5)), "times must be sorted")
+  expect_error(run(p, times = c(1, NA)), "Times must be positive")
+  expect_error(run(p, times = numeric(0)), "At least one time")
 })
 
 test_that("run() grows an individual to sizes", {
@@ -92,14 +51,12 @@ test_that("run() grows an individual to sizes", {
     expect_lt(max(abs(obj$state[, "height"] - heights)), 1e-5)
 
     ## Time, state and individual describe the same instant: the individual
-    ## holds the state, and a run landing on each time in turn holds it too,
-    ## to the bit.
-    runner <- OdeRunner(x)(IndividualRunner(x, e)(pp, env))
+    ## holds the state, and a run to those times, landing on each in turn,
+    ## holds it too, to the bit.
     for (i in seq_along(heights)) {
       expect_identical(obj$individual[[i]]$ode_state, unname(obj$state[i, ]))
-      runner$advance_adaptive(c(runner$time, obj$time[[i]]))
-      expect_identical(runner$state, unname(obj$state[i, ]))
     }
+    expect_identical(run(pp, times = obj$time, env = env)$state, obj$state)
 
     ## The trajectory starts where the plant did and holds each size's step.
     expect_equal(colnames(obj$trajectory), c("time", pp$ode_names))
@@ -143,16 +100,14 @@ test_that("run() to sizes reports a repeated size, or one already reached, at on
 
 test_that("a run to sizes that fails warns with the error and what was dropped", {
   pp <- Individual("FF16", "FF16_Env")(FF16_Model())
-  env <- Environment("FF16")
-  runner <- OdeRunner("FF16")(IndividualRunner("FF16", "FF16_Env")(pp, env))
-  e <- simpleError("the step failed")
+  pp$compute_rates(Environment("FF16"))
   ## This plant's mortality rate is not zero, so the failure is not read as
   ## possibly something other than its death, and only the first warning is
   ## given.
-  expect_warning(integration_failed(runner, e, 3L, TRUE),
+  expect_warning(integration_failed(pp, "the step failed", 3L, TRUE),
                  "integration failed with error: \nthe step failed\n  3 larger sizes dropped",
                  fixed = TRUE)
-  expect_silent(integration_failed(runner, e, 3L, FALSE))
+  expect_silent(integration_failed(pp, "the step failed", 3L, FALSE))
 })
 
 test_that("run() grows an individual to sizes, and stops at time_max", {

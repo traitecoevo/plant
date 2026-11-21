@@ -52,8 +52,6 @@
 #include <plant/community/stochastic_patch.h>
 #include <plant/solvers/stochastic_patch_runner.h>
 
-#include <plant/solvers/individual_runner.h>
-
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
 // attempt to provide declarations for the classes and namespaces that
@@ -72,6 +70,9 @@
 // point after RcppR6_pre.hpp is included.
 #include <plant/RcppR6_post.hpp>
 #include <plant/util_post_rcpp.h>
+
+// Returns R lists holding Individuals, so it needs Rcpp and their wrap().
+#include <plant/solvers/individual_runner.h>
 
 // gperftools profiler
 // Uncomment next line if you want to use the profiler.
