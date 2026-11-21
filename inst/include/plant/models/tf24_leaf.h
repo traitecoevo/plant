@@ -683,8 +683,10 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
 
   // psi_soil (MPa, a positive magnitude): the patch column's, computed once
   // per soil state and cached in the environment -- or, in TF24w, this
-  // cohort's own column.
-  const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
+  // cohort's own column -- raised by the stem's gravitational head when that is
+  // on. Every use below is the leaf's, so every one reads the raised column.
+  const std::vector<S>& psi_soil = soil_potential_at_leaf_height(
+      soil_water_potential_for_leaf(environment), height);
 
   const S leaf_specific_conductance_max =
     update_leaf_specific_conductance_max(height, sapwood_departure);

@@ -81,7 +81,8 @@ test_that("Defaults", {
     alpha_PAR = 0.85,
     alpha_NIR = 0.2,
     L_crown = 2.0,
-    g_min = 0.0)
+    g_min = 0.0,
+    use_stem_gravity = 0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.
   expected_top <- c("pars", "control", "collect_all_auxiliary",

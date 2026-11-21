@@ -330,6 +330,20 @@ struct TF24_Pars {
   // no result moves at the default. Carried here so a parameter set can reach
   // every leaf trait through `pars`; a non-zero value is untested in plant.
   S g_min = 0.0;
+  // The stem's gravitational head. use_stem_gravity gates it (0 = off; != 0 =
+  // on), and is off by default, which is exactly the model without it: the head
+  // is never formed, so no result moves.
+  //
+  // When on, the leaf must hold its water rho*g*H*eta_c above the collar, where
+  // H*eta_c is the leaf-area-weighted mean leaf height and the upper end of the
+  // frictional path too. The head is a SEPARATE term, not folded into the
+  // resistance: it is paid at zero flow, where a resistance costs nothing, so a
+  // shut leaf sits at psi_soil + rho*g*(z + H*eta_c) rather than at psi_soil +
+  // rho*g*z. See TF24_Model::soil_potential_at_leaf_height for where it enters.
+  //
+  // A gate, not a scale: rho*g is phylloptim's gravity_head, the constant the
+  // soil layers' own heads use, so the two lifts cannot disagree.
+  S use_stem_gravity = 0.0;
 
   // Where a parameter lives and what it is called. Nothing here says what its
   // gradient will be: the sweep computes one for every parameter except the
@@ -365,6 +379,8 @@ struct TF24_Pars {
                   "no row; phi_J, which it multiplies, carries the column"},
       no_gradient{"alpha_NIR", "the leaf supplies no row for it"},
       no_gradient{"use_energy_balance",
+                  "a gate, compared rather than differentiated"},
+      no_gradient{"use_stem_gravity",
                   "a gate, compared rather than differentiated"},
       // Flexible allometry is opt-in: at the default a_pl0 = 0 nothing
       // is withheld, so the other four gate parameters multiply zero.
@@ -491,7 +507,8 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(alpha_PAR),
       PLANT_TF24_AD_PARAMETER(alpha_NIR),
       PLANT_TF24_AD_PARAMETER(L_crown),
-      PLANT_TF24_AD_PARAMETER(g_min)
+      PLANT_TF24_AD_PARAMETER(g_min),
+      PLANT_TF24_AD_PARAMETER(use_stem_gravity)
   };
 #undef PLANT_TF24_AD_PARAMETER
 

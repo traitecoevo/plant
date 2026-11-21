@@ -282,7 +282,11 @@ void TF24_Model<S>::write_leaf_readings(Internals<S>& vars,
                                            const S& area_leaf_) {
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
   vars.set_aux(aux_idx_opt_psi_leaf, leaf.opt_psi_leaf_);
-  vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
+  // The real collar: the leaf's carries the stem's gravitational head, which
+  // soil_potential_at_leaf_height added to the soil it was given. An exact zero
+  // while the head is off.
+  vars.set_aux(aux_idx_opt_root_psi,
+               leaf.opt_root_psi_ - stem_gravity_head_value_);
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
   vars.set_aux(aux_idx_profit, leaf.profit_);

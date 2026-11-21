@@ -539,6 +539,49 @@ public:
     return environment.get_soil_water_potential_state();
   }
 
+  // The soil potentials as the leaf sees them: each layer's raised by the stem's
+  // gravitational head rho*g*H*eta_c when use_stem_gravity is on, and the
+  // argument itself, untouched, when it is off.
+  //
+  // Adding the head to every layer is where gravity belongs in the supply's
+  // balance: phylloptim draws layer i while the collar is drier than
+  // psi_soil[i] + rho*g*z[i], and the leaf has to be drier still by the lift to
+  // its own height. So a shut leaf sits at psi_soil + rho*g*(z + H*eta_c),
+  // exactly, which is the predawn gradient.
+  //
+  // ⚠️ THE LEAF'S COLLAR IS THEN THE REAL ONE PLUS THE HEAD. The root's driving
+  // force is unchanged, because both its ends move by the head, but the
+  // vulnerability curves are read up to the head drier than the local potential:
+  // the root curve by the whole head, the stem's by the head at its base falling
+  // to none at the leaf. That is a shift of at most rho*g*H*eta_c in a curve's
+  // argument, about 0.09 MPa at 10 m against a stem P50 near 2.9. It is the
+  // price of treating gravity as one offset rather than integrating it along the
+  // stem, which has no closed form once conductivity depends on potential.
+  // write_leaf_readings takes the head back off the collar it reports.
+  //
+  // One head for the whole crown, at the mean leaf height, as the frictional
+  // path uses one length: deep-crown shading solves each node at its own light
+  // but every node with this head, so upper leaves pay too little and lower
+  // ones too much.
+  //
+  // Formed at S, so the head carries height's rows into the leaf's supply
+  // rows. eta_c carries none (eta has no column), and the gate itself is
+  // compared, never differentiated.
+  const std::vector<S>& soil_potential_at_leaf_height(
+      const std::vector<S>& psi_soil, const S& height) {
+    if (odelia::util::to_passive(pars.use_stem_gravity) == 0.0) {
+      stem_gravity_head_value_ = 0.0;
+      return psi_soil;
+    }
+    const S head = phylloptim::gravity_head * height * eta_c;
+    stem_gravity_head_value_ = odelia::util::to_passive(head);
+    psi_soil_at_leaf_.resize(psi_soil.size());
+    for (size_t i = 0; i < psi_soil.size(); ++i) {
+      psi_soil_at_leaf_[i] = psi_soil[i] + head;
+    }
+    return psi_soil_at_leaf_;
+  }
+
   // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
   // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi; the
   // TF24f variant overrides this to evaluate the leaf at a collar it tracks as
@@ -1070,6 +1113,13 @@ public:
   // root_carbon_value_ is.
   std::vector<double> psi_soil_value_;
 
+  // soil_potential_at_leaf_height's output while the stem's head is on, and the
+  // head's value, which write_leaf_readings takes off the collar it reports.
+  // Zero while the head is off, so that subtraction is exact. The potentials are
+  // active, so for_each_active lists them.
+  std::vector<S> psi_soil_at_leaf_;
+  double stem_gravity_head_value_ = 0.0;
+
   // The first reason is kept: a later one is a consequence of the same
   // degeneracy.
   void refuse(const std::string& why) {
@@ -1154,7 +1204,8 @@ public:
   double dprofit_dkmax_ = 0.0;
 
   // Every active value this strategy holds: the whole parameter table, the
-  // constant birth rate, the leaf outputs, and the per-layer root carbon. `leaf`
+  // constant birth rate, the leaf outputs, the per-layer root carbon and the
+  // soil potentials raised by the stem's head. `leaf`
   // is not among them -- it solves in double, which is what keeps the leaf off
   // the tape.
   // ⚠️ A LEAF OUTPUT LEFT OFF THIS LIST CARRIES NO ROWS, SILENTLY.
@@ -1165,7 +1216,7 @@ public:
     }
     f(birth_rate_);
     odelia::ode::visit_active(f, leaf_carbon_, leaf_soil_consumption_,
-                              root_carbon_per_leaf_area_,
+                              root_carbon_per_leaf_area_, psi_soil_at_leaf_,
                               marginal_leaf_return_, withheld_leaf_,
                               withheld_sapwood_, maintenance_flux_,
                               leaf_specific_conductance_max_);
