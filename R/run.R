@@ -9,16 +9,23 @@
 ##' weighted (\code{p}), the forcing (\code{env} and \code{events}) and the
 ##' numerics (\code{control}). \code{\link{run}} takes one, or builds one from
 ##' the same arguments, and every result carries the scenario it ran as
-##' \code{$scenario}, so \code{run(res$scenario)} runs it again in the same
-##' session. A scenario's environment does not survive \code{saveRDS()}.
+##' \code{$scenario}, so \code{run(res$scenario)} runs it again.
+##'
+##' A scenario is a value: it keeps its environment as a recipe, plain values
+##' for everything a run reads from it, and each run builds the environment
+##' afresh from that recipe. So a scenario, and a result carrying one, survives
+##' \code{saveRDS()} and runs after \code{readRDS()}, and a change made to
+##' \code{env} after the scenario was made does not reach it.
+##' \code{Environment(sc$env)} builds the environment a scenario describes.
 ##'
 ##' @param p A \code{Parameters} object.
-##' @param env An \code{Environment}; by default the model's own.
+##' @param env An \code{Environment}, or a recipe of one (a scenario's
+##'   \code{env}); by default the model's own.
 ##' @param control A \code{Control} object.
 ##' @param events An \code{\link{events}} object, or \code{NULL} for the
 ##'   introductions in \code{p$node_schedule_times} alone.
-##' @return A list of class \code{plant_scenario} with \code{p}, \code{env},
-##'   \code{control} and \code{events}.
+##' @return A list of class \code{plant_scenario} with \code{p}, \code{env}
+##'   (the environment's recipe), \code{control} and \code{events}.
 ##' @seealso \code{\link{run}}
 ##' @export
 scenario <- function(p, env = NULL, control = plant::control(), events = NULL) {
@@ -28,6 +35,11 @@ scenario <- function(p, env = NULL, control = plant::control(), events = NULL) {
   model <- extract_RcppR6_template_types(p, "Parameters")[[1]]
   if (is.null(env)) {
     env <- Environment(model)
+  }
+  env <- environment_recipe(env)
+  if (!identical(env$type, environment_type(model))) {
+    stop("`env` is a ", env$type, " environment, and ", model, " runs in a ",
+         environment_type(model), " one", call. = FALSE)
   }
   if (!inherits(control, "Control")) {
     stop("`control` must be a Control object", call. = FALSE)
@@ -159,9 +171,15 @@ print.plant_scenario <- function(x, ...) {
 ##'   returns the result that describes it, and every function that takes a
 ##'   result refuses one whose solver has moved on since.
 ##'   \code{fixed_point_fitness()} uses a result up, so give it every invader
-##'   in one trait matrix. The values other than
-##'   \code{solver} are copies, so \code{saveRDS()} keeps them; the scenario's
-##'   environment and the solver cannot be used after reading back.
+##'   in one trait matrix.
+##'
+##'   \code{saveRDS()} keeps everything but the solver: the values are copies
+##'   and the scenario holds its environment as a recipe. A deterministic
+##'   result read back runs again from its scenario: \code{run(res, until =
+##'   res$time)} rebuilds it where it stood, taking the same steps, and
+##'   \code{run(res)} carries on to the end. That repeats the run's work. An
+##'   invaders' result is rebuilt by running its resident again and then
+##'   \code{run_mutant()}.
 ##' @seealso \code{\link{scenario}}, \code{\link{run_mutant}},
 ##'   \code{\link{export_patch_state}}, \code{\link{stand_gradient}}
 ##' @export
@@ -195,8 +213,8 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
 
   types <- extract_RcppR6_template_types(x$p, "Parameters")
   events <- if (is.null(x$events)) empty_events() else x$events
-  solver <- do.call("DeterministicPatchRunner", types)(x$p, x$env, events,
-                                                        x$control)
+  solver <- do.call("DeterministicPatchRunner", types)(
+    x$p, live_environment(x$env), events, x$control)
   solver$collect <- "steps" %in% record
   keep_states <- "states" %in% record
   if (refine_schedule) {
@@ -234,14 +252,41 @@ run.plant_run <- function(x, ..., until = NULL) {
          "run its scenario again", call. = FALSE)
   }
   check_until(until)
-  solver <- as_solver(x)
-  if (!is.null(until) && until < x$time) {
-    stop("This run stands at t = ", format(x$time), ", past `until`", call. = FALSE)
+  if (solver_is_gone(x)) {
+    return(run_again(x, until))
   }
+  solver <- as_solver(x)
+  check_until_not_past(x, until)
   if (is.null(until) || until > x$time) {
     solver$run_to(if (is.null(until)) Inf else until)
   }
   new_plant_run(solver, x$scenario, x$record, x$mutants)
+}
+
+check_until_not_past <- function(x, until) {
+  if (!is.null(until) && until < x$time) {
+    stop("This run stands at t = ", format(x$time), ", past `until`", call. = FALSE)
+  }
+}
+
+## A deterministic result whose solver is gone: one read back with readRDS().
+solver_is_gone <- function(x) {
+  !identical(x$method, "stochastic") &&
+    !tryCatch({x$solver$time; TRUE}, error = function(e) FALSE)
+}
+
+## A result read back, run again from its scenario. Its scenario is the one the
+## solver ran -- its `p` carries any refined schedule and the ODE steps that
+## schedule took, and a resumed run's state and pending events -- so running it
+## to the same stopping point takes the same steps and lands on the same step
+## boundary, and running on past it is the run continued.
+run_again <- function(x, until) {
+  if (!is.null(x$mutants)) {
+    stop("This invaders' result was read back without its solver: run its ",
+         "resident's scenario again, then run_mutant()", call. = FALSE)
+  }
+  check_until_not_past(x, until)
+  run(x$scenario, until = until, record = x$record)
 }
 
 ## The scenario a resume runs: the state on `p`, introductions on the
@@ -309,7 +354,7 @@ run_stochastic <- function(x, until, from, record, refine_schedule) {
     stop("The stochastic solver runs the whole lifetime; it cannot take ",
          paste(names(refused)[refused], collapse = ", "), call. = FALSE)
   }
-  obj <- stochastic_runner(x$p, x$env, x$control, x$events)
+  obj <- stochastic_runner(x$p, live_environment(x$env), x$control, x$events)
   steps <- NULL
   if ("steps" %in% record) {
     steps <- collect_stochastic_steps(obj)
@@ -484,7 +529,8 @@ as_solver <- function(x) {
   solver <- x$solver
   time <- tryCatch(solver$time, error = function(e) {
     stop("This result's solver is gone (a result read back with readRDS() keeps ",
-         "its values only): run its scenario again", call. = FALSE)
+         "everything else): run(res, until = res$time) runs its scenario again ",
+         "to where it stood", call. = FALSE)
   })
   if (!identical(time, x$time) ||
       !identical(solver$parameters, x$mutants %||% x$scenario$p)) {

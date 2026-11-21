@@ -6,6 +6,7 @@
 #include <odelia/ode_interface.hpp>
 #include <plant/community/internals.h>
 #include <plant/util.h>
+#include <map>
 #include <unordered_map>
 #include <Rcpp.h>
 #include <plant/models/extrinsic_drivers.h>
@@ -113,9 +114,21 @@ public:
 
   size_t species_arriving_index;
 
+  // Written only through the two setters below, which also record what they
+  // set in driver_inputs_; a direct write here would leave that record, and so
+  // a saved scenario's copy of these drivers, describing the old ones.
   ExtrinsicDrivers extrinsic_drivers;
 
-  // The
+  // Each driver as it was last set: a constant (x empty, y its one value) or a
+  // series' control points. A saved scenario keeps its environment as these
+  // inputs and sets them again (r_driver_recipe), because odelia's driver does
+  // not report whether it is constant, and its knots() leaves out the points
+  // inside a flat stretch.
+  struct driver_input {
+    std::vector<double> x, y;
+  };
+  std::map<std::string, driver_input> driver_inputs_;
+
   std::vector<std::string> extrinsic_drivers_get_names() const
   {
     return  extrinsic_drivers.get_names();
@@ -124,6 +137,7 @@ public:
   void extrinsic_drivers_set_constant(std::string driver_name, double value)
   {
     extrinsic_drivers.set_constant(driver_name, value);
+    driver_inputs_[driver_name] = driver_input{{}, {value}};
   }
 
   // ⚠️ MONOTONE, NOT odelia's natural default. A driver is data given as values
@@ -133,6 +147,43 @@ public:
   void extrinsic_drivers_set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y)
   {
     extrinsic_drivers.set_variable(driver_name, x, y, odelia::drivers::Slopes::monotone);
+    driver_inputs_[driver_name] = driver_input{x, y};
+  }
+
+  // Every driver as it was set, by name: list(value = ) for a constant and
+  // list(x = , y = ) for a series. Setting each again through the setters
+  // above rebuilds the drivers exactly, slopes included.
+  Rcpp::List r_driver_recipe() const {
+    Rcpp::List out(driver_inputs_.size());
+    Rcpp::CharacterVector names(driver_inputs_.size());
+    R_xlen_t i = 0;
+    for (const auto& [name, input] : driver_inputs_) {
+      names[i] = name;
+      out[i] = input.x.empty()
+        ? Rcpp::List::create(_["value"] = input.y.front())
+        : Rcpp::List::create(_["x"] = input.x, _["y"] = input.y);
+      ++i;
+    }
+    out.attr("names") = names;
+    return out;
+  }
+
+  void r_set_driver_recipe(Rcpp::List drivers) {
+    if (drivers.size() == 0) {
+      return;
+    }
+    const Rcpp::CharacterVector names = drivers.names();
+    for (R_xlen_t i = 0; i < drivers.size(); ++i) {
+      const std::string name = Rcpp::as<std::string>(names[i]);
+      const Rcpp::List input = drivers[i];
+      if (input.containsElementNamed("value")) {
+        extrinsic_drivers_set_constant(name, Rcpp::as<double>(input["value"]));
+      } else {
+        extrinsic_drivers_set_variable(
+          name, Rcpp::as<std::vector<double>>(input["x"]),
+          Rcpp::as<std::vector<double>>(input["y"]));
+      }
+    }
   }
 
   double extrinsic_drivers_evaluate(std::string driver_name, double x) const

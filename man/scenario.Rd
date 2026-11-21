@@ -9,7 +9,8 @@ scenario(p, env = NULL, control = plant::control(), events = NULL)
 \arguments{
 \item{p}{A \code{Parameters} object.}
 
-\item{env}{An \code{Environment}; by default the model's own.}
+\item{env}{An \code{Environment}, or a recipe of one (a scenario's
+\code{env}); by default the model's own.}
 
 \item{control}{A \code{Control} object.}
 
@@ -17,16 +18,23 @@ scenario(p, env = NULL, control = plant::control(), events = NULL)
 introductions in \code{p$node_schedule_times} alone.}
 }
 \value{
-A list of class \code{plant_scenario} with \code{p}, \code{env},
-  \code{control} and \code{events}.
+A list of class \code{plant_scenario} with \code{p}, \code{env}
+  (the environment's recipe), \code{control} and \code{events}.
 }
 \description{
 A scenario holds everything a run takes: who is present and how fitness is
 weighted (\code{p}), the forcing (\code{env} and \code{events}) and the
 numerics (\code{control}). \code{\link{run}} takes one, or builds one from
 the same arguments, and every result carries the scenario it ran as
-\code{$scenario}, so \code{run(res$scenario)} runs it again in the same
-session. A scenario's environment does not survive \code{saveRDS()}.
+\code{$scenario}, so \code{run(res$scenario)} runs it again.
+}
+\details{
+A scenario is a value: it keeps its environment as a recipe, plain values
+for everything a run reads from it, and each run builds the environment
+afresh from that recipe. So a scenario, and a result carrying one, survives
+\code{saveRDS()} and runs after \code{readRDS()}, and a change made to
+\code{env} after the scenario was made does not reach it.
+\code{Environment(sc$env)} builds the environment a scenario describes.
 }
 \seealso{
 \code{\link{run}}
