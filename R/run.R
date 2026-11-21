@@ -70,7 +70,9 @@ print.plant_scenario <- function(x, ...) {
 ##'   \item a \code{Parameters} object, with the rest given as arguments
 ##'     (\code{run(p, env = env)} is \code{run(scenario(p, env))});
 ##'   \item a previous result, which continues it to \code{until};
-##'   \item an \code{Individual}, a single plant grown on its own.
+##'   \item an \code{Individual}, a single plant grown on its own;
+##'   \item a \code{\link{landscape}}, several patches and the flows that link
+##'     them.
 ##' }
 ##'
 ##' \code{method} chooses the solver: \code{"deterministic"}, by the method of
@@ -103,8 +105,14 @@ print.plant_scenario <- function(x, ...) {
 ##' size describe the same instant. A plant grown on its own
 ##' sees the environment it is given, not a patch's shading.
 ##'
+##' A landscape is run patch by patch. Each patch is run whole, as its own
+##' scenario would be, after the patches that feed it; what those passed down
+##' their flows is added to its events. \code{record},
+##' \code{refine_schedule} and \code{method} apply to every patch, and
+##' \code{until} and \code{from} are refused.
+##'
 ##' @param x What to run: a scenario, a \code{Parameters} object, a
-##'   \code{plant_run} to continue, or an \code{Individual}.
+##'   \code{plant_run} to continue, an \code{Individual}, or a landscape.
 ##' @param ... For a \code{Parameters} object, the arguments below. For an
 ##'   \code{Individual} grown to \code{sizes}: \code{time_max}, the time to
 ##'   stop at if a size is never reached (default \code{Inf}); \code{warn},
@@ -168,6 +176,15 @@ print.plant_scenario <- function(x, ...) {
 ##'   at each) and \code{env}, and when grown to sizes \code{trajectory}, the
 ##'   time and state at every step taken, the steps landed on each size
 ##'   among them.
+##'
+##'   A landscape's run returns a \code{plant_landscape_run}: a list with
+##'   \code{landscape} (as given, so \code{run(res$landscape)} runs it again),
+##'   \code{patches} (a \code{plant_run} per patch, by name; a patch's
+##'   \code{scenario} is what that patch ran, its events including what
+##'   reached it down the flows), \code{flows} (a data frame of every amount
+##'   passed between patches: \code{time}, \code{from}, \code{to},
+##'   \code{resource}, \code{into} and \code{amount}) and \code{method}.
+##'   \code{tidy()} of it is a list of each patch's.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
 ##'   continuing it, \code{run_mutant()}, \code{run_until_converged()} --
