@@ -33,7 +33,8 @@ jobs:
   # DESCRIPTION or CI: Windows is where plant is most platform-fragile, because
   # src/Makevars.win must link odelia.dll at build time (mingw ld forbids
   # undefined symbols in a DLL, traitecoevo/odelia#29), and a dependency bump
-  # changes only DESCRIPTION. macOS runs on pushes only. A matrix entry cannot
+  # changes only DESCRIPTION. A PR's Windows leg leaves out the slowest test
+  # files (see the step before the check). macOS runs on pushes only. A matrix entry cannot
   # carry a job-level `if`, so the matrix itself is the output.
   platforms:
     runs-on: ubuntu-latest
@@ -198,6 +199,20 @@ jobs:
         if: runner.os == 'Linux'
         run: pkgdown::check_pkgdown()
         shell: Rscript {0}
+
+      # On a pull request, Windows checks that plant builds, links and loads,
+      # which is where it is fragile (see the platforms job), and runs the
+      # suite without its slowest files, taken from DESCRIPTION's
+      # Config/testthat/start-first. Every push to develop runs them all.
+      - name: Leave the slowest tests to the push run
+        if: runner.os == 'Windows' && github.event_name == 'pull_request'
+        shell: Rscript {0}
+        run: |
+          slow <- read.dcf("DESCRIPTION", "Config/testthat/start-first")[1, 1]
+          slow <- trimws(strsplit(slow, ",")[[1]])
+          cat("Leaving out:", slow, "\n")
+          cat(sprintf("PLANT_TEST_EXCLUDE=%s\n", paste(utils::glob2rx(slow), collapse = "|")),
+              file = Sys.getenv("GITHUB_ENV"), append = TRUE)
 
       - uses: r-lib/actions/check-r-package@v2
         with:
