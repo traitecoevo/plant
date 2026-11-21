@@ -210,8 +210,11 @@ clamp_class <- list(
   # bound, where E_s is zero by construction rather than by the clamp.
   stomatal_flux          = "never",
   # The leaf-to-air vapour deficit held at its floor where a leaf cooled by the
-  # energy balance reaches the dew point; these stands run without it.
+  # energy balance reaches the dew point; these stands run without it. The
+  # first counts every read that floored, on every candidate the leaf's search
+  # tried; the second the seat a solve left the leaf on, once per solve.
   vpd_leaf_floor         = "never",
+  vpd_leaf_seated        = "never",
   # The light field's own floor, where a Hermite span undershoots zero. Never
   # reached on a stand: not here, not at k_I = 40 (the darkest-driver block
   # above), and not on FF16 stands; the floor is exercised on a field built to
