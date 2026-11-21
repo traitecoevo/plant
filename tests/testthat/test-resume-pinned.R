@@ -206,7 +206,7 @@ test_that("an invader of a resumed resident is scored in a window that opens aft
     pm$node_schedule_times <- res$scenario$p$node_schedule_times
     pm$initial_time <- 10
     if (start == 10) {
-      expect_error(run_mutant(res, pm), "resume time t = 10[.0]* and the window weights it")
+      expect_error(run_mutant(res, pm), "first cohort, born at t = 10[.0]*, is weighted by the window")
     } else {
       expect_equal(run_mutant(res, pm)$net_reproduction_ratios, res$net_reproduction_ratios,
                    tolerance = 1e-12)

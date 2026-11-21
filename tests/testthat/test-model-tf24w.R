@@ -197,3 +197,10 @@ test_that("the water budget closes with flexible allometry on", {
   budget <- (st$total - start) - (flux[[2]] - flux[[3]] - flux[[4]])
   expect_lt(abs(budget), 1e-6 * flux[[2]])
 })
+
+test_that("TF24w's invaders are refused", {
+  # Its private water is exchanged outside the field a replay reads, so a copy
+  # of the resident would not reproduce it.
+  s <- tf24w_stand("TF24w", mixing = 0, rainfall_pulses = FALSE)
+  expect_error(s$run_mutant(s$parameters), "TF24w's private root-zone water")
+})

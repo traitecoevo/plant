@@ -26,3 +26,14 @@ The invaders in \code{p} run in the field the resident recorded, which they
 read and do not move; with \code{constant = TRUE}, in the one field the
 resident stands in now (see \code{\link{fixed_point_fitness}}).
 }
+\details{
+Invaders meet every event of the resident's run: its pulses,
+  harvests and climate extremes. On the birth-date coordinate a cohort's
+  density carries establishment averaged over the intervals beside it, and
+  an invader species' first cohort has none before it. A
+  \code{\link{fitness_window}} that weights an invader's first cohort born
+  after the residents' first (or after the resume of a resumed resident) is
+  refused: open the window after the invaders' first introduction.
+  TF24w's invaders are refused, because its private water is not in the
+  field a replay reads.
+}
