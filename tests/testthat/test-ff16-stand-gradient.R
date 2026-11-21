@@ -185,17 +185,17 @@ test_that("the gradient refuses what it cannot differentiate, by name", {
   expect_error(stand_gradient(solver, hyperpar = NULL), "No census is declared for the K93 model")
 })
 
-test_that("FF16's growth cutoff is counted where suppressed cohorts reach it", {
-  # At zero net production FF16 sets the height, fecundity and heartwood rates
-  # to zero. Height and fecundity reach zero there anyway, so for them it is a
-  # kink; the heartwood rates jump, so a cohort crossing the cutoff moves the
-  # run by a step the sweep does not carry. Between such steps the sweep is the
-  # pinned run's derivative. Counted, so a gradient taken where it binds says so.
+test_that("FF16's growth cutoff is counted where suppressed cohorts reach it, and leaves no jump", {
+  # At zero net production FF16 sets the height and fecundity rates to zero.
+  # Both reach zero there anyway, so the cutoff is a kink, not a jump: the run
+  # is continuous across it and the sweep stays the pinned run's derivative.
+  # Heartwood keeps forming there; when its rates were cut too, a cohort
+  # crossing the cutoff moved the run by a step the sweep did not carry, and at
+  # k_I = 4 mass_above_ground's column missed a pinned difference at a relative
+  # step of 1e-4 by 5% and area_stem's by 19%. Counted, so a gradient taken
+  # where it binds says so.
   #
-  # At k_I = 4 suppressed cohorts reach it. There a line fitted to the pinned
-  # run over 1e-3 of a_p1 either side is 0.9% shallower than mass_above_ground's
-  # column and 3.7% than area_stem's; leaf_area, which reads no heartwood, is
-  # within 5e-4. At the default k_I nothing reaches it.
+  # At k_I = 4 suppressed cohorts reach it; at the default k_I nothing does.
   counts <- function(k_I) {
     p <- testing_parameters("FF16")
     p$max_patch_lifetime <- 5
@@ -203,14 +203,27 @@ test_that("FF16's growth cutoff is counted where suppressed cohorts reach it", {
                         birth_rate = list(2))
     solver <- run(p, NULL, referee_control(), record = "states")$solver
     fired <- census_clamp_counts(solver, "FF16")
-    g <- stand_gradient(solver, metrics = "mass_above_ground",
-                        traits = "1.a_p1", hyperpar = NULL)
+    metrics <- c("mass_above_ground", "area_stem")
+    g <- stand_gradient(solver, metrics = metrics, traits = "1.a_p1",
+                        hyperpar = NULL)
     expect_false(any(stand_gradient_refused(g)))
-    list(fired = fired, swept = census_clamp_counts(solver, "FF16", TRUE))
+    list(fired = fired, swept = census_clamp_counts(solver, "FF16", TRUE),
+         solver = solver, gradient = g$gradient, metrics = metrics)
   }
   shaded <- counts(4)
   expect_gt(sum(shaded$fired[, "production_cutoff"]), 0)
   expect_gt(sum(shaded$swept[, "production_cutoff"]), 0)
+  # The two metrics that read heartwood agree with the pinned difference where
+  # the cutoff binds. Compared as a ratio, because area_stem's column is about
+  # 1e-6 and a tolerance on the values themselves would be absolute there. The
+  # step is stated, not defaulted: a heartwood rate that jumps at the cutoff
+  # shows at a relative step of 1e-4 (5% and 20% off) and hides at 1e-5.
+  fd <- central_difference(pin_steps(shaded$solver), 1, "a_p1", NULL, census_of(),
+                           rel = 1e-4)
+  for (m in shaded$metrics) {
+    expect_equal(shaded$gradient[m, "1.a_p1"] / fd[[m]], 1, tolerance = 1e-5,
+                 label = paste(m, "a_p1 at k_I = 4, relative to the difference"))
+  }
   open <- counts(0.5)
   expect_equal(sum(open$fired[, "production_cutoff"]), 0)
   expect_equal(sum(open$swept[, "production_cutoff"]), 0)
