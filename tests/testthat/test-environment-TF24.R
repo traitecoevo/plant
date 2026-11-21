@@ -170,6 +170,8 @@ test_that("Environment-TF24 builds one column from the same widths by either set
     }
   }
   expect_gt(product_differs, 0)
+  # The default column is one where the two agree, so its baseline stands.
+  expect_identical(Environment("TF24")$get_soil_depths(), (1:5) * (1.5 / 5))
 })
 
 test_that("Environment-TF24 refuses an unusable set of layer widths", {

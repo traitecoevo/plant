@@ -241,6 +241,9 @@ test_that("a recipe with a field it does not know is refused by name", {
   recipe <- environment_recipe(Environment("TF24"))
   recipe$layer_widths <- NULL
   expect_error(Environment(recipe), "without the layer_widths")
+  recipe$depth <- NULL
+  recipe$layer_depths <- (1:5) * 0.3
+  expect_error(Environment(recipe), "without the layer_widths")
 })
 
 test_that("a layered recipe lacking a layer value takes the scalar field", {

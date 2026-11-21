@@ -1665,7 +1665,7 @@ parameters:
     symbol: 'Z'
     units: 'm'
     class: hyperparameter
-    meaning: 'total depth of the soil column, the sum of the layer widths and the depth to the bottom of the deepest layer; read-only from R, since only the geometry setters rebuild the layers from it'
+    meaning: 'total depth of the soil column: the sum of the layer widths and the depth to the bottom of the deepest layer, to rounding when set_soil_number_of_depths divides it into equal layers; read-only from R, since only the geometry setters rebuild the layers from it'
     source: 'TF24_Environment constructor default; set_soil_layer_widths overwrites it with the sum of the widths, and set_soil_number_of_depths divides it into equal layers and leaves it as it was. No source recorded'
     placeholder: true
     code: plant::TF24_Environment::depth

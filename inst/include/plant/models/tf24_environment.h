@@ -1231,9 +1231,9 @@ public:
     };
 
     const bool column = has("layer_widths");
-    if (!column && has("depth")) {
-      util::stop("A TF24 environment's recipe gives depth without the "
-                 "layer_widths it is the total of");
+    if (!column && (has("layer_depths") || has("depth"))) {
+      util::stop("A TF24 environment's recipe gives layer_depths or depth "
+                 "without the layer_widths they belong to");
     }
     if (column) {
       set_soil_layer_widths(Rcpp::as<std::vector<double>>(r["layer_widths"]));
