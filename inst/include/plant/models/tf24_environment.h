@@ -1157,8 +1157,8 @@ public:
   // can keep: the soil column, its parameters, the water a run starts from and
   // the drivers. A run resets the time, the light field and the soil water to
   // the start, so those are not kept, and the water kept is the starting water.
-  // set_recipe() is the inverse: recipe() of a fresh environment it sets is
-  // identical() to the one it was given.
+  // set_recipe() is the inverse: recipe() of a fresh environment it sets from a
+  // complete recipe is identical() to that recipe.
   Rcpp::List recipe() const {
     SEXP layered = R_NilValue;
     if (use_layered_soil_parameters) {
@@ -1190,16 +1190,22 @@ public:
   // of the widths in the last bits: set_soil_number_of_depths() builds them
   // from the total, and TF24's numbers move with that difference.
   //
-  // A field the recipe lacks keeps this environment's value, so a recipe saved
-  // before a field was added still sets an environment: on a fresh one, the
-  // field takes its default. A column set without its water starts at half
-  // saturation, as the constructor's does. A name the recipe has and this
-  // does not know is refused, so a misspelt field is not dropped unseen.
+  // Made for a fresh environment, which is the only one plant hands it. There a
+  // field the recipe lacks takes its default, so a recipe saved before a field
+  // was added still sets an environment. A recipe that sets the column resets
+  // what belongs to the old one, as the geometry setters do: the water starts
+  // at half the saturation in force, as the constructor's does, and any
+  // per-layer parameters the recipe does not give again are dropped. A name the
+  // recipe has and this does not know is refused, so a misspelt field is not
+  // dropped unseen.
   void set_recipe(Rcpp::List r) {
     static const std::vector<std::string> known = {
       "layer_widths", "layer_depths", "depth", "soil_moist_sat", "K_sat",
       "a_psi", "n_psi", "layered_soil_parameters", "a_infil", "b_infil",
       "f_PAR", "water_mixing_rate", "soil_water", "drivers"};
+    if (r.size() > 0 && Rf_isNull(r.names())) {
+      util::stop("A TF24 environment's recipe must be a named list");
+    }
     const Rcpp::CharacterVector given =
       r.size() == 0 ? Rcpp::CharacterVector() : Rcpp::CharacterVector(r.names());
     for (R_xlen_t i = 0; i < given.size(); ++i) {
@@ -1272,10 +1278,14 @@ public:
         a_psi_layers.clear();
         n_psi_layers.clear();
       } else {
+        // A layer value left out takes the scalar field for every layer, as
+        // set_tf24_soil() reads NULL.
         const Rcpp::List l(layered);
-        set_soil_parameters(soil_number_of_depths, SEXP(l["soil_moist_sat"]),
-                            SEXP(l["K_sat"]), SEXP(l["a_psi"]),
-                            SEXP(l["n_psi"]));
+        auto layer = [&l](const char* name) -> SEXP {
+          return l.containsElementNamed(name) ? SEXP(l[name]) : R_NilValue;
+        };
+        set_soil_parameters(soil_number_of_depths, layer("soil_moist_sat"),
+                            layer("K_sat"), layer("a_psi"), layer("n_psi"));
       }
     }
     if (has("soil_water")) {

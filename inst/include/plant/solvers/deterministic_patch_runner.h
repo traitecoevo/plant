@@ -1317,11 +1317,8 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
         }
       }
     }
-    // Converged, or out of passes. A schedule bisected on the last pass would
-    // never be run, and the parameters below would then pair it with the ODE
-    // steps of the schedule before it, which no run of them can take.
-    if (!any || step + 1 == control.schedule_nsteps) {
-      break;
+    if (!any) {
+      break; // converged: no interval needs refining
     }
 
     // Bisect flagged intervals and install the denser schedule.

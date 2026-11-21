@@ -125,8 +125,9 @@ public:
   // inputs and sets them again (r_driver_recipe), because odelia's driver does
   // not report whether it is constant, and its knots() leaves out the points
   // inside a flat stretch. Held through a shared pointer to constant data,
-  // because an environment is copied for every recorded step and every rebind,
-  // and a daily series a century long would otherwise be copied each time.
+  // because an environment is copied for every recorded step and every rebind:
+  // the interpolators in extrinsic_drivers are copied each time regardless, and
+  // this keeps the record from adding a second copy of every series.
   struct driver_input {
     std::vector<double> x, y;
   };

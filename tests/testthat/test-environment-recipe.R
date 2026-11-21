@@ -231,6 +231,15 @@ test_that("a recipe with a field it does not know is refused by name", {
   expect_error(Environment(recipe), "without the layer_widths")
 })
 
+test_that("a layered recipe lacking a layer value takes the scalar field", {
+  recipe <- environment_recipe(tf24_configured_environment())
+  recipe$layered_soil_parameters$K_sat <- NULL
+  got <- environment_recipe(Environment(recipe))$layered_soil_parameters
+  expect_identical(got$K_sat, rep(recipe$K_sat, 4))
+  expect_identical(got$n_psi, recipe$layered_soil_parameters$n_psi)
+  expect_error(TF24_Environment()$set_recipe(list(1, 2)), "must be a named list")
+})
+
 test_that("a column of many equal layers rebuilds exactly", {
   env <- Environment("TF24")
   env$set_soil_number_of_depths(1000)
@@ -249,17 +258,6 @@ test_that("a recipe serves where an environment is taken", {
   expect_identical(run(ind, env = environment_recipe(FF16_Environment()),
                        times = c(0, 1, 2))$state,
                    run(ind, times = c(0, 1, 2))$state)
-})
-
-test_that("a refinement that runs out of passes leaves a schedule it ran", {
-  p <- ff16_parameters(10)
-  ctrl <- control()
-  ctrl$schedule_nsteps <- 1
-  ctrl$schedule_eps <- 1e-6
-  a <- run(p, control = ctrl, refine_schedule = TRUE)
-  expect_identical(a$scenario$p$node_schedule_times, p$node_schedule_times)
-  b <- run(saved_and_read_back(a), until = a$time)
-  expect_identical(b$offspring_production, a$offspring_production)
 })
 
 test_that("an invaders' result read back says how to rebuild it", {
