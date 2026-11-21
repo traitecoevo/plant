@@ -133,7 +133,8 @@ print.plant_scenario <- function(x, ...) {
 ##' @param method \code{"deterministic"} (the default) or \code{"stochastic"}.
 ##' @param env,control,events For a \code{Parameters} object, as
 ##'   \code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
-##'   the \code{Environment} it grows in, by default its model's.
+##'   the \code{Environment} it grows in, or a recipe of one, by default its
+##'   model's.
 ##' @param times,sizes For an \code{Individual}, the times to report it at, or
 ##'   the sizes to grow it to (increasing); give one.
 ##' @param size_name The size \code{sizes} are of.
@@ -393,9 +394,7 @@ run.Individual <- function(x, env = NULL, ..., times = NULL, sizes = NULL,
   if (is.null(times) == is.null(sizes)) {
     stop("Give one of `times` and `sizes`", call. = FALSE)
   }
-  if (is.null(env)) {
-    env <- Environment(x$strategy_name)
-  }
+  env <- if (is.null(env)) Environment(x$strategy_name) else live_environment(env)
   out <- if (is.null(times)) {
     individual_grow_to_sizes(x, sizes, size_name, env, ...)
   } else {
@@ -529,8 +528,12 @@ as_solver <- function(x) {
   solver <- x$solver
   time <- tryCatch(solver$time, error = function(e) {
     stop("This result's solver is gone (a result read back with readRDS() keeps ",
-         "everything else): run(res, until = res$time) runs its scenario again ",
-         "to where it stood", call. = FALSE)
+         "everything else): ",
+         if (is.null(x$mutants)) {
+           "run(res, until = res$time) runs its scenario again to where it stood"
+         } else {
+           "run its resident's scenario again, then run_mutant()"
+         }, call. = FALSE)
   })
   if (!identical(time, x$time) ||
       !identical(solver$parameters, x$mutants %||% x$scenario$p)) {

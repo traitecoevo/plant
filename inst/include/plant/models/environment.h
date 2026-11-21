@@ -7,6 +7,7 @@
 #include <plant/community/internals.h>
 #include <plant/util.h>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <Rcpp.h>
 #include <plant/models/extrinsic_drivers.h>
@@ -123,11 +124,13 @@ public:
   // series' control points. A saved scenario keeps its environment as these
   // inputs and sets them again (r_driver_recipe), because odelia's driver does
   // not report whether it is constant, and its knots() leaves out the points
-  // inside a flat stretch.
+  // inside a flat stretch. Held through a shared pointer to constant data,
+  // because an environment is copied for every recorded step and every rebind,
+  // and a daily series a century long would otherwise be copied each time.
   struct driver_input {
     std::vector<double> x, y;
   };
-  std::map<std::string, driver_input> driver_inputs_;
+  std::map<std::string, std::shared_ptr<const driver_input>> driver_inputs_;
 
   std::vector<std::string> extrinsic_drivers_get_names() const
   {
@@ -137,7 +140,8 @@ public:
   void extrinsic_drivers_set_constant(std::string driver_name, double value)
   {
     extrinsic_drivers.set_constant(driver_name, value);
-    driver_inputs_[driver_name] = driver_input{{}, {value}};
+    driver_inputs_[driver_name] =
+      std::make_shared<const driver_input>(driver_input{{}, {value}});
   }
 
   // ⚠️ MONOTONE, NOT odelia's natural default. A driver is data given as values
@@ -147,7 +151,8 @@ public:
   void extrinsic_drivers_set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y)
   {
     extrinsic_drivers.set_variable(driver_name, x, y, odelia::drivers::Slopes::monotone);
-    driver_inputs_[driver_name] = driver_input{x, y};
+    driver_inputs_[driver_name] =
+      std::make_shared<const driver_input>(driver_input{x, y});
   }
 
   // Every driver as it was set, by name: list(value = ) for a constant and
@@ -159,9 +164,9 @@ public:
     R_xlen_t i = 0;
     for (const auto& [name, input] : driver_inputs_) {
       names[i] = name;
-      out[i] = input.x.empty()
-        ? Rcpp::List::create(_["value"] = input.y.front())
-        : Rcpp::List::create(_["x"] = input.x, _["y"] = input.y);
+      out[i] = input->x.empty()
+        ? Rcpp::List::create(_["value"] = input->y.front())
+        : Rcpp::List::create(_["x"] = input->x, _["y"] = input->y);
       ++i;
     }
     out.attr("names") = names;

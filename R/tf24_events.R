@@ -33,14 +33,15 @@
 ##'   events_default(p),
 ##'   rainfall_pulse(time = c(1.5, 3.2), depth = c(0.013, 0.050))
 ##' )
-##' @param env Optionally, the \code{Environment} the run will use. When given,
+##' @param env Optionally, the \code{Environment} the run will use, or a
+##'   scenario's recipe of one. When given,
 ##'   \code{rainfall_pulse()} warns if that environment still carries a non-zero
 ##'   continuous \code{rainfall} driver — pulses \emph{add to} the continuous
 ##'   forcing rather than replacing it, so supplying both silently double-counts
 ##'   the water. Set the driver to zero to model rainfall as pulses alone.
 ##' @rdname rainfall_pulse
 rainfall_pulse <- function(time, depth, layer = 1, env = NULL) {
-  if (!is.null(env)) warn_if_continuous_rainfall(env)
+  if (!is.null(env)) warn_if_continuous_rainfall(live_environment(env))
   ## Builds the rows directly rather than calling resource_pulse(), so that a
   ## length mismatch is reported against `depth` -- the argument the caller
   ## actually typed -- instead of the generic `amount`.

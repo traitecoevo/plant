@@ -187,7 +187,8 @@ residual_events <- function(solver, time, residual, tol, final) {
 ##'   Supply this or \code{log_densities}.
 ##' @param log_densities Per-species node log-densities (alternative to
 ##'   \code{densities}).
-##' @param env Environment object (defaults to the strategy's environment).
+##' @param env Environment object, or a scenario's recipe of one (defaults to
+##'   the strategy's environment).
 ##' @param ctrl Control object.
 ##' @return A state list suitable for \code{\link{set_initial_state}}. It is
 ##'   marked \code{established}: on the birth-date coordinate the densities
@@ -199,9 +200,7 @@ make_initial_state <- function(p, heights, densities = NULL,
                                log_densities = NULL, env = NULL,
                                ctrl = control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
-  if (is.null(env)) {
-    env <- Environment(types[[1]])
-  }
+  env <- if (is.null(env)) Environment(types[[1]]) else live_environment(env)
   if (ctrl$absorb_epsilon > 0) {
     stop("make_initial_state() lays out the nodes' state by hand and has no ",
          "absorbing top layer; build the state with control$absorb_epsilon = 0")

@@ -137,8 +137,10 @@ check_environment_alive <- function(env) {
     tryCatch({env$time; TRUE}, error = function(e) FALSE)
   if (!alive) {
     stop("This environment was read back with readRDS(), which keeps no live ",
-         "object: build it again, or keep a scenario, which holds its ",
-         "environment as a recipe", call. = FALSE)
+         "object, so it must be built again. A scenario keeps its environment ",
+         "as a recipe, which saveRDS() keeps; one holding this environment was ",
+         "made by a plant older than that, and is made again with scenario()",
+         call. = FALSE)
   }
 }
 

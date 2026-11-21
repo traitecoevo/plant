@@ -13,6 +13,9 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **A schedule refinement that runs out of passes reports the schedule it last ran.** When `refine_schedule = TRUE` used up `control$schedule_nsteps` without converging, its last pass bisected the schedule and stopped without running it, so `res$scenario$p` held a schedule no run had taken, paired with the step times of the one before it, and running that `p` failed with "Time does not match previous". It now stops before that bisection. The run's outputs are unchanged; only the reported schedule is. Migration:
+  * code that read the extra bisected times from an unconverged refinement's `p` -> refine again from that `p`, or raise `schedule_nsteps`
+
 * **A scenario keeps its environment as a recipe, so a saved scenario or result runs after `readRDS()` (#824).** `scenario()` stores plain values for everything a run reads from the environment (for TF24, the soil column, its parameters, the starting soil water and the drivers), and each run builds the environment from them. A result read back runs again from its scenario: `run(res, until = res$time)` rebuilds it where it stood, taking the same steps, and `run(res)` carries it on to the end. **Semantic change:** a scenario is now a value, so a change made to an environment after `scenario()` was given it no longer reaches the scenario. Migration:
   * `sc$env` / `res$scenario$env` is a `plant_environment_recipe`, not an `Environment`; a method call on it, `res$scenario$env$get_soil_depths()` -> `Environment(res$scenario$env)$get_soil_depths()`. Reading a TF24 field (`$soil_moist_sat`, `$K_sat`, `$depth`, ...) works on the recipe unchanged
   * `sc <- scenario(p, env); env$...<- / env$set_...()`, relying on the change reaching `sc` -> configure `env` before `scenario()`, or call `scenario()` again
