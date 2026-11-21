@@ -14,29 +14,6 @@ template <> inline std::string generator_name<phylloptim::RootNetwork >() {retur
 template <> inline std::string   class_name_r<plant::Leaf >() {return "Leaf";}
 template <> inline std::string   package_name<plant::Leaf >() {return "plant";}
 template <> inline std::string generator_name<plant::Leaf >() {return ".R6_Leaf";}
-template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > >() {return "OdeRunner<FF16>";}
-template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > >() {return "plant";}
-template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > >() {return ".R6_OdeRunner___FF16";}
-
-template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > >() {return "OdeRunner<TF24>";}
-template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > >() {return "plant";}
-template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > >() {return ".R6_OdeRunner___TF24";}
-
-template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > >() {return "OdeRunner<TF24f>";}
-template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > >() {return "plant";}
-template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > >() {return ".R6_OdeRunner___TF24f";}
-
-template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > >() {return "OdeRunner<TF24t>";}
-template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > >() {return "plant";}
-template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > >() {return ".R6_OdeRunner___TF24t";}
-
-template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > >() {return "OdeRunner<TF24w>";}
-template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > >() {return "plant";}
-template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > >() {return ".R6_OdeRunner___TF24w";}
-
-template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > >() {return "OdeRunner<K93>";}
-template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > >() {return ".R6_OdeRunner___K93";}
 template <> inline std::string   class_name_r<plant::ScheduleEvent >() {return "ScheduleEvent";}
 template <> inline std::string   package_name<plant::ScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::ScheduleEvent >() {return ".R6_ScheduleEvent";}
@@ -84,29 +61,6 @@ template <> inline std::string generator_name<plant::Individual<plant::TF24w_Mod
 template <> inline std::string   class_name_r<plant::Individual<plant::K93_Model,plant::K93_Environment> >() {return "Individual<K93,K93_Env>";}
 template <> inline std::string   package_name<plant::Individual<plant::K93_Model,plant::K93_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Individual<plant::K93_Model,plant::K93_Environment> >() {return ".R6_Individual___K93__K93_Env";}
-template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "IndividualRunner<FF16,FF16_Env>";}
-template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >() {return ".R6_IndividualRunner___FF16__FF16_Env";}
-
-template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return "IndividualRunner<TF24,TF24_Env>";}
-template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_IndividualRunner___TF24__TF24_Env";}
-
-template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return "IndividualRunner<TF24f,TF24_Env>";}
-template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_IndividualRunner___TF24f__TF24_Env";}
-
-template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return "IndividualRunner<TF24t,TF24_Env>";}
-template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_IndividualRunner___TF24t__TF24_Env";}
-
-template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return "IndividualRunner<TF24w,TF24_Env>";}
-template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return "plant";}
-template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >() {return ".R6_IndividualRunner___TF24w__TF24_Env";}
-
-template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> >() {return "IndividualRunner<K93,K93_Env>";}
-template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> >() {return ".R6_IndividualRunner___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::Internals<double> >() {return "Internals";}
 template <> inline std::string   package_name<plant::Internals<double> >() {return "plant";}
 template <> inline std::string generator_name<plant::Internals<double> >() {return ".R6_Internals";}
@@ -403,47 +357,6 @@ template <> inline SEXP wrap(const plant::Leaf& x) {
 template <> inline plant::Leaf as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Leaf>(x));
 }
-template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> >& x) {
-  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > >(x));
-}
-template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > >(x));
-}
-
-template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> >& x) {
-  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-
-template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> >& x) {
-  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-
-template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> >& x) {
-  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-
-template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> >& x) {
-  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > >(x));
-}
-
-template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > >(x));
-}
-template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > >(x));
-}
 template <> inline SEXP wrap(const plant::ScheduleEvent& x) {
   return wrap(plant::RcppR6::RcppR6<plant::ScheduleEvent>(x));
 }
@@ -729,47 +642,6 @@ template <> inline SEXP wrap(const plant::Individual<plant::K93_Model,plant::K93
 }
 template <> inline plant::Individual<plant::K93_Model,plant::K93_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Model,plant::K93_Environment> >(x));
-}
-template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
-}
-template <> inline plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-template <> inline plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-template <> inline plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-template <> inline plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-template <> inline plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment>& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> >(x));
-}
-template <> inline plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::Internals<double>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Internals<double> >(x));

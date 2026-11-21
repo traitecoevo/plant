@@ -191,7 +191,8 @@ public:
   // Adaptively refine the node-introduction schedule entirely in C++:
   // repeatedly run, flag nodes whose combined error exceeds schedule_eps,
   // and bisect the interval below each flagged node (upwind scheme), up to
-  // schedule_nsteps times. Replaces the R build_schedule loop.
+  // schedule_nsteps times. Ends on a run of the schedule it leaves, keeping
+  // states if keep_states is set. Replaces the R build_schedule loop.
   void refine_schedule();
 
   // Return patch, schedule and solver to their t = 0 state; clear history.
@@ -1361,9 +1362,19 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
   }
   collect_refinement_errors = true;
   const double eps = control.schedule_eps;
+  // A pass is bisected against and discarded, so it keeps no states; states
+  // asked for are kept by the run the result stands on.
+  const bool keep = keep_states;
+  keep_states = false;
 
+  bool converged = false;
   for (size_t step = 0; step < control.schedule_nsteps; ++step) {
-    run(); // resets, then runs with collect_refinement_errors set
+    try {
+      run(); // resets, then runs with collect_refinement_errors set
+    } catch (...) {
+      keep_states = keep;
+      throw;
+    }
 
     std::vector<std::vector<double>> node_error = patch.refinement_error_by_node();
 
@@ -1380,20 +1391,33 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
       }
     }
     if (!any) {
-      break; // converged: no interval needs refining
+      converged = true; // no interval needs refining
+      break;
     }
 
-    // Bisect flagged intervals and install the denser schedule.
+    // Bisect flagged intervals and install the denser schedule. Steps pinned
+    // from the parameters were taken on the schedule before it.
     std::vector<std::vector<double>> times = schedule.get_times();
     for (size_t i = 0; i < times.size(); ++i) {
       times[i] = bisect_flagged_intervals(times[i], split[i]);
     }
     schedule.set_times(times);
+    schedule.r_clear_ode_steps();
   }
 
-  // Leave Parameters self-describing: record the refined schedule and the
-  // ode times from the final run (mirrors build_schedule.R).
+  // Leave Parameters self-describing: the schedule here, and below the ODE
+  // times of the run that took it. Set before that run, as reset() hands it to
+  // the patch, whose walks over the run's record read it.
   parameters.node_schedule_times = schedule.get_times();
+
+  // The result reports the schedule it leaves, so a refinement that ran out of
+  // passes runs the schedule its last bisection made (and one allowed no pass
+  // runs the schedule it was given).
+  keep_states = keep;
+  if (!converged || keep_states) {
+    run();
+  }
+
   // Carried out in the parameters so a later run of them takes this schedule,
   // which is what these two fields are for on the way IN. Read off the solver's
   // one record rather than through two accessors: a time and the size that

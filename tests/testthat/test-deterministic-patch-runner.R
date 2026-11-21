@@ -549,8 +549,13 @@ test_that("Offspring production & error calculations correct", {
     expect_equal(patch$net_reproduction_ratios, net_reproduction_ratio_R(solver))
     expect_equal(patch$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(solver, error=TRUE))
 
-    lae_cmp <-
-      solver$patch$species[[1]]$compute_competition_effect_by_nodes_error(solver$patch$compute_competition(0))
+    ## The competition integral's local error, over the heights this run's
+    ## default coordinate integrates on (test-density-coordinate.R takes both).
+    sp <- patch$species[[1]]
+    expect_false(sp$density_in_birth_date)
+    lae_cmp <- local_error_integration(sp$heights,
+                                       sp$compute_competition_effect_by_nodes,
+                                       patch$compute_competition(0))
     expect_identical(patch$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)
 
   }
@@ -588,8 +593,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
       for (idx in which(sizes_now > sizes_prev)) {
         lai_error[[idx]] <- c(
           lai_error[[idx]],
-          list(h$species[[idx]]$compute_competition_effect_by_nodes_error(
-            h$compute_competition(0)))
+          list(h$compute_competition_effect_error_by_node_for_species_i(idx))
         )
       }
       sizes_prev <- sizes_now

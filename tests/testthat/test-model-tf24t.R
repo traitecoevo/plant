@@ -527,14 +527,14 @@ test_that("faster repair lowers the share of impairment that becomes damage", {
   expect_gt(fast, 0)
 })
 
-test_that("a single TF24t plant grows through the ODE runner, and costs slow it", {
+test_that("a single TF24t plant grows, and costs slow it", {
   # At 15 deg C air, not the default 25. A lone plant in full light runs its
   # leaves 4-6 deg C above the air, and hotter as impairment closes its stomata,
   # so at 25 impairment, which rises tenfold every ~6 K, ratchets into damage
   # within a year at the default k_mat, and the dying
   # plant's empty storage pool holds the stepper to tiny steps.
   #
-  # The runner does not seed the initial states, so they are seeded here: an
+  # run() does not seed the initial states, so they are seeded here: an
   # unseeded storage pool starts empty, where a plant losing carbon is refused
   # every step that dips below it.
   e <- "TF24_Env"
@@ -544,11 +544,9 @@ test_that("a single TF24t plant grows through the ODE runner, and costs slow it"
     s <- mutate(TF24t_Model())
     p <- Individual("TF24t", e)(s)
     p$set_initial_states(env)
-    runner <- OdeRunner("TF24t")(IndividualRunner("TF24t", e)(p, env))
-    h0 <- runner$object$individual$state("height")
-    while (runner$time < t_end) runner$step()
-    ode <- runner$object$individual
-    list(h0 = h0, h1 = ode$state("height"), states = ode$internals$states)
+    ode <- run(p, times = t_end, env = env)$individual[[1]]
+    list(h0 = p$state("height"), h1 = ode$state("height"),
+         states = ode$internals$states)
   }
   base <- grow_to_time()
   expect_gt(base$h1, base$h0)

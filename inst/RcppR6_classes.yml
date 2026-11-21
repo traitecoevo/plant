@@ -294,34 +294,6 @@ Leaf:
       return_type: void
       args: []
 
-OdeRunner:
-  name_cpp: "odelia::ode::Solver<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>>"]
-      - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>>"]
-      - ["TF24f": "plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>>"]
-      - ["TF24t": "plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>>"]
-      - ["TF24w": "plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>>"]
-      - ["K93": "plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment>"]
-  constructor:
-    args: [obj: T, control: "odelia::ode::OdeControl=OdeControl()"]
-  active:
-    time: {type: double, access: member}
-    state: {type: "std::vector<double>", access: member}
-    times: {type: "std::vector<double>", access: member}
-    object: {type: T, access: member, name_cpp: get_system}
-  methods:
-    advance_adaptive: {return_type: void, args: [time: "std::vector<double>"]}
-    advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
-    advance_euler: {return_type: void, args: [time: "std::vector<double>"]}
-    step: {return_type: void}
-    set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
-    set_state_from_system: {return_type: void}
-    advance_to_size: {return_type: double, args: [index: size_t, size: double, time_max: double], access: function, name_cpp: "plant::tools::advance_to_size"}
-    history_steps: {return_type: "Rcpp::NumericMatrix", access: function, name_cpp: "plant::tools::history_steps"}
-
 ScheduleEvent:
   name_cpp: "plant::ScheduleEvent"
   constructor:
@@ -578,23 +550,16 @@ Individual:
     resource_compensation_point:
       args: []
       return_type: double
-
-IndividualRunner:
-  name_cpp: "plant::tools::IndividualRunner<T,E>"
-  templates:
-    parameters: [T,E]
-    concrete:
-      - ["FF16": "plant::FF16_Model<double>", "FF16_Env": "plant::FF16_Environment<double>"]
-      - ["TF24": "plant::TF24_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
-      - ["TF24f": "plant::TF24f_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
-      - ["TF24t": "plant::TF24t_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
-      - ["TF24w": "plant::TF24w_Model<double>", "TF24_Env": "plant::TF24_Environment<double>"]
-      - ["K93": "plant::K93_Model", "K93_Env": "plant::K93_Environment"]
-  constructor:
-    name_cpp: "plant::tools::IndividualRunner<T,E>"
-    args: [individual: "plant::Individual<T,E>", environment: E]
-  active:
-    individual: {access: field, type: "plant::Individual<T,E>"}
+    grow_to_times:
+      args: [environment: E, times: "std::vector<double>"]
+      return_type: "Rcpp::List"
+      access: function
+      name_cpp: "plant::tools::grow_to_times"
+    grow_to_sizes:
+      args: [environment: E, sizes: "std::vector<double>", index: size_t, time_max: double]
+      return_type: "Rcpp::List"
+      access: function
+      name_cpp: "plant::tools::grow_to_sizes"
 
 Internals:
   name_cpp: "plant::Internals<double>"
@@ -681,6 +646,15 @@ Parameters:
     # NULL). Opaque to C++; carried so it survives validate() and run().
     - hyperpar: SEXP
 
+## Node and Species are bound to R so a patch's contents can be read
+## (Patch$species, Species$nodes, Species$new_node), and they are read-only.
+## An object read that way is a copy: a patch returns its species by value, and
+## a species its nodes, so a method that changed one would change the copy and
+## leave the patch as it was. (A runner's $patch is a copy too, so state is set
+## on a Patch built directly.) Put a patch in a state through the Patch itself
+## (introduce_new_node, set_ode_state, an initial state on its Parameters) and
+## read the species from it. The constructors are bound only because RcppR6
+## requires one for every class.
 Node:
   name_cpp: "plant::Node<T,E>"
   templates:
@@ -719,7 +693,7 @@ Node:
     density_in_birth_date: {type: bool, access: member, readonly: true}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state"}
     ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
@@ -730,12 +704,6 @@ Node:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
       args: [environment: E]
-    compute_rates:
-      return_type: void
-      args: [environment: E, pr_patch_survival: double]
-    compute_initial_conditions:
-      return_type: void
-      args: [environment: E, pr_patch_survival: double, birth_rate: double]
 
 Species:
   name_cpp: "plant::Species<T,E>"
@@ -754,7 +722,7 @@ Species:
     size: {type: size_t, access: member}
     new_node: {type: "plant::Node<T,E>", access: member, name_cpp: r_new_node}
     height_max: {type: double, access: member, readonly: true}
-    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights}
     ## Always a density in height, whichever coordinate the solver carried it in.
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     ## The quantity actually integrated: the height density on the height path,
@@ -783,32 +751,12 @@ Species:
     extrinsic_drivers: {type: "plant::ExtrinsicDrivers", access: member, name_cpp: extrinsic_drivers}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state"}
     ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
   methods:
-    clear:
-      return_type: void
-    compute_rates:
-      return_type: void
-      args: [environment: E, pr_patch_survival: double, birth_rate: double]
     compute_competition:
       return_type: double
       args: [height: double]
-    introduce_new_node:
-      return_type: void
-    node_at:
-      return_type: "plant::Node<T,E>"
-      args: [index: "plant::util::index"]
-      name_cpp: r_node_at
-    compute_competition_effect_by_nodes_error:
-      return_type: "std::vector<double>"
-      args: [scal: double=1]
-      name_cpp: r_compute_competition_effect_by_nodes_error
-    set_birth_state:
-      return_type: void
-      args: [times: "const std::vector<double>&",
-             patch_density: "const std::vector<double>&",
-             pr_patch_survival: "const std::vector<double>&"]
 
 Patch:
   name_cpp: "plant::Patch<T,E>"

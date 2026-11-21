@@ -176,6 +176,39 @@ get_list_of_environment_types <- function() {
     )
 }
 
+# A patch of one species running strategy `s`, with its density carried in
+# `coordinate` (Control's node_density_coordinate; NULL keeps the default).
+#
+# This is how a test puts a Species or a Node into a state. Neither has a
+# mutator bound to R, because R holds a copy of each (the note above Node in
+# inst/RcppR6_classes.yml): introduce nodes and set states through the patch,
+# then read patch$species[[1]]. A fresh patch has already seeded its boundary
+# node, patch$species[[1]]$new_node, at time zero, in the patch's environment,
+# at the strategy's birth rate and a patch survival of one.
+one_species_patch <- function(x, s, coordinate = NULL, env = Environment(x)) {
+  ctrl <- Control()
+  if (!is.null(coordinate)) {
+    ctrl$node_density_coordinate <- coordinate
+  }
+  e <- environment_type(x)
+  p <- Parameters(x, e)(strategies = list(s))
+  Patch(x, e)(p, env, ctrl)
+}
+
+# Write `values` into the ODE state called `name` of the first species' nodes,
+# in node order, through the patch's set_ode_state as a run would. The first
+# species' nodes lead the patch's state vector.
+set_node_states <- function(patch, name, values) {
+  boundary <- patch$species[[1]]$new_node
+  stride <- boundary$ode_size
+  i <- match(name, boundary$ode_names)
+  stopifnot(!is.na(i), length(values) == patch$species[[1]]$size)
+  y <- patch$ode_state
+  y[(seq_along(values) - 1L) * stride + i] <- values
+  patch$set_ode_state(y, patch$time)
+  invisible(patch)
+}
+
 # How many processes a test may fork.
 #
 # ⚠️ TWO UNDER `R CMD check`, AND THAT IS NOT A PREFERENCE. The check sets

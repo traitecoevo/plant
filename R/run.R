@@ -135,18 +135,21 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
 ##'   the \code{Environment} it grows in, or a recipe of one, by default its
 ##'   model's.
-##' @param times,sizes For an \code{Individual}, the times to report it at, or
-##'   the sizes to grow it to (increasing); give one.
+##' @param times,sizes For an \code{Individual}, the times to report it at,
+##'   finite and not before the environment's time, or the sizes to grow it to;
+##'   either increasing. Give one.
 ##' @param size_name The size \code{sizes} are of.
 ##' @param refine_schedule Refine the node-introduction schedule before the
 ##'   run, bisecting the intervals whose nodes' error exceeds
 ##'   \code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
-##'   The refined schedule is in the result's \code{scenario$p}, with the ODE
-##'   schedule the final run took (\code{ode_times}, \code{ode_step_sizes},
-##'   \code{ode_soil_input_slopes}, \code{ode_soil_substep_ends}), so a later
-##'   run of those parameters takes those steps exactly. With
-##'   \code{record = "states"}, refinement's own runs keep no states and one
-##'   more run keeps them.
+##'   The result is a run of the refined schedule: if the last pass still
+##'   bisected, that schedule is run once more. The schedule is in the
+##'   result's \code{scenario$p}, with the ODE schedule that run took
+##'   (\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
+##'   \code{ode_soil_substep_ends}), so a later run of those parameters takes
+##'   those steps exactly. With \code{record = "states"}, refinement's own
+##'   passes keep no states, and the run the result reports keeps them; if the
+##'   refinement converged, that is one more run.
 ##' @return A \code{plant_run}: a list with \code{scenario} (what was run, its
 ##'   \code{p} the solver's, carrying any refined schedule), \code{time} and
 ##'   \code{complete} (where the run stands), \code{offspring_production} and
@@ -217,22 +220,13 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
   solver <- do.call("DeterministicPatchRunner", types)(
     x$p, live_environment(x$env), events, x$control)
   solver$collect <- "steps" %in% record
-  keep_states <- "states" %in% record
+  solver$keep_states <- "states" %in% record
   if (refine_schedule) {
-    ## Refinement's runs are bisected against and discarded, so they keep no
-    ## states; the run a sweep walks is one more, after the schedule settles.
     solver$refine_schedule()
-    if (keep_states) {
-      solver$keep_states <- TRUE
-      solver$run()
-    }
-  } else {
-    solver$keep_states <- keep_states
-    if (is.null(until)) {
-      solver$run()
-    } else if (until > x$p$initial_time) {
-      solver$run_to(until)
-    }
+  } else if (is.null(until)) {
+    solver$run()
+  } else if (until > x$p$initial_time) {
+    solver$run_to(until)
   }
   x$p <- solver$parameters
   new_plant_run(solver, x, record)

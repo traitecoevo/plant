@@ -62,12 +62,14 @@ own \code{events} instead resumes on \code{p}'s; set
 \item{refine_schedule}{Refine the node-introduction schedule before the
 run, bisecting the intervals whose nodes' error exceeds
 \code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
-The refined schedule is in the result's \code{scenario$p}, with the ODE
-schedule the final run took (\code{ode_times}, \code{ode_step_sizes},
-\code{ode_soil_input_slopes}, \code{ode_soil_substep_ends}), so a later
-run of those parameters takes those steps exactly. With
-\code{record = "states"}, refinement's own runs keep no states and one
-more run keeps them.}
+The result is a run of the refined schedule: if the last pass still
+bisected, that schedule is run once more. The schedule is in the
+result's \code{scenario$p}, with the ODE schedule that run took
+(\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
+\code{ode_soil_substep_ends}), so a later run of those parameters takes
+those steps exactly. With \code{record = "states"}, refinement's own
+passes keep no states, and the run the result reports keeps them; if the
+refinement converged, that is one more run.}
 
 \item{method}{\code{"deterministic"} (the default) or \code{"stochastic"}.}
 
@@ -76,8 +78,9 @@ more run keeps them.}
 the \code{Environment} it grows in, or a recipe of one, by default its
 model's.}
 
-\item{times, sizes}{For an \code{Individual}, the times to report it at, or
-the sizes to grow it to (increasing); give one.}
+\item{times, sizes}{For an \code{Individual}, the times to report it at,
+finite and not before the environment's time, or the sizes to grow it to;
+either increasing. Give one.}
 
 \item{size_name}{The size \code{sizes} are of.}
 }

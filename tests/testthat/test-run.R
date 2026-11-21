@@ -69,6 +69,30 @@ test_that("refinement through run() is the deterministic runner's, and its sched
   expect_identical(res$scenario$p, solver$parameters)
 })
 
+test_that("a refinement that runs out of passes reports a run of the schedule it leaves", {
+  p <- ff16_parameters(5)
+  ## One pass at this tolerance bisects and does not converge.
+  ctrl <- control(schedule_eps = 1e-6, schedule_nsteps = 1)
+  res <- run(p, control = ctrl, refine_schedule = TRUE)
+  expect_gt(length(res$scenario$p$node_schedule_times[[1]]),
+            length(node_schedule_times_default(5)))
+  ## Its p runs again to the same outputs, and refines again.
+  expect_identical(outputs(run(res$scenario)), outputs(res))
+  expect_no_error(run(res$scenario, refine_schedule = TRUE))
+  ## Keeping states changes nothing it reports.
+  states <- run(p, control = ctrl, refine_schedule = TRUE, record = "states")
+  expect_identical(outputs(states), outputs(res))
+  expect_identical(states$scenario$p, res$scenario$p)
+  expect_no_error(run_mutant(res, add_mutant(res$scenario$p, trait_matrix(0.09, "lma"))))
+})
+
+test_that("a refinement allowed no pass runs the schedule it was given", {
+  p <- ff16_parameters(5)
+  res <- run(p, control = control(schedule_nsteps = 0), refine_schedule = TRUE)
+  expect_identical(outputs(res), outputs(run(p)))
+  expect_identical(outputs(run(res$scenario)), outputs(res))
+})
+
 test_that("record keeps what tidy() and a gradient read", {
   p <- ff16_parameters(10)
   res <- run(p, record = "steps")
