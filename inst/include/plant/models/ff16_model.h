@@ -242,7 +242,7 @@ public:
   // performance, interface or serialisation change: a bump invalidates logpile's
   // cache for this model (model_version(), model_id()). Each bump, and what it
   // moved, is in NEWS.md.
-  static constexpr int scientific_version = 3;
+  static constexpr int scientific_version = 4;
 
   // Fixed integer slots for the hot ODE rate path, used instead of
   // state_index.at("...") / aux_index.at("...") string-map lookups (those map
@@ -938,6 +938,16 @@ void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
   // store the aux sate
   vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
 
+  // Heartwood forms from sapwood turnover whatever the sign of production:
+  // the turnover is charged in the net production either way, and a rate that
+  // stopped at the cutoff would jump there. Heartwood area grows as k_s times
+  // the sapwood area the worker returned.
+  vars.set_rate(AREA_HEARTWOOD_INDEX, pars.k_s * area_sapwood_);
+  vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
+  if (this->collect_all_auxiliary) {
+    vars.set_aux(AREA_SAPWOOD_AUX_INDEX, area_sapwood_);
+  }
+
   if (net_mass_production_dt_ > 0) {
 
     const S fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
@@ -954,22 +964,14 @@ void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_, area_leaf_pow_a_l2) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
-
-    // Heartwood area grows as k_s times the sapwood area the worker returned.
-    vars.set_rate(AREA_HEARTWOOD_INDEX, pars.k_s * area_sapwood_);
-    vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
-
-    if (this->collect_all_auxiliary) {
-      vars.set_aux(AREA_SAPWOOD_AUX_INDEX, area_sapwood_);
-    }
   } else {
-    // A counted site: the heartwood rates jump to zero here rather than reach
-    // it, so a cohort crossing it moves the run by a step its rows do not carry.
+    // A counted site, though both rates reach zero here continuously: it is a
+    // kink, not a jump, so a cohort crossing it leaves the run's slope one-sided
+    // and does not move the run by a step. Counted so a gradient taken where
+    // suppressed cohorts sit says so.
     note_clamp(CLAMP_PRODUCTION_CUTOFF);
     vars.set_rate(HEIGHT_INDEX, S(0.0));
     vars.set_rate(FECUNDITY_INDEX, S(0.0));
-    vars.set_rate(AREA_HEARTWOOD_INDEX, S(0.0));
-    vars.set_rate(MASS_HEARTWOOD_INDEX, S(0.0));
   }
   // Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,

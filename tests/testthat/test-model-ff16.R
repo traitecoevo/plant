@@ -207,7 +207,7 @@ test_that("offspring arrival", {
 
   out <- run(p2, env, ctrl)$solver
   expect_equal(out$patch$offspring_production, c(12.04839, 16.59373), tolerance=1e-5)
-  expect_equal(length(out$ode_times), 250)
+  expect_equal(length(out$ode_times), 236)
 
   # Non-vacuity for the coordinate claim: the other coordinate has to give a
   # different answer, or naming this one would be decoration. The magnitude is
