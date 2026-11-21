@@ -14,7 +14,7 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 products using plant.
 
 * **The clamp counts, their site names and the diagnostics reset take the model's name, as the operating-point readers do, and the four `_tf24` readers are gone.** `census_clamp_counts_tf24()`, `census_clamp_counts_differentiated_tf24()` and `census_clear_diagnostics_tf24()` read and reset TF24's runs alone, while FF16 and TF24f report the same sites. `census_clamp_counts(x, model, differentiated = FALSE)` returns the species-by-site matrix with the sites as its column names, `census_clamp_names()` the sites in that order, and `census_clear_diagnostics(x, model)` resets every tally the run reports, for FF16 (its clamps and the environment's) as well as TF24 and TF24f. No number moves. Migration (internal, reached as `plant:::`):
-  * `census_clamp_counts_tf24(scm)[[1]]` -> `census_clamp_counts(scm, "TF24")[1, ]`, a row named by site; `"TF24f"` or `"FF16"` for their runs
+  * `census_clamp_counts_tf24(scm)` returned a list with one unnamed vector per species; `census_clamp_counts(scm, "TF24")` returns a species-by-site matrix with the sites as column names, so a species' row `[[i]]` -> `[i, ]`; `"TF24f"` or `"FF16"` for their runs
   * `census_clamp_counts_differentiated_tf24(scm)[[1]]` -> `census_clamp_counts(scm, "TF24", differentiated = TRUE)[1, ]`
   * `census_clamp_names_tf24()` -> `census_clamp_names()`
   * `census_clear_diagnostics_tf24(scm)` -> `census_clear_diagnostics(scm, "TF24")`

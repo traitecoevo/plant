@@ -431,3 +431,53 @@ test_that("an empty request and an incomparable pair are refused", {
   expect_error(stand_gradient_compare(a, b), "different Control entries")
   expect_equal(stand_gradient_compare(a, a), a$gradient - a$gradient)
 })
+
+test_that("census_clear_diagnostics() takes every tally a model reports back to zero", {
+  # A count carried in from an earlier run of the same runner reads as this
+  # run's, so the reset clears both clamp tallies and, where the model keeps
+  # them, the operating points and the curvature margin. Each stand reaches
+  # something first, or a zero after the reset would say nothing.
+  leaf_stand <- function(model) {
+    p <- testing_parameters(model)
+    p$max_patch_lifetime <- 0.5
+    p <- add_strategies(p, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
+                        hyperpar = default_hyperpar(model), birth_rate = 20)
+    p$node_schedule_times <- list(c(0, 0.1, 0.2))
+    run(p, Environment(model), Control(), record = "states")$solver
+  }
+  tallies <- function(solver, model) {
+    list(fired = sum(census_clamp_counts(solver, model)),
+         swept = sum(census_clamp_counts(solver, model, differentiated = TRUE)),
+         kinds = if (model == "FF16") 0 else
+           sum(census_operating_point_counts(solver, model)[[1]]),
+         margin = if (model == "FF16") -1 else
+           census_curvature_margin(solver, model)[[1]])
+  }
+  for (model in c("TF24", "TF24f", "FF16")) {
+    solver <- if (model == "FF16") {
+      # Shaded enough that the growth cutoff binds on suppressed cohorts.
+      p <- testing_parameters("FF16")
+      p$max_patch_lifetime <- 5
+      p <- add_strategies(p, trait_matrix(c(0.0825, 4), c("lma", "k_I")),
+                          birth_rate = list(2))
+      run(p, NULL, ff16_referee_control(), record = "states")$solver
+    } else {
+      leaf_stand(model)
+    }
+    g <- stand_gradient(solver, metrics = names(stand_census(solver))[1],
+                        hyperpar = NULL)
+    expect_false(any(stand_gradient_refused(g)), label = model)
+    before <- tallies(solver, model)
+    if (model == "FF16") {
+      expect_gt(census_clamp_counts(solver, model)[1, "production_cutoff"], 0)
+      expect_gt(census_clamp_counts(solver, model, TRUE)[1, "production_cutoff"], 0)
+    } else {
+      expect_gt(before$kinds, 0, label = model)
+      expect_gt(before$margin, 0, label = model)
+    }
+    census_clear_diagnostics(solver, model)
+    after <- tallies(solver, model)
+    expect_equal(after, list(fired = 0, swept = 0, kinds = 0, margin = -1),
+                 label = model)
+  }
+})

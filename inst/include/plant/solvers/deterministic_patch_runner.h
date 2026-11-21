@@ -609,7 +609,10 @@ public:
   // One call rather than five, because a caller wanting one of them before a run
   // wants all of them: a count carried in from an earlier run reads as this run's.
   // A model that keeps no leaf tally or no operating-point tally (FF16) clears
-  // the tallies it has.
+  // the tallies it has. The leaf's reset is guarded by the READER's test, so a
+  // leaf whose tally clamp_counts() reads is always cleared here: guarded by
+  // its own name, a renamed reset would compile and leave the previous run's
+  // counts in the forward share.
   void clear_diagnostics() {
     const patch_type& live = solver.get_system_ref();
     for (size_t i = 0; i < live.size(); ++i) {
@@ -619,7 +622,7 @@ public:
         std::vector<size_t>& c = s->operating_point_counts;
         c.assign(c.size(), 0);
       }
-      if constexpr (requires { s->leaf.clear_clamp_counts(); }) {
+      if constexpr (requires { s->leaf.clamp_counts(); }) {
         s->leaf.clear_clamp_counts();
       }
       if constexpr (requires { s->curvature_margin; }) {
