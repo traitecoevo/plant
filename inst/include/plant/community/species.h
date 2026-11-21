@@ -436,13 +436,9 @@ public:
 
   // * R interface
   std::vector<double> r_heights() const;
-  void r_set_heights(std::vector<double> heights);
   const node_type& node_at(size_t i) const {return nodes[i];}
   const node_type& r_new_node() const {return new_node;}
   std::vector<node_type> r_nodes() const {return nodes;}
-  const node_type& r_node_at(util::index idx) const {
-    return nodes[idx.check_bounds(size())];
-  }
 
   // Do this with set_ode_state, using an iterator?
   /* double state(int i) const { return vars.state(i); } */
@@ -1621,19 +1617,6 @@ std::vector<double> Species<T,E>::r_heights() const {
     ret.push_back(odelia::util::to_passive(it->height()));
   }
   return ret;
-}
-
-template <typename T, typename E>
-void Species<T,E>::r_set_heights(std::vector<double> heights) {
-  invalidate_height_scan();
-  util::check_length(heights.size(), size());
-  if (!util::is_decreasing(heights.begin(), heights.end())) {
-    util::stop("height must be decreasing (ties allowed)");
-  }
-  size_t i = 0;
-  for (nodes_iterator it = nodes.begin(); it != nodes.end(); ++it, ++i) {
-    it->individual.set_state("height", heights[i]);
-  }
 }
 
 template <typename T, typename E>

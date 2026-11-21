@@ -1765,14 +1765,6 @@ Node___FF16__FF16_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Node___FF16__FF16_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-Node___FF16__FF16_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
-    invisible(.Call('_plant_Node___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
-}
-
-Node___FF16__FF16_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Node___FF16__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Node___FF16__FF16_Env__individual__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__individual__get', PACKAGE = 'plant', obj_)
 }
@@ -1809,10 +1801,6 @@ Node___FF16__FF16_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Node___FF16__FF16_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Node___FF16__FF16_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Node___FF16__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -1831,14 +1819,6 @@ Node___TF24__TF24_Env__compute_competition <- function(obj_, height) {
 
 Node___TF24__TF24_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Node___TF24__TF24_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
-}
-
-Node___TF24__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
-    invisible(.Call('_plant_Node___TF24__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
-}
-
-Node___TF24__TF24_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Node___TF24__TF24_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
 Node___TF24__TF24_Env__individual__get <- function(obj_) {
@@ -1877,10 +1857,6 @@ Node___TF24__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Node___TF24__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Node___TF24__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Node___TF24__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Node___TF24__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Node___TF24__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -1899,14 +1875,6 @@ Node___TF24f__TF24_Env__compute_competition <- function(obj_, height) {
 
 Node___TF24f__TF24_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Node___TF24f__TF24_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
-}
-
-Node___TF24f__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
-    invisible(.Call('_plant_Node___TF24f__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
-}
-
-Node___TF24f__TF24_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Node___TF24f__TF24_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
 Node___TF24f__TF24_Env__individual__get <- function(obj_) {
@@ -1945,10 +1913,6 @@ Node___TF24f__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Node___TF24f__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Node___TF24f__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Node___TF24f__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Node___TF24f__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Node___TF24f__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -1967,14 +1931,6 @@ Node___TF24t__TF24_Env__compute_competition <- function(obj_, height) {
 
 Node___TF24t__TF24_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Node___TF24t__TF24_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
-}
-
-Node___TF24t__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
-    invisible(.Call('_plant_Node___TF24t__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
-}
-
-Node___TF24t__TF24_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Node___TF24t__TF24_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
 Node___TF24t__TF24_Env__individual__get <- function(obj_) {
@@ -2013,10 +1969,6 @@ Node___TF24t__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Node___TF24t__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Node___TF24t__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Node___TF24t__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Node___TF24t__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Node___TF24t__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2035,14 +1987,6 @@ Node___TF24w__TF24_Env__compute_competition <- function(obj_, height) {
 
 Node___TF24w__TF24_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Node___TF24w__TF24_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
-}
-
-Node___TF24w__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
-    invisible(.Call('_plant_Node___TF24w__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
-}
-
-Node___TF24w__TF24_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Node___TF24w__TF24_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
 Node___TF24w__TF24_Env__individual__get <- function(obj_) {
@@ -2081,10 +2025,6 @@ Node___TF24w__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Node___TF24w__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Node___TF24w__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Node___TF24w__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Node___TF24w__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Node___TF24w__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2103,14 +2043,6 @@ Node___K93__K93_Env__compute_competition <- function(obj_, height) {
 
 Node___K93__K93_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Node___K93__K93_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
-}
-
-Node___K93__K93_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
-    invisible(.Call('_plant_Node___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
-}
-
-Node___K93__K93_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Node___K93__K93_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
 Node___K93__K93_Env__individual__get <- function(obj_) {
@@ -2149,10 +2081,6 @@ Node___K93__K93_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Node___K93__K93_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Node___K93__K93_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Node___K93__K93_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Node___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Node___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2165,32 +2093,8 @@ Species___FF16__FF16_Env__ctor <- function(strategy) {
     .Call('_plant_Species___FF16__FF16_Env__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___FF16__FF16_Env__clear <- function(obj_) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__clear', PACKAGE = 'plant', obj_))
-}
-
-Species___FF16__FF16_Env__compute_rates <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Species___FF16__FF16_Env__compute_competition <- function(obj_, height) {
     .Call('_plant_Species___FF16__FF16_Env__compute_competition', PACKAGE = 'plant', obj_, height)
-}
-
-Species___FF16__FF16_Env__introduce_new_node <- function(obj_) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__introduce_new_node', PACKAGE = 'plant', obj_))
-}
-
-Species___FF16__FF16_Env__node_at <- function(obj_, index) {
-    .Call('_plant_Species___FF16__FF16_Env__node_at', PACKAGE = 'plant', obj_, index)
-}
-
-Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
-    .Call('_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
-}
-
-Species___FF16__FF16_Env__set_birth_state <- function(obj_, times, patch_density, pr_patch_survival) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__set_birth_state', PACKAGE = 'plant', obj_, times, patch_density, pr_patch_survival))
 }
 
 Species___FF16__FF16_Env__size__get <- function(obj_) {
@@ -2207,10 +2111,6 @@ Species___FF16__FF16_Env__height_max__get <- function(obj_) {
 
 Species___FF16__FF16_Env__heights__get <- function(obj_) {
     .Call('_plant_Species___FF16__FF16_Env__heights__get', PACKAGE = 'plant', obj_)
-}
-
-Species___FF16__FF16_Env__heights__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___FF16__FF16_Env__log_densities__get <- function(obj_) {
@@ -2273,10 +2173,6 @@ Species___FF16__FF16_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Species___FF16__FF16_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FF16__FF16_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Species___FF16__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___FF16__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2285,32 +2181,8 @@ Species___TF24__TF24_Env__ctor <- function(strategy) {
     .Call('_plant_Species___TF24__TF24_Env__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___TF24__TF24_Env__clear <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24__TF24_Env__clear', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Species___TF24__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Species___TF24__TF24_Env__compute_competition <- function(obj_, height) {
     .Call('_plant_Species___TF24__TF24_Env__compute_competition', PACKAGE = 'plant', obj_, height)
-}
-
-Species___TF24__TF24_Env__introduce_new_node <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24__TF24_Env__introduce_new_node', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24__TF24_Env__node_at <- function(obj_, index) {
-    .Call('_plant_Species___TF24__TF24_Env__node_at', PACKAGE = 'plant', obj_, index)
-}
-
-Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
-    .Call('_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
-}
-
-Species___TF24__TF24_Env__set_birth_state <- function(obj_, times, patch_density, pr_patch_survival) {
-    invisible(.Call('_plant_Species___TF24__TF24_Env__set_birth_state', PACKAGE = 'plant', obj_, times, patch_density, pr_patch_survival))
 }
 
 Species___TF24__TF24_Env__size__get <- function(obj_) {
@@ -2327,10 +2199,6 @@ Species___TF24__TF24_Env__height_max__get <- function(obj_) {
 
 Species___TF24__TF24_Env__heights__get <- function(obj_) {
     .Call('_plant_Species___TF24__TF24_Env__heights__get', PACKAGE = 'plant', obj_)
-}
-
-Species___TF24__TF24_Env__heights__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24__TF24_Env__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___TF24__TF24_Env__log_densities__get <- function(obj_) {
@@ -2393,10 +2261,6 @@ Species___TF24__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Species___TF24__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Species___TF24__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Species___TF24__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___TF24__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2405,32 +2269,8 @@ Species___TF24f__TF24_Env__ctor <- function(strategy) {
     .Call('_plant_Species___TF24f__TF24_Env__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___TF24f__TF24_Env__clear <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24f__TF24_Env__clear', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24f__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Species___TF24f__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Species___TF24f__TF24_Env__compute_competition <- function(obj_, height) {
     .Call('_plant_Species___TF24f__TF24_Env__compute_competition', PACKAGE = 'plant', obj_, height)
-}
-
-Species___TF24f__TF24_Env__introduce_new_node <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24f__TF24_Env__introduce_new_node', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24f__TF24_Env__node_at <- function(obj_, index) {
-    .Call('_plant_Species___TF24f__TF24_Env__node_at', PACKAGE = 'plant', obj_, index)
-}
-
-Species___TF24f__TF24_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
-    .Call('_plant_Species___TF24f__TF24_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
-}
-
-Species___TF24f__TF24_Env__set_birth_state <- function(obj_, times, patch_density, pr_patch_survival) {
-    invisible(.Call('_plant_Species___TF24f__TF24_Env__set_birth_state', PACKAGE = 'plant', obj_, times, patch_density, pr_patch_survival))
 }
 
 Species___TF24f__TF24_Env__size__get <- function(obj_) {
@@ -2447,10 +2287,6 @@ Species___TF24f__TF24_Env__height_max__get <- function(obj_) {
 
 Species___TF24f__TF24_Env__heights__get <- function(obj_) {
     .Call('_plant_Species___TF24f__TF24_Env__heights__get', PACKAGE = 'plant', obj_)
-}
-
-Species___TF24f__TF24_Env__heights__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24f__TF24_Env__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___TF24f__TF24_Env__log_densities__get <- function(obj_) {
@@ -2513,10 +2349,6 @@ Species___TF24f__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Species___TF24f__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Species___TF24f__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24f__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Species___TF24f__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___TF24f__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2525,32 +2357,8 @@ Species___TF24t__TF24_Env__ctor <- function(strategy) {
     .Call('_plant_Species___TF24t__TF24_Env__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___TF24t__TF24_Env__clear <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24t__TF24_Env__clear', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24t__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Species___TF24t__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Species___TF24t__TF24_Env__compute_competition <- function(obj_, height) {
     .Call('_plant_Species___TF24t__TF24_Env__compute_competition', PACKAGE = 'plant', obj_, height)
-}
-
-Species___TF24t__TF24_Env__introduce_new_node <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24t__TF24_Env__introduce_new_node', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24t__TF24_Env__node_at <- function(obj_, index) {
-    .Call('_plant_Species___TF24t__TF24_Env__node_at', PACKAGE = 'plant', obj_, index)
-}
-
-Species___TF24t__TF24_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
-    .Call('_plant_Species___TF24t__TF24_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
-}
-
-Species___TF24t__TF24_Env__set_birth_state <- function(obj_, times, patch_density, pr_patch_survival) {
-    invisible(.Call('_plant_Species___TF24t__TF24_Env__set_birth_state', PACKAGE = 'plant', obj_, times, patch_density, pr_patch_survival))
 }
 
 Species___TF24t__TF24_Env__size__get <- function(obj_) {
@@ -2567,10 +2375,6 @@ Species___TF24t__TF24_Env__height_max__get <- function(obj_) {
 
 Species___TF24t__TF24_Env__heights__get <- function(obj_) {
     .Call('_plant_Species___TF24t__TF24_Env__heights__get', PACKAGE = 'plant', obj_)
-}
-
-Species___TF24t__TF24_Env__heights__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24t__TF24_Env__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___TF24t__TF24_Env__log_densities__get <- function(obj_) {
@@ -2633,10 +2437,6 @@ Species___TF24t__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Species___TF24t__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Species___TF24t__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24t__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Species___TF24t__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___TF24t__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2645,32 +2445,8 @@ Species___TF24w__TF24_Env__ctor <- function(strategy) {
     .Call('_plant_Species___TF24w__TF24_Env__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___TF24w__TF24_Env__clear <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24w__TF24_Env__clear', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24w__TF24_Env__compute_rates <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Species___TF24w__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Species___TF24w__TF24_Env__compute_competition <- function(obj_, height) {
     .Call('_plant_Species___TF24w__TF24_Env__compute_competition', PACKAGE = 'plant', obj_, height)
-}
-
-Species___TF24w__TF24_Env__introduce_new_node <- function(obj_) {
-    invisible(.Call('_plant_Species___TF24w__TF24_Env__introduce_new_node', PACKAGE = 'plant', obj_))
-}
-
-Species___TF24w__TF24_Env__node_at <- function(obj_, index) {
-    .Call('_plant_Species___TF24w__TF24_Env__node_at', PACKAGE = 'plant', obj_, index)
-}
-
-Species___TF24w__TF24_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
-    .Call('_plant_Species___TF24w__TF24_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
-}
-
-Species___TF24w__TF24_Env__set_birth_state <- function(obj_, times, patch_density, pr_patch_survival) {
-    invisible(.Call('_plant_Species___TF24w__TF24_Env__set_birth_state', PACKAGE = 'plant', obj_, times, patch_density, pr_patch_survival))
 }
 
 Species___TF24w__TF24_Env__size__get <- function(obj_) {
@@ -2687,10 +2463,6 @@ Species___TF24w__TF24_Env__height_max__get <- function(obj_) {
 
 Species___TF24w__TF24_Env__heights__get <- function(obj_) {
     .Call('_plant_Species___TF24w__TF24_Env__heights__get', PACKAGE = 'plant', obj_)
-}
-
-Species___TF24w__TF24_Env__heights__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24w__TF24_Env__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___TF24w__TF24_Env__log_densities__get <- function(obj_) {
@@ -2753,10 +2525,6 @@ Species___TF24w__TF24_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Species___TF24w__TF24_Env__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Species___TF24w__TF24_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___TF24w__TF24_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
-}
-
 Species___TF24w__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___TF24w__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
@@ -2765,32 +2533,8 @@ Species___K93__K93_Env__ctor <- function(strategy) {
     .Call('_plant_Species___K93__K93_Env__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___K93__K93_Env__clear <- function(obj_) {
-    invisible(.Call('_plant_Species___K93__K93_Env__clear', PACKAGE = 'plant', obj_))
-}
-
-Species___K93__K93_Env__compute_rates <- function(obj_, environment, pr_patch_survival, birth_rate) {
-    invisible(.Call('_plant_Species___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
-}
-
 Species___K93__K93_Env__compute_competition <- function(obj_, height) {
     .Call('_plant_Species___K93__K93_Env__compute_competition', PACKAGE = 'plant', obj_, height)
-}
-
-Species___K93__K93_Env__introduce_new_node <- function(obj_) {
-    invisible(.Call('_plant_Species___K93__K93_Env__introduce_new_node', PACKAGE = 'plant', obj_))
-}
-
-Species___K93__K93_Env__node_at <- function(obj_, index) {
-    .Call('_plant_Species___K93__K93_Env__node_at', PACKAGE = 'plant', obj_, index)
-}
-
-Species___K93__K93_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
-    .Call('_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
-}
-
-Species___K93__K93_Env__set_birth_state <- function(obj_, times, patch_density, pr_patch_survival) {
-    invisible(.Call('_plant_Species___K93__K93_Env__set_birth_state', PACKAGE = 'plant', obj_, times, patch_density, pr_patch_survival))
 }
 
 Species___K93__K93_Env__size__get <- function(obj_) {
@@ -2807,10 +2551,6 @@ Species___K93__K93_Env__height_max__get <- function(obj_) {
 
 Species___K93__K93_Env__heights__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__heights__get', PACKAGE = 'plant', obj_)
-}
-
-Species___K93__K93_Env__heights__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___K93__K93_Env__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___K93__K93_Env__log_densities__get <- function(obj_) {
@@ -2871,10 +2611,6 @@ Species___K93__K93_Env__ode_size__get <- function(obj_) {
 
 Species___K93__K93_Env__ode_state__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__ode_state__get', PACKAGE = 'plant', obj_)
-}
-
-Species___K93__K93_Env__ode_state__set <- function(obj_, value) {
-    invisible(.Call('_plant_Species___K93__K93_Env__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
 Species___K93__K93_Env__ode_rates__get <- function(obj_) {

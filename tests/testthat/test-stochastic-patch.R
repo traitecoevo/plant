@@ -256,9 +256,9 @@ test_that("a TF24 recruit is born with reserves in its storage pool", {
   patch <- StochasticPatch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
   patch$introduce_new_node_and_update(1)
 
-  ## a_st3 of storage capacity, which is what the deterministic node gets.
-  node <- Node("TF24", "TF24_Env")(p$strategies[[1]])
-  node$compute_initial_conditions(patch$environment, 1.0, 1.0)
+  ## a_st3 of storage capacity, which is what the deterministic node gets: the
+  ## boundary node a deterministic patch seeds.
+  node <- one_species_patch("TF24", p$strategies[[1]])$species[[1]]$new_node
   storage <- patch$species[[1]]$individual_at(1)$state("storage")
 
   expect_gt(storage, 0)
