@@ -1338,6 +1338,16 @@ parameters:
     source: TF24_Pars default
     placeholder: false
     code: plant::TF24_Pars::L_tip
+  TF24.use_stem_gravity:
+    model: TF24
+    section: tf24_hydraulics
+    symbol: '\gamma_{\rm g}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'gate for the stem''s gravitational head $\rho g \eta_{\rm c} H$ between collar and leaf; any non-zero value turns it on'
+    source: 'TF24_Pars default, zero: the head off, so a shut leaf sits at the collar'
+    placeholder: false
+    code: plant::TF24_Pars::use_stem_gravity
   TF24.root_depth_shape_eta:
     model: TF24
     section: tf24_hydraulics
@@ -3093,6 +3103,18 @@ equations:
     writes: ['phylloptim:leaf_specific_conductance_max']
     kind: closed_form
     note: 'Handed to the leaf as its $k_{\max}$, so the stem''s supply per unit leaf area follows the Huber value the plant carries. Not on an Overstorey page.'
+  TF24.stem_gravity_head:
+    model: TF24
+    section: tf24_hydraulics
+    title: The stem's gravitational head
+    latex: |
+      \psi_{{\rm s},i}^{\rm leaf} = \psi_{{\rm s},i} + \rho g \, \eta_{\rm c} H \ \text{(head on)}, \qquad \psi_{{\rm s},i}^{\rm leaf} = \psi_{{\rm s},i} \ \text{(off)}
+    code: plant::TF24_Model::soil_potential_at_leaf_height
+    also: [plant::TF24_Model::write_leaf_readings]
+    reads: [TF24.use_stem_gravity, TF24.eta]
+    writes: ['phylloptim:psi_soil']
+    kind: closed_form
+    note: 'The lift to the mean height of leaf area, added to every soil layer''s potential before the leaf sees them, so a shut leaf sits at $\psi_{\rm s} + \rho g (z + \eta_{\rm c} H)$. $\rho g$ is phylloptim''s gravity_head, the constant of the soil layers'' own heads. The leaf''s collar is then the real one plus the head, and its vulnerability curves are read up to the head drier than the local potential; the opt_root_psi reading takes the head back off. Off by default. Not on an Overstorey page.'
   TF24.root_profile:
     model: TF24
     section: tf24_hydraulics
