@@ -130,7 +130,7 @@ Every Model carries a `Control` and an `ExtrinsicDrivers` object.
 
 2. **Stochastic — finite-size population.** Individuals arrive and die as discrete events. `StochasticPatchRunner<T,E>` in C++; in R, `run(p, method = "stochastic")`, whose runner draws its arrivals in continuous time from each species' birth rate when it is built, and which is stepped with the helpers in [R/stochastic.R](R/stochastic.R).
 
-Both share the same `Model`, `Environment`, `Individual`, and `Parameters`. A single plant grown on its own, `run(individual, times = )` or `run(individual, sizes = )`, is neither: it integrates one `Individual` through `IndividualRunner` in the light it is given, with the growers in [R/individual.R](R/individual.R).
+Both share the same `Model`, `Environment`, `Individual`, and `Parameters`. A single plant grown on its own, `run(individual, times = )` or `run(individual, sizes = )`, is neither: it integrates one `Individual` in the light it is given. `grow_to_times()` and `grow_to_sizes()` in [individual_runner.h](inst/include/plant/solvers/individual_runner.h) run odelia's `Solver` on an `IndividualRunner`, the System that pairs the plant with its environment, and are bound as methods of `Individual`; [R/individual.R](R/individual.R) checks the arguments and shapes the result.
 
 ### Where the schedule and the control defaults live
 

@@ -97,7 +97,8 @@ grep -rn --include='*.R' --include='*.r' --include='*.Rmd' --include='*.qmd' \
   -e 'run_scm_collect' -e 'run_scm_error' -e 'build_schedule' -e 'split_times' \
   -e 'fast_control' -e 'scm_base_control' -e '\brun_scm\b' -e '\bControl\b' \
   -e '\brun_stochastic_collect\b' -e '\bgrow_individual_to_' \
-  -e '\bscm_base_parameters\b' -e 'OdeRunner' -e 'patch_type' \
+  -e '\bscm_base_parameters\b' -e 'OdeRunner' -e 'IndividualRunner' \
+  -e '_oderunner_individual_internals' -e 'patch_type' \
   -e 'net_reproduction_ratio' -e 'offspring_production' \
   -e 'refinement_error_by_node' -e 'competition_effect_error_by_node' .
 ```
@@ -114,7 +115,8 @@ symbol it lists that isn't here, and don't trust this list if NEWS is newer*):
 | `$net_reproduction_ratios`, `$offspring_production`, `$net_reproduction_ratio_errors`, `$refinement_error_by_node`, `$compute_competition_effect_error_by_node_for_species_i()`, `$net_reproduction_ratio_for_species()` on a live `SCM` (`res$solver`, or a `run_scm()` result migrated to one) | moved to `$patch`; a `plant_run`'s own fields are unchanged. ⚠️ the old read gives `NULL`, not an error: check each site's object | Fitness read from the patch (#460) |
 | `fast_control`, `scm_base_control` | removed → `control()` / `control_accurate()` | Control defaults (#463) |
 | `Control(` / `control(` used expecting *accurate* tolerances | semantic: now fast | Control defaults (#463) |
-| `OdeRunner`, plant ODE/interpolator C++ headers | moved to odelia | odelia split (#456/#464) |
+| plant ODE/interpolator C++ headers | moved to odelia | odelia split (#456/#464) |
+| `OdeRunner(...)`, `IndividualRunner(...)`, `<Model>_oderunner_individual_internals()` | removed → `run(ind, times = )` / `run(ind, sizes = )`; no stepping from R. ⚠️ semantic: a run to times moves within the ODE tolerance | Single plant grown in C++ (#869) |
 
 Also grep `NAMESPACE` / `DESCRIPTION` `Imports`/`importFrom` if the product is a
 package, and any `library(plant)` / `plant::` qualified calls.

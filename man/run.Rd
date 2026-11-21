@@ -78,8 +78,9 @@ refinement converged, that is one more run.}
 the \code{Environment} it grows in, or a recipe of one, by default its
 model's.}
 
-\item{times, sizes}{For an \code{Individual}, the times to report it at, or
-the sizes to grow it to (increasing); give one.}
+\item{times, sizes}{For an \code{Individual}, the times to report it at,
+finite and not before the environment's time, or the sizes to grow it to;
+either increasing. Give one.}
 
 \item{size_name}{The size \code{sizes} are of.}
 }

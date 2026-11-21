@@ -135,8 +135,9 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
 ##'   the \code{Environment} it grows in, or a recipe of one, by default its
 ##'   model's.
-##' @param times,sizes For an \code{Individual}, the times to report it at, or
-##'   the sizes to grow it to (increasing); give one.
+##' @param times,sizes For an \code{Individual}, the times to report it at,
+##'   finite and not before the environment's time, or the sizes to grow it to;
+##'   either increasing. Give one.
 ##' @param size_name The size \code{sizes} are of.
 ##' @param refine_schedule Refine the node-introduction schedule before the
 ##'   run, bisecting the intervals whose nodes' error exceeds

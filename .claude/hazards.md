@@ -108,7 +108,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 - TF24t refuses the DeepCrown shading model: the leaf's damage rates are read at its leaf temperature after the crown loop, which under DeepCrown would be the last node's.
 - At non-damaging settings a rate evaluation is bit-identical to TF24 with `pars$use_energy_balance = 1` (alpha = 0, k_i = 0, topt_offset = 0, all costs 0).
 - The leaf's damage rates are per day; TF24t multiplies them by `DAYS_PER_YEAR = 365.25` for the yearly ODE clock, except leaf turnover and growth dilution, which are already per year.
-- `Individual$set_initial_states` must run before an `IndividualRunner` is built from a TF24t plant. The runner does not seed, and an unseeded storage pool starts empty, where a plant losing carbon has every step refused.
+- `Individual$set_initial_states` must run before a TF24t plant is grown with `run(individual, ...)`. The growers do not seed, and an unseeded storage pool starts empty, where a plant losing carbon has every step refused.
 
 ### 17. Flexible allometry (TF24's leaf and sapwood states)
 
