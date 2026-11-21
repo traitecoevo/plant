@@ -290,12 +290,13 @@ inline double K93_Model::mortality_dt(double cumulative_basal_area,
   // Mortality probability is 1 once the hazard is non-finite or held, so the
   // rate calculations have nothing left to describe and the state does not move
   // again.
-  if (mortality_hazard_live(cumulative_mortality)) {
-    double mu = -pars.c_0 + pars.c_1 * cumulative_basal_area;
-    return (mu > 0)? mu:0.0;
- } else {
+  if (!mortality_hazard_live(cumulative_mortality)) {
     return 0.0;
   }
+  // Suppression mortality is zero until the basal area above reaches
+  // c_0 / c_1, then rises linearly: Kohyama (1993) eqn 11. The kink at the
+  // threshold is the published model, not a guard; do not smooth it.
+  return std::max(0.0, -pars.c_0 + pars.c_1 * cumulative_basal_area);
 }
 
 // useful for pre-computing expensive objects
