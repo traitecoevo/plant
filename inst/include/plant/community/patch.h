@@ -1087,8 +1087,8 @@ void Patch<T,E>::check_finite_ode_state() const {
   //      step before density itself overflows, surfacing as a non-finite soil
   //      potential ("non-finite psi_soil").
   //
-  // Density ceiling (~1e43): the same "already unphysical, will drive
-  // non-finite values" bar used by check_initial_density_rates. Catching the
+  // Density ceiling (log density 50, about 5e21): already unphysical, and
+  // well short of where a density drives non-finite values. Catching the
   // runaway at this magnitude -- before density reaches a literal +Inf --
   // widens coverage of mode (1) and heads off some instances of mode (2).
   const double log_density_ceiling = 50.0;

@@ -925,15 +925,16 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
 template <typename T, typename E>
 [[noreturn, gnu::cold, gnu::noinline]] void
 stop_non_finite_contribution(const Node<T,E>& node, std::size_t k,
-                             std::size_t n, double z, double value) {
+                             std::size_t n, double z, double value,
+                             double slope = 0.0) {
   odelia::util::stop_domain(
       "Non-finite contribution to the competition integral: node " +
       util::to_string(k + 1) + " of " + util::to_string(n) + " (height " +
       util::format_double(odelia::util::to_passive(node.height())) +
       " m, log density " +
       util::format_double(node.log_density_value()) + ") contributes " +
-      util::format_double(value) + " at height " + util::format_double(z) +
-      " m");
+      util::format_double(value) + " (slope " + util::format_double(slope) +
+      ") at height " + util::format_double(z) + " m");
 }
 
 // One pass over the nodes for the whole height set. Where the prefix form does not
@@ -1136,7 +1137,8 @@ Species<T,E>::reduce_competition(const value_type& height,
   if (!util::is_finite(fs1.value) || !util::is_finite(fs1.slope)) [[unlikely]] {
     stop_non_finite_contribution(first, permuted ? order[0] : 0, n,
                                  odelia::util::to_passive(height),
-                                 odelia::util::to_passive(fs1.value));
+                                 odelia::util::to_passive(fs1.value),
+                                 odelia::util::to_passive(fs1.slope));
   }
   with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
   double x1 = abscissa_of(first, birth_date);
@@ -1150,7 +1152,8 @@ Species<T,E>::reduce_competition(const value_type& height,
     if (!util::is_finite(fs0.value) || !util::is_finite(fs0.slope)) [[unlikely]] {
       stop_non_finite_contribution(node, permuted ? order[k] : k, n,
                                    odelia::util::to_passive(height),
-                                   odelia::util::to_passive(fs0.value));
+                                   odelia::util::to_passive(fs0.value),
+                                   odelia::util::to_passive(fs0.slope));
     }
     sum.value += (x0 - x1) * (at_x1.value + fs0.value);
     sum.slope += (x0 - x1) * (at_x1.slope + fs0.slope);
