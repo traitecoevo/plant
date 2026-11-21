@@ -88,11 +88,12 @@ model_parameters <- function(x, t_max) {
 ## The stand of a deterministic run at each of `ages`, per m2: cohorts every
 ## `spacing` yr, the schedule then refined to `eps`.
 ##
-## A uniform schedule alone is not enough. TF24's first cohorts self-thin until the
-## canopy is carried by a sliver of the earliest birth dates, a few tenths of a
-## year wide, and recruit survival under that canopy is steep in its leaf area,
-## so cohorts every 0.1 yr there halve the density at age 10. Refinement puts
-## cohorts where the competition integral needs them.
+## A uniform schedule alone is not enough. TF24's first cohorts self-thin
+## until the canopy is carried by a sliver of the earliest birth dates, a few
+## tenths of a year wide, and recruit survival under that canopy is steep in
+## its leaf area, so cohorts every 0.1 yr there halve the density at age 10.
+## Refinement adds cohorts where the competition and reproduction integrals
+## need them, which is that sliver; it does not look at density itself.
 deterministic_stand <- function(x, ages, spacing, eps) {
   t_max <- max(ages)
   p <- model_parameters(x, t_max)
