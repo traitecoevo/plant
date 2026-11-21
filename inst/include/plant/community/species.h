@@ -11,6 +11,7 @@
 #include <plant/models/canopy_shape.h>
 #include <plant/models/environment.h>
 #include <odelia/ode_interface.hpp>
+#include <odelia/ode_util.hpp> // odelia::util::stop_domain
 #include <plant/community/node.h>
 #include <plant/community/species_base.h>
 #include <plant/gradients/census.h>
@@ -913,6 +914,28 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
   }
 }
 
+// ⚠️ A DOMAIN ERROR, NOT A STOP. A node's contribution to the competition
+// integral goes non-finite when its density has overflowed or its individual's
+// size has. On an accepted state neither happens, but a Runge-Kutta trial stage
+// can carry a newborn there, with stage weights that turn a stiff storage rate
+// into a log density of hundreds. That is no state the run will keep, so the
+// stepper rejects the step and retries smaller; where the smallest step still
+// reaches it, the solver stops with this message, which names the node. Out of
+// line and cold, so the message is built only when it is thrown.
+template <typename T, typename E>
+[[noreturn, gnu::cold, gnu::noinline]] void
+stop_non_finite_contribution(const Node<T,E>& node, std::size_t k,
+                             std::size_t n, double z, double value) {
+  odelia::util::stop_domain(
+      "Non-finite contribution to the competition integral: node " +
+      util::to_string(k + 1) + " of " + util::to_string(n) + " (height " +
+      util::format_double(odelia::util::to_passive(node.height())) +
+      " m, log density " +
+      util::format_double(node.log_density_value()) + ") contributes " +
+      util::format_double(value) + " at height " + util::format_double(z) +
+      " m");
+}
+
 // One pass over the nodes for the whole height set. Where the prefix form does not
 // hold -- a broken ordering on the height coordinate, or a profile that is not a
 // polynomial in w -- every height takes the walk, which is the same branch the
@@ -948,8 +971,9 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     std::size_t i = 0;
     for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it, ++i) {
       scale[i] = it->compute_competition(0.0);
-      if (!util::is_finite(scale[i])) {
-        util::stop("Detected non-finite contribution");
+      if (!util::is_finite(scale[i])) [[unlikely]] {
+        stop_non_finite_contribution(*it, i, n, 0.0,
+                                     odelia::util::to_passive(scale[i]));
       }
       strategy->canopy_shape.crown_moments(1.0 / it->height(), mom[i]);
       abscissa[i] = abscissa_of(*it, birth_date);
@@ -1109,8 +1133,10 @@ Species<T,E>::reduce_competition(const value_type& height,
   const node_type& first = node_at(0);
   const with_slope<value_type> fs1 =
     first.compute_competition_and_slope(height);
-  if (!util::is_finite(fs1.value) || !util::is_finite(fs1.slope)) {
-    util::stop("Detected non-finite contribution");
+  if (!util::is_finite(fs1.value) || !util::is_finite(fs1.slope)) [[unlikely]] {
+    stop_non_finite_contribution(first, permuted ? order[0] : 0, n,
+                                 odelia::util::to_passive(height),
+                                 odelia::util::to_passive(fs1.value));
   }
   with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
   double x1 = abscissa_of(first, birth_date);
@@ -1121,8 +1147,10 @@ Species<T,E>::reduce_competition(const value_type& height,
     const with_slope<value_type> fs0 =
       node.compute_competition_and_slope(height);
     const double x0 = abscissa_of(node, birth_date);
-    if (!util::is_finite(fs0.value) || !util::is_finite(fs0.slope)) {
-      util::stop("Detected non-finite contribution");
+    if (!util::is_finite(fs0.value) || !util::is_finite(fs0.slope)) [[unlikely]] {
+      stop_non_finite_contribution(node, permuted ? order[k] : k, n,
+                                   odelia::util::to_passive(height),
+                                   odelia::util::to_passive(fs0.value));
     }
     sum.value += (x0 - x1) * (at_x1.value + fs0.value);
     sum.slope += (x0 - x1) * (at_x1.slope + fs0.slope);

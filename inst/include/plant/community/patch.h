@@ -1075,11 +1075,12 @@ void Patch<T,E>::check_birth_dates_distinct() const {
 
 template <typename T, typename E>
 void Patch<T,E>::check_finite_ode_state() const {
-  // The two failure modes of the same runaway, caught here so they
-  // fail with an actionable message instead of an opaque downstream one:
+  // The two failure modes of the same runaway, caught here, per stage, so the
+  // stepper rejects the stage that reached them and a run that cannot leave
+  // them stops with an actionable message instead of an opaque downstream one:
   //
   //  (1) A cohort density overflowing to +Inf, which then poisons the
-  //      competition integral ("Detected non-finite contribution").
+  //      competition integral ("Non-finite contribution").
   //  (2) The coupled environment state (TF24 soil water) going non-finite,
   //      because the density-weighted resource uptake diverges as density
   //      grows; the RK stage arithmetic can produce a non-finite soil state a
@@ -1102,11 +1103,22 @@ void Patch<T,E>::check_finite_ode_state() const {
         // term can spike sharply positive, so log_density integrates upward
         // until density = exp(log_density) overflows to +Inf. The individual's
         // physiology (height, leaf area, per-individual competition) stays
-        // finite; it is the cohort *density* that blows up. Smaller ODE steps
-        // do not help (the divergence is in the equations, not the stepper), so
-        // fail here with an actionable message rather than letting the +Inf
-        // propagate into the competition integral or density-weighted resource
-        // uptake, where it surfaces as an opaque downstream error.
+        // finite; it is the cohort *density* that blows up.
+        //
+        // ⚠️ A REJECTION, NOT A FAILURE, ON BOTH COORDINATES. This runs per
+        // stage, and a stage above the ceiling is usually the stepper's own
+        // overshoot: on the birth-date coordinate the rate is -mortality and
+        // nothing raises a density, so a stage straddling a dying cohort's
+        // rates switching off (its log density underflowing, or its hazard
+        // reaching establishment_failure_hazard) turns a rate of order 1e3 per
+        // year into a log density of +800 at a trial stage; on the height
+        // coordinate most stands that reach the ceiling at the default
+        // tolerance run at a tighter one, which is the same overshoot. A
+        // shorter step does not straddle as far, so hand it to the stepper.
+        // A genuine runaway, where the divergence is in the equations, still
+        // ends the run: the stepper shrinks to its minimum step and stops with
+        // this message, rather than letting the +Inf propagate into the
+        // competition integral or the resource uptake.
         const std::string msg =
           "Non-finite cohort density in the size-density "
           "(characteristic) equations: species " +
@@ -1120,20 +1132,7 @@ void Patch<T,E>::check_finite_ode_state() const {
           "size under rapidly changing or extreme environmental "
           "forcing, driving density to overflow. Try a shorter "
           "max_patch_lifetime or less extreme environmental drivers.";
-        // ⚠️ ON THE BIRTH-DATE COORDINATE THIS IS A REJECTION, NOT A FAILURE.
-        // There the rate is -mortality and nothing raises a density, so a
-        // stage above the ceiling is the stepper's own overshoot, not the
-        // runaway above. It happens when a stage straddles a dying cohort's
-        // rates switching off: its log density underflowing (Node's density
-        // guard) or its hazard reaching establishment_failure_hazard (the
-        // strategy's mortality rate) zeroes a rate of order 1e3 per year, and
-        // the stage weights, some negative, turn that jump into a log density
-        // of +800 at a trial stage. A shorter step does not straddle as far,
-        // so hand it to the stepper. The height coordinate stays fatal.
-        if (species[i].density_in_birth_date()) {
-          odelia::util::stop_domain(msg);
-        }
-        util::stop(msg);
+        odelia::util::stop_domain(msg);
       }
     }
   }
@@ -1164,8 +1163,7 @@ void Patch<T,E>::check_finite_ode_state() const {
       // A rejection, not a failure: measured, every observed TF24 soil
       // excursion is explicit-integrator overshoot across a discrete change and
       // not a defect in the balance -- hand it to the stepper to shrink and
-      // retry rather than failing the run. Mode (1) above stays fatal on the
-      // height coordinate.
+      // retry rather than failing the run.
       odelia::util::stop_domain("Non-finite environment state (index " + util::to_string(i) +
                  " = " + util::to_string(state_i) + ") at time=" +
                  util::to_string(environment.time) +

@@ -18,6 +18,8 @@ odelia's `step_size_last` survives `set_state_from_system()` and every `advance_
 
 `phylloptim::util::infeasible_error` and `odelia::util::DomainError` are siblings, both deriving from `std::runtime_error`, so odelia's step handler cannot see phylloptim's throw: it escapes the step and kills the run. `TF24_Model::solve_leaf()` translates it. Any new call into phylloptim from a rate evaluation has to go through the same translation.
 
+The same holds for plant's own guards on the rate path. A Runge–Kutta trial stage evaluates rates at states the run will never keep, and a stage can carry a newborn to a log density of hundreds or below its stem's terminal segment. A guard such a stage can reach (`Patch::check_finite_ode_state`, `Species`' competition contribution, `TF24_Model::update_leaf_specific_conductance_max`) throws `odelia::util::stop_domain`, which rejects the step so the stepper retries it smaller; written as `util::stop` it kills the run at a state no accepted step would reach, which was the robustness sweep's most common failure. The message survives where the step cannot shrink: at the minimum step odelia stops with "Cannot leave an invalid state at t = ...: <message>", and outside a step (at preparation, at an introduction, from R) a `DomainError` reaches R as an error of that class with the message. A guard that only preparation or an introduction can reach stays a `util::stop`.
+
 ### 4. The event queue is built by a linear scan
 
 `Schedule::entry_at` walks the schedule from the start for every event it places, so building a queue is quadratic in its length. It does not show at the hundreds of entries of a normal run; at the 10^4 to 10^5 events of a long pulsed run it will.
