@@ -21,11 +21,13 @@
 ##                environment: leaf area in FF16 and TF24, k_I times basal
 ##                area in K93);
 ##                for TF24 also the mean soil moisture over its layers
-##   det          the deterministic value, cohorts every 0.05 yr
-##   det_error    how far it moves from cohorts twice as far apart, a bound on
-##                its own error where it is converging. Where det_error is
-##                not small against det, the deterministic answer has not
-##                converged and the gap says nothing about the stochastic one.
+##   det          the deterministic value: cohorts every 0.05 yr, the schedule
+##                then refined to schedule_eps = 1e-3
+##   det_error    how far it moves from cohorts every 0.1 yr refined only to
+##                1e-2, a bound on its own error where it is converging. Where
+##                det_error is not small against det, the deterministic answer
+##                has not converged and the gap says nothing about the
+##                stochastic one.
 ##   mean, se     the stochastic mean over `reps` independent patches
 ##   rel_gap      (mean - det) / det
 ##   z            (mean - det) / se; with as few as 20 patches it follows a t
@@ -83,19 +85,29 @@ model_parameters <- function(x, t_max) {
   p
 }
 
-## The stand of a deterministic run at each of `ages`, per m2.
-deterministic_stand <- function(x, ages, spacing) {
+## The stand of a deterministic run at each of `ages`, per m2: cohorts every
+## `spacing` yr, the schedule then refined to `eps`.
+##
+## A uniform schedule alone is not enough. TF24's first cohorts self-thin
+## until the canopy is carried by a sliver of the earliest birth dates, a few
+## tenths of a year wide, and recruit survival under that canopy is steep in
+## its leaf area, so cohorts every 0.1 yr there halve the density at age 10.
+## Refinement adds cohorts where the competition and reproduction integrals
+## need them, which is that sliver; it does not look at density itself.
+deterministic_stand <- function(x, ages, spacing, eps) {
   t_max <- max(ages)
   p <- model_parameters(x, t_max)
-  ## Integer multiples, so each age is a schedule time exactly. The last
-  ## cohort is one interval short of the end, which has no step of its own.
+  ## Start from integer multiples, so each age is a schedule time exactly;
+  ## refinement only bisects, so it stays one. The last cohort is one interval
+  ## short of the end, which has no step of its own.
   p$node_schedule_times <- list(seq_len(round(t_max / spacing)) * spacing - spacing)
   ## Carried in birth date, the stand is read off the cohorts by integrating
   ## over birth dates, which never cross. Over height it is not to be trusted
   ## where cohorts overtake one another, as TF24's do.
   ctrl <- model_control(x)
   ctrl$node_density_coordinate <- "birth_date"
-  res <- run(p, control = ctrl, record = "steps")
+  ctrl$schedule_eps <- eps
+  res <- run(p, control = ctrl, refine_schedule = TRUE, record = "steps")
   td <- tidy(res)
   stand <- integrate_over_size_distribution(td$species)
   out <- lapply(ages, function(a) {
@@ -145,8 +157,8 @@ seed <- 0L
 for (x in names(settings)) {
   s <- settings[[x]]
   message(x, ": deterministic")
-  det <- deterministic_stand(x, s$ages, 0.05)
-  det_coarse <- deterministic_stand(x, s$ages, 0.1)
+  det <- deterministic_stand(x, s$ages, 0.05, 1e-3)
+  det_coarse <- deterministic_stand(x, s$ages, 0.1, 1e-2)
   for (age in s$ages) {
     d <- det[[as.character(age)]]
     d_error <- abs(det_coarse[[as.character(age)]] - d)

@@ -55,10 +55,22 @@ model_id <- function(type) {
 }
 
 ##' Creates an environment object of specified type
-##' @param type Any environment name as a string, e.g.: \code{"FF16_Env"}.
+##'
+##' An environment is a live C++ object, which \code{saveRDS()} cannot keep. A
+##' \code{\link{scenario}} therefore keeps its environment as a recipe: plain
+##' values for everything a run reads from it (for TF24, the soil column, its
+##' parameters, the soil water a run starts from and the drivers; FF16 and K93
+##' read nothing a run does not reset). Given a recipe, \code{Environment()}
+##' builds the environment it describes, so \code{Environment(res$scenario$env)}
+##' gives back the one a result ran in, after \code{readRDS()} as well.
+##' @param type Any environment name as a string, e.g.: \code{"FF16_Env"}, or
+##'   a recipe, as a scenario's \code{env} holds one.
 ##' @rdname Environment
 ##' @export
 Environment <- function(type = NULL) {
+  if (inherits(type, "plant_environment_recipe")) {
+    return(environment_from_recipe(type))
+  }
 
   switch(type,
          FF16=FF16_Environment(),
@@ -71,6 +83,77 @@ Environment <- function(type = NULL) {
          K93=K93_Environment(),
          K93_Env=K93_Environment(),
          stop("Unknown type ", type))
+}
+
+## The recipe of an environment: its type, and for TF24 the values its
+## recipe() method reads, which set_recipe() writes back. An environment that
+## has a recipe already is returned as it is.
+environment_recipe <- function(env) {
+  if (inherits(env, "plant_environment_recipe")) {
+    return(env)
+  }
+  type <- if (inherits(env, "R6")) {
+    switch(class(env)[[1]],
+           FF16_Environment = "FF16_Env",
+           K93_Environment = "K93_Env",
+           TF24_Environment = "TF24_Env",
+           NULL)
+  }
+  if (is.null(type)) {
+    stop("`env` must be an Environment, or a recipe of one as a scenario's ",
+         "`env` holds", call. = FALSE)
+  }
+  check_environment_alive(env)
+  values <- if (type == "TF24_Env") env$recipe() else list()
+  structure(c(list(type = type), values), class = "plant_environment_recipe")
+}
+
+environment_from_recipe <- function(recipe) {
+  env <- Environment(recipe$type)
+  values <- unclass(recipe)[setdiff(names(recipe), "type")]
+  if (recipe$type == "TF24_Env") {
+    env$set_recipe(values)
+  } else if (length(values) > 0L) {
+    stop("A ", recipe$type, " environment's recipe holds its type alone, not ",
+         paste(names(values), collapse = ", "), call. = FALSE)
+  }
+  env
+}
+
+## The environment a run is handed. A scenario holds a recipe; one built by
+## hand, or saved before scenarios held recipes, may hold the environment.
+live_environment <- function(env) {
+  if (inherits(env, "plant_environment_recipe")) {
+    return(environment_from_recipe(env))
+  }
+  check_environment_alive(env)
+  env
+}
+
+check_environment_alive <- function(env) {
+  ## Every environment has a time, and reading it fails only on a pointer that
+  ## readRDS() left empty.
+  alive <- !inherits(env, "R6") ||
+    tryCatch({env$time; TRUE}, error = function(e) FALSE)
+  if (!alive) {
+    stop("This environment was read back with readRDS(), which keeps no live ",
+         "object: build it again, or keep a scenario, which holds its ",
+         "environment as a recipe", call. = FALSE)
+  }
+}
+
+##' @export
+print.plant_environment_recipe <- function(x, ...) {
+  cat(sprintf("<plant_environment_recipe> %s", x$type))
+  if (x$type == "TF24_Env") {
+    varying <- names(Filter(function(d) is.null(d$value), x$drivers))
+    cat(sprintf(", %d soil layers to %g m, drivers %s",
+                length(x$layer_widths), x$depth,
+                if (length(varying) == 0L) "all constant"
+                else paste("varying:", paste(varying, collapse = ", "))))
+  }
+  cat("\n")
+  invisible(x)
 }
 
 #' Add additional state variables to the species component in output of a model.

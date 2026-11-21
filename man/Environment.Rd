@@ -10,8 +10,15 @@ environment_type(type)
 Environment(type = NULL)
 }
 \arguments{
-\item{type}{Any environment name as a string, e.g.: \code{"FF16_Env"}.}
+\item{type}{Any environment name as a string, e.g.: \code{"FF16_Env"}, or
+a recipe, as a scenario's \code{env} holds one.}
 }
 \description{
-Creates an environment object of specified type
+An environment is a live C++ object, which \code{saveRDS()} cannot keep. A
+\code{\link{scenario}} therefore keeps its environment as a recipe: plain
+values for everything a run reads from it (for TF24, the soil column, its
+parameters, the soil water a run starts from and the drivers; FF16 and K93
+read nothing a run does not reset). Given a recipe, \code{Environment()}
+builds the environment it describes, so \code{Environment(res$scenario$env)}
+gives back the one a result ran in, after \code{readRDS()} as well.
 }

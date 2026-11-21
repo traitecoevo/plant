@@ -106,9 +106,15 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   returns the result that describes it, and every function that takes a
   result refuses one whose solver has moved on since.
   \code{fixed_point_fitness()} uses a result up, so give it every invader
-  in one trait matrix. The values other than
-  \code{solver} are copies, so \code{saveRDS()} keeps them; the scenario's
-  environment and the solver cannot be used after reading back.
+  in one trait matrix.
+
+  \code{saveRDS()} keeps everything but the solver: the values are copies
+  and the scenario holds its environment as a recipe. A deterministic
+  result read back runs again from its scenario: \code{run(res, until =
+  res$time)} rebuilds it where it stood, taking the same steps, and
+  \code{run(res)} carries on to the end. That repeats the run's work. An
+  invaders' result is rebuilt by running its resident again and then
+  \code{run_mutant()}.
 }
 \description{
 One verb for a run, whatever describes it:

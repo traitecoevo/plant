@@ -32,8 +32,7 @@ incidence_built <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
       solver = solver,
       kinds = stats::setNames(census_operating_point_counts(solver, "TF24")[[1]],
                               census_operating_point_names()),
-      clamps = stats::setNames(census_clamp_counts_tf24(solver)[[1]],
-                               census_clamp_names_tf24()))
+      clamps = census_clamp_counts(solver, "TF24")[1, ])
   }
   incidence_cache[[key]]
 }
@@ -45,9 +44,7 @@ incidence_swept <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
   entry <- incidence_built(rain, lifetime, k_I, introductions)
   if (is.null(entry$gradient)) {
     entry$gradient <- stand_gradient(entry$solver, hyperpar = NULL)
-    entry$swept <-
-      stats::setNames(census_clamp_counts_differentiated_tf24(entry$solver)[[1]],
-                      census_clamp_names_tf24())
+    entry$swept <- census_clamp_counts(entry$solver, "TF24", differentiated = TRUE)[1, ]
     entry$curvature <- census_curvature_margin(entry$solver, "TF24")[[1]]
     incidence_cache[[key]] <- entry
   }
@@ -78,7 +75,7 @@ test_that("the classification tally is the route to a regime's incidence", {
   solver <- ladder_driver_stand(2.0, 1)
   counts <- census_operating_point_counts(solver, "TF24")[[1]]
   expect_gt(sum(counts), 0)
-  census_clear_diagnostics_tf24(solver)
+  census_clear_diagnostics(solver, "TF24")
   expect_equal(sum(census_operating_point_counts(solver, "TF24")[[1]]), 0)
 })
 
@@ -152,12 +149,12 @@ test_that("a clamp the sweep crosses is counted on both paths, through the rebin
   ctrl <- Control()
   ctrl$node_density_coordinate <- "birth_date"
   solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
-  census_clear_diagnostics_tf24(solver)
+  census_clear_diagnostics(solver, "TF24")
   solver$run()
-  nm <- census_clamp_names_tf24()
-  fired <- stats::setNames(census_clamp_counts_tf24(solver)[[1]], nm)
+  nm <- census_clamp_names()
+  fired <- census_clamp_counts(solver, "TF24")[1, ]
   g <- stand_gradient(solver, hyperpar = NULL)
-  swept <- stats::setNames(census_clamp_counts_differentiated_tf24(solver)[[1]], nm)
+  swept <- census_clamp_counts(solver, "TF24", differentiated = TRUE)[1, ]
   site <- "soil_potential_ceiling"
   message(sprintf("  %s: forward %.0f, swept %.0f", site, fired[[site]], swept[[site]]))
   expect_gt(fired[[site]], 0)
@@ -228,7 +225,7 @@ clamp_class <- list(
 )
 
 test_that("every clamp site is classified, and by a measured incidence", {
-  nm <- census_clamp_names_tf24()
+  nm <- census_clamp_names()
   # A site with no classification is the drift this list exists to prevent.
   expect_setequal(nm, names(clamp_class))
 
