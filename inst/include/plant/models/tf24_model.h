@@ -559,8 +559,14 @@ public:
   // stem, which has no closed form once conductivity depends on potential.
   // write_leaf_readings takes the head back off the collar it reports.
   //
-  // Formed at S, so the head carries the rows of height and eta_c into the
-  // leaf's supply rows; the gate itself is compared, never differentiated.
+  // One head for the whole crown, at the mean leaf height, as the frictional
+  // path uses one length: deep-crown shading solves each node at its own light
+  // but every node with this head, so upper leaves pay too little and lower
+  // ones too much.
+  //
+  // Formed at S, so the head carries height's rows into the leaf's supply
+  // rows. eta_c carries none (eta has no column), and the gate itself is
+  // compared, never differentiated.
   const std::vector<S>& soil_potential_at_leaf_height(
       const std::vector<S>& psi_soil, const S& height) {
     if (odelia::util::to_passive(pars.use_stem_gravity) == 0.0) {

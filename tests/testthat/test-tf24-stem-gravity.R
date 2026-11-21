@@ -98,9 +98,9 @@ test_that("the head costs a tall plant more than a short one", {
 
 test_that("with the head on, a growth trait's column is the pinned-step difference", {
   # The head is formed from height at the strategy's scalar, so it carries
-  # height's rows into the leaf's supply rows. Dropped -- the head formed at
-  # double -- every column would miss the head's share of the response through
-  # height, and these would disagree.
+  # height's rows into the leaf's supply rows. Formed at double instead, every
+  # column misses the head's share of the response through height: built that
+  # way, all four comparisons below fail.
   p <- tf24_fitness_stand_parameters()
   p$strategies[[1]]$pars$use_stem_gravity <- 1
   solver <- tf24_fitness_stand_run(p)
