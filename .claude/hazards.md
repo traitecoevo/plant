@@ -59,10 +59,10 @@ Each looks like a win and is not; try one again only with a new reason:
 
 `water_flux[i] = K(theta_i)`, received by layer `i+1`, is Darcy's `q = -K(dpsi/dz + 1)` with the matric gradient dropped, evaluated at the donor cell. Because that term is absent no internode distance appears, so unequal layer widths need nothing rescaled, and mass conservation `sum(dz[i] * dtheta_i/dt) = infiltration - drainage - uptake` is exact at any width distribution (`test-tf24-water-budget.R`, on four graded profiles). If a capillary or diffusive flux is added, as soil evaporation will want, its distance is `z_mid[i+1] - z_mid[i]`, not `dz[i]`, and the interfacial conductivity is a distance-weighted harmonic or geometric mean of the two cells. The two distances agree only for equal layers, so a uniform-profile budget test passes on the mistake and the graded one does not.
 
-### 10. Two routes to the soil geometry must stay as they are
+### 10. The root network reads the layer widths as differences of `z`
 
 - `TF24_Model` passes `phylloptim::layer_thicknesses(z)` to the root network, at both call sites (the rate evaluation reads the copy `TF24_Environment` computes once when its geometry is set, `z_thickness`; the gradient path takes it from the leaf's own profile), and must not switch to `environment.dz`: on the default 1.5 m over 5 layers, layers 3 to 5 differ from `depth / n` in the last bit, so the switch moves every TF24 number. Make it at the next rebaseline.
-- `set_soil_number_of_depths` builds `z[i] = (i+1) * delta_z` and must not be unified with `set_soil_layer_widths`' running sum. `z` feeds `Q()` and the gravitational head, so unifying them re-baselines every TF24 number for no gain. The geometry test in `test-environment-TF24.R` compares the two.
+- Both geometry setters build `z` as the running sum of the widths, so the same widths give the same `z`, `z_mid` and `z_thickness` whichever setter took them (`test-environment-TF24.R` holds them identical over a sweep of equal-layer columns). `z` feeds `Q()` and the gravitational head, so a setter that builds it another way, as `(i + 1) * depth / n` for one, makes TF24's numbers depend on the route. Under `set_soil_number_of_depths` the `depth` field stays the total the caller stated, which `z.back()` reaches only to rounding; the environment recipe keeps it for that reason.
 
 ### 11. A thin wet layer has a stiffness floor
 

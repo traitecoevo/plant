@@ -137,16 +137,39 @@ test_that("Environment-TF24 exposes the three descriptions of its geometry", {
   expect_equal(env$get_soil_depths(), c(0.02, 0.30, 0.60, 1.00, 1.50))
   expect_equal(env$get_soil_number_of_depths(), 5)
 
-  # ⚠️ NOT expect_identical against set_soil_number_of_depths(5). The equal-layer
-  # path builds z as (i+1)*delta_z and this one as a running sum of dz, and the
-  # two differ in the last bit for 103 of 180 (depth, n) pairs. Keeping the two
-  # constructions apart is deliberate: z feeds Q() and the gravitational head, so
-  # routing the uniform path through a running sum would re-baseline every TF24
-  # number for no gain.
   env$set_soil_layer_widths(rep(0.3, 5))
   uniform_by_widths <- env$get_soil_depths()
   env$set_soil_number_of_depths(5)
-  expect_equal(uniform_by_widths, env$get_soil_depths())
+  expect_identical(uniform_by_widths, env$get_soil_depths())
+})
+
+test_that("Environment-TF24 builds one column from the same widths by either setter", {
+  # z feeds the root distribution and, through the midpoints, the gravitational
+  # head, so the same widths must give the same bits whichever setter took them.
+  # (i + 1) * depth / n is not the running sum of the widths in the last bits,
+  # for 1.2 m in seven among many, and the sweep below must hold such columns.
+  equal <- Environment("TF24")
+  by_widths <- Environment("TF24")
+  product_differs <- 0
+  for (depth in seq(0.5, 3, by = 0.1)) {
+    for (n in 1:10) {
+      equal$set_soil_layer_widths(depth)
+      equal$set_soil_number_of_depths(n)
+      widths <- equal$get_soil_layer_widths()
+      expect_identical(widths, rep(depth / n, n))
+      by_widths$set_soil_layer_widths(widths)
+      info <- sprintf("%g m in %d", depth, n)
+      expect_identical(equal$get_soil_depths(), by_widths$get_soil_depths(),
+                       info = info)
+      expect_identical(equal$get_soil_mid_depths(),
+                       by_widths$get_soil_mid_depths(), info = info)
+      # The stated total stays, for the next count to divide.
+      expect_identical(equal$depth, depth, info = info)
+      product_differs <- product_differs +
+        !identical(equal$get_soil_depths(), seq_len(n) * (depth / n))
+    }
+  }
+  expect_gt(product_differs, 0)
 })
 
 test_that("Environment-TF24 refuses an unusable set of layer widths", {
