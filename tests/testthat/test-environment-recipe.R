@@ -53,9 +53,13 @@ test_that("a TF24 environment's recipe rebuilds it exactly", {
                        env$extrinsic_drivers_evaluate_range(d, u), info = d)
     }
   }
+  ## Against the C++ running sum, not R's cumsum(), which accumulates in long
+  ## double on x86-64 and there agrees with the product.
   equal <- environment_recipe(tf24_equal_layer_environment())
   expect_identical(equal$layer_depths, (1:7) * (1.2 / 7))
-  expect_false(identical(equal$layer_depths, cumsum(equal$layer_widths)))
+  by_widths <- Environment("TF24")
+  by_widths$set_soil_layer_widths(equal$layer_widths)
+  expect_false(identical(by_widths$get_soil_depths(), equal$layer_depths))
 })
 
 ## Every run builds its environment from the recipe, so a setting the recipe
@@ -64,11 +68,15 @@ test_that("a TF24 environment's recipe rebuilds it exactly", {
 ## recipe, reset by every run (Patch::reset clears the time, the light field
 ## and the soil water, and sets the shading model from the run's Control), or
 ## read-only. A member added to RcppR6_classes.yml fails this until it is put
-## in one, and one the recipe keeps is added to recipe() and set_recipe().
+## in one, and one the recipe keeps is added to recipe() and set_recipe(). The
+## members are read off a live object, because R CMD check does not install
+## the yml.
 test_that("every environment member R can set is kept by the recipe or reset by a run", {
-  yml <- yaml::read_yaml(system.file("RcppR6_classes.yml", package = "plant"))
   members <- function(cl) {
-    c(names(yml[[cl]]$methods), names(yml[[cl]]$active))
+    env <- switch(cl, FF16_Environment = FF16_Environment(),
+                  K93_Environment = K93_Environment(),
+                  TF24_Environment = TF24_Environment())
+    setdiff(ls(env), c("clone", "initialize"))
   }
   reset <- c("time", "light_availability", "set_fixed_environment", "clear")
   read <- c("get_environment_at_height", "ode_size")
@@ -102,7 +110,8 @@ test_that("every environment member R can set is kept by the recipe or reset by 
   }
   ## The fields the TF24 recipe keeps are its own names.
   recipe <- environment_recipe(Environment("TF24"))
-  fields <- intersect(kept$TF24_Environment, names(yml$TF24_Environment$active))
+  fields <- c("soil_moist_sat", "K_sat", "water_mixing_rate", "a_psi", "n_psi",
+              "a_infil", "b_infil", "f_PAR", "depth")
   expect_true(all(fields %in% names(recipe)))
 })
 
