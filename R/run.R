@@ -435,8 +435,8 @@ generics::tidy
 
 ##' Tidy a run's recorded steps
 ##'
-##' @param x A \code{plant_run} run with \code{record = "steps"}, or a single
-##'   plant's run.
+##' @param x A \code{plant_run} run with \code{record = "steps"}, a single
+##'   plant's run, or a landscape's run with \code{record = "steps"}.
 ##' @param ... Unused.
 ##' @return For a deterministic run, a list: the tidied patch at every step,
 ##'   \code{steps}, \code{n_spp}, \code{species} and \code{env} (as
@@ -450,7 +450,8 @@ generics::tidy
 ##'   For a stochastic run, \code{time}, \code{species} (an array per species,
 ##'   \code{[variable, time, individual]}, with an \code{is_alive} attribute),
 ##'   \code{env} and \code{control}. For a single plant, a tibble of its state at each
-##'   reported time, as \code{\link{tidy_individual}} gives it.
+##'   reported time, as \code{\link{tidy_individual}} gives it. For a
+##'   landscape's run, a list of each patch's, by name.
 ##' @export
 tidy.plant_run <- function(x, ...) {
   ## A deterministic result is checked as current first: its steps are the

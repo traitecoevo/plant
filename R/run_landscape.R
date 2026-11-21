@@ -13,7 +13,8 @@
 ##' Nothing here is specific to a model. A landscape knows patches, and flows
 ##' between them of whatever the patches' environments count as a resource: in
 ##' TF24 that is water in a soil layer, and \code{resource_flow("ridge",
-##' "gully")} is run-off from one patch arriving as run-on in another.
+##' "gully")} passes the part of each rain pulse the ridge's surface cannot
+##' hold to the gully.
 ##'
 ##' The patches run over one span of time and share its clock, so they must
 ##' have the same \code{max_patch_lifetime}. They are taken to be of equal
@@ -23,6 +24,9 @@
 ##' Flows must lead one way. A landscape is run patch by patch, each one whole,
 ##' sources before the patches they feed, so a loop of flows (one patch feeding
 ##' another that feeds it back) is refused.
+##'
+##' A landscape is a plain list, and \code{run} checks it again, so a patch or
+##' a flow can be changed in place.
 ##'
 ##' @param patches A list of \code{\link{scenario}}s, one per patch. Its names
 ##'   are the patches' names; an unnamed list is named \code{"1"}, \code{"2"},
@@ -52,16 +56,31 @@
 ##' res$patches$gully$offspring_production
 ##' }
 landscape <- function(patches, ...) {
+  if (is.list(patches) && length(patches) > 0L && is.null(names(patches))) {
+    names(patches) <- as.character(seq_along(patches))
+  }
+  flows <- list(...)
+  if (!all(vapply(flows, inherits, logical(1), "plant_flows"))) {
+    stop("A landscape's flows are given as resource_flow() returns them",
+         call. = FALSE)
+  }
+  flows <- do.call(rbind, c(list(empty_flows()), flows))
+  rownames(flows) <- NULL
+  check_landscape(patches, flows)
+
+  structure(list(patches = patches, flows = flows), class = "plant_landscape")
+}
+
+## Whether patches and flows make a landscape that can be run. Called where one
+## is made and again where it is run, since either part can be changed between.
+check_landscape <- function(patches, flows) {
   if (!is.list(patches) || length(patches) == 0L ||
       !all(vapply(patches, inherits, logical(1), "plant_scenario"))) {
     stop("`patches` must be a list of scenarios, as scenario() returns them",
          call. = FALSE)
   }
-  if (is.null(names(patches))) {
-    names(patches) <- as.character(seq_along(patches))
-  }
-  if (anyNA(names(patches)) || any(names(patches) == "") ||
-      anyDuplicated(names(patches)) > 0L) {
+  if (is.null(names(patches)) || anyNA(names(patches)) ||
+      any(names(patches) == "") || anyDuplicated(names(patches)) > 0L) {
     stop("Every patch needs a name of its own", call. = FALSE)
   }
   lifetimes <- vapply(patches, function(sc) sc$p$max_patch_lifetime, numeric(1))
@@ -71,13 +90,16 @@ landscape <- function(patches, ...) {
          call. = FALSE)
   }
 
-  flows <- list(...)
-  if (!all(vapply(flows, inherits, logical(1), "plant_flows"))) {
+  if (!is.data.frame(flows) ||
+      !all(names(empty_flows()) %in% names(flows))) {
     stop("A landscape's flows are given as resource_flow() returns them",
          call. = FALSE)
   }
-  flows <- do.call(rbind, c(list(empty_flows()), flows))
-  rownames(flows) <- NULL
+  check_flows(flows$from, flows$to, flows$resource, flows$into, flows$weight)
+  if (!all(flows$flow == "resource")) {
+    stop("A flow carries a resource; \"", flows$flow[flows$flow != "resource"][[1L]],
+         "\" is not a kind of flow", call. = FALSE)
+  }
   unknown <- setdiff(c(flows$from, flows$to), names(patches))
   if (length(unknown) > 0L) {
     stop("A flow names ", paste0("\"", unknown, "\"", collapse = ", "),
@@ -94,8 +116,28 @@ landscape <- function(patches, ...) {
          call. = FALSE)
   }
   landscape_order(names(patches), flows)
+  invisible(TRUE)
+}
 
-  structure(list(patches = patches, flows = flows), class = "plant_landscape")
+## What every flow must satisfy, whichever patches it joins.
+check_flows <- function(from, to, resource, into, weight) {
+  if (!is.character(from) || !is.character(to) || anyNA(from) || anyNA(to)) {
+    stop("`from` and `to` are patch names", call. = FALSE)
+  }
+  if (any(from == to)) {
+    stop("A flow links two patches; \"", from[from == to][[1L]],
+         "\" cannot flow into itself", call. = FALSE)
+  }
+  is_index <- function(x) {
+    is.numeric(x) && !anyNA(x) && all(x >= 1) && all(x == round(x))
+  }
+  if (!is_index(resource) || !is_index(into)) {
+    stop("`resource` and `into` are indices of resource pools, counted from 1",
+         call. = FALSE)
+  }
+  if (!is.numeric(weight) || anyNA(weight) || any(weight < 0 | weight > 1)) {
+    stop("`weight` is a fraction of what is shed, between 0 and 1", call. = FALSE)
+  }
 }
 
 ##' @param from,to The names of the patch the resource leaves and the patch it
@@ -116,11 +158,19 @@ landscape <- function(patches, ...) {
 ##'   has of its own at that instant. The receiver may shed it in turn, and
 ##'   pass it on down its own flows. The arguments are vectorised, so several
 ##'   flows are one call.
+##'
+##'   Only what a pulse sheds is passed. A resource a patch loses in any other
+##'   way stays lost to the landscape: in TF24, the run-off and drainage of
+##'   rain given as a continuous rate (the \code{rainfall} driver) are not
+##'   passed on, so a patch whose rain all comes that way passes nothing. Nor
+##'   does a flow out of a pool that no pulse reaches, or that the patch's
+##'   environment does not have; a flow into a pool the receiving environment
+##'   does not have stops the run at that patch.
 ##' @rdname landscape
 ##' @export
 resource_flow <- function(from, to, resource = 1L, into = resource, weight = 1) {
-  if (!is.character(from) || !is.character(to) || anyNA(from) || anyNA(to)) {
-    stop("`from` and `to` are patch names", call. = FALSE)
+  if (length(from) == 0L && length(to) == 0L) {
+    return(empty_flows())
   }
   n <- max(length(from), length(to), length(resource), length(into),
            length(weight))
@@ -132,20 +182,7 @@ resource_flow <- function(from, to, resource = 1L, into = resource, weight = 1) 
   }
   from <- recycle(from, "from")
   to <- recycle(to, "to")
-  if (any(from == to)) {
-    stop("A flow links two patches; \"", from[from == to][[1L]],
-         "\" cannot flow into itself", call. = FALSE)
-  }
-  is_index <- function(x) {
-    is.numeric(x) && !anyNA(x) && all(x >= 1) && all(x == round(x))
-  }
-  if (!is_index(resource) || !is_index(into)) {
-    stop("`resource` and `into` are indices of resource pools, counted from 1",
-         call. = FALSE)
-  }
-  if (!is.numeric(weight) || anyNA(weight) || any(weight < 0 | weight > 1)) {
-    stop("`weight` is a fraction of what is shed, between 0 and 1", call. = FALSE)
-  }
+  check_flows(from, to, resource, into, weight)
   new_flows(from, to, recycle(as.integer(resource), "resource"),
             recycle(as.integer(into), "into"), recycle(weight, "weight"))
 }
@@ -202,6 +239,8 @@ run.plant_landscape <- function(x, ..., until = NULL, from = NULL,
          "cannot take `until` or `from`", call. = FALSE)
   }
 
+  check_landscape(x$patches, x$flows)
+
   results <- list()
   passed <- list()
   for (patch in landscape_order(names(x$patches), x$flows)) {
@@ -213,8 +252,14 @@ run.plant_landscape <- function(x, ..., until = NULL, from = NULL,
                           resource_pulse(arriving$time, arriving$into,
                                          arriving$amount))
     }
-    results[[patch]] <- run(sc, record = record,
-                            refine_schedule = refine_schedule, method = method)
+    results[[patch]] <- tryCatch(
+      run(sc, record = record, refine_schedule = refine_schedule,
+          method = method),
+      error = function(e) {
+        stop("Patch \"", patch, "\"",
+             if (length(arriving) > 0L) ", with what flowed into it",
+             ": ", conditionMessage(e), call. = FALSE)
+      })
     passed <- c(passed, flows_out_of(patch, results[[patch]], x$flows))
   }
 
