@@ -13,6 +13,15 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`Node` and `Species` are read-only from R.** They are bound so a patch's contents can be read (`patch$species`, `$nodes`, `$new_node`), and what R holds is a copy: a method that changed one changed the copy and left the patch as it was. Their mutating methods and setters are gone, along with `Species$node_at()` and `Species$compute_competition_effect_by_nodes_error()`, which duplicated `$nodes[[i]]` and a `Patch` method. Every getter stays, as do `compute_competition()` on both and `Node$growth_rate_gradient()`. Neither class was exported. Migration:
+  * `sp$introduce_new_node()`, `sp$compute_rates(env, ...)`, `sp$clear()` on a standalone `Species` -> build a `Patch` and use `patch$introduce_new_node(i, time)`, `patch$set_ode_state(y, time)`, `patch$reset()`; read `patch$species[[i]]` afterwards
+  * `node$compute_initial_conditions(env, pr_patch_survival, birth_rate)` -> `patch$species[[i]]$new_node`, which a patch seeds at its own environment, patch survival and birth rate
+  * `node$compute_rates(env, ...)` -> `node$ode_rates` on a node read from a patch, whose rates the patch has computed
+  * `sp$heights <- h`, `sp$ode_state <- y`, `node$ode_state <- y` -> write the patch's state: `patch$set_ode_state(y, patch$time)`. On a species read from a patch these assignments never reached the patch; they now stop with "is read-only"
+  * `sp$set_birth_state(times, density, survival)` -> `initial_node_times` (with `initial_patch_density` and `initial_pr_patch_survival`) on the `Parameters`, through `set_initial_state()`
+  * `sp$node_at(i)` -> `sp$nodes[[i]]`
+  * `patch$species[[i]]$compute_competition_effect_by_nodes_error(patch$compute_competition(0))` -> `patch$compute_competition_effect_error_by_node_for_species_i(i)`
+
 * **A single plant is grown in C++, and the `OdeRunner` and `IndividualRunner` R6 classes are gone (#869).** `run(individual, times = )` now lands on each requested time in turn. It used to shadow a free-stepping solver with a second one that re-integrated each step a time fell in, so its states move within the ODE tolerance, and it now agrees to the bit with `run(individual, sizes = )` at the times that run reports. `run(individual, sizes = )` is unchanged. Unsorted, `NA` or non-finite `times` are refused, as is a time before the environment's own time (`env$time`): the run starts there, where the old loop integrated from zero whatever `env$time` was. Migration:
   * `OdeRunner(x)(IndividualRunner(x, e)(ind, env))`, stepped with `$step()` up to a time -> `run(ind, times = t, env = env)`, with the plant there at `$individual[[1]]`; a plant can no longer be stepped one step at a time from R
   * `$advance_adaptive()`, `$advance_to_size()` or `$history_steps()` on a runner -> `run(ind, times = )` or `run(ind, sizes = )`, whose `$trajectory` holds every step

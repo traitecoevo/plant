@@ -643,32 +643,16 @@ test_that("the crown's separable form is the same profile as its own kernel", {
 # order gives the same intervals in the same sequence, so the sums associate
 # identically, and only the order the nodes are stored in differs.
 test_that("the competition reduction is invariant to the node order", {
-  # Written through the state vector, because the heights setter refuses a
-  # crossing and a run has no such guard.
+  # Written through the patch's state vector, as a run writes it: nothing on
+  # that path refuses a crossing.
   build <- function(heights, log_densities) {
-    ctrl <- Control()
-    ctrl$node_density_coordinate <- "height"
-    st <- FF16_Model()
-    st$control <- ctrl
-    s <- Species("FF16", "FF16_Env")(st)
-    env <- Environment("FF16")
-    env$set_fixed_environment(1.0, 200)
+    patch <- one_species_patch("FF16", FF16_Model(), coordinate = "height")
     for (i in seq_along(heights)) {
-      s$compute_rates(env, 1.0, 1.0)
-      s$introduce_new_node()
+      patch$introduce_new_node(1, i - 1)
     }
-    state <- s$ode_state
-    names_j <- s$nodes[[1]]$ode_names
-    stride <- s$nodes[[1]]$ode_size
-    i_height <- match("height", names_j)
-    i_density <- match("log_density", names_j)
-    for (j in seq_along(heights)) {
-      base <- (j - 1L) * stride
-      state[[base + i_height]] <- heights[[j]]
-      state[[base + i_density]] <- log_densities[[j]]
-    }
-    s$ode_state <- state
-    s
+    set_node_states(patch, "height", heights)
+    set_node_states(patch, "log_density", log_densities)
+    patch$species[[1]]
   }
 
   h <- c(9, 6, 4, 2)

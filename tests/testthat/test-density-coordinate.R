@@ -157,8 +157,9 @@ test_that("the competition integral runs over the coordinate the density is carr
 ## drop out of the integral -- silently, because a trapezium sum over a grid
 ## with a zero-width interval is still a valid trapezium sum over that grid. No
 ## comparison of integral values can see it (the assertion above holds either
-## way, as the next test shows), so the grid is checked for strict monotonicity
-## in its own right.
+## way), so the grid is checked for strict monotonicity in its own right, and a
+## patch refuses a repeated birth date where one could enter (the resume test
+## below).
 test_that("the birth-date quadrature grid is strictly increasing", {
   for (x in c("FF16", "K93")) {
     solver <- short_run(x, TRUE)
@@ -175,51 +176,6 @@ test_that("the birth-date quadrature grid is strictly increasing", {
       expect_gte(tail(grid, 1), tail(head(grid, -1), 1))
     }
   }
-})
-
-## What a repeated birth date actually costs, and why the check above is the one
-## that catches it. Introducing the boundary node twice without advancing the
-## clock is the only way to produce one, and it is what a patch seeded without
-## per-node times does.
-test_that("a repeated birth date drops a node out of the competition integral", {
-  build <- function(birth_date, times) {
-    ctrl <- Control()
-    ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
-    st <- FF16_Model()
-    st$control <- ctrl
-    s <- Species("FF16", "FF16_Env")(st)
-    env <- Environment("FF16")
-    env$set_fixed_environment(1.0, 200)
-    for (t in times) {
-      env$time <- t
-      s$compute_rates(env, 1.0, 1.0)
-      s$introduce_new_node()
-    }
-    s$heights <- c(9, 6, 4, 2)
-    s
-  }
-
-  ok <- build(TRUE, c(0, 1, 2, 3))
-  bad <- build(TRUE, c(0, 1, 1, 3))
-  ## Same nodes, same heights, same carried densities: only the grid differs.
-  expect_equal(bad$heights, ok$heights)
-  expect_equal(bad$log_densities_state, ok$log_densities_state)
-
-  ## The monotonicity check is what catches it, and it does.
-  expect_strictly_increasing(ok$node_times)
-  expect_failure(expect_strictly_increasing(bad$node_times))
-
-  ## The integral, meanwhile, silently loses 15%+ of the competition -- and the
-  ## axis assertion above cannot see that, because both the C++ and the
-  ## by-hand trapezium walk the same defective grid.
-  expect_gt(abs(bad$compute_competition(0) - ok$compute_competition(0)) /
-              ok$compute_competition(0), 0.1)
-  expect_integrates_over(bad, quadrature_grid(bad), 0)
-
-  ## The height coordinate does not integrate over these times, so it is
-  ## unaffected: same nodes, same answer.
-  expect_identical(build(FALSE, c(0, 1, 1, 3))$compute_competition(0),
-                   build(FALSE, c(0, 1, 2, 3))$compute_competition(0))
 })
 
 ## Defect: the wrong density equation for the coordinate. A density in birth
@@ -240,8 +196,9 @@ test_that("only the height coordinate's density rate carries a compression term"
       s <- solver$patch$species[[1]]
       env <- solver$patch$environment
       compression <- 0
+      nodes <- s$nodes
       for (j in seq_len(min(s$size, 25L))) {
-        nd <- s$node_at(j)
+        nd <- nodes[[j]]
         rates <- nd$ode_rates
         grad <- nd$growth_rate_gradient(env)
         compression <- max(compression, abs(grad))

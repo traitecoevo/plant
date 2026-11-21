@@ -41,10 +41,29 @@ test_that("FF16 single-species round-trip reproduces the run", {
   seed <- r$solver2$history[[1]]
   expect_equal(seed$time, state$time)
   expect_equal(seed$ode_state, state$ode_state)
+  # The birth bookkeeping outside the ODE state, each to its own destination.
+  # The three are same-typed and unrelated in meaning, so a swap would only show
+  # here -- and only because the three vectors differ.
   expect_equal(lapply(seed$species, function(s) s$node_times), state$node_times)
+  expect_equal(lapply(seed$species, function(s) s$patch_densities),
+               state$patch_density)
   expect_equal(lapply(seed$species, function(s) s$pr_patch_survival_at_birth),
                state$pr_patch_survival)
+  birth <- list(state$node_times[[1]], state$patch_density[[1]],
+                state$pr_patch_survival[[1]])
+  expect_false(isTRUE(all.equal(birth[[1]], birth[[2]])))
+  expect_false(isTRUE(all.equal(birth[[1]], birth[[3]])))
+  expect_false(isTRUE(all.equal(birth[[2]], birth[[3]])))
   expect_equal(as.integer(vapply(seed$species, function(s) s$size, numeric(1))), state$n)
+
+  # Each of the three must give one entry per node.
+  for (field in c("initial_node_times", "initial_patch_density",
+                  "initial_pr_patch_survival")) {
+    p_short <- r$p2
+    p_short[[field]] <- p_short[[field]][-1]
+    expect_error(Patch(x, e)(p_short, Environment(x), Control()),
+                 "Incorrect length input", info = field)
+  }
 
   # The resumed run reproduces the original fitness (small residual is solver
   # step-size divergence across the checkpoint, not a state error).
