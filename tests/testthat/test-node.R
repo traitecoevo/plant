@@ -224,3 +224,33 @@ for (x in names(strategy_types)) {
                    node2$growth_rate_gradient(patch2$environment))
   })
 }
+
+## A node's seed output accrues at its fecundity rate times its own survival and
+## the patch's survival since its birth: the patch survival now over the patch
+## survival it was born at. Checked over a run, whose nodes span a range of
+## survivals at birth, so a node that read another's -- or none -- would show.
+test_that("the seed-output rate divides by the patch survival at birth", {
+  p0 <- testing_parameters("FF16")
+  p0$max_patch_lifetime <- 20
+  p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(
+    p, Environment("FF16"), empty_events(), Control())
+  solver$run()
+
+  patch <- solver$patch
+  sp <- patch$species[[1]]
+  at_birth <- sp$pr_patch_survival_at_birth
+  expect_lt(min(at_birth), 0.01)
+  expect_equal(max(at_birth), 1)
+
+  pr_now <- patch$pr_survival(patch$time)
+  nodes <- sp$nodes
+  i <- match("offspring_produced_survival_weighted", nodes[[1]]$ode_names)
+  for (k in seq_along(nodes)) {
+    ind <- nodes[[k]]$individual
+    expect_equal(nodes[[k]]$ode_rates[[i]],
+                 ind$rate("fecundity") * exp(-ind$state("mortality")) *
+                   pr_now / at_birth[[k]],
+                 tolerance = 1e-12)
+  }
+})

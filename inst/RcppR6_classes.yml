@@ -648,9 +648,10 @@ Parameters:
 
 ## Node and Species are bound to R so a patch's contents can be read
 ## (Patch$species, Species$nodes, Species$new_node), and they are read-only.
-## What R holds is a copy: a patch returns its species by value, and a species
-## its nodes, so a method that changed one would change the copy and leave the
-## patch as it was. Put a patch in a state through the Patch itself
+## An object read that way is a copy: a patch returns its species by value, and
+## a species its nodes, so a method that changed one would change the copy and
+## leave the patch as it was. (A runner's $patch is a copy too, so state is set
+## on a Patch built directly.) Put a patch in a state through the Patch itself
 ## (introduce_new_node, set_ode_state, an initial state on its Parameters) and
 ## read the species from it. The constructors are bound only because RcppR6
 ## requires one for every class.

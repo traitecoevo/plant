@@ -41,9 +41,11 @@ test_that("FF16 single-species round-trip reproduces the run", {
   seed <- r$solver2$history[[1]]
   expect_equal(seed$time, state$time)
   expect_equal(seed$ode_state, state$ode_state)
-  # The birth bookkeeping outside the ODE state, each to its own destination.
-  # The three are same-typed and unrelated in meaning, so a swap would only show
-  # here -- and only because the three vectors differ.
+  # The birth bookkeeping outside the ODE state. The patch takes the times from
+  # the state and recomputes the density and survival at birth from its own
+  # regime, so these catch a swap in that loading (the three are same-typed and
+  # unrelated in meaning), not one between the two Parameters fields the state
+  # fills -- and only because the three vectors differ.
   expect_equal(lapply(seed$species, function(s) s$node_times), state$node_times)
   expect_equal(lapply(seed$species, function(s) s$patch_densities),
                state$patch_density)

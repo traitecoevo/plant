@@ -549,11 +549,11 @@ test_that("Offspring production & error calculations correct", {
     expect_equal(patch$net_reproduction_ratios, net_reproduction_ratio_R(solver))
     expect_equal(patch$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(solver, error=TRUE))
 
-    ## The competition integral's local error, over the abscissa it is taken
-    ## on: birth dates on the birth-date coordinate, heights on the height one.
+    ## The competition integral's local error, over the heights this run's
+    ## default coordinate integrates on (test-density-coordinate.R takes both).
     sp <- patch$species[[1]]
-    abscissa <- if (sp$density_in_birth_date) sp$node_times else sp$heights
-    lae_cmp <- local_error_integration(abscissa,
+    expect_false(sp$density_in_birth_date)
+    lae_cmp <- local_error_integration(sp$heights,
                                        sp$compute_competition_effect_by_nodes,
                                        patch$compute_competition(0))
     expect_identical(patch$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)

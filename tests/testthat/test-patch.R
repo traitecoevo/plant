@@ -10,8 +10,7 @@ for (x in names(strategy_types)) {
   
   e <- environment_types[[x]]
   plant <- Individual(x, e)(s)
-  node <- Node(x, e)(s)
-  
+
   p <- Parameters(x, e)(strategies=list(s),
                         fitness_weighting = "patch_age")
   env <- Environment(x)
@@ -22,11 +21,9 @@ for (x in names(strategy_types)) {
   # when the default moves.
   #
   # A Patch imposes its own control on its species, so naming it on the patch
-  # is what sets the coordinate; the strategy carries it too so the two agree.
+  # is what sets the coordinate.
   ctrl <- Control(node_density_coordinate = "birth_date")
-  p$strategies[[1]]$control <- ctrl
   patch <- Patch(x, e)(p, env, ctrl)
-  cmp <- patch$species[[1]]$new_node
 
   test_that(sprintf("Basics %s", x), {
     ## Default birth rate (see #333): a fresh strategy should be a constant
@@ -36,7 +33,8 @@ for (x in names(strategy_types)) {
     expect_false(s_default$is_variable_birth_rate)
 
     expect_equal(patch$size, 1)
-    expect_identical(patch$height_max, cmp$height)
+    ## With no nodes, the tallest plant is a newborn.
+    expect_identical(patch$height_max, plant$state("height"))
     expect_equal(patch$parameters, p)
     expect_equal(patch$get_area, 1.0)
     expect_inherits(patch$environment, c(paste0(x, "_Environment"), "R6"))

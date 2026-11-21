@@ -178,6 +178,42 @@ test_that("the birth-date quadrature grid is strictly increasing", {
   }
 })
 
+## And the patch refuses a repeated birth date where a node is introduced, on
+## the coordinate that integrates over them; the height coordinate does not, so
+## it accepts one.
+test_that("a patch refuses two introductions at one time on the birth-date coordinate", {
+  for (x in c("FF16", "TF24", "K93")) {
+    s <- get_list_of_strategy_types()[[x]]()
+    patch <- one_species_patch(x, s, coordinate = "birth_date")
+    patch$introduce_new_node(1, 0)
+    patch$introduce_new_node(1, 1)
+    expect_error(patch$introduce_new_node(1, 1), "sharing an introduction time",
+                 info = x)
+
+    patch_h <- one_species_patch(x, s, coordinate = "height")
+    patch_h$introduce_new_node(1, 1)
+    expect_no_error(patch_h$introduce_new_node(1, 1))
+  }
+})
+
+## The schedule-refinement signal is the competition integral's local error, so
+## it is taken over the same abscissa as the integral: birth dates on the
+## birth-date coordinate, heights on the height one.
+test_that("the competition error is taken over the coordinate's abscissa", {
+  for (x in c("FF16", "K93")) {
+    for (birth_date in c(FALSE, TRUE)) {
+      patch <- short_run(x, birth_date)$patch
+      s <- patch$species[[1]]
+      expect_identical(s$density_in_birth_date, birth_date)
+      abscissa <- if (birth_date) s$node_times else s$heights
+      expect_identical(
+        patch$compute_competition_effect_error_by_node_for_species_i(1),
+        local_error_integration(abscissa, s$compute_competition_effect_by_nodes,
+                                patch$compute_competition(0)))
+    }
+  }
+})
+
 ## Defect: the wrong density equation for the coordinate. A density in birth
 ## date changes by mortality alone -- nothing moves a cohort along the birth-date
 ## axis -- while a density in height also compresses as the spacing between
