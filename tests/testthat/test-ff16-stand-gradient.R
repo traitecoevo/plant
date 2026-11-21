@@ -214,11 +214,15 @@ test_that("FF16's growth cutoff is counted where suppressed cohorts reach it, an
   expect_gt(sum(shaded$fired[, "production_cutoff"]), 0)
   expect_gt(sum(shaded$swept[, "production_cutoff"]), 0)
   # The two metrics that read heartwood agree with the pinned difference where
-  # the cutoff binds.
-  fd <- central_difference(pin_steps(shaded$solver), 1, "a_p1", NULL, census_of())
+  # the cutoff binds. Compared as a ratio, because area_stem's column is about
+  # 1e-6 and a tolerance on the values themselves would be absolute there. The
+  # step is stated, not defaulted: a heartwood rate that jumps at the cutoff
+  # shows at a relative step of 1e-4 (5% and 20% off) and hides at 1e-5.
+  fd <- central_difference(pin_steps(shaded$solver), 1, "a_p1", NULL, census_of(),
+                           rel = 1e-4)
   for (m in shaded$metrics) {
-    expect_equal(shaded$gradient[m, "1.a_p1"], fd[[m]], tolerance = 1e-5,
-                 label = paste(m, "a_p1 at k_I = 4"))
+    expect_equal(shaded$gradient[m, "1.a_p1"] / fd[[m]], 1, tolerance = 1e-5,
+                 label = paste(m, "a_p1 at k_I = 4, relative to the difference"))
   }
   open <- counts(0.5)
   expect_equal(sum(open$fired[, "production_cutoff"]), 0)

@@ -938,10 +938,12 @@ void FF16_Model<S>::compute_rates(const FF16_Environment<S>& environment,
   // store the aux sate
   vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
 
-  // Heartwood forms from sapwood turnover whatever the sign of production:
-  // the turnover is charged in the net production either way, and a rate that
-  // stopped at the cutoff would jump there. Heartwood area grows as k_s times
-  // the sapwood area the worker returned.
+  // Heartwood forms from sapwood turnover whatever the sign of production, as
+  // TF24's does: it converts sapwood rather than adding growth, and a rate that
+  // stopped at the cutoff would jump there. FF16 holds live mass at P <= 0, so
+  // the converted sapwood is replaced at no cost and above-ground mass and stem
+  // area keep rising while production is negative. Heartwood area grows as k_s
+  // times the sapwood area the worker returned.
   vars.set_rate(AREA_HEARTWOOD_INDEX, pars.k_s * area_sapwood_);
   vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
   if (this->collect_all_auxiliary) {

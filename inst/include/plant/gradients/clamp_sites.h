@@ -33,9 +33,9 @@ enum clamp_site {
   // below it. Every model's field is read through the one spline, so this is the
   // only light site any model has; it is counted in the spline.
   CLAMP_LIGHT_FIELD_FLOOR,
-  // FF16's growth cutoff: at zero net production the height and fecundity
-  // rates are set to zero. Both reach zero there anyway, so it is a kink and
-  // not a jump: the run is continuous across it and only its slope is
+  // FF16's growth cutoff: at zero or negative net production the height and
+  // fecundity rates are set to zero. Both reach zero there anyway, so it is a
+  // kink and not a jump: the run is continuous across it and only its slope is
   // one-sided. Heartwood keeps forming there, so nothing jumps. Kept counted
   // so a gradient taken where suppressed cohorts sit says so.
   CLAMP_PRODUCTION_CUTOFF,

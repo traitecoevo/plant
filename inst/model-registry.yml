@@ -2548,7 +2548,7 @@ equations:
     writes: []
     kind: derivative
     overstorey: theory/models/ff16.qmd
-    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates run whatever the sign of ${\rm d}B/{\rm d}t$, as the sapwood turnover they come from is charged in the net production either way; only height growth and fecundity are cut at ${\rm d}B/{\rm d}t \le 0$.'
+    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates run whatever the sign of ${\rm d}B/{\rm d}t$, as in TF24: heartwood formation converts sapwood rather than adding growth. Only height growth and fecundity are cut at ${\rm d}B/{\rm d}t \le 0$, and FF16 holds live mass there, so the converted sapwood is replaced at no cost and above-ground mass and stem area keep rising while production is negative.'
   FF16.stem:
     model: FF16
     section: ff16_growth
