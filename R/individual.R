@@ -83,6 +83,9 @@ individual_grow_to_times <- function(individual, times, env) {
   if (anyNA(times) || any(times < 0.0)) {
     stop("Times must be positive")
   }
+  if (!all(is.finite(times))) {
+    stop("times must be finite")
+  }
   if (is.unsorted(times)) {
     stop("times must be sorted")
   }

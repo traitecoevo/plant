@@ -23,6 +23,7 @@ test_that("run() to times grows a copy of the plant", {
   expect_error(run(p, times = c(1, 0.5)), "times must be sorted")
   expect_error(run(p, times = c(1, NA)), "Times must be positive")
   expect_error(run(p, times = numeric(0)), "At least one time")
+  expect_error(run(p, times = c(1, Inf)), "times must be finite")
 })
 
 test_that("run() grows an individual to sizes", {
@@ -108,6 +109,17 @@ test_that("a run to sizes that fails warns with the error and what was dropped",
                  "integration failed with error: \nthe step failed\n  3 larger sizes dropped",
                  fixed = TRUE)
   expect_silent(integration_failed(pp, "the step failed", 3L, FALSE))
+
+  ## A failure inside the C++ run: odelia refuses a time_max before the
+  ## environment's time, which the grower catches, reporting both sizes as
+  ## not reached and the plant where it stopped.
+  env <- Environment("FF16")
+  env$time <- 5
+  expect_warning(res <- run(pp, sizes = c(1, 5), env = env, time_max = 1),
+                 "integration failed with error: \nadvance_until\\(\\).*\n  2 larger sizes dropped")
+  expect_identical(res$time, c(NA_real_, NA_real_))
+  expect_true(all(is.na(res$state)))
+  expect_identical(res$individual, list(NULL, NULL))
 })
 
 test_that("run() grows an individual to sizes, and stops at time_max", {

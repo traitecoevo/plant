@@ -50,6 +50,9 @@ inline void set_row(Rcpp::NumericMatrix& out, size_t i,
 // The two ways run() grows a single plant from R. Each builds a Solver at
 // odelia's default OdeControl() on a copy of `individual` in `environment`, runs
 // it, and returns what run() reports; the plant passed in is left as it was.
+// They are internal to run(), which checks the arguments in R: a NaN time or
+// unsorted sizes are not refused here. An interrupt is honoured between one
+// requested time or size and the next, not within the integration to one.
 
 // Grows the plant through `times`, which must be sorted and not before the
 // environment's time, landing on each. Returns `state`, one row per time, and
@@ -66,6 +69,7 @@ Rcpp::List grow_to_times(const Individual<T,E>& individual,
   Rcpp::NumericMatrix state(n, m);
   Rcpp::List at_time(n);
   for (size_t i = 0; i < n; ++i) {
+    Rcpp::checkUserInterrupt();
     if (times[i] < solver.time()) {
       util::stop("times must be sorted and not before the environment's time, " +
                  util::to_string(solver.time()));
@@ -116,12 +120,14 @@ Rcpp::List grow_to_sizes(const Individual<T,E>& individual,
   std::fill(state.begin(), state.end(), NA_REAL);
   Rcpp::List at_size(n);
   bool timed_out = false;
-  SEXP error = R_NilValue;
+  // An RObject, so the message stays protected through the allocations below.
+  Rcpp::RObject error;
 
   // Locating on the interpolant evaluates no rates, so a tight tolerance
   // costs little; the interpolant's own error is the larger one.
   const odelia::root::tolerance tol{1e-10, 1e-10};
   for (size_t i = 0; i < n; ++i) {
+    Rcpp::checkUserInterrupt();
     double t;
     if (i > 0 && sizes[i] == sizes[i - 1]) {
       t = time[i - 1];
@@ -152,6 +158,7 @@ Rcpp::List grow_to_sizes(const Individual<T,E>& individual,
     at_size[i] = Rcpp::wrap(solver.get_system_ref().individual);
   }
 
+  const Rcpp::RObject last = Rcpp::wrap(solver.get_system_ref().individual);
   const size_t n_steps = solver.get_history_size();
   Rcpp::NumericMatrix trajectory(n_steps + 1, m + 1);
   trajectory(0, 0) = t_start;
@@ -169,7 +176,7 @@ Rcpp::List grow_to_sizes(const Individual<T,E>& individual,
     Rcpp::Named("individual") = at_size,
     Rcpp::Named("trajectory") = trajectory,
     Rcpp::Named("timed_out") = timed_out, Rcpp::Named("error") = error,
-    Rcpp::Named("last") = Rcpp::wrap(solver.get_system_ref().individual));
+    Rcpp::Named("last") = last);
 }
 
 }
