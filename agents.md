@@ -465,7 +465,7 @@ builds unoptimised and is much slower.
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and `benchmarks.yml`.
 
-`Config/testthat/start-first` lists the slowest test files, slowest first, so that testthat's file-level workers start them before the short ones. It also sets what a pull request's Windows leg leaves out: CI passes the list to [tests/testthat.R](tests/testthat.R) as `PLANT_TEST_EXCLUDE`, and only a push runs every file on Windows. So a file belongs in the list only if it is slow, and adding one drops it from that check. Linux runs every file on every pull request.
+`Config/testthat/start-first` lists the slowest test files, slowest first, so that testthat's file-level workers start them before the short ones. It also sets what a pull request's Windows leg leaves out: CI passes the list, less each model's own file (`model-*`) and `deterministic-patch-runner`, to [tests/testthat.R](tests/testthat.R) as `PLANT_TEST_EXCLUDE`. A push or a manual run checks every file on Windows, and Linux runs every file on every pull request. So a file belongs in the list only if it is slow, and adding one drops it from a pull request's Windows check unless it is one of those kept.
 
 ---
 
