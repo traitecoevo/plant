@@ -1152,6 +1152,93 @@ public:
     psi_soil_valid_ = false;
 }
 
+  // What a run reads from this environment, as plain values a saved scenario
+  // can keep: the soil column, its parameters, the water a run starts from and
+  // the drivers. A run resets the time, the light field and the soil water to
+  // the start, so those are not kept, and the water kept is the starting water.
+  // set_recipe() is the inverse: recipe() of the environment it sets is
+  // identical() to the one it was given.
+  Rcpp::List recipe() const {
+    SEXP layered = R_NilValue;
+    if (use_layered_soil_parameters) {
+      layered = Rcpp::List::create(_["soil_moist_sat"] = soil_moist_sat_layers,
+                                   _["K_sat"] = K_sat_layers,
+                                   _["a_psi"] = a_psi_layers,
+                                   _["n_psi"] = n_psi_layers);
+    }
+    const std::vector<double> water(initial_states.begin(),
+                                    initial_states.begin() + soil_number_of_depths);
+    return Rcpp::List::create(_["layer_widths"] = dz,
+                              _["layer_depths"] = z,
+                              _["depth"] = depth,
+                              _["soil_moist_sat"] = soil_moist_sat,
+                              _["K_sat"] = K_sat,
+                              _["a_psi"] = a_psi,
+                              _["n_psi"] = n_psi,
+                              _["layered_soil_parameters"] = layered,
+                              _["a_infil"] = a_infil,
+                              _["b_infil"] = b_infil,
+                              _["f_PAR"] = f_PAR,
+                              _["water_mixing_rate"] = water_mixing_rate,
+                              _["soil_water"] = water,
+                              _["drivers"] = r_driver_recipe());
+  }
+
+  // The column is set from its widths, which checks them, and then given the
+  // recipe's own layer depths and total, which may differ from the running sum
+  // of the widths in the last bits: set_soil_number_of_depths() builds them
+  // from the total, and TF24's numbers move with that difference.
+  void set_recipe(Rcpp::List r) {
+    set_soil_layer_widths(Rcpp::as<std::vector<double>>(r["layer_widths"]));
+    const std::vector<double> depths =
+      Rcpp::as<std::vector<double>>(r["layer_depths"]);
+    const double total = Rcpp::as<double>(r["depth"]);
+    if (depths.size() != z.size()) {
+      util::stop("The recipe's layer_depths has " +
+                 util::to_string(depths.size()) + " entries for " +
+                 util::to_string(z.size()) + " layer_widths");
+    }
+    auto close = [](double a, double b) {
+      return std::abs(a - b) <= 64 * std::numeric_limits<double>::epsilon() *
+        std::max(std::abs(a), std::abs(b));
+    };
+    for (size_t i = 0; i < z.size(); ++i) {
+      if (!close(depths[i], z[i])) {
+        util::stop("The recipe's layer_depths are not the running sum of its "
+                   "layer_widths: layer " + util::to_string(i + 1) + " ends at " +
+                   util::format_double(depths[i]) + " m, its widths at " +
+                   util::format_double(z[i]) + " m");
+      }
+    }
+    if (!close(total, z.back())) {
+      util::stop("The recipe's depth (" + util::format_double(total) +
+                 " m) is not the bottom of its last layer (" +
+                 util::format_double(z.back()) + " m)");
+    }
+    z = depths;
+    depth = total;
+    finalise_soil_geometry_();
+
+    soil_moist_sat = Rcpp::as<double>(r["soil_moist_sat"]);
+    K_sat = Rcpp::as<double>(r["K_sat"]);
+    a_psi = Rcpp::as<double>(r["a_psi"]);
+    n_psi = Rcpp::as<double>(r["n_psi"]);
+    a_infil = Rcpp::as<double>(r["a_infil"]);
+    b_infil = Rcpp::as<double>(r["b_infil"]);
+    f_PAR = Rcpp::as<double>(r["f_PAR"]);
+    water_mixing_rate = Rcpp::as<double>(r["water_mixing_rate"]);
+    SEXP layered = r["layered_soil_parameters"];
+    if (!Rf_isNull(layered)) {
+      const Rcpp::List l(layered);
+      set_soil_parameters(soil_number_of_depths, SEXP(l["soil_moist_sat"]),
+                          SEXP(l["K_sat"]), SEXP(l["a_psi"]), SEXP(l["n_psi"]));
+    }
+    set_soil_water_state(Rcpp::as<std::vector<double>>(r["soil_water"]));
+    r_set_driver_recipe(r["drivers"]);
+    // The memo is keyed by the time alone, which this leaves where it was.
+    drivers_ = driver_memo{};
+  }
+
   // The light a height is left with, from the competition profile above it.
   template <typename Function>
   void compute_environment(Function f_compute_competition_and_slope,

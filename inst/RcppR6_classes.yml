@@ -1623,6 +1623,14 @@ TF24_Environment:
     get_soil_number_of_depths:
       args: []
       return_type: int
+    # What a run reads from the environment, as plain values a saved scenario
+    # keeps, and its inverse; plant's environment_recipe() wraps the pair.
+    recipe:
+      args: []
+      return_type: "Rcpp::List"
+    set_recipe:
+      args: [recipe: "Rcpp::List"]
+      return_type: void
     # The generic resource-pulse hook, and the name it goes by here: TF24's
     # resources are its soil layers, so a pulse is a depth of water (m).
     add_resource_pulse:

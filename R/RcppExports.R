@@ -6561,6 +6561,14 @@ TF24_Environment__get_soil_number_of_depths <- function(obj_) {
     .Call('_plant_TF24_Environment__get_soil_number_of_depths', PACKAGE = 'plant', obj_)
 }
 
+TF24_Environment__recipe <- function(obj_) {
+    .Call('_plant_TF24_Environment__recipe', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__set_recipe <- function(obj_, recipe) {
+    invisible(.Call('_plant_TF24_Environment__set_recipe', PACKAGE = 'plant', obj_, recipe))
+}
+
 TF24_Environment__add_resource_pulse <- function(obj_, layer, amount) {
     .Call('_plant_TF24_Environment__add_resource_pulse', PACKAGE = 'plant', obj_, layer, amount)
 }

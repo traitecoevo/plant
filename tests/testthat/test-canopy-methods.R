@@ -268,15 +268,21 @@ test_that("PPA runs through the deterministic runner (smoothed) and changes the 
   expect_gt(out_ppa$patch$offspring_production, out_deep$patch$offspring_production)
 })
 
-test_that("a hard PPA step (no smoothing) defeats the adaptive solver", {
-  # ppa_layer_smoothing = 0 is a genuine discontinuity, which the error-controlled
-  # solver cannot integrate (it shrinks the step indefinitely). This is why the
-  # default smoothing exists.
+test_that("a hard PPA step (no smoothing) costs the adaptive solver its step size", {
+  # ppa_layer_smoothing = 0 is a genuine discontinuity in the light a cohort
+  # sees as it crosses a layer, and the error-controlled solver can cross it
+  # only by shrinking the step to the jump: the trial stages that straddle it
+  # carry densities into a runaway, which rejects the step. So the run
+  # finishes, at more than a hundred times the smoothed run's steps. This is
+  # why the default smoothing exists.
   p0 <- testing_parameters("FF16")
-  p0$max_patch_lifetime <- 40
+  p0$max_patch_lifetime <- 5
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
-  ctrl <- Control(); ctrl$shading_model <- "ppa"; ctrl$ppa_layer_smoothing <- 0
-  expect_error(run(p1, Environment("FF16"), ctrl))
+  hard <- Control(); hard$shading_model <- "ppa"; hard$ppa_layer_smoothing <- 0
+  smooth <- Control(); smooth$shading_model <- "ppa"
+  n_hard <- length(run(p1, Environment("FF16"), hard)$solver$ode_times)
+  n_smooth <- length(run(p1, Environment("FF16"), smooth)$solver$ode_times)
+  expect_gt(n_hard, 50 * n_smooth)
 })
 
 test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
