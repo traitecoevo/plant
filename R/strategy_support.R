@@ -85,9 +85,10 @@ Environment <- function(type = NULL) {
          stop("Unknown type ", type))
 }
 
-## The recipe of an environment: its type, and for TF24 the values its
-## recipe() method reads, which set_recipe() writes back. An environment that
-## has a recipe already is returned as it is.
+## The recipe of an environment: its type, and the values its class's recipe()
+## method reads, which set_recipe() writes back. A class without the pair
+## (FF16, K93) holds nothing a run does not reset, so its recipe is its type.
+## An environment that has a recipe already is returned as it is.
 environment_recipe <- function(env) {
   if (inherits(env, "plant_environment_recipe")) {
     return(env)
@@ -104,14 +105,14 @@ environment_recipe <- function(env) {
          "`env` holds", call. = FALSE)
   }
   check_environment_alive(env)
-  values <- if (type == "TF24_Env") env$recipe() else list()
+  values <- if (is.function(env$recipe)) env$recipe() else list()
   structure(c(list(type = type), values), class = "plant_environment_recipe")
 }
 
 environment_from_recipe <- function(recipe) {
   env <- Environment(recipe$type)
   values <- unclass(recipe)[setdiff(names(recipe), "type")]
-  if (recipe$type == "TF24_Env") {
+  if (is.function(env$set_recipe)) {
     env$set_recipe(values)
   } else if (length(values) > 0L) {
     stop("A ", recipe$type, " environment's recipe holds its type alone, not ",
@@ -137,8 +138,10 @@ check_environment_alive <- function(env) {
     tryCatch({env$time; TRUE}, error = function(e) FALSE)
   if (!alive) {
     stop("This environment was read back with readRDS(), which keeps no live ",
-         "object: build it again, or keep a scenario, which holds its ",
-         "environment as a recipe", call. = FALSE)
+         "object, so it must be built again. A scenario keeps its environment ",
+         "as a recipe, which saveRDS() keeps; a scenario holding a dead ",
+         "environment like this one was made by an older plant, and is made ",
+         "again with scenario()", call. = FALSE)
   }
 }
 

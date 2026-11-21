@@ -201,3 +201,68 @@ test_that("an invaders' result read back is refused by name", {
   inv <- run_mutant(res, add_mutant(p, trait_matrix(0.09, "lma")))
   expect_error(run(saved_and_read_back(inv)), "run its resident's scenario again")
 })
+
+test_that("a recipe lacking a field keeps the fresh environment's value", {
+  ## As a recipe saved before a field was added would.
+  fresh <- environment_recipe(Environment("TF24"))
+  configured <- environment_recipe(tf24_configured_environment())
+  old <- configured
+  old$water_mixing_rate <- NULL
+  old$f_PAR <- NULL
+  got <- environment_recipe(Environment(old))
+  expect_identical(got$water_mixing_rate, fresh$water_mixing_rate)
+  expect_identical(got$f_PAR, fresh$f_PAR)
+  expect_identical(got[setdiff(names(got), c("water_mixing_rate", "f_PAR"))],
+                   configured[setdiff(names(configured),
+                                      c("water_mixing_rate", "f_PAR"))])
+  ## A column given without its water starts at half saturation.
+  no_water <- configured
+  no_water$soil_water <- NULL
+  expect_identical(Environment(no_water)$get_soil_water_state(),
+                   rep(configured$soil_moist_sat * 0.5, 4))
+})
+
+test_that("a recipe with a field it does not know is refused by name", {
+  recipe <- environment_recipe(Environment("TF24"))
+  recipe$Ksat <- 100
+  expect_error(Environment(recipe), "no field 'Ksat'")
+  recipe <- environment_recipe(Environment("TF24"))
+  recipe$layer_widths <- NULL
+  expect_error(Environment(recipe), "without the layer_widths")
+})
+
+test_that("a layered recipe lacking a layer value takes the scalar field", {
+  recipe <- environment_recipe(tf24_configured_environment())
+  recipe$layered_soil_parameters$K_sat <- NULL
+  got <- environment_recipe(Environment(recipe))$layered_soil_parameters
+  expect_identical(got$K_sat, rep(recipe$K_sat, 4))
+  expect_identical(got$n_psi, recipe$layered_soil_parameters$n_psi)
+  expect_error(TF24_Environment()$set_recipe(list(1, 2)), "must be a named list")
+})
+
+test_that("a column of many equal layers rebuilds exactly", {
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(1000)
+  rebuilt <- Environment(environment_recipe(env))
+  expect_identical(rebuilt$get_soil_depths(), env$get_soil_depths())
+})
+
+test_that("a recipe serves where an environment is taken", {
+  sc <- scenario(testing_parameters("TF24"), Environment("TF24"))
+  expect_warning(rainfall_pulse(1, 0.01, env = sc$env), "continuous `rainfall`")
+  p <- ff16_parameters(10)
+  expect_identical(make_initial_state(p, heights = c(1, 2), densities = c(0.2, 0.1),
+                                      env = scenario(p)$env),
+                   make_initial_state(p, heights = c(1, 2), densities = c(0.2, 0.1)))
+  ind <- FF16_Individual()
+  expect_identical(run(ind, env = environment_recipe(FF16_Environment()),
+                       times = c(0, 1, 2))$state,
+                   run(ind, times = c(0, 1, 2))$state)
+})
+
+test_that("an invaders' result read back says how to rebuild it", {
+  p <- ff16_parameters(10)
+  res <- run(p)
+  inv <- saved_and_read_back(run_mutant(res, add_mutant(p, trait_matrix(0.09, "lma"))))
+  expect_error(run_mutant(inv, p), "resident's plant_run")
+})

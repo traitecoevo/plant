@@ -25,7 +25,8 @@ Supply this or \code{log_densities}.}
 \item{log_densities}{Per-species node log-densities (alternative to
 \code{densities}).}
 
-\item{env}{Environment object (defaults to the strategy's environment).}
+\item{env}{Environment object, or a scenario's recipe of one (defaults to
+the strategy's environment).}
 
 \item{ctrl}{Control object.}
 }
