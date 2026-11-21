@@ -73,7 +73,8 @@ jobs:
       matrix:
         # The dependency step is cache-sensitive: odelia, phylloptim and RcppR6
         # are GitHub remotes with no binaries, so they build from source when
-        # the cached library predates a pin bump. Do not rank Linux
+        # the cached library predates a pin bump, or for RcppR6, which is not
+        # pinned, a new commit upstream. Do not rank Linux
         # against macOS from single runs; macOS's check step varies by ~150 s on
         # unchanged code. Windows is the only leg tight enough to A/B on.
         config: ${{ fromJSON(needs.platforms.outputs.config) }}
@@ -90,7 +91,7 @@ jobs:
       TESTTHAT_CPUS: 4
       # Nothing else sets MAKEFLAGS, so without it R compiles plant, odelia and
       # phylloptim one translation unit at a time. Four of plant's units take
-      # most of the compile, so -j4 roughly quarters a cold build. Each of
+      # most of the compile, so -j4 cuts a cold build about threefold. Each of
       # those four peaks near 3 GB under clang; the macOS runner has 7 GB and
       # 3 cores, the others 16 GB and 4.
       MAKEFLAGS: ${{ matrix.config.os == 'macOS-latest' && '-j2' || '-j4' }}
@@ -101,7 +102,6 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2
-        id: setup-r
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
@@ -112,7 +112,30 @@ jobs:
       # that PR's copy ahead of develop's newer one, so every open PR rebuilt
       # odelia and phylloptim after each pin bump, and the PR copies pushed the
       # repository past its cache quota, evicting develop's. A PR now restores
-      # develop's library and leaves nothing behind.
+      # develop's library and leaves nothing behind. The cost is that a PR
+      # which bumps a pin rebuilds odelia and phylloptim on every push.
+      #
+      # The key names the OS release, because binaries built against one
+      # release's system libraries can fail to load on the next, and the month,
+      # so that develop saves afresh once CRAN has moved on from its copy.
+      - name: Name the package library cache
+        id: library-key
+        shell: Rscript {0}
+        run: |
+          prefix <- paste("library", sessionInfo()$running, R.version$arch,
+                          getRversion(), sep = "-")
+          prefix <- gsub("[^A-Za-z0-9.]+", "_", prefix)
+          out <- Sys.getenv("GITHUB_OUTPUT")
+          cat(sprintf("prefix=%s-\n", prefix), file = out, append = TRUE)
+          cat(sprintf("month=%s\n", format(Sys.Date(), "%Y-%m")), file = out, append = TRUE)
+
+      # actions/cache would otherwise find Rtools' zstd first on Windows;
+      # setup-r-dependencies makes the same change before its own cache step.
+      - name: Use the runner's zstd
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo 'C:/tools/zstd' >> "$GITHUB_PATH"
+
       - name: Restore the package library
         id: library-cache
         uses: actions/cache/restore@v5
@@ -121,8 +144,8 @@ jobs:
             ${{ env.R_LIBS_USER }}/*
             !${{ env.R_LIBS_USER }}/pak
             !${{ env.R_LIBS_USER }}/_cache
-          key: library-${{ runner.os }}-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('DESCRIPTION') }}
-          restore-keys: library-${{ runner.os }}-${{ steps.setup-r.outputs.installed-r-version }}-
+          key: ${{ steps.library-key.outputs.prefix }}${{ steps.library-key.outputs.month }}-${{ hashFiles('DESCRIPTION') }}
+          restore-keys: ${{ steps.library-key.outputs.prefix }}
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -145,14 +168,16 @@ jobs:
       # preprocessed source and flags, so a header change still recompiles
       # everything that includes it. Set up after the dependencies so that
       # odelia and phylloptim do not fill this cache. Only pushes save it, for
-      # the reason the package library is saved only on pushes, and a save
-      # keeps only the objects that run used, so the entry tracks one tree.
+      # the reason the package library is saved only on pushes. The key's last
+      # part is a version: changing it abandons every entry saved under the old
+      # key, PRs' own included, which they would otherwise keep restoring.
+      # No eviction by use: the post step also runs on a cancelled job, and
+      # would save only the objects compiled before the cancel.
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ matrix.config.os }}-r-${{ matrix.config.r }}
+          key: ${{ matrix.config.os }}-r-${{ matrix.config.r }}-v2
           max-size: 500M
           save: ${{ github.event_name == 'push' }}
-          evict-old-files: job
 
       # Wrap R's own compilers rather than naming any, so each platform keeps
       # the compiler and flags its R was built with. R_MAKEVARS_USER is read on
