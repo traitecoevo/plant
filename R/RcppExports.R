@@ -6404,6 +6404,10 @@ test_light_field_floor <- function(state, heights) {
     .Call('_plant_test_light_field_floor', PACKAGE = 'plant', state, heights)
 }
 
+test_stem_effective_path_length_dbeta <- function(L_top, L_tip, beta) {
+    .Call('_plant_test_stem_effective_path_length_dbeta', PACKAGE = 'plant', L_top, L_tip, beta)
+}
+
 test_tf24_stem_profile <- function(s, area_leaf, sapwood_departure) {
     .Call('_plant_test_tf24_stem_profile', PACKAGE = 'plant', s, area_leaf, sapwood_departure)
 }

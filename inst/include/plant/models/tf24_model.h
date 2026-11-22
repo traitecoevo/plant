@@ -450,7 +450,13 @@ public:
     const S x = log(L_top / pars.L_tip);
     const S e = S(1.0) + pars.theta_c;
     if (odelia::util::to_passive(e) == 0.0) {
-      return pars.L_tip * (S(1.0) + x);
+      // The limit does not read theta_c, so an active scalar attaches its
+      // column, dV/de at 0 = L_tip * x^2 / 2, as e * that: zero in the value.
+      if constexpr (std::is_same_v<S, double>) {
+        return pars.L_tip * (S(1.0) + x);
+      } else {
+        return pars.L_tip * (S(1.0) + x + e * (x * x * 0.5));
+      }
     }
     return pars.L_tip * (S(1.0) + expm1(e * x) / e);
   }

@@ -226,8 +226,9 @@ test_that("the hand-written sapwood cost is the derivative of the sapwood mass",
 
 test_that("theta_c's derivative is carried at a uniform stem and off it", {
   # At theta_c = 0 the value is the uniform stem's expression and the theta_c
-  # column is attached by hand; off it the general closed forms carry it. Both
-  # checked against a central difference of the double values in theta_c.
+  # column is attached by hand, as it is at theta_c = -1, the volume's log limit;
+  # elsewhere the general closed forms carry it. All checked against a central
+  # difference of the double values in theta_c.
   base <- TF24_Model()
   p <- base$pars
   h <- c(0.3941, 5, 16.5958691)
@@ -240,7 +241,7 @@ test_that("theta_c's derivative is carried at a uniform stem and off it", {
     plant:::test_tf24_stem_profile(s, A1, psi)
   }
   d <- 1e-6
-  for (theta_c in c(0, 0.4)) {
+  for (theta_c in c(0, 0.4, -1)) {
     for (A1 in A) {
       for (psi in c(0, 0.3)) {
         ad <- at(theta_c, A1, psi)$by_theta_c
@@ -384,6 +385,24 @@ test_that("beta = 1 takes the logarithmic limit, continuously", {
   # expm1 form keeps all of them. If someone "simplifies" back to the note's
   # version, this assertion is what fails.
   expect_equal(f(1 - 1e-12), f(1), tolerance = 1e-11)
+})
+
+test_that("the path length's beta derivative is carried at the limits too", {
+  # beta == 0 and beta == 1 take arms that return values not reading beta, so an
+  # active scalar attaches the column by hand there. Without it the D_c and
+  # theta_c columns lose the path's whole share at exactly those exponents and
+  # read as answers. Checked against a central difference, which crosses into
+  # the expm1 form on both sides.
+  d <- 1e-6
+  for (L_top in c(0.5, 7, 40)) {
+    for (beta in c(0, 1, 0.4, 1.5)) {
+      fd <- (test_stem_effective_path_length(L_top, 0.02, beta + d) -
+               test_stem_effective_path_length(L_top, 0.02, beta - d)) / (2 * d)
+      expect_equal(plant:::test_stem_effective_path_length_dbeta(L_top, 0.02, beta),
+                   fd, tolerance = 1e-7,
+                   info = sprintf("L_top = %g, beta = %g", L_top, beta))
+    }
+  }
 })
 
 test_that("path length is monotone and its height elasticity is the analytic one", {

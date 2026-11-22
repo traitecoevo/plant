@@ -3430,7 +3430,7 @@ equations:
     reads: [TF24.k_l, TF24.k_s, TF24.a_sw]
     writes: []
     kind: derivative
-    note: 'The difference of leaf and sapwood losses, so a thinning canopy raises the Huber value; the rebuilding term is the geometry of adding leaf and sapwood at the ratio $\theta$. Not on an Overstorey page.'
+    note: 'The difference of leaf and sapwood losses, so a thinning canopy raises the Huber value; the rebuilding term is the geometry of adding leaf and sapwood at the resting ratio at this height, $\theta_{\rm tip} \, m(H)$. Not on an Overstorey page.'
   TF24.sapwood_marginal_return:
     model: TF24
     section: tf24_plasticity

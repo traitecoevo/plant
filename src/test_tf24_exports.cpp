@@ -6,6 +6,20 @@
 // nothing else would catch: the hand-written dmass_sapwood_darea_leaf drifting
 // from mass_sapwood, and theta_c's hand-attached column at theta_c = 0.
 
+// d(effective path length)/d(beta) by tangent. The limit arms beta == 0 and
+// beta == 1 return values that do not read beta and attach the column by hand,
+// so this is what checks them.
+// [[Rcpp::export]]
+double test_stem_effective_path_length_dbeta(double L_top, double L_tip,
+                                             double beta) {
+  using tangent = odelia::ode::tangent_scalar<double>;
+  tangent b = beta;
+  odelia::ode::set_direction(b, 1.0);
+  return odelia::ode::derivative_along(
+      plant::stem_hydraulics::effective_path_length(tangent(L_top),
+                                                    tangent(L_tip), b));
+}
+
 // Values at double, and the derivative of each by tangent: along the resting
 // allometry in leaf area (height following as a_l1 * A^a_l2), and in theta_c at
 // fixed leaf area and height.
