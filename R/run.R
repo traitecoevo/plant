@@ -185,7 +185,13 @@ print.plant_scenario <- function(x, ...) {
 ##'   the flows), \code{transfers} (a data frame of every amount passed
 ##'   between patches: \code{time}, \code{from}, \code{to}, \code{type},
 ##'   \code{out_of}, \code{into} and \code{amount}, the amount that reached
-##'   \code{to}) and \code{method}.
+##'   \code{to}, per unit of its area), \code{offspring_production} and
+##'   \code{net_reproduction_ratios} (per species, over the whole landscape:
+##'   the patches' values, each weighted by its patch's share of the area,
+##'   which is the value for seed arriving evenly over the landscape; species
+##'   are matched across patches by position, and the values are \code{NULL}
+##'   where the patches hold different numbers of them or report none) and
+##'   \code{method}.
 ##'   \code{tidy()} of it is a list of each patch's.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
@@ -500,9 +506,15 @@ tidy.plant_individual_run <- function(x, ...) {
 ##' read and do not move; with \code{constant = TRUE}, in the one field the
 ##' resident stands in now (see \code{\link{fixed_point_fitness}}).
 ##'
-##' @param resident A complete \code{plant_run} of the resident.
+##' Against a landscape's run, the invaders run in every patch, each in what
+##' that patch's resident recorded, what flowed into it included. They change
+##' nothing that flows. The result's landscape-wide fitness is theirs.
+##'
+##' @param resident A complete \code{plant_run} of the resident, or a
+##'   landscape's run.
 ##' @param p The invaders' \code{Parameters}, as \code{\link{add_mutant}} builds
-##'   them.
+##'   them. For a landscape, used in every patch, or a list of one for each
+##'   patch, named as the patches are.
 ##' @param constant Hold the field the resident stands in now, rather than
 ##'   replay the one it recorded.
 ##' @details Invaders meet every event of the resident's run: its pulses,
@@ -517,9 +529,14 @@ tidy.plant_individual_run <- function(x, ...) {
 ##' @return A \code{plant_run} of the invaders: their outputs, with
 ##'   \code{mutants} set to \code{p} and \code{scenario} the resident's. It
 ##'   shares the resident's solver, which now holds the invaders, so the
-##'   resident's result is refused from here on (see \code{\link{run}}).
+##'   resident's result is refused from here on (see \code{\link{run}}). For
+##'   a landscape, a \code{plant_landscape_run} of the invaders, its patches
+##'   each such a result.
 ##' @export
 run_mutant <- function(resident, p, constant = FALSE) {
+  if (inherits(resident, "plant_landscape_run")) {
+    return(run_mutant_landscape(resident, p, constant))
+  }
   if (!inherits(resident, "plant_run") || !is.null(resident$mutants)) {
     stop("`resident` must be a resident's plant_run, as run() returns", call. = FALSE)
   }

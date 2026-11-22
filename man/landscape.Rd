@@ -5,7 +5,7 @@
 \alias{flow}
 \title{Describe a landscape of linked patches}
 \usage{
-landscape(patches, ...)
+landscape(patches, ..., area = NULL)
 
 flow(from, to, type, out_of = 1L, into = out_of, weight = 1, ...)
 }
@@ -18,6 +18,10 @@ and so on.}
 \code{flow} returns them, or none for patches that run side by side
 unlinked. For \code{flow}, further values that its kind takes; a
 resource flow takes none.}
+
+\item{area}{The patches' areas, or any numbers in proportion to them,
+since only their ratios are read: one per patch, in the patches' order or
+named as they are. By default the patches are equal.}
 
 \item{from, to}{The names of the patch the flow leaves and the patch it
 reaches.}
@@ -40,9 +44,9 @@ between 0 and 1.}
 }
 \value{
 A list of class \code{plant_landscape} with \code{patches}, the
-  named scenarios, and \code{flows}, a data frame with one row per flow:
-  \code{from}, \code{to}, \code{type}, \code{out_of}, \code{into} and
-  \code{weight}.
+  named scenarios; \code{flows}, a data frame with one row per flow
+  (\code{from}, \code{to}, \code{type}, \code{out_of}, \code{into} and
+  \code{weight}); and \code{area}, one number per patch.
 }
 \description{
 A landscape is a set of patches and the flows that link them. Each patch is
@@ -66,9 +70,14 @@ as a resource. In TF24 that is water in a soil layer, and
 pulse the ridge's surface cannot hold to the gully.
 
 The patches run over one span of time and share its clock, so they must
-have the same \code{max_patch_lifetime}. They are taken to be of equal
-area: an amount is per unit ground area in both the patch it leaves and
-the patch it reaches.
+have the same \code{max_patch_lifetime}.
+
+Each patch stands for a share of the landscape, set by \code{area}.
+Everything a patch reports is per unit of its own ground area, so an
+amount that leaves one patch reaches another scaled by the ratio of their
+areas: a patch three times the size of the one below it delivers three
+times the depth it shed. A run's landscape-wide fitness weights each patch
+by its share (see \code{\link{run}}).
 
 Flows must lead one way. A landscape is run patch by patch, each one whole,
 sources before the patches they feed, so a loop of flows (one patch feeding
@@ -89,7 +98,9 @@ a flow can be changed in place.
   pool at the same instant, after any pulse the receiver has of its own at
   that instant. The receiver may shed it in turn, and pass it on down its
   own flows. The weights of the flows out of one pool sum to at most 1;
-  what they leave over leaves the landscape.
+  what they leave over leaves the landscape. Between patches of unequal
+  area the pulse that arrives is the share times the ratio of the areas,
+  so that the water arriving is the water that left.
 
   Only what a pulse sheds is passed. A resource a patch loses in any other
   way stays lost to the landscape: in TF24, the run-off and drainage of

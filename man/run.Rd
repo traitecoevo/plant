@@ -123,7 +123,13 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   the flows), \code{transfers} (a data frame of every amount passed
   between patches: \code{time}, \code{from}, \code{to}, \code{type},
   \code{out_of}, \code{into} and \code{amount}, the amount that reached
-  \code{to}) and \code{method}.
+  \code{to}, per unit of its area), \code{offspring_production} and
+  \code{net_reproduction_ratios} (per species, over the whole landscape:
+  the patches' values, each weighted by its patch's share of the area,
+  which is the value for seed arriving evenly over the landscape; species
+  are matched across patches by position, and the values are \code{NULL}
+  where the patches hold different numbers of them or report none) and
+  \code{method}.
   \code{tidy()} of it is a list of each patch's.
 
   A result holds until its solver moves. Whatever moves it -- \code{run()}

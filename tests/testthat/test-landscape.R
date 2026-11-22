@@ -417,3 +417,127 @@ test_that("a kind may give its rows columns of its own", {
                   c = light_patch("FF16", 3))
   expect_equal(nrow(run(landscape(patches, flow("b", "c", "resource"), banded))$transfers), 0)
 })
+
+test_that("each patch has an area, by default equal", {
+  patches <- list(a = light_patch("FF16"), b = light_patch("FF16"),
+                  c = light_patch("FF16"))
+  expect_equal(landscape(patches)$area, c(a = 1, b = 1, c = 1))
+  expect_equal(landscape(patches, area = c(3, 2, 1))$area, c(a = 3, b = 2, c = 1))
+  ## Named for the patches, in any order.
+  expect_equal(landscape(patches, area = c(c = 1, a = 3, b = 2))$area,
+               c(a = 3, b = 2, c = 1))
+  ## Flows and areas together.
+  land <- landscape(patches, flow("a", "b", "resource"), area = c(3, 2, 1))
+  expect_equal(nrow(land$flows), 1)
+
+  expect_error(landscape(patches, area = c(1, 2)), "one positive number for each")
+  expect_error(landscape(patches, area = c(1, 2, 0)), "one positive number for each")
+  expect_error(landscape(patches, area = c(1, 2, NA)), "one positive number for each")
+  expect_error(landscape(patches, area = c(a = 1, b = 2, d = 3)),
+               "`area` is named for a, b, d, and the patches are a, b, c")
+  ## Checked again when run, as the rest of a landscape is.
+  land$area <- c(1, -1, 1)
+  expect_error(run(land), "one positive number for each")
+})
+
+test_that("what leaves a larger patch reaches a smaller one deeper", {
+  land <- landscape(list(ridge = water_patch(shallow_column),
+                         gully = water_patch()),
+                    flow("ridge", "gully", "resource"),
+                    area = c(ridge = 3, gully = 1))
+  res <- run(land)
+  equal <- run(landscape(land$patches, flow("ridge", "gully", "resource")))
+
+  ## The ridge runs as before; three times its area sheds three times the
+  ## water, onto one unit of gully.
+  expect_equal(res$transfers$time, equal$transfers$time)
+  expect_equal(res$transfers$amount, 3 * equal$transfers$amount)
+
+  ## Water over the whole landscape, each patch's depths times its area: rain
+  ## onto both went into one of them or left the gully.
+  ridge <- water_accounts(res$patches$ridge)
+  gully <- water_accounts(res$patches$gully)
+  expect_equal(gully$rain, sum(storm_depths) + sum(res$transfers$amount),
+               tolerance = 1e-12)
+  expect_equal((3 + 1) * sum(storm_depths),
+               3 * ridge$infiltration + 1 * gully$infiltration + 1 * gully$shed,
+               tolerance = 1e-12)
+})
+
+test_that("a landscape's fitness weights each patch by its share of the area", {
+  thin <- light_patch("FF16", 30)
+  thick <- thin
+  thick$p <- add_strategies(thin$p, trait_matrix(0.12, "lma"),
+                            keep_existing = FALSE)
+  land <- landscape(list(a = thin, b = thick), area = c(3, 1))
+  res <- run(land)
+  each <- vapply(res$patches, function(r) r$offspring_production, numeric(1))
+  expect_gt(abs(each[["a"]] / each[["b"]] - 1), 0.01)
+  expect_equal(res$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
+  ratios <- vapply(res$patches, function(r) r$net_reproduction_ratios, numeric(1))
+  expect_equal(res$net_reproduction_ratios,
+               (3 * ratios[["a"]] + ratios[["b"]]) / 4)
+  ## Equal patches give the plain mean.
+  expect_equal(run(landscape(land$patches))$offspring_production, mean(each))
+
+  ## Species are matched by position, so patches holding different numbers
+  ## of them have no landscape-wide value; nor has a stochastic run.
+  two <- thin
+  two$p <- add_strategies(thin$p, trait_matrix(0.12, "lma"))
+  mixed <- run(landscape(list(a = thin, b = two)))
+  expect_null(mixed$offspring_production)
+  expect_null(mixed$net_reproduction_ratios)
+  set.seed(1)
+  expect_null(run(land, method = "stochastic")$offspring_production)
+})
+
+test_that("invaders run in every patch of a landscape", {
+  thin <- light_patch("FF16", 30)
+  thick <- thin
+  thick$p <- add_strategies(thin$p, trait_matrix(0.12, "lma"),
+                            keep_existing = FALSE)
+  land <- landscape(list(a = thin, b = thick), area = c(3, 1))
+  copy_of <- function(sc, lma) add_mutant(sc$p, trait_matrix(lma, "lma"))
+
+  ## A copy of each patch's own resident, replayed in it, scores as the
+  ## resident does, patch by patch and over the landscape.
+  res <- run(land)
+  copies <- run_mutant(res, list(a = copy_of(thin, 0.0825), b = copy_of(thick, 0.12)))
+  expect_s3_class(copies, "plant_landscape_run")
+  expect_named(copies$patches, c("a", "b"))
+  expect_false(is.null(copies$mutants))
+  expect_equal(copies$offspring_production / res$offspring_production, 1,
+               tolerance = 1e-8)
+  ## Invaders are run against a resident's result, not against invaders'.
+  expect_error(run_mutant(copies, copy_of(thin, 0.0825)),
+               "must be a resident landscape's run")
+
+  ## One Parameters is used in every patch: the same invader meets both
+  ## residents, and its landscape-wide value is the weighted mean of the two.
+  res <- run(land)
+  one <- run_mutant(res, copy_of(thin, 0.1))
+  each <- vapply(one$patches, function(r) r$offspring_production, numeric(1))
+  expect_gt(abs(each[["a"]] / each[["b"]] - 1), 0.01)
+  expect_equal(one$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
+
+  res <- run(land)
+  expect_error(run_mutant(res, list(a = copy_of(thin, 0.1))),
+               "one for each patch, named as the patches are \\(a, b\\)")
+})
+
+test_that("an invader in a patch meets what flowed into it", {
+  land <- landscape(list(ridge = water_patch(shallow_column),
+                         gully = water_patch()),
+                    flow("ridge", "gully", "resource"))
+  res <- run(land)
+  resident <- vapply(res$patches, function(r) r$offspring_production, numeric(1))
+  copies <- run_mutant(res, add_mutant(land$patches$gully$p,
+                                       trait_matrix(0.0825, "lma")))
+  copy <- vapply(copies$patches, function(r) r$offspring_production, numeric(1))
+  expect_true(all(resident > 0))
+  expect_lt(max(abs(copy / resident - 1)), 1e-6)
+  ## The gully's resident did better with the run-on than alone, and so the
+  ## copy must have met the run-on to match it.
+  alone <- run(land$patches$gully)$offspring_production
+  expect_gt(abs(resident[["gully"]] / alone - 1), 1e-3)
+})
