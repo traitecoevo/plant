@@ -19,7 +19,7 @@ Depends:
     R (>= 4.5.0)
 Encoding: UTF-8
 License: AGPL (>= 3)
-LinkingTo: Rcpp, BH, odelia (== 0.12.4), phylloptim (== 0.40.3)
+LinkingTo: Rcpp, BH, odelia (== 0.12.4), phylloptim (== 0.41.0)
 Imports:
     Rcpp,
     R6,
@@ -48,7 +48,7 @@ Suggests:
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia@v0.12.4,
-    traitecoevo/phylloptim@198ea401
+    traitecoevo/phylloptim@d8295c4a
 URL: https://traitecoevo.github.io/plant/, https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
