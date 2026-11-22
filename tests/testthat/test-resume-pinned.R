@@ -186,3 +186,30 @@ test_that("an invader of a resumed resident starts empty, at the resume time", {
   res$run_mutant(empty)
   expect_true(is.finite(res$patch$net_reproduction_ratios))
 })
+
+test_that("an invader of a resumed resident is scored in a window that opens after the resume", {
+  ## The residents' first cohort after the resume takes establishment from the
+  ## interval before it, from their export; an invader's first cohort cannot. A
+  ## window weighting that cohort is refused. Opened at the next introduction,
+  ## it weighs only cohorts the two runs share, and a copy of the resident
+  ## returns the resident's ratio.
+  mk <- function(start) {
+    p <- fitness_window(ff16_parameters(30), start, 25)
+    p$node_schedule_times <- list(node_schedule_times_periodic(0, 30, 1))
+    p
+  }
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  burn <- run(mk(10), control = ctrl, until = 10)
+  for (start in c(10, 11)) {
+    res <- run(mk(start), control = ctrl, from = burn)
+    pm <- mk(start)
+    pm$node_schedule_times <- res$scenario$p$node_schedule_times
+    pm$initial_time <- 10
+    if (start == 10) {
+      expect_error(run_mutant(res, pm), "first cohort, born at t = 10[.0]*, is weighted by the window")
+    } else {
+      expect_equal(run_mutant(res, pm)$net_reproduction_ratios, res$net_reproduction_ratios,
+                   tolerance = 1e-12)
+    }
+  }
+})

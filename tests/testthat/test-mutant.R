@@ -339,3 +339,61 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
   expect_true(is.finite(solver$patch$net_reproduction_ratios))
   expect_error(solver$run_mutant(stand(2, 0)), "Non-finite cohort density")
 })
+
+test_that("an invader of a pulsed stand meets its pulses, TF24", {
+  # The residents' run stops at each pulse and rates its nodes afresh in the
+  # wetter field. An invader that stepped through would take the first stage of
+  # every step after a pulse in the field before it, and a copy of the resident
+  # scored a third below it on this stand. The pulses fall between
+  # introductions, which is where that happened.
+  p <- testing_parameters("TF24")
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 12
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 1))
+  set.seed(1)
+  t <- sort(runif(rpois(1, 20 * 12), 0, 12))
+  ev <- events(events_default(p), rainfall_pulse(t, rexp(length(t), 1 / 0.014)))
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 0)
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
+  solver <- run(p, env, ctrl, events = ev)$solver
+  resident <- solver$patch$species[[1]]$net_reproduction_ratio_by_node
+  expect_gt(sum(!t %in% p$node_schedule_times[[1]]), 200)
+  expect_gt(solver$patch$net_reproduction_ratios, 1)
+
+  solver$run_mutant(solver$parameters)
+  copy <- solver$patch$species[[1]]$net_reproduction_ratio_by_node
+  ## Cohort by cohort, since their outputs span many orders of magnitude.
+  expect_true(all(resident > 0))
+  expect_lt(max(abs(copy / resident - 1)), 1e-12)
+  expect_equal(sum(solver$event_log$type == "resource_pulse"), length(t))
+})
+
+test_that("an invader's first cohort is not weighted by a window, TF24", {
+  # A species' first cohort takes establishment only from its birth on, so an
+  # invader introduced from the window's start scores that cohort apart from
+  # the residents' of the same date, whose cell reaches back to the cohort
+  # before: 18% under these pulses. Introduced one cohort earlier, the cohort
+  # the window first weights is the same in both runs.
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 12
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 1))
+  p <- fitness_window(p, 4, 8)
+  set.seed(1)
+  t <- sort(runif(rpois(1, 20 * 12), 0, 12))
+  ev <- events(events_default(p), rainfall_pulse(t, rexp(length(t), 1 / 0.014)))
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 0)
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
+  solver <- run(p, env, ctrl, events = ev)$solver
+  resident <- solver$patch$net_reproduction_ratios
+  late <- p
+  late$node_schedule_times <- list(node_schedule_times_periodic(4, 12, 1))
+  expect_error(solver$run_mutant(late), "species 1's first cohort, born at t = 4")
+  early <- p
+  early$node_schedule_times <- list(node_schedule_times_periodic(3, 12, 1))
+  solver$run_mutant(early)
+  expect_equal(solver$patch$net_reproduction_ratios, resident, tolerance = 1e-12)
+})

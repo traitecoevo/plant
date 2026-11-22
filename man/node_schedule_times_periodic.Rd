@@ -31,10 +31,13 @@ never be integrated either.
 }
 \details{
 A schedule for a \code{\link{fitness_window}} over \code{[start, end]} is
-the other case: the window weighs a cohort at each end, so invaders
-introduced only inside it need \code{include_end = TRUE} to have the
-cohort at \code{end} the resident has. Without it their window average
-misses the last arrival (2 \% low for a copy of the resident over ten).
+the other case: the window weighs a cohort at each end, so a schedule
+ending at \code{end} needs \code{include_end = TRUE} to have the cohort
+there that the resident has. Without it the window average misses the last
+arrival (2 \% low for a copy of the resident over ten). It must start
+before \code{start}: on the birth-date coordinate a species' first cohort
+takes establishment only from its birth on, so \code{\link{run_mutant}}
+refuses a window that weights an invader's first cohort.
 }
 \seealso{
 \code{\link{fitness_window}}
