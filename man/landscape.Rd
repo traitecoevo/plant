@@ -52,9 +52,9 @@ A list of class \code{plant_landscape} with \code{patches}, the
 \description{
 A landscape is a set of patches and the flows that link them. Each patch is
 a \code{\link{scenario}}: its own species, environment, numerics and events,
-so patches can differ in anything a single run can. A flow carries something
-from one patch to another during a run. \code{\link{run}} takes a landscape
-as it takes a scenario.
+so patches can differ in anything a single run can. A flow says what passes
+from one patch to another. \code{\link{run}} takes a landscape as it takes
+a scenario.
 }
 \details{
 Nothing here is specific to a model, or to what flows. Every flow is one
@@ -132,14 +132,23 @@ a flow can be changed in place.
   These flows are the landscape's dispersal matrix, and they are read when
   a run is scored: a landscape's net reproduction ratio is the dominant
   eigenvalue of the next-generation matrix they make with the patches' own
-  ratios (see \code{\link{run}}). With no offspring flows, seed is taken to
-  land evenly over the landscape, each patch receiving its share of the
-  area from every patch.
+  ratios (see \code{\link{run}}). A patch's ratio already counts the seed
+  lost in dispersal (the strategy's \code{S_D}), so a share is of the seed
+  that survives it.
+
+  With no offspring flows, seed is taken to land evenly over the
+  landscape, each patch receiving its share of the area from every patch.
+  Once any is given, seed lands only where a flow takes it: a patch with
+  no offspring flow out of it loses all its seed, and \code{landscape}
+  warns of one.
 
   They do not pass seed between patches during a run. Each patch's
   residents arrive at the birth rates its own \code{Parameters} give, and
   finding the birth rates that the residents' own seed would supply is
-  left to whatever calls \code{run}.
+  left to whatever calls \code{run}. A share is of a patch's whole seed
+  output, so between patches of unequal area the seed arriving per unit
+  area of \code{to} is the share, times the seed produced per unit area of
+  \code{from}, times the area of \code{from} over the area of \code{to}.
 }
 
 \examples{

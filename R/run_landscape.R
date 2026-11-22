@@ -7,9 +7,9 @@
 ##'
 ##' A landscape is a set of patches and the flows that link them. Each patch is
 ##' a \code{\link{scenario}}: its own species, environment, numerics and events,
-##' so patches can differ in anything a single run can. A flow carries something
-##' from one patch to another during a run. \code{\link{run}} takes a landscape
-##' as it takes a scenario.
+##' so patches can differ in anything a single run can. A flow says what passes
+##' from one patch to another. \code{\link{run}} takes a landscape as it takes
+##' a scenario.
 ##'
 ##' Nothing here is specific to a model, or to what flows. Every flow is one
 ##' row of the same table: the patch it leaves (\code{from}) and the patch it
@@ -95,6 +95,16 @@ landscape <- function(patches, ..., area = NULL) {
   flows <- bind_flows(c(list(empty_flows()), flows))
   check_landscape(patches, flows)
   area <- landscape_area(patches, area)
+
+  seeded <- flows$from[flows$type == "offspring"]
+  if (length(seeded) > 0L && !all(names(patches) %in% seeded)) {
+    lost <- setdiff(names(patches), seeded)
+    warning("With offspring flows given, seed lands only where one takes it, ",
+            "and no offspring flow leaves ", paste(lost, collapse = ", "),
+            ", so all the seed made there is lost. flow(\"", lost[[1L]],
+            "\", \"", lost[[1L]], "\", \"offspring\") keeps a patch's seed ",
+            "in it", call. = FALSE)
+  }
 
   structure(list(patches = patches, flows = flows, area = area),
             class = "plant_landscape")
@@ -252,12 +262,16 @@ flows_during_run <- function(flows) {
   flows[flows$type %in% names(kinds)[passes], , drop = FALSE]
 }
 
+## "A resource flow", "An offspring flow".
+a_flow <- function(type) {
+  paste0(if (grepl("^[aeiou]", type)) "An " else "A ", type, " flow")
+}
+
 ## Weights that are shares of what leaves one source: each at most 1, and
 ## those out of one source summing to at most 1. `source` names each row's.
 check_shares <- function(flows, source, what) {
-  if (any(flows$weight > 1)) {
-    stop("A", if (grepl("^[aeiou]", flows$type[[1L]])) "n" else "", " ",
-         flows$type[[1L]], " flow's `weight` is a share of ", what,
+  if (any(flows$weight > 1 + 1e-12)) {
+    stop(a_flow(flows$type[[1L]]), "'s `weight` is a share of ", what,
          ", between 0 and 1", call. = FALSE)
   }
   leaving <- tapply(flows$weight, source, sum)
@@ -359,14 +373,23 @@ resource_arriving <- function(scenario, arrivals) {
 ##'   These flows are the landscape's dispersal matrix, and they are read when
 ##'   a run is scored: a landscape's net reproduction ratio is the dominant
 ##'   eigenvalue of the next-generation matrix they make with the patches' own
-##'   ratios (see \code{\link{run}}). With no offspring flows, seed is taken to
-##'   land evenly over the landscape, each patch receiving its share of the
-##'   area from every patch.
+##'   ratios (see \code{\link{run}}). A patch's ratio already counts the seed
+##'   lost in dispersal (the strategy's \code{S_D}), so a share is of the seed
+##'   that survives it.
+##'
+##'   With no offspring flows, seed is taken to land evenly over the
+##'   landscape, each patch receiving its share of the area from every patch.
+##'   Once any is given, seed lands only where a flow takes it: a patch with
+##'   no offspring flow out of it loses all its seed, and \code{landscape}
+##'   warns of one.
 ##'
 ##'   They do not pass seed between patches during a run. Each patch's
 ##'   residents arrive at the birth rates its own \code{Parameters} give, and
 ##'   finding the birth rates that the residents' own seed would supply is
-##'   left to whatever calls \code{run}.
+##'   left to whatever calls \code{run}. A share is of a patch's whole seed
+##'   output, so between patches of unequal area the seed arriving per unit
+##'   area of \code{to} is the share, times the seed produced per unit area of
+##'   \code{from}, times the area of \code{from} over the area of \code{to}.
 ##' @rdname landscape
 ##' @export
 flow <- function(from, to, type, out_of = 1L, into = out_of, weight = 1, ...) {
@@ -383,11 +406,11 @@ flow <- function(from, to, type, out_of = 1L, into = out_of, weight = 1, ...) {
   takes <- if (length(own) == 0L) "no further values" else paste(own, collapse = ", ")
   if (length(extra) > 0L &&
       (is.null(names(extra)) || any(names(extra) == ""))) {
-    stop("A ", type, " flow takes ", takes, "; it was given a value with no ",
+    stop(a_flow(type), " takes ", takes, "; it was given a value with no ",
          "name", call. = FALSE)
   }
   if (!all(names(extra) %in% own) || anyDuplicated(names(extra)) > 0L) {
-    stop("A ", type, " flow takes ", takes, "; it was given ",
+    stop(a_flow(type), " takes ", takes, "; it was given ",
          paste(names(extra)[!(names(extra) %in% own) | duplicated(names(extra))],
                collapse = ", "),
          call. = FALSE)
@@ -521,13 +544,19 @@ new_landscape_run <- function(landscape, patches, transfers, method,
 ## offspring_production is the seed produced per unit of the landscape's area:
 ## the patches' values, each weighted by its patch's share of the area.
 ##
-## net_reproduction_ratios is the factor by which seed multiplies over a
-## generation, across the landscape: the dominant eigenvalue of the
-## next-generation matrix. A seed arriving in patch j leaves R_j offspring,
-## the patch's own ratio, and the share S_ij of them lands in patch i, so the
-## matrix is S diag(R). With seed landing evenly (no offspring flows) every
-## column of S is the patches' shares of the area, and the eigenvalue is the
-## patches' ratios weighted by those shares.
+## net_reproduction_ratios is the dominant eigenvalue of the next-generation
+## matrix. A seed arriving in patch j leaves R_j offspring, the patch's own
+## ratio, and the share S_ij of them lands in patch i, so the matrix is
+## S diag(R). With seed landing evenly (no offspring flows) every column of S
+## is the patches' shares of the area, and the eigenvalue is the patches'
+## ratios weighted by those shares, which is what is computed then. A species
+## whose ratio is not a finite number in some patch has none (NA).
+##
+## The value means what the patches' ratios mean. Under the "patch_age" and
+## "window" weightings a patch's ratio is offspring per seed arriving, and the
+## eigenvalue is the factor by which seed multiplies over a generation. Under
+## "none" a patch's ratio is its seed output over the whole run per unit of
+## birth rate, which grows with the run's length, and so does the eigenvalue.
 ##
 ## Both mean something only where the patches' values are of one thing, so
 ## they are NULL where the patches differ in species or in how they score.
@@ -540,11 +569,18 @@ landscape_scores <- function(landscape, results) {
     return(list(offspring_production = NULL, net_reproduction_ratios = NULL))
   }
   area <- landscape_area(landscape$patches, landscape$area)
-  shares <- offspring_shares(landscape$flows, area)
+  share <- area / sum(area)
   ratios <- do.call(cbind, ratios)            # species by patches
-  list(offspring_production =
-         as.numeric(do.call(cbind, produced) %*% (area / sum(area))),
+  evenly <- !any(landscape$flows$type == "offspring")
+  shares <- offspring_shares(landscape$flows, area)
+  list(offspring_production = as.numeric(do.call(cbind, produced) %*% share),
        net_reproduction_ratios = vapply(seq_len(nrow(ratios)), function(i) {
+         if (!all(is.finite(ratios[i, ]))) {
+           return(NA_real_)
+         }
+         if (evenly) {
+           return(sum(ratios[i, ] * share))
+         }
          next_generation <- shares %*% diag(ratios[i, ], nrow = ncol(ratios))
          max(Re(eigen(next_generation, only.values = TRUE)$values))
        }, numeric(1)))
@@ -573,11 +609,15 @@ offspring_shares <- function(flows, area) {
 ## Whether every patch's result is of the same strategies, in the same order,
 ## under the same fitness weighting. Birth rates may differ: a patch's ratio
 ## is per seed arriving, and its seed output is what it is at its own rate.
+## So may what a run records, which changes no result.
 same_species_scored_alike <- function(results) {
-  birth_rate <- c("birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
+  not_the_species <- c("birth_rate_x", "birth_rate_y", "is_variable_birth_rate",
+                       "collect_all_auxiliary")
   scored <- lapply(results, function(r) {
     p <- r$mutants %||% r$scenario$p
-    list(lapply(p$strategies, function(s) unclass(s)[setdiff(names(s), birth_rate)]),
+    list(lapply(p$strategies, function(s) {
+           list(class(s), unclass(s)[setdiff(names(s), not_the_species)])
+         }),
          p$fitness_weighting, p$fitness_window_start, p$fitness_window_end,
          p$fitness_window_weight_x, p$fitness_window_weight_y)
   })
@@ -706,8 +746,10 @@ print.plant_landscape_run <- function(x, ...) {
               if (is.null(x$mutants)) "" else ", invaded",
               nrow(x$transfers)))
   if (!is.null(x$offspring_production)) {
-    cat("  offspring_production, over the landscape:",
-        format(x$offspring_production, digits = 4), "\n")
+    cat("  over the landscape: offspring_production",
+        format(x$offspring_production, digits = 4),
+        "; net_reproduction_ratios",
+        format(x$net_reproduction_ratios, digits = 4), "\n")
   }
   for (patch in names(x$patches)) {
     cat("  ", patch, ": ", sep = "")

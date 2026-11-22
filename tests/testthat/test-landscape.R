@@ -757,7 +757,72 @@ test_that("offspring flows may form any graph, and resource flows beside them", 
                "The flows out of patch \"a\" have weights summing to more than 1")
   expect_error(flow("a", "b", "offspring", out_of = 2),
                "joins two patches for every species alike")
+  expect_error(flow("a", "b", "offspring", size = 2),
+               "An offspring flow takes no further values")
   ## A share of seed and a share of water out of one patch are not summed.
-  expect_no_error(landscape(patches, flow("a", "b", "offspring"),
-                            flow("a", "b", "resource")))
+  stays <- flow(c("a", "b"), c("a", "b"), "offspring")
+  expect_no_error(landscape(patches, stays, flow("a", "b", "resource")))
+
+  ## Once seed has flows, a patch with none out of it loses its seed, which
+  ## is easy to do by mistake, so it is warned of where the landscape is made.
+  expect_warning(lossy <- landscape(patches, flow("a", "b", "offspring")),
+                 "no offspring flow leaves b, so all the seed made there is lost")
+  expect_equal(run(lossy)$net_reproduction_ratios, 0)
+  expect_no_warning(landscape(patches, flow("a", "b", "offspring"),
+                              flow("b", "b", "offspring", weight = 0)))
+})
+
+test_that("three patches with uneven seed flows score by their matrix", {
+  one <- thinned_pair()$a
+  patches <- list(a = one, b = thinned_pair()$b,
+                  c = scenario(one$p, events = events(harvest(time = 5, fraction = 0.99))))
+  ratios <- vapply(run(landscape(patches))$patches,
+                   function(r) r$net_reproduction_ratios, numeric(1))
+  expect_equal(length(unique(signif(ratios, 6))), 3)
+  ## Share [to, from]: every column a source's seed, split unevenly, and the
+  ## pair a -> c given twice, which adds.
+  shares <- matrix(c(0.5, 0.1, 0.4,
+                     0.0, 0.3, 0.2,
+                     0.6, 0.1, 0.1), 3, 3,
+                   dimnames = list(to = names(patches), from = names(patches)))
+  land <- landscape(patches,
+                    flow("a", c("a", "b", "c", "c"), "offspring",
+                         weight = c(0.5, 0.1, 0.3, 0.1)),
+                    flow("b", c("b", "c"), "offspring", weight = c(0.3, 0.2)),
+                    flow("c", c("a", "b", "c"), "offspring",
+                         weight = c(0.6, 0.1, 0.1)))
+  ## Which way the matrix reads is pinned here, on the matrix itself: the
+  ## eigenvalue cannot tell, since shares times ratios and its transpose
+  ## times ratios have the same ones.
+  expect_equal(offspring_shares(land$flows, land$area), shares)
+  expect_false(isTRUE(all.equal(shares, t(shares))))
+  expect_equal(run(land)$net_reproduction_ratios,
+               max(Re(eigen(shares %*% diag(ratios))$values)))
+  ## It is neither the best patch nor any mean of the three.
+  value <- run(land)$net_reproduction_ratios
+  expect_lt(value, max(ratios))
+  expect_gt(abs(value / mean(ratios) - 1), 0.01)
+})
+
+test_that("a ratio that is not a number in one patch gives the landscape none", {
+  ## A patch with a single cohort has no ratio to give.
+  patches <- thinned_pair()
+  patches$b$p$node_schedule_times <- list(0)
+  res <- run(landscape(patches))
+  expect_true(is.nan(res$patches$b$net_reproduction_ratios))
+  expect_identical(res$net_reproduction_ratios, NA_real_)
+  stays <- flow(c("a", "b"), c("a", "b"), "offspring")
+  expect_identical(run(landscape(patches, stays))$net_reproduction_ratios, NA_real_)
+})
+
+test_that("patches are scored together by species, not by what a run records", {
+  patches <- thinned_pair()
+  recording <- patches
+  recording$b$p$strategies[[1]]$collect_all_auxiliary <- TRUE
+  expect_false(is.null(run(landscape(recording))$net_reproduction_ratios))
+  ## The same numbers under another model's name are another species.
+  results <- run(landscape(patches))$patches
+  expect_true(same_species_scored_alike(results))
+  class(results$b$scenario$p$strategies[[1]]) <- "Another_Model"
+  expect_false(same_species_scored_alike(results))
 })
