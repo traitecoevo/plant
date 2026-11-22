@@ -3597,6 +3597,10 @@ DeterministicPatchRunner___FF16__FF16_Env__parameters__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
+DeterministicPatchRunner___FF16__FF16_Env__control__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__control__get', PACKAGE = 'plant', obj_)
+}
+
 DeterministicPatchRunner___FF16__FF16_Env__patch__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__patch__get', PACKAGE = 'plant', obj_)
 }
@@ -3719,6 +3723,10 @@ DeterministicPatchRunner___TF24__TF24_Env__time__get <- function(obj_) {
 
 DeterministicPatchRunner___TF24__TF24_Env__parameters__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+DeterministicPatchRunner___TF24__TF24_Env__control__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__control__get', PACKAGE = 'plant', obj_)
 }
 
 DeterministicPatchRunner___TF24__TF24_Env__patch__get <- function(obj_) {
@@ -3845,6 +3853,10 @@ DeterministicPatchRunner___TF24f__TF24_Env__parameters__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
+DeterministicPatchRunner___TF24f__TF24_Env__control__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__control__get', PACKAGE = 'plant', obj_)
+}
+
 DeterministicPatchRunner___TF24f__TF24_Env__patch__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
 }
@@ -3967,6 +3979,10 @@ DeterministicPatchRunner___TF24t__TF24_Env__time__get <- function(obj_) {
 
 DeterministicPatchRunner___TF24t__TF24_Env__parameters__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+DeterministicPatchRunner___TF24t__TF24_Env__control__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__control__get', PACKAGE = 'plant', obj_)
 }
 
 DeterministicPatchRunner___TF24t__TF24_Env__patch__get <- function(obj_) {
@@ -4093,6 +4109,10 @@ DeterministicPatchRunner___TF24w__TF24_Env__parameters__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
+DeterministicPatchRunner___TF24w__TF24_Env__control__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__control__get', PACKAGE = 'plant', obj_)
+}
+
 DeterministicPatchRunner___TF24w__TF24_Env__patch__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__patch__get', PACKAGE = 'plant', obj_)
 }
@@ -4215,6 +4235,10 @@ DeterministicPatchRunner___K93__K93_Env__time__get <- function(obj_) {
 
 DeterministicPatchRunner___K93__K93_Env__parameters__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___K93__K93_Env__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+DeterministicPatchRunner___K93__K93_Env__control__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__control__get', PACKAGE = 'plant', obj_)
 }
 
 DeterministicPatchRunner___K93__K93_Env__patch__get <- function(obj_) {

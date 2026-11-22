@@ -123,7 +123,7 @@ test_that("a field taken inside an interval scores as one taken at its start", {
   p <- fp$p
   p$max_patch_lifetime <- 150.5
   mid <- run(p, control = fp$ctrl)$solver
-  at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.1, "lma"))
+  at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.1, "lma"), grid_tol = 1e-2)
   expect_equal(at_mid, at_start, tolerance = 1e-2)
 })
 
@@ -201,20 +201,60 @@ test_that("a coarse grid makes the fixed point a periodic orbit", {
   ## at an introduction is not the stand's; a cohort a quarter year shrinks it
   ## a hundredfold. Read with the resident's own strategy.
   b_star <- 68.867
+  lma <- trait_matrix(0.0825, "lma")
+  ## The referee runs the resident again from empty to mid-interval.
   swing <- function(by) {
     fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = by)
-    at_start <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.0825, "lma"))
+    at_start <- fixed_point_fitness(fp$solver, fp$p, lma, grid_tol = NULL)
     p <- fp$p
     p$max_patch_lifetime <- 150 + by / 2
     tt <- p$node_schedule_times[[1]]
     p$node_schedule_times <- list(tt[tt < p$max_patch_lifetime])
     mid <- run(p, control = fp$ctrl)$solver
-    at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.0825, "lma"))
-    abs(at_mid / at_start - 1)
+    at_mid <- fixed_point_fitness(mid, p, lma, grid_tol = NULL)
+    c(start = at_start, mid = at_mid)
   }
   coarse <- swing(1)
   fine <- swing(0.25)
-  expect_gt(coarse, 5e-3)
-  expect_lt(fine, 1e-3)
-  expect_lt(fine, coarse / 10)
+  rel <- function(R) abs(R[["mid"]] / R[["start"]] - 1)
+  expect_gt(rel(coarse), 5e-3)
+  expect_lt(rel(fine), 1e-3)
+  expect_lt(rel(fine), rel(coarse) / 10)
+
+  ## fixed_point_fitness() checks the grid with a copy of the resident resumed
+  ## to mid-interval, which scores as the referee does, and warns on the coarse
+  ## grid alone.
+  fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = 1)
+  mid <- mid_interval_scenario(fp$solver)
+  expect_equal(mid$scenario$p$max_patch_lifetime, 150.5)
+  copy <- run(mid$scenario, from = mid$state)$solver
+  expect_equal(copy$time, 150.5)
+  expect_equal(fixed_point_fitness(copy, fp$p, lma, grid_tol = NULL), coarse[["mid"]],
+               tolerance = 1e-4)
+  fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = 1)
+  expect_warning(R <- fixed_point_fitness(fp$solver, fp$p, lma),
+                 "not at a fixed point between introductions")
+  expect_identical(R, coarse[["start"]])
+  fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = 0.25)
+  expect_no_warning(R <- fixed_point_fitness(fp$solver, fp$p, lma))
+  expect_identical(R, fine[["start"]])
+})
+
+test_that("the grid check takes its copy from a plant_run as from a runner", {
+  ## A run() result, at the end of its run: the interval is the last one.
+  p <- testing_parameters("FF16")
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 60
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 2))
+  ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
+  res <- run(p, control = ctrl)
+  mid <- mid_interval_scenario(as_solver(res))
+  expect_equal(mid$scenario$p$max_patch_lifetime, 61)
+  expect_identical(mid$scenario$control$absorb_epsilon, 0.02)
+  expect_equal(run(mid$scenario, from = mid$state)$time, 61)
+  ## A stand of one introduction has no interval, and is not checked.
+  p$node_schedule_times <- list(0)
+  solver <- run(p, control = ctrl, until = 0)$solver
+  expect_null(mid_interval_scenario(solver))
 })

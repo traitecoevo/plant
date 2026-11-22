@@ -911,6 +911,8 @@ DeterministicPatchRunner:
     time: {type: double, access: member}
     # Run / parameters / state access
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    # The control the runner was built with, so a copy of the run can be made.
+    control: {type: "plant::Control", access: member, name_cpp: r_control}
     patch:
       type: "plant::Patch<T,E>"
       access: member

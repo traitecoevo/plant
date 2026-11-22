@@ -4131,6 +4131,11 @@ plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Environment<double> > D
 }
 
 // [[Rcpp::export]]
+plant::Control DeterministicPatchRunner___FF16__FF16_Env__control__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_control();
+}
+
+// [[Rcpp::export]]
 plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > DeterministicPatchRunner___FF16__FF16_Env__patch__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->r_patch();
 }
@@ -4270,6 +4275,11 @@ double DeterministicPatchRunner___TF24__TF24_Env__time__get(plant::RcppR6::RcppR
 // [[Rcpp::export]]
 plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> > DeterministicPatchRunner___TF24__TF24_Env__parameters__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+plant::Control DeterministicPatchRunner___TF24__TF24_Env__control__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_control();
 }
 
 // [[Rcpp::export]]
@@ -4415,6 +4425,11 @@ plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > 
 }
 
 // [[Rcpp::export]]
+plant::Control DeterministicPatchRunner___TF24f__TF24_Env__control__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_control();
+}
+
+// [[Rcpp::export]]
 plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > DeterministicPatchRunner___TF24f__TF24_Env__patch__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_patch();
 }
@@ -4554,6 +4569,11 @@ double DeterministicPatchRunner___TF24t__TF24_Env__time__get(plant::RcppR6::Rcpp
 // [[Rcpp::export]]
 plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > DeterministicPatchRunner___TF24t__TF24_Env__parameters__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+plant::Control DeterministicPatchRunner___TF24t__TF24_Env__control__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_control();
 }
 
 // [[Rcpp::export]]
@@ -4699,6 +4719,11 @@ plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > 
 }
 
 // [[Rcpp::export]]
+plant::Control DeterministicPatchRunner___TF24w__TF24_Env__control__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_control();
+}
+
+// [[Rcpp::export]]
 plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > DeterministicPatchRunner___TF24w__TF24_Env__patch__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_patch();
 }
@@ -4838,6 +4863,11 @@ double DeterministicPatchRunner___K93__K93_Env__time__get(plant::RcppR6::RcppR6<
 // [[Rcpp::export]]
 plant::Parameters<plant::K93_Model,plant::K93_Environment> DeterministicPatchRunner___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_) {
   return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+plant::Control DeterministicPatchRunner___K93__K93_Env__control__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->r_control();
 }
 
 // [[Rcpp::export]]

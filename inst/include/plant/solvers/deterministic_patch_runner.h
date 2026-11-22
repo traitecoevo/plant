@@ -651,6 +651,7 @@ public:
   // What the events actually did, in the order they were applied. Cleared by
   // reset(), so it always describes the run you are looking at.
   EventLog r_event_log() const { return event_log_from_records(event_log); }
+  Control r_control() const { return control; }
 
   // ODE times: the step times the solver actually used on the last run. Carried
   // back on the parameters (`p$ode_times`) they pin the next run to those steps --
