@@ -3097,6 +3097,17 @@ equations:
     writes: ['phylloptim:leaf_specific_conductance_max']
     kind: closed_form
     note: 'Handed to the leaf as its $k_{\max}$, so the stem''s supply per unit leaf area follows the Huber value the plant carries. Not on an Overstorey page.'
+  TF24.conduit_widening:
+    model: TF24
+    section: tf24_hydraulics
+    title: Conduit widening at the base (a diagnostic)
+    latex: |
+      \frac{D_{\rm base}}{D_{\rm tip}} = \left( \frac{H \eta_{\rm c}}{L_{\rm tip}} \right)^{D_{\rm c}}
+    code: plant::TF24_Model::conduit_widening_at_base
+    reads: [TF24.D_c, TF24.L_tip, TF24.eta]
+    writes: []
+    kind: closed_form
+    note: 'Not part of the model: the resistance reads widening only through $\beta_L$, and the diameter has no upper limit. The conduit diameter the widening profile implies at the base of the flow path, as a multiple of the terminal segment''s, reported by TF24_expand_state() as conduit_widening_base so that the widening a plant needs at the height it reaches can be checked against measured vessels. A measured twig diameter times it is the implied basal diameter; a violation falsifies uncapped widening at that height. 1 below the terminal segment. Not on an Overstorey page.'
   TF24.stem_gravity_head:
     model: TF24
     section: tf24_hydraulics

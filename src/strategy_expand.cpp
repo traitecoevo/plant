@@ -32,7 +32,8 @@ Rcpp::List strategy_expand_allometry_impl(S s,
   Rcpp::NumericVector area_leaf(n), mass_leaf(n), area_sapwood(n),
     mass_sapwood(n), area_bark(n), mass_bark(n), area_stem(n),
     diameter_stem(n), mass_root(n), mass_coarse_root(n), mass_live(n),
-    mass_total(n), mass_above_ground(n), huber_value_base(n);
+    mass_total(n), mass_above_ground(n), huber_value_base(n),
+    conduit_widening_base(n);
 
   for (R_xlen_t i = 0; i < n; ++i) {
     const double h  = height[i];
@@ -43,6 +44,7 @@ Rcpp::List strategy_expand_allometry_impl(S s,
       as = s.area_sapwood(al, 0.0, h);
       ab = s.area_bark(al, h);
       huber_value_base[i] = s.sapwood_per_leaf_area_at_base(0.0, h);
+      conduit_widening_base[i] = s.conduit_widening_at_base(h);
     } else {
       as = s.area_sapwood(al);
       ab = s.area_bark(al);
@@ -84,10 +86,13 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     Rcpp::_["mass_total"]        = mass_total,
     Rcpp::_["mass_above_ground"] = mass_above_ground);
   // The resting Huber value at the base of the flow path: theta_tip on a
-  // uniform stem, and rising with height when theta_c > 0. Appended, so the
+  // uniform stem, and rising with height when theta_c > 0. And the conduit
+  // widening there, D_base / D_tip: a diagnostic, to set against measured
+  // vessel diameters (TF24_Model::conduit_widening_at_base). Appended, so the
   // historical columns keep their positions.
   if constexpr (HasHuberProfile<S>) {
     out["huber_value_base"] = huber_value_base;
+    out["conduit_widening_base"] = conduit_widening_base;
   }
   return out;
 }

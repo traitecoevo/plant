@@ -479,6 +479,31 @@ public:
     return sapwood_per_leaf_area(sapwood_departure) * huber_base_factor(height);
   }
 
+  // D_base / D_tip = (height * eta_c / L_tip)^D_c: the conduit diameter the
+  // widening profile D(L) = D_tip * (L/L_tip)^D_c implies at the base of the
+  // flow path, as a multiple of the terminal segment's. 1 below the segment and
+  // at D_c == 0.
+  //
+  // A diagnostic, not part of the model: the resistance reads widening only
+  // through beta, and D itself has no upper limit (stem_hydraulics.h). Its use
+  // is the check that the widening a plant needs at the height it reaches is
+  // anatomically possible, against measured vessel diameters: the implied basal
+  // diameter is a measured twig diameter times this, and a measured
+  // basal-to-twig ratio compares with it directly. A violation falsifies
+  // uncapped widening at that height; it is not a reason to add a cap.
+  //
+  // Read at the base of the flow path, height * eta_c, as the resistance and
+  // the Huber profile are. A vessel measured at the ground sits at L = height,
+  // wider by eta_c^-D_c, about 2.4% at the defaults.
+  S conduit_widening_at_base(const S& height) const {
+    using std::pow;
+    const S L_top = height * eta_c;
+    if (!path_beyond_tip(L_top)) {
+      return S(1.0);
+    }
+    return pow(L_top / pars.L_tip, pars.D_c);
+  }
+
   // Area and mass of sapwood. The area is the BASAL area, at the sapwood
   // departure the plant carries (zero for the resting allometry, as in the
   // germination inversion). One signature, with the departure before the

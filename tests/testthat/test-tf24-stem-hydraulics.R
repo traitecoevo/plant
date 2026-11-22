@@ -469,6 +469,52 @@ test_that("path length is monotone and its height elasticity is the analytic one
   expect_true(all(diff(at_10m) < 0))
 })
 
+test_that("the conduit widening the profile implies is reported at the base", {
+  # The diagnostic of #615's Phase 4: D_base / D_tip = (H*eta_c/L_tip)^D_c, the
+  # widening a plant of height H needs, to set against measured vessels. It is
+  # read at the base of the flow path, as the resistance is, and is 1 below the
+  # terminal segment and with widening off.
+  h <- c(0.01, 0.3941, 1, 16.5958691, 60)
+  zero <- rep(0, length(h))
+  for (D_c in c(0.2, 0.3, 0)) {
+    s <- TF24_Model()
+    s$pars$D_c <- D_c
+    a <- plant:::TF24_strategy_expand_allometry(s, h, zero, zero)
+    L_top <- h * ETA_C_AT_12
+    expected <- ifelse(L_top > s$pars$L_tip, (L_top / s$pars$L_tip)^D_c, 1)
+    expect_equal(a$conduit_widening_base, expected, tolerance = 1e-14,
+                 info = sprintf("D_c = %g", D_c))
+  }
+  # Exactly 1 with widening off, and below the segment whatever D_c is.
+  s <- TF24_Model()
+  s$pars$D_c <- 0
+  expect_identical(
+    plant:::TF24_strategy_expand_allometry(s, h, zero, zero)$conduit_widening_base,
+    rep(1, length(h)))
+  expect_identical(
+    plant:::TF24_strategy_expand_allometry(TF24_Model(), 0.01, 0, 0)$conduit_widening_base,
+    1)
+
+  # At the defaults, the widening the issue quotes: 2.1x at 1 m, 3.7x at hmat,
+  # 4.8x at 60 m. A change to D_c, L_tip or the crown that moves these moves
+  # the comparison with measured vessels.
+  a <- plant:::TF24_strategy_expand_allometry(TF24_Model(), c(1, 16.5958691, 60),
+                                              c(0, 0, 0), c(0, 0, 0))
+  expect_equal(a$conduit_widening_base, c(2.1345, 3.7437, 4.8409), tolerance = 1e-4)
+
+  # It reaches a run's tidied output per cohort, through TF24_expand_state().
+  p <- tf24_fitness_stand_parameters()
+  res <- run(p, tf24_half_wet_environment(),
+             Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
+                     ode_tol_abs = 1e-6), record = "steps")
+  sp <- TF24_expand_state(tidy(res))$species
+  ok <- is.finite(sp$height)
+  expect_true(any(ok))
+  L_top <- sp$height[ok] * ETA_C_AT_12
+  expect_equal(sp$conduit_widening_base[ok],
+               ifelse(L_top > 0.02, (L_top / 0.02)^0.2, 1), tolerance = 1e-12)
+})
+
 test_that("theta_c enters with the sign that compensates", {
   # theta(L) = theta_tip * (L/L_tip)^theta_c: the Huber value, sapwood area per
   # leaf area, RISES basipetally, so resistance per unit length falls as
