@@ -378,8 +378,8 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
   # Only the metrics asked for are swept. Named, not positioned: C++ resolves
   # the names against the same list it reports them from.
   if (use_forward_gradient(x, mode, length(unique(traits)))) {
-    # The forward route computes only the columns asked for, one walk per
-    # column at most; the sweep computes every column at once.
+    # The forward route computes only the columns asked for, one lane each;
+    # the sweep computes every column at once.
     columns <- unique(traits)
     swept <- b$trait_gradient_forward(x, match(columns, all_traits),
                                       as.character(metrics))
