@@ -78,6 +78,14 @@ test_that("the hyperparameter chain is applied alike in both modes", {
   # FF16's trade-off derives nine parameters, and only k_l and r_l move with
   # lma or hmat, so "auto" walks four columns forward rather than eleven.
   expect_identical(stand_gradient(solver, traits = traits), g$forward)
+  # A repeated trait gets the chain in every copy, not only the first.
+  repeated <- both_modes(solver, traits = c("1.lma", "1.hmat", "1.lma"))
+  for (mode in names(repeated)) {
+    total <- repeated[[mode]]$gradient
+    expect_identical(colnames(total), c("1.lma", "1.hmat", "1.lma"))
+    expect_identical(unname(total[, 3]), unname(total[, 1]))
+    expect_identical(total[, 1:2], g[[mode]]$gradient)
+  }
   # Every trait the strategy has, which the sweep takes under "auto".
   g <- both_modes(solver, metrics = "1.offspring_production")
   expect_same_gradient(g$forward, g$reverse)

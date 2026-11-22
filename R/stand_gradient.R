@@ -473,15 +473,19 @@ stand_gradient_through <- function(solver, metrics, traits, hyperpar,
   }
   partial <- stand_gradient(solver, metrics, wanted, hyperpar = NULL,
                             mode = mode)
+  # The chain is applied once per distinct trait, then copied to every place
+  # the trait was asked for: assigning by name reaches only a name's first
+  # column, so chaining a repeated column in place left its copies partial.
   G <- partial$gradient
-  total <- G[, traits, drop = FALSE]
+  distinct <- unique(traits)
+  total <- G[, distinct, drop = FALSE]
   for (J in trade_offs) {
-    along <- intersect(colnames(J), traits)
+    along <- intersect(colnames(J), distinct)
     from <- intersect(rownames(J), colnames(G))
     total[, along] <- total[, along] +
       G[, from, drop = FALSE] %*% J[from, along, drop = FALSE]
   }
-  partial$gradient <- total
+  partial$gradient <- total[, traits, drop = FALSE]
   partial
 }
 
