@@ -1,8 +1,9 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
 ## test-default-baseline.R and scripts/capture-default-baseline.R. The runs go
 ## through run() (#428), so the capture needs a build that has it. All six
-## cases were last captured at TF24's scientific version 17, which moved only
-## the TF24 case (by 8e-5 in offspring production).
+## cases were last captured at TF24's scientific version 18, in the batch NEWS
+## lists (chiefly the stem's gravitational head turned on); that moved only the TF24 case (offspring production by -25%, almost all of it the
+## head's).
 default_baseline_cases <- function() {
   outputs <- function(solver) {
     list(ode_state = solver$patch$ode_state,

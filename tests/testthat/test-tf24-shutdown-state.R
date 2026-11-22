@@ -140,7 +140,9 @@ test_that("a leaf in the canopy's shade is solved at the light it stands in", {
       expect_true(all(is.finite(dark)), label = label)
       expect_equal(dark[["assimilation"]], -R_d_25, tolerance = 1e-12,
                    label = label)
-      expect_lt(dark[["transpiration"]], 1e-12)
+      # A trace, the solve's own tolerance on a shut leaf: 1.1e-12 with the
+      # stem's head on, 3e-8 of the flow at a light of 1.
+      expect_lt(dark[["transpiration"]], 1e-11)
       expect_lt(dark[["stom_cond_CO2"]], 1e-8)
     }
     # Below an openness of 1e-4 the light still reaches the leaf.

@@ -183,8 +183,9 @@ test_that("coarse roots stay out of TF24's water uptake", {
 test_that("TF24's coarse-root columns are pinned-step differences, and zero while the pool is empty", {
   ## Both models offer a_cr1, r_cr and k_cr as gradient columns. With the pool
   ## on, each is checked against a central difference of runs pinned to the
-  ## recorded steps, metric by metric on its own scale; they agree to 2e-8
-  ## here and to 2e-7 on other stands.
+  ## recorded steps, metric by metric on its own scale; they agree to 3e-8
+  ## here and to 2e-7 on other stands. The difference's step is 1e-5: at the
+  ## default 1e-4 its truncation reaches 1.6e-6 in leaf_area.
   ## At the default a_cr1 = 0 the pool is empty, so r_cr's and k_cr's columns
   ## are exact zeros by construction, while a_cr1's is live: it is the cost of
   ## starting a pool, and reaches the seed's mass too.
@@ -220,7 +221,7 @@ test_that("TF24's coarse-root columns are pinned-step differences, and zero whil
 
   on <- gradient_at(0.25)
   for (name in traits) {
-    fd <- central_difference(on$pinned, 1, name, NULL, metrics_of)
+    fd <- central_difference(on$pinned, 1, name, NULL, metrics_of, rel = 1e-5)
     for (m in rownames(on$g)) {
       expect_equal(on$g[m, paste0("1.", name)], fd[[m]], tolerance = 1e-6,
                    label = paste(m, name))

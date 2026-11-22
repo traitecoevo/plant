@@ -3,9 +3,9 @@
 # differences of runs pinned to the recorded steps, as TF24's and FF16's are
 # (test-tf24-fitness-gradient.R, test-ff16-stand-gradient.R).
 #
-# Two stands. On the one test-model-tf24f.R runs (five years, hmat 5, a birth
-# rate of 20, the default soil) the position stays near the middle of the
-# feasible interval. Under dry pulses, at a gain high enough to reach it, the
+# Two environments. On the default soil (five years, hmat 5, a birth rate of
+# 20, as test-model-tf24f.R runs it, at two lma) the position stays near the
+# middle of the feasible interval. Under dry pulses, at a gain high enough to reach it, the
 # position is held at the interval's dry end through each dry spell, and the
 # interval itself moves as the soil dries, so the collar's rows there are the
 # end's rows.
@@ -93,13 +93,19 @@ test_that("TF24f's stand gradient is the pinned-step central difference", {
   # The seed (lma), the reproduction schedule (hmat), the stem curve, which
   # moves both ends of the interval and the marginal (stem_P50), the
   # acclimation gain, which reaches the position's rate alone, and the birth
-  # rate. Held to 1e-4.
+  # rate. Held to 1e-5, near the reference's own truncation at this step, and
+  # on a second stand whose acclimation column reads the uptake's rows next to
+  # a layer's potential.
+  traits <- c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate")
+  metrics <- c("leaf_area", "1.offspring_production")
   errors <- tf24f_gradient_errors(
     tf24f_gradient_parameters(), function() Environment("TF24f"),
-    c("leaf_area", "1.offspring_production"),
-    c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate"),
-    solver = tf24f_default_run())
-  expect_lt(max(errors), 1e-4)
+    metrics, traits, solver = tf24f_default_run())
+  expect_lt(max(errors), 1e-5)
+  errors <- tf24f_gradient_errors(
+    tf24f_gradient_parameters(lma = 0.095), function() Environment("TF24f"),
+    metrics, traits)
+  expect_lt(max(errors), 1e-5)
 })
 
 test_that("the gradient holds where the barrier holds the collar at its dry end", {
@@ -146,10 +152,10 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
 
 test_that("an invader's gradient holds where its collar meets a dry layer's potential", {
   # Under dry pulses the top layer dries past the collar while the deeper ones
-  # stay wet, so the collar crosses the top layer's potential, where uptake has
-  # a kink. This invader's slope stencil reached one, and the marginal there:
-  # its stem columns were 4% off, and moved with a last-bit change in its lma.
-  # With its probes kept clear of the kink they agree to 2e-5; held to 1e-4.
+  # stay wet, so the collar crosses the top layer's potential. A slope stencil
+  # reaching it once read a marginal that was noisy there, and this invader's
+  # stem columns were 4% off; with uptake smooth through a layer's potential
+  # they agree to 2e-6. Held to 1e-4.
   lifetime <- 10
   p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
   solver <- run(p, tf24f_dry_pulses(lifetime), Control(), record = "states")$solver
@@ -175,11 +181,14 @@ test_that("the gradient holds where the cooling cap sets the dry end", {
   # With the energy balance on, in still air with wide leaves, a well-plumbed
   # stem and wet soil, a leaf at its dry end transpires as much as cools it
   # 25 K below its shut temperature: the dry end is the collar at which uptake
-  # reaches that flux, not the stem's continuity root. One year, because later
-  # the shaded cohorts' leaves cool to the dew point, where the floor on the
-  # leaf's vapour deficit puts a kink in the marginal they settle on.
+  # reaches that flux, not the stem's continuity root. Five years, because from
+  # the second the shaded cohorts' leaves transpire past what the boundary
+  # layer carries and settle on the soft floor under its split of the CO2 path.
+  # With that floor 0.01 wide its band was stiff (a rate Jacobian of -730 per
+  # year against steps of 0.007 yr) and the gradient diverged: 1.3e16 relative
+  # at five years. At 0.05 every lifetime from one to five holds 2e-6.
   cap_parameters <- function() {
-    p <- tf24f_gradient_parameters(lifetime = 1)
+    p <- tf24f_gradient_parameters(lifetime = 5)
     s <- p$strategies[[1]]
     s$pars$use_energy_balance <- 1
     s$pars$d <- 0.25
@@ -212,7 +221,7 @@ test_that("the gradient holds where the cooling cap sets the dry end", {
   errors <- tf24f_gradient_errors(cap_parameters(), cap_env,
                                   c("leaf_area", "1.offspring_production"),
                                   c("lma", "stem_P50", "K_s", "birth_rate"))
-  expect_lt(max(errors), 1e-4)
+  expect_lt(max(errors), 1e-5)
 })
 
 test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {

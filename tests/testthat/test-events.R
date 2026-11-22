@@ -634,16 +634,21 @@ test_that("a run that would start above saturation is refused, naming the layer"
     DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), control()))
 })
 
-test_that("a column that fills a layer past saturation stops, naming the layer", {
-  ## A conductivity that falls with depth: the deepest layer takes the drainage
-  ## of the one above, up to that layer's K_sat, and passes on at most its own,
-  ## so it fills past saturation however small the step. The run stops, and says
+test_that("roots that fill a layer past saturation stop the run, naming the layer", {
+  ## The balance keeps a layer at or below saturation against the water that
+  ## drains into it, but not against water the roots release into it. Here
+  ## the deepest layer is full, drains almost nothing, and holds its water at
+  ## a far lower potential than the wet layers above, so the roots carry water
+  ## down into it. No smaller step escapes that, and the run stops, saying
   ## which layer, rather than carry on with moisture no soil can hold.
   env <- Environment("TF24")
-  set_tf24_soil(env, K_sat = c(163.0411, 163.0411, 163.0411, 20, 0.5))
+  set_tf24_soil(env, a_psi = c(rep(env$a_psi, 4), 10),
+                K_sat = c(rep(163.0411, 4), 1e-4),
+                theta = c(rep(0.35, 4), 0.428))
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  p <- add_strategies(testing_parameters("TF24"), trait_matrix(0.0825, "lma"))
-  p$max_patch_lifetime <- 0.5
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 0.4
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
   expect_error(run(p, env),
                "ode_state_valid\\(\\) refused .*the refused state: soil layer 5 holds moisture [0-9.]+, above its saturation 0.428")
 })

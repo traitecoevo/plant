@@ -90,8 +90,32 @@ reference_uncaptured_columns <- function() {
 # 1e-03, which left the rows unresolved and the gap unseen. The floor here is
 # the gap's size with room for the difference's own resolution, and nothing
 # wider: a row past it is a new finding.
+#
+# ⚠️ AND A SECOND ONE, IN THE REFERENCE RATHER THAN THE SWEEP. With the stem's
+# gravitational head on, the fast species' rows on the same stand sit 1e-4 to
+# 5e-3 from the sweep at the step the capture chose. The difference of whole runs
+# converges there to an offset rather than to the tangent: lma's leaf_area row
+# reads 0.2201875 and 0.2201747 at steps 1e-5 and 1e-6 in the reference, and,
+# on an installed build, 0.2201352 and 0.2201201 at 3e-7 and 1e-7, against
+# 0.2201200 from the sweep; stem_c's and K_s's agree with the sweep to 1e-5 and
+# 1e-7 at a step of 1e-7. Only the leaf_area and area_stem rows are off. That is the signature of many
+# small jumps in the forward run, each a decision flipping inside the step, and
+# not of a wrong row. The jumps' source is open. The floor is the gap's measured
+# size, so a row past it is still a finding.
 reference_rows_past_their_scale <- function() {
-  list(shaded = list(columns = c("2.hmat", "2.a_f2"), floor = 5e-4))
+  list(shaded = list(
+    list(columns = c("2.hmat", "2.a_f2"), floor = 5e-4),
+    list(columns = paste0("1.", c("a_b1", "a_bio", "a_l2", "a_r1", "a_y", "D_c",
+                                  "jmax_25", "k_l", "k_r", "K_s", "L_tip", "lma",
+                                  "omega", "R_d_25", "r_l", "r_r", "rho",
+                                  "root_P50", "stem_c", "stem_P50", "TF24_beta2",
+                                  "TF24_cost_scale", "theta_tip", "vcmax_25")),
+         metrics = c("leaf_area", "area_stem"), floor = 6e-3),
+    # And one row at the difference's own resolution: area_stem's rooting_depth_max
+    # entry is 6.5e-09, and the difference reads it within 1e-05 to 4e-05 of the
+    # sweep across steps 1e-07 to 1e-05, while the step the capture chose sits
+    # 1e-04 off on macOS and 1.2e-04 on Linux.
+    list(columns = "1.rooting_depth_max", metrics = "area_stem", floor = 3e-4)))
 }
 
 reference_compare <- function(regime, rows) {
@@ -232,9 +256,12 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     resolved <- live & r$spread_raw < 1e-4 * abs(r$reference)
     expect_gt(sum(resolved), 150)
     floor <- rep(1e-4, length(r$column))
-    past <- reference_rows_past_their_scale()[[r$name]]
-    if (!is.null(past)) {
-      floor[r$column %in% past$columns] <- past$floor
+    for (past in reference_rows_past_their_scale()[[r$name]]) {
+      rows <- r$column %in% past$columns
+      if (!is.null(past$metrics)) {
+        rows <- rows & r$metric %in% past$metrics
+      }
+      floor[rows] <- past$floor
     }
     own <- pmax(3 * r$spread_raw, floor * abs(r$reference))
     gap <- abs(r$observed - r$reference)

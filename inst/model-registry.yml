@@ -1335,7 +1335,7 @@ parameters:
     units: '–'
     class: hyperparameter
     meaning: 'gate for the stem''s gravitational head $\rho g \eta_{\rm c} H$ between collar and leaf; any non-zero value turns it on'
-    source: 'TF24_Pars default, zero: the head off, so a shut leaf sits at the collar'
+    source: 'TF24_Pars default, one: the head on, so a shut leaf sits the head above the collar'
     placeholder: false
     code: plant::TF24_Pars::use_stem_gravity
   TF24.root_depth_shape_eta:
@@ -1440,17 +1440,17 @@ parameters:
     placeholder: false
     code: plant::TF24_Model::storage_gate_width
     literal: 0.1
-  TF24.storage_prod_eps:
+  TF24.storage_prod_share:
     model: TF24
     section: tf24_storage
-    symbol: '\epsilon_{\rm B}'
-    units: 'kg yr⁻¹'
+    symbol: '\kappa_{\rm B}'
+    units: '–'
     class: constant
-    meaning: 'smoothing scale of the positive part of net production'
-    source: 'Hard-coded on TF24_Model'
+    meaning: 'smoothing width of the positive part of net production, as a share of the plant''s maintenance flux'
+    source: 'Hard-coded on TF24_Model; seed output''s bias against the unsmoothed limit is linear in it, and at 1e-3 that bias is below 1e-4 on 10- to 30-year stands'
     placeholder: false
-    code: plant::TF24_Model::storage_prod_eps
-    literal: 1.0e-4
+    code: plant::TF24_Model::storage_prod_share
+    literal: 1.0e-3
 
   # --- TF24: flexible allometry and sapwood acclimation ------------------------
   TF24.a_pl0:
@@ -1665,8 +1665,8 @@ parameters:
     symbol: 'Z'
     units: 'm'
     class: hyperparameter
-    meaning: 'total depth of the soil column, the sum of the layer widths and the depth to the bottom of the deepest layer; read-only from R, since only the geometry setters rebuild the layers from it'
-    source: 'TF24_Environment constructor default; set_soil_layer_widths overwrites it with the sum of the widths. No source recorded'
+    meaning: 'total depth of the soil column: the sum of the layer widths and the depth to the bottom of the deepest layer, to rounding when set_soil_number_of_depths divides it into equal layers; read-only from R, since only the geometry setters rebuild the layers from it'
+    source: 'TF24_Environment constructor default; set_soil_layer_widths overwrites it with the sum of the widths, and set_soil_number_of_depths divides it into equal layers and leaves it as it was. No source recorded'
     placeholder: true
     code: plant::TF24_Environment::depth
   TF24.dz:
@@ -1685,7 +1685,7 @@ parameters:
     symbol: '\theta_{\rm sat}'
     units: 'm³ m⁻³'
     class: hyperparameter
-    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves, the capacity a water pulse fills to, and the upper bound on each layer''s integrated moisture: a step that ends above it in any layer is rejected and retried smaller (Patch::ode_state_valid), and a run that starts above it is refused. The balance keeps a layer below it only where $K_{\rm sat}$ does not fall with depth and $a_{\rm infil} = 1$ (TF24.layer_balance); otherwise a layer fills past it and the run stops, naming the layer. One value for every layer unless set_soil_parameters gives one per layer'
+    meaning: 'saturated volumetric water content: the reference moisture of the retention, conductivity and infiltration curves, the capacity a water pulse fills to, and the upper bound on each layer''s integrated moisture: a step that ends above it in any layer is rejected and retried smaller (Patch::ode_state_valid), and a run that starts above it is refused. The balance keeps every layer at or below it by itself (TF24.saturation_limit); only water the roots release into a full layer can carry one past it, and the run then stops, naming the layer. One value for every layer unless set_soil_parameters gives one per layer'
     source: 'TF24_Environment constructor default; no source recorded'
     placeholder: true
     code: plant::TF24_Environment::soil_moist_sat
@@ -1743,6 +1743,39 @@ parameters:
     source: 'TF24_Environment constructor default; calibrated, per NEWS, against a 0.3 m surface layer, with no source recorded'
     placeholder: true
     code: plant::TF24_Environment::b_infil
+  TF24.inflow_refusal_exponent:
+    model: TF24
+    section: tf24_soil
+    symbol: 'b_{\rm sat}'
+    units: '–'
+    class: constant
+    meaning: 'exponent of the saturated share $w_i$ in TF24.saturation_limit: how near saturation a layer begins to refuse what it cannot pass on ($w$ is 1% at three-quarters of saturation)'
+    source: 'Hard-coded on TF24_Environment; chosen where a perched column''s outcome stops depending on it (hazard 12)'
+    placeholder: true
+    code: plant::TF24_Environment::inflow_refusal_exponent
+    literal: 16.0
+  TF24.inflow_limit_sharpness:
+    model: TF24
+    section: tf24_soil
+    symbol: 'p'
+    units: '–'
+    class: constant
+    meaning: 'sharpness of the smooth minimum in TF24.saturation_limit, which falls short of the smaller argument by a factor $2^{-1/p}$ where the two are equal'
+    source: 'Hard-coded on TF24_Environment'
+    placeholder: true
+    code: plant::TF24_Environment::inflow_limit_sharpness
+    literal: 4.0
+  TF24.inflow_refusal_bound:
+    model: TF24
+    section: tf24_soil
+    symbol: 'W'
+    units: '–'
+    class: constant
+    meaning: 'the most the saturated share $w_i$ in TF24.saturation_limit can reach, approached only far above saturation'
+    source: 'Hard-coded on TF24_Environment'
+    placeholder: false
+    code: plant::TF24_Environment::inflow_refusal_bound
+    literal: 100.0
   TF24.soil_moist_residual:
     model: TF24
     section: tf24_soil
@@ -2535,7 +2568,7 @@ equations:
     fills: g
     cite: Falster-2011
     overstorey: theory/models/ff16.qmd
-    note: 'Zero wherever ${\rm d}B/{\rm d}t \le 0$: the code sets the height, fecundity and heartwood rates to zero there, where the page''s product would be negative.'
+    note: 'Zero wherever ${\rm d}B/{\rm d}t \le 0$: the code sets the height and fecundity rates to zero there, where the page''s product would be negative. Heartwood formation (FF16.heartwood) is not cut.'
   FF16.heartwood:
     model: FF16
     section: ff16_growth
@@ -2548,7 +2581,7 @@ equations:
     writes: []
     kind: derivative
     overstorey: theory/models/ff16.qmd
-    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates are zero wherever ${\rm d}B/{\rm d}t \le 0$, though sapwood turnover is still charged in the net production.'
+    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates run whatever the sign of ${\rm d}B/{\rm d}t$, as in TF24: heartwood formation converts sapwood rather than adding growth. Only height growth and fecundity are cut at ${\rm d}B/{\rm d}t \le 0$, and FF16 holds live mass there, so the converted sapwood is replaced at no cost and above-ground mass and stem area keep rising while production is negative.'
   FF16.stem:
     model: FF16
     section: ff16_growth
@@ -3119,7 +3152,7 @@ equations:
     reads: [TF24.use_stem_gravity, TF24.eta]
     writes: ['phylloptim:psi_soil']
     kind: closed_form
-    note: 'The lift to the mean height of leaf area, added to every soil layer''s potential before the leaf sees them, so a shut leaf sits at $\psi_{\rm s} + \rho g (z + \eta_{\rm c} H)$. $\rho g$ is phylloptim''s gravity_head, the constant of the soil layers'' own heads. The leaf''s collar is then the real one plus the head, and its vulnerability curves are read up to the head drier than the local potential; the opt_root_psi reading takes the head back off. Off by default. Not on an Overstorey page.'
+    note: 'The lift to the mean height of leaf area, added to every soil layer''s potential before the leaf sees them, so a shut leaf sits at $\psi_{\rm s} + \rho g (z + \eta_{\rm c} H)$. $\rho g$ is phylloptim''s gravity_head, the constant of the soil layers'' own heads. The leaf''s collar is then the real one plus the head, and its vulnerability curves are read up to the head drier than the local potential; the opt_root_psi reading takes the head back off. On by default. Not on an Overstorey page.'
   TF24.root_profile:
     model: TF24
     section: tf24_hydraulics
@@ -3237,12 +3270,12 @@ equations:
     section: tf24_storage
     title: The growth flux the reserves release
     latex: |
-      F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
+      F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad \epsilon_{\rm B} = \kappa_{\rm B} \, C, \qquad C = \alpha_{\rm bio} \, \alpha_{\rm y} \, R + T, \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
     code: plant::TF24_Model::compute_rates
-    reads: [TF24.a_st1, TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
+    reads: [TF24.a_st1, TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_share, TF24.a_bio, TF24.a_y]
     writes: []
     kind: closed_form
-    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. At $\alpha_{\rm st1} = 0$, the model without storage, $F = \max(\dot{B}, 0)$ instead. Not on an Overstorey page.'
+    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. The smoothing width is a share of the plant''s maintenance flux (stored as the auxiliary maintenance_flux), so it scales with the plant: one at zero net production is credited half of it, a size-independent 5e-4 of its maintenance. At $\alpha_{\rm st1} = 0$, the model without storage, $F = \max(\dot{B}, 0)$ instead. Not on an Overstorey page.'
   TF24.storage_ode:
     model: TF24
     section: tf24_storage
@@ -3565,7 +3598,7 @@ equations:
     writes: ['phylloptim:soil_depth']
     kind: closed_form
     overstorey: theory/soil-water.qmd
-    note: 'The page (sec-layers) gives these in prose. With equal layers (set_soil_number_of_depths) $\Delta z_i = Z / N$ and the code builds $z_i = (i + 1) Z / N$ rather than the running sum, which differs from it in the last bit; set_soil_layer_widths takes the $\Delta z_i$ and sets $Z$ from them. $z_i$ is handed to the leaf as its layer depths and $\bar z_i$ as its precomputed midpoints (use_precomputed_z_soil_mid_), in place of phylloptim''s own (phylloptim:layer_midpoints, the same rule), where it sets the gravity head. The root network reads the widths as phylloptim''s layer_thicknesses of $z$ (z_thickness), equal to $\Delta z_i$ only to rounding. Setting the geometry resets the water state and drops per-layer soil parameters.'
+    note: 'The page (sec-layers) gives these in prose. Both setters build $z_i$ as the running sum in the code. With equal layers (set_soil_number_of_depths) $\Delta z_i = Z / N$ for the $Z$ in force, which $z_{N-1}$ then reaches only to rounding; set_soil_layer_widths takes the $\Delta z_i$ and sets $Z$ to $z_{N-1}$. $z_i$ is handed to the leaf as its layer depths and $\bar z_i$ as its precomputed midpoints (use_precomputed_z_soil_mid_), in place of phylloptim''s own (phylloptim:layer_midpoints, the same rule), where it sets the gravity head. The root network reads the widths as phylloptim''s layer_thicknesses of $z$ (z_thickness), equal to $\Delta z_i$ only to rounding. Setting the geometry resets the water state and drops per-layer soil parameters.'
   TF24.rainfall_floor:
     model: TF24
     section: tf24_soil
@@ -3583,40 +3616,52 @@ equations:
     section: tf24_soil
     title: Infiltration and saturation-excess runoff
     latex: |
-      q_{{\rm in},0} = P\left[1 - a_{\rm infil}\left(\frac{\theta_0}{\theta_{\rm sat}}\right)^{b_{\rm infil}}\right]^{+}
+      s_0 = P\left[1 - a_{\rm infil}\left(\frac{\theta_0}{\theta_{\rm sat}}\right)^{b_{\rm infil}}\right]^{+}
     code: plant::TF24_Environment::layer_rates
     also: [plant::TF24_Environment::infiltrated_share]
     reads: [TF24.a_infil, TF24.b_infil, TF24.soil_moist_sat]
     writes: []
     kind: closed_form
     overstorey: theory/soil-water.qmd
-    note: 'As the page writes it (eq-infiltration). $\theta_{\rm sat}$ is layer 0''s. The floor binds where $a_{\rm infil} (\theta_0 / \theta_{\rm sat})^{b_{\rm infil}} > 1$, counted as the infiltration clamp. The rain it turns away is runoff, which no accumulator holds on its own (TF24.cumulative_fluxes). A water pulse does not pass through this term (TF24.water_pulse).'
+    note: 'As the page writes it (eq-infiltration), where it is the infiltration $q_{{\rm in},0}$; here it is the supply to layer 0, of which the layer takes $q_{{\rm in},0}$ (TF24.saturation_limit). $\theta_{\rm sat}$ is layer 0''s. The floor binds where $a_{\rm infil} (\theta_0 / \theta_{\rm sat})^{b_{\rm infil}} > 1$, counted as the infiltration clamp. The rain it turns away, and the part of $s_0$ the column refuses, is runoff, which no accumulator holds on its own (TF24.cumulative_fluxes). A water pulse does not pass through this term (TF24.water_pulse).'
   TF24.drainage:
     model: TF24
     section: tf24_soil
     title: Gravitational drainage
     latex: |
-      q_{{\rm out},i} = K(\theta_i) = K_{\rm sat}\left(\frac{\tilde\theta_i}{\theta_{\rm sat}}\right)^{2n_\psi + 3}, \qquad \tilde\theta_i = \min\left(\max(\theta_i, 0),\ \theta_{\rm sat}\right)
+      K(\theta_i) = K_{\rm sat}\left(\frac{\tilde\theta_i}{\theta_{\rm sat}}\right)^{2n_\psi + 3}, \qquad \tilde\theta_i = \max(\theta_i, 0) \le \theta_{\rm sat}
     code: plant::TF24_Environment::conductivity
     also: [plant::TF24_Environment::layer_rates]
     reads: [TF24.K_sat, TF24.soil_moist_sat, TF24.n_psi]
     writes: []
     kind: closed_form
     overstorey: theory/soil-water.qmd
-    note: 'Clapp and Hornberger (1978) as parameterised by Zeng and Decker (2009). The page (eq-drainage) states the clamp $\tilde\theta_i$ in its text, not its equation, and names the function soil_K_from_soil_theta, which is conductivity in the code. $K_{\rm sat}$, $\theta_{\rm sat}$ and $n_\psi$ are layer $i$''s. A stage outside $[0, \theta_{\rm sat}]$ is counted as the soil-conductivity clamp. Free drainage: the matric gradient is dropped, so the flux carries no distance between layers and holds unchanged for unequal widths.'
+    note: 'Clapp and Hornberger (1978) as parameterised by Zeng and Decker (2009). The page (eq-drainage) states a clamp to $[0, \theta_{\rm sat}]$ in its text, not its equation, and names the function soil_K_from_soil_theta, which is conductivity in the code. Above saturation, which only an explicit stage reaches, the code continues the curve along its tangent, $K_{\rm sat}[1 + (2n_\psi + 3)(\theta_i/\theta_{\rm sat} - 1)]$, rather than holding it at $K_{\rm sat}$: a layer held full above a slower one sits a hair below saturation, and a held curve would put a kink in its slope there. $K_{\rm sat}$, $\theta_{\rm sat}$ and $n_\psi$ are layer $i$''s. A stage outside $[0, \theta_{\rm sat}]$ is counted as the soil-conductivity clamp. Free drainage: the matric gradient is dropped, so the flux carries no distance between layers and holds unchanged for unequal widths. It is the outflow of the deepest layer, and for any other layer what it offers the layer below, $s_{i+1}$, which that layer may refuse in part (TF24.saturation_limit).'
+  TF24.saturation_limit:
+    model: TF24
+    section: tf24_soil
+    title: What a nearly full layer takes of its supply
+    latex: |
+      q_{{\rm in},i} = s_i - w_i\left[s_i - \widetilde{\min}(s_i,\ q_{{\rm out},i})\right], \qquad w_i = \frac{W f_i}{W - 1 + f_i}, \quad f_i = \left(\frac{\theta_i}{\theta_{\rm sat}}\right)^{b_{\rm sat}}, \qquad \widetilde{\min}(a, b) = \frac{a b}{(a^p + b^p)^{1/p}}
+    code: plant::TF24_Environment::accepted_inflow
+    also: [plant::TF24_Environment::smooth_min, plant::TF24_Environment::layer_rates]
+    reads: [TF24.inflow_refusal_exponent, TF24.inflow_refusal_bound, TF24.inflow_limit_sharpness, TF24.soil_moist_sat]
+    writes: []
+    kind: closed_form
+    note: 'Not on the Overstorey soil-water page. $s_i$ is what the layer above offers, $K(\theta_{i-1})$ (TF24.drainage), or $s_0$ at the surface (TF24.infiltration); $q_{{\rm out},i}$ is what layer $i$ passes on, $q_{{\rm in},i+1}$, or its own drainage for the deepest layer, so the fluxes are found from the bottom up. $w_i$ is the saturated share of the layer, which takes only what the layer passes on while the rest takes freely; it is $f_i$ to within $1/W$ below saturation, exactly 1 at it, and bounded by $W$ above it, so an explicit stage far above saturation cannot grow its successors by the power $b_{\rm sat}$ until they overflow. At saturation $q_{{\rm in},i} \le q_{{\rm out},i}$, so a layer that roots draw on or leave alone does not fill past $\theta_{\rm sat}$; above it (an explicit stage) $w_i > 1$ and the layer refuses more. What a layer refuses stays in the layer above, and at the surface is runoff, so mass is conserved. $\widetilde{\min}$ is symmetric and never exceeds the smaller argument; it is evaluated from the larger, and is the smaller argument exactly where that is not positive (an outflow an overfilled stage turned upward), where the p-norm would lie above it. $w_i$ reads $\max(\theta_i, 0)$, where it and its slope are zero. $\theta_{\rm sat}$ is layer $i$''s.'
   TF24.layer_balance:
     model: TF24
     section: tf24_soil
     title: Water balance of each layer
     latex: |
-      \frac{{\rm d}\theta_i}{{\rm d}t} = \frac{q_{{\rm in},i} - q_{{\rm out},i} - u_i}{\Delta z_i}, \qquad q_{{\rm in},i} = q_{{\rm out},i-1}\ (i > 0)
+      \frac{{\rm d}\theta_i}{{\rm d}t} = \frac{q_{{\rm in},i} - q_{{\rm out},i} - u_i}{\Delta z_i}, \qquad q_{{\rm out},i} = q_{{\rm in},i+1}\ (i < N - 1), \qquad q_{{\rm out},N-1} = K(\theta_{N-1})
     code: plant::TF24_Environment::compute_rates
     also: [plant::TF24_Environment::layer_rates, plant::Patch::compute_rates, plant::Patch::subsystem_rates]
     reads: [TF24.dz, TF24.soil_moist_residual]
     writes: [soil]
     kind: derivative
     overstorey: theory/soil-water.qmd
-    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. Nothing limits the inflow into a saturated layer: it is the drainage of the layer above, up to that layer''s $K_{\rm sat}$, so a $K_{\rm sat}$ that falls with depth, or $a_{\rm infil} < 1$ under rain heavier than $K_{\rm sat}$, fills a layer past $\theta_{\rm sat}$, which the run refuses (TF24.soil_moist_sat). Writes the rates of the moisture states in soil.'
+    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary flux between layers; a flux turns upward only where an explicit stage has overfilled a layer (TF24.saturation_limit). The inflow $q_{{\rm in},i}$ is what layer $i$ accepts of its supply (TF24.saturation_limit), so a layer does not fill past $\theta_{\rm sat}$ whatever the $K_{\rm sat}$ profile or the rain; a negative $u_i$ (roots releasing water) into a full layer still can, which the run refuses (TF24.soil_moist_sat). Writes the rates of the moisture states in soil.'
   TF24.layer_uptake:
     model: TF24
     section: tf24_soil

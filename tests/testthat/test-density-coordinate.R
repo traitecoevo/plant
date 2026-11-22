@@ -845,6 +845,28 @@ test_that("a model that establishes every seed leaves the open interval empty", 
   expect_identical(utils::tail(sp$ode_state, 2), c(0, 0))
 })
 
+## The other end: on a dry column no seed establishes, so establishment is
+## exactly zero over every cell, and the open interval's factors, one plus an
+## integral of establishment minus one, come out as rounding of either sign.
+## Every cohort, and the boundary, carries exactly no density rather than a
+## density of that rounding, and the schedule has nothing to refine: rounding
+## densities, at random from one cell to the next, would be a sawtooth in birth
+## date that every bisection reproduces.
+test_that("a stand where no seed establishes holds no density and refines at once", {
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 2
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+  env <- Environment("TF24")
+  env$set_soil_water_state(rep(0, env$get_soil_number_of_depths()))
+  env$extrinsic_drivers_set_constant("rainfall", 0)
+  res <- run(scenario(p, env, control(schedule_nsteps = 2)), refine_schedule = TRUE)
+  expect_true(all(exp(res$solver$patch$species[[1]]$log_densities_state) == 0))
+  expect_identical(res$solver$patch$compute_competition(0), 0)
+  expect_identical(res$offspring_production, 0)
+  expect_identical(res$scenario$p$node_schedule_times, p$node_schedule_times)
+})
+
 ## A state written by hand carries the densities it gives. Its cohorts take in
 ## no establishment, at the start or when the run introduces its first cohort,
 ## so a tall tree is not scaled by how seedlings fare under it; the cohorts the

@@ -32,8 +32,13 @@ with_gravity <- function(s = TF24_Model()) {
   s
 }
 
-test_that("the stem's head is off by default", {
-  expect_identical(TF24_Model()$pars$use_stem_gravity, 0)
+without_gravity <- function(s = TF24_Model()) {
+  s$pars$use_stem_gravity <- 0
+  s
+}
+
+test_that("the stem's head is on by default", {
+  expect_identical(TF24_Model()$pars$use_stem_gravity, 1)
 })
 
 test_that("a shut leaf sits the stem's head above the collar", {
@@ -49,7 +54,7 @@ test_that("a shut leaf sits the stem's head above the collar", {
   eta_c <- 1 - 2 / (1 + s$pars$eta) + 1 / (1 + 2 * s$pars$eta)
   for (h in c(1, 5, 20)) {
     on <- gravity_probe(s, h, SWdown = 0)
-    off <- gravity_probe(TF24_Model(), h, SWdown = 0)
+    off <- gravity_probe(without_gravity(), h, SWdown = 0)
     expect_lt(on[["transpiration"]], 1e-12)
     expect_lt(off[["transpiration"]], 1e-12)
     head <- GRAVITY_HEAD * h * eta_c
@@ -70,7 +75,7 @@ test_that("with water moving, the leaf pays the head on top of the friction", {
   eta_c <- 1 - 2 / (1 + s$pars$eta) + 1 / (1 + 2 * s$pars$eta)
   for (h in c(2, 10)) {
     on <- gravity_probe(s, h)
-    off <- gravity_probe(TF24_Model(), h)
+    off <- gravity_probe(without_gravity(), h)
     expect_gt(off[["transpiration"]], 0)
     # Drier leaf, less water, less carbon.
     expect_gt(on[["opt_psi_leaf"]], off[["opt_psi_leaf"]])
@@ -90,7 +95,7 @@ test_that("the head costs a tall plant more than a short one", {
   s <- with_gravity()
   cost <- function(h) {
     1 - gravity_probe(s, h)[["assimilation"]] /
-      gravity_probe(TF24_Model(), h)[["assimilation"]]
+      gravity_probe(without_gravity(), h)[["assimilation"]]
   }
   expect_gt(cost(1), 0)
   expect_gt(cost(15), cost(1))
@@ -105,6 +110,7 @@ test_that("with the head on, a growth trait's column is the pinned-step differen
   p$strategies[[1]]$pars$use_stem_gravity <- 1
   solver <- tf24_fitness_stand_run(p)
   off <- tf24_fitness_stand_parameters()
+  off$strategies[[1]]$pars$use_stem_gravity <- 0
   expect_false(isTRUE(all.equal(
     stand_fitness(tf24_fitness_stand_run(off, record = FALSE))[[1]],
     stand_fitness(solver)[[1]], tolerance = 1e-6)))

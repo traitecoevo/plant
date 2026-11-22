@@ -94,10 +94,10 @@ test_that("suppressed plants in a wet stand thin; dominants do not", {
 # Written from the prose rather than from the source, so a divergence between
 # the two shows up here. Constants not exposed to R are repeated with the member
 # they mirror named: if one changes this fails, which is the intent.
-tf24_departure_rates_r <- function(s, height, phi, psi, tracked, P, A) {
+tf24_departure_rates_r <- function(s, height, phi, psi, tracked, P, A, M) {
   p <- s$pars
   storage_gate_width    <- 0.1    # TF24_Model::storage_gate_width
-  storage_prod_eps      <- 1e-4   # TF24_Model::storage_prod_eps
+  storage_prod_share    <- 1e-3   # TF24_Model::storage_prod_share
   plasticity_gate_width <- 0.02   # TF24_Model::plasticity_gate_width
   eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)   # CanopyShape::eta_c
 
@@ -118,7 +118,8 @@ tf24_departure_rates_r <- function(s, height, phi, psi, tracked, P, A) {
   list(rho_l = rho_l, u_l = u_l, u_s = u_s, S_max = S_max,
        finish = function(r) {
          G     <- 1 / (1 + exp(-(r - p$a_st2) / storage_gate_width))
-         Ppos  <- 0.5 * (P + sqrt(P^2 + storage_prod_eps^2))
+         eps   <- storage_prod_share * M
+         Ppos  <- 0.5 * (P + sqrt(P^2 + eps^2))
          F     <- Ppos * G
          f_g   <- 1 - p$a_f1 / (1 + exp(p$a_f2 * (1 - height / p$hmat)))
          sigma <- rho_l * (1 - exp(phi / p$a_pl2))
@@ -155,7 +156,8 @@ test_that("the demo's equations reproduce the C++ departure rates", {
       s, g$height, g$phi, g$psi,
       tracked = ind$state("leaf_marginal_return_tracked"),
       P = ind$aux("net_mass_production_dt"),
-      A = ind$aux("competition_effect"))
+      A = ind$aux("competition_effect"),
+      M = ind$aux("maintenance_flux"))
     want <- parts$finish(ind$state("storage") / parts$S_max)
 
     label <- sprintf("h=%g phi=%g psi=%g soil=%g",
@@ -287,7 +289,9 @@ test_that("the demo's sapwood-controller claims hold", {
   ## itself the point, the band moved with the hydraulics.
   starved <- allometry_sapwood_controller(0.12)
   expect_true(all(starved$dheight < 1e-6))
-  expect_true(all(abs(starved$R_s) < 1e-8))
+  # Not zero: the controller's availability factor goes to the order of
+  # TF24_Model::storage_prod_share^2 for a plant in deficit.
+  expect_true(all(abs(starved$R_s) < 1e-6))
 })
 
 test_that("the demo's 'does not buy survival' claims still hold", {
@@ -299,10 +303,12 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   ## because its tables are prose rather than chunks. These guard the claims.
   g <- allometry_drought_grid()
 
-  ## 1. THE ORDERING, which is the section's decisive argument. At soil 0.145
+  ## 1. THE ORDERING, which is the section's decisive argument. At soil 0.150
   ##    no plant thins; by 0.140 a 10 m plant is dead. Mortality saturates
-  ##    ahead of shedding.
-  mild <- g[g$theta_dry == 0.145, ]
+  ##    ahead of shedding. The stem's gravitational head (TF24 v18) moved the
+  ##    no-thinning level up a step, from 0.145: a tall plant's leaves sit the
+  ##    head drier than its soil, and at 0.145 they now die unthinned.
+  mild <- g[g$theta_dry == 0.150, ]
   expect_true(all(mild$min_canopy > 0.99))
   expect_true(all(abs(mild$gain - 1) < 0.01))
 
@@ -314,7 +320,9 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   course <- allometry_drought_course(height = 10, theta_dry = 0.140)
   first_move <- which(course$canopy < 0.999)[1]
   expect_false(is.na(first_move))                       # it does thin
-  expect_lt(course$survivorship[[first_move]], 0.25)    # but only once dying
+  # but only once dying: two-thirds are dead (0.33 survive) when the canopy
+  # has moved by a tenth of a per cent, and under a tenth by when it is at 0.9
+  expect_lt(course$survivorship[[first_move]], 0.4)
 
   ## 2. NO RESCUE. The large ratios sit between two very small numbers, so the
   ##    ratio alone must never be quoted as a survival benefit.
