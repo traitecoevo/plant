@@ -336,8 +336,8 @@ public:
           rec.applied.size() > 1 && rec.applied[1] > 0.0) {
         util::stop(std::string(entry) + ": the event at t = " +
                    util::format_double(rec.time) + " removed density with the "
-                   "absorbing top layer on, and the reverse-mode gradient does "
-                   "not transpose an event on the layer. Set "
+                   "absorbing top layer on, and the gradient does not "
+                   "transpose an event on the layer. Set "
                    "control$absorb_epsilon = 0, or difference the metric.");
       }
     }
@@ -373,7 +373,7 @@ public:
     if (patch.has_constant_field() || ran_in_constant_field) {
       util::stop(std::string(entry) +
                  ": this run stands in a constant field (run_mutant_constant), which "
-                 "the reverse-mode gradient does not transpose.");
+                 "the gradient does not transpose.");
     }
   }
 

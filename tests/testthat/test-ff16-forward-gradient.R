@@ -153,9 +153,8 @@ layer_traits <- c("1.lma", "1.hmat", "1.a_f2", "1.theta", "1.omega", "1.S_D")
 
 test_that("the forward route follows cohorts into the absorbing top layer", {
   # An insertion that absorbs a cohort moves the vegetation, so the field the
-  # walk takes the next step's first rates in is rebuilt after it, as the run
-  # rebuilds it. Taken in the field before the absorption, the walk's columns
-  # were 1% off the sweep in hmat and a_f2 on this stand.
+  # walk takes the next step's first rates in has to be the one after it, as
+  # in the run; hmat and a_f2 are the columns that read it most.
   solver <- run(layer_stand(10), NULL, layer_control(), record = "states")$solver
   expect_gt(sum(solver$patch$species[[1]]$retired), 5)
   g <- both_modes(solver, traits = layer_traits, hyperpar = NULL)
@@ -165,6 +164,22 @@ test_that("the forward route follows cohorts into the absorbing top layer", {
   expect_true(use_forward_gradient(solver, "auto", 1L))
   expect_identical(stand_gradient(solver, traits = layer_traits, hyperpar = NULL),
                    g$forward)
+})
+
+test_that("the forward route follows an invader's cohorts into the layer", {
+  # An invader replays in the residents' recorded field, so its walk reads no
+  # field of its own making; this holds the two routes together there.
+  solver <- run(layer_stand(10), NULL, layer_control(), record = "states")$solver
+  q <- solver$parameters
+  q$strategies <- add_strategies(testing_parameters("FF16"),
+                                 trait_matrix(c(0.09, 3), c("lma", "hmat")),
+                                 birth_rate = 2)$strategies
+  solver$run_mutant(q)
+  expect_gt(sum(solver$patch$species[[1]]$retired), 0)
+  g <- both_modes(solver, metrics = "1.net_reproduction_ratio",
+                  traits = layer_traits, hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g$forward)))
+  expect_same_gradient(g$forward, g$reverse)
 })
 
 test_that("the forward route follows cohorts into a layer a resume brought", {

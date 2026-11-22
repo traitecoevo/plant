@@ -751,9 +751,8 @@ private:
   // insertion map and of nothing else, so a pinned run or a sweep that applies the
   // map applies this too, and a reconciliation that only rebuilds the shape
   // (reshape_to) does not -- the state it loads already carries the zeros and
-  // the layer. A no-op with control.absorb_epsilon zero. Returns how many
-  // cohorts went, over every species.
-  size_t absorb_tall();
+  // the layer. A no-op with control.absorb_epsilon zero.
+  void absorb_tall();
 
   // Per-species running max of the competition error per node, accumulated
   // across the run via collect_competition_errors(). Entries start at -Inf and
@@ -1859,16 +1858,14 @@ void Patch<T,E>::introduce_nodes(const introduction& species_index, double time)
 }
 
 template <typename T, typename E>
-size_t Patch<T,E>::absorb_tall() {
+void Patch<T,E>::absorb_tall() {
   if (!(control.absorb_epsilon > 0.0)) {
-    return 0;
+    return;
   }
   const bool arrival = survival_weighting->is_arrival_weighting();
-  size_t count = 0;
   for (species_type& s : species) {
-    count += s.absorb_tall(arrival);
+    s.absorb_tall(arrival);
   }
-  return count;
 }
 
 // The three numbers a node carries that the ODE state does not: its birth date,
@@ -2274,15 +2271,16 @@ void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
       }
     }
   }
-  const bool absorbed = absorb_tall() > 0;
+  absorb_tall();
   push_nodes(species_index, time);
   // The field the loaded state built is the one before the actions and the
-  // absorption. A walk reads the next step's first rates off this patch, and
-  // the run took them in the field after both (introduce_nodes), so it is
-  // rebuilt where either moved the vegetation: a harvest or a climate extreme,
-  // or a cohort taken down to the layer's height. A pulse moves only the soil,
-  // which the rates read from the state.
-  if (vegetation_moved || absorbed) {
+  // absorbing layer. A walk reads the next step's first rates off this patch,
+  // and the run took them in the field after both (introduce_nodes), so it is
+  // rebuilt where either can have moved the vegetation: a harvest or a climate
+  // extreme, or the layer, which can take cohorts down to its height or flush
+  // its own density. A pulse moves only the soil, which the rates read from
+  // the state.
+  if (vegetation_moved || control.absorb_epsilon > 0.0) {
     compute_environment();
   }
   y.assign(ode_size(), value_type(0.0));
