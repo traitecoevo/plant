@@ -52,6 +52,7 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // Read by establishment_probability for the boundary node, so this one is a
   // rate's input rather than a reading of it.
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
+  vars.set_aux(aux_idx_maintenance_flux, maintenance_flux_);
 
   write_leaf_readings(vars, area_leaf_);
 
@@ -98,16 +99,14 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   const S G = 1.0 / (1.0 + exp(-(r - pars.a_st2) / storage_gate_width));
   // Smooth positive part of net production (rather than a hard net>0 cutoff).
   const S P = net_mass_production_dt_;
-  const S Ppos =
-    0.5 * (P + sqrt(P * P + storage_prod_eps * storage_prod_eps));
+  const S prod_eps = storage_prod_share * maintenance_flux_;
+  const S Ppos = 0.5 * (P + sqrt(P * P + prod_eps * prod_eps));
   // a_st1 = 0 is the model without storage, by a switch rather than as a
   // limit: production's positive part goes straight to growth, the pool stays
   // empty, and mortality reads production per leaf area (below). Read through
   // the gate instead, a zero capacity leaves r = 0, which holds growth at G(0),
   // about a quarter of production, and pins mortality at its maximum a_dG1. The
-  // positive part is the hard one the model used before the pool existed: the
-  // smooth Ppos adds up to storage_prod_eps / 2, which is 2% of a newborn's
-  // production in full sun and 23% at a fifth of it.
+  // positive part is the hard one the model used before the pool existed.
   //
   // A gradient at a_st1 = 0 is every other trait's in the model without
   // storage. a_st1's own column reads zero there, since nothing on this branch
@@ -229,9 +228,9 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
 
   // --- The two departures ---------------------------------------------------
   // Relative rates, so both are scale-free: the same withheld fraction thins a
-  // seedling's canopy and an adult's by the same proportion, which is what
-  // keeps these parameters from repeating storage_prod_eps's mistake of
-  // being an absolute constant against fluxes spanning six orders.
+  // seedling's canopy and an adult's by the same proportion. An absolute
+  // constant would be wrong by orders of magnitude at one end of a stand
+  // whose fluxes span six.
   //
   // Leaf area loses the turnover it did not replace and regains what rebuilding
   // buys. Thinning is therefore bounded by k_l -- a plant declines to replace

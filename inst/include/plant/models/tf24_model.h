@@ -304,7 +304,12 @@ public:
       // plant's growth rate, so its sign says which way the stem should move.
       // Zero unless sapwood acclimation is on (a_sw > 0), because computing it
       // costs two further leaf solves.
-      "sapwood_marginal_return"
+      "sapwood_marginal_return",
+      // Respiration plus turnover (kg yr^-1): the plant's own carbon cost,
+      // zero only if every respiration and turnover rate is. The sapwood
+      // controller divides by it, and production's positive part is smoothed
+      // over a share of it. TF24t's thermal costs are not in it.
+      "maintenance_flux"
     });
     // add the associated computation to compute_rates and compute there
     if (this->collect_all_auxiliary) {
@@ -897,7 +902,7 @@ public:
     area_leaf_0 = S(odelia::util::to_passive(src.area_leaf_0));
     leaf = src.leaf;
     storage_gate_width = src.storage_gate_width;
-    storage_prod_eps = src.storage_prod_eps;
+    storage_prod_share = src.storage_prod_share;
     plasticity_gate_width = src.plasticity_gate_width;
     beta_R_H = src.beta_R_H;
     beta_R_V = src.beta_R_V;
@@ -982,10 +987,14 @@ public:
 
   // Width of the smooth reserve gate G(r) on growth; small relative to
   // [0,1] so the switch about the growth threshold a_st2 is fairly sharp but
-  // differentiable. storage_prod_eps smooths the positive-part of net production
-  // (rather than a hard net>0 growth cutoff) for AD-readiness.
+  // differentiable.
   double storage_gate_width = 0.1;
-  double storage_prod_eps   = 1e-4;
+  // The width over which net production's positive part is smoothed (rather
+  // than a hard net > 0 growth cutoff), as a share of the plant's maintenance
+  // flux, so it scales with the plant: a plant at zero net production is
+  // credited half of it. Seed output's bias against the unsmoothed limit is
+  // linear in this share.
+  double storage_prod_share = 1e-3;
   // Width of the replacement gate, in units of the marginal leaf return.
   double plasticity_gate_width = 0.02;
 
@@ -1071,6 +1080,7 @@ public:
   int aux_idx_Tleaf = -1;
   int aux_idx_leaf_marginal_return = -1;
   int aux_idx_sapwood_marginal_return = -1;
+  int aux_idx_maintenance_flux = -1;
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;
@@ -1276,6 +1286,7 @@ void TF24_Model<S>::refresh_indices () {
   aux_idx_leaf_marginal_return  = this->aux_index.at("leaf_marginal_return");
   aux_idx_sapwood_marginal_return =
     this->aux_index.at("sapwood_marginal_return");
+  aux_idx_maintenance_flux      = this->aux_index.at("maintenance_flux");
   // area_sapwood is only registered when collect_all_auxiliary is set.
   aux_idx_area_sapwood = this->aux_index.count("area_sapwood") ? this->aux_index.at("area_sapwood") : -1;
   state_idx_area_heartwood      = this->state_index.at("area_heartwood");

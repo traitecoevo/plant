@@ -1450,17 +1450,17 @@ parameters:
     placeholder: false
     code: plant::TF24_Model::storage_gate_width
     literal: 0.1
-  TF24.storage_prod_eps:
+  TF24.storage_prod_share:
     model: TF24
     section: tf24_storage
-    symbol: '\epsilon_{\rm B}'
-    units: 'kg yr⁻¹'
+    symbol: '\kappa_{\rm B}'
+    units: '–'
     class: constant
-    meaning: 'smoothing scale of the positive part of net production'
-    source: 'Hard-coded on TF24_Model'
+    meaning: 'smoothing width of the positive part of net production, as a share of the plant''s maintenance flux'
+    source: 'Hard-coded on TF24_Model; seed output''s bias against the unsmoothed limit is linear in it, and at 1e-3 that bias is below 1e-4 on 10- to 30-year stands'
     placeholder: false
-    code: plant::TF24_Model::storage_prod_eps
-    literal: 1.0e-4
+    code: plant::TF24_Model::storage_prod_share
+    literal: 1.0e-3
 
   # --- TF24: flexible allometry and sapwood acclimation ------------------------
   TF24.a_pl0:
@@ -3232,12 +3232,12 @@ equations:
     section: tf24_storage
     title: The growth flux the reserves release
     latex: |
-      F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
+      F = \dot{B}_{+} \, G(r), \qquad \dot{B}_{+} = \tfrac{1}{2}\Big(\dot{B} + \sqrt{\dot{B}^2 + \epsilon_{\rm B}^2}\Big), \qquad \epsilon_{\rm B} = \kappa_{\rm B} \, C, \qquad C = \alpha_{\rm bio} \, \alpha_{\rm y} \, R + T, \qquad G(r) = \frac{1}{1 + \exp\!\big(-(r - \alpha_{\rm st2}) / w_{\rm G}\big)}, \qquad \dot{B} = \frac{{\rm d}B}{{\rm d}t}
     code: plant::TF24_Model::compute_rates
-    reads: [TF24.a_st1, TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_eps]
+    reads: [TF24.a_st1, TF24.a_st2, TF24.storage_gate_width, TF24.storage_prod_share, TF24.a_bio, TF24.a_y]
     writes: []
     kind: closed_form
-    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. At $\alpha_{\rm st1} = 0$, the model without storage, $F = \max(\dot{B}, 0)$ instead. Not on an Overstorey page.'
+    note: 'Growth and reproduction are paid from $F$, not from ${\rm d}B/{\rm d}t$: production''s smooth positive part, released as reserves near capacity and withheld as they empty. The smoothing width is a share of the plant''s maintenance flux (stored as the auxiliary maintenance_flux), so it scales with the plant: one at zero net production is credited half of it, a size-independent 5e-4 of its maintenance. At $\alpha_{\rm st1} = 0$, the model without storage, $F = \max(\dot{B}, 0)$ instead. Not on an Overstorey page.'
   TF24.storage_ode:
     model: TF24
     section: tf24_storage

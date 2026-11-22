@@ -36,8 +36,8 @@ test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Model()
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 15)
-  expect_equal(length(p$internals$auxs), 15)
+  expect_equal(p$aux_size, 16)
+  expect_equal(length(p$internals$auxs), 16)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -51,14 +51,15 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
+    "maintenance_flux"
   ))
 
   s <- TF24f_Model(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 16)
-  expect_equal(length(p$internals$auxs), 16)
+  expect_equal(p$aux_size, 17)
+  expect_equal(length(p$internals$auxs), 17)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -73,7 +74,7 @@ expect_equal(p$aux_names, c(
     "stom_cond_CO2",
     "assimilation",
     "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
-    "area_sapwood"
+    "maintenance_flux", "area_sapwood"
   ))
 })
 
