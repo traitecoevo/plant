@@ -1749,7 +1749,7 @@ parameters:
     symbol: 'b_{\rm infil}'
     units: '–'
     class: hyperparameter
-    meaning: 'how sharply runoff rises as the top layer nears saturation. It reads layer 0 alone, so its calibration holds only for the width of layer 0 it was made at.'
+    meaning: 'how sharply runoff rises as the top layer nears saturation. It reads layer 0 alone, so its calibration holds only for the width of layer 0 it was made at'
     source: 'TF24_Environment constructor default; calibrated, per NEWS, against a 0.3 m surface layer, with no source recorded'
     placeholder: true
     code: plant::TF24_Environment::b_infil
@@ -3624,14 +3624,14 @@ equations:
     section: tf24_soil
     title: Gravitational drainage
     latex: |
-      q_{{\rm out},i} = K(\theta_i) = K_{\rm sat}\left(\frac{\tilde\theta_i}{\theta_{\rm sat}}\right)^{2n_\psi + 3}, \qquad \tilde\theta_i = \min\left(\max(\theta_i, 0),\ \theta_{\rm sat}\right)
+      K(\theta_i) = K_{\rm sat}\left(\frac{\tilde\theta_i}{\theta_{\rm sat}}\right)^{2n_\psi + 3}, \qquad \tilde\theta_i = \max(\theta_i, 0) \le \theta_{\rm sat}
     code: plant::TF24_Environment::conductivity
     also: [plant::TF24_Environment::layer_rates]
     reads: [TF24.K_sat, TF24.soil_moist_sat, TF24.n_psi]
     writes: []
     kind: closed_form
     overstorey: theory/soil-water.qmd
-    note: 'Clapp and Hornberger (1978) as parameterised by Zeng and Decker (2009). The page (eq-drainage) states the clamp $\tilde\theta_i$ in its text, not its equation, and names the function soil_K_from_soil_theta, which is conductivity in the code. $K_{\rm sat}$, $\theta_{\rm sat}$ and $n_\psi$ are layer $i$''s. A stage outside $[0, \theta_{\rm sat}]$ is counted as the soil-conductivity clamp. Free drainage: the matric gradient is dropped, so the flux carries no distance between layers and holds unchanged for unequal widths. It is the outflow of the deepest layer, and for any other layer what it offers the layer below, $s_{i+1}$, which that layer may refuse in part (TF24.saturation_limit).'
+    note: 'Clapp and Hornberger (1978) as parameterised by Zeng and Decker (2009). The page (eq-drainage) states a clamp to $[0, \theta_{\rm sat}]$ in its text, not its equation, and names the function soil_K_from_soil_theta, which is conductivity in the code. Above saturation, which only an explicit stage reaches, the code continues the curve along its tangent, $K_{\rm sat}[1 + (2n_\psi + 3)(\theta_i/\theta_{\rm sat} - 1)]$, rather than holding it at $K_{\rm sat}$: a layer held full above a slower one sits a hair below saturation, and a held curve would put a kink in its slope there. $K_{\rm sat}$, $\theta_{\rm sat}$ and $n_\psi$ are layer $i$''s. A stage outside $[0, \theta_{\rm sat}]$ is counted as the soil-conductivity clamp. Free drainage: the matric gradient is dropped, so the flux carries no distance between layers and holds unchanged for unequal widths. It is the outflow of the deepest layer, and for any other layer what it offers the layer below, $s_{i+1}$, which that layer may refuse in part (TF24.saturation_limit).'
   TF24.saturation_limit:
     model: TF24
     section: tf24_soil
@@ -3643,7 +3643,7 @@ equations:
     reads: [TF24.inflow_refusal_exponent, TF24.inflow_refusal_bound, TF24.inflow_limit_sharpness, TF24.soil_moist_sat]
     writes: []
     kind: closed_form
-    note: 'Not on the Overstorey soil-water page. $s_i$ is what the layer above offers, $K(\theta_{i-1})$ (TF24.drainage), or $s_0$ at the surface (TF24.infiltration); $q_{{\rm out},i}$ is what layer $i$ passes on, $q_{{\rm in},i+1}$, or its own drainage for the deepest layer, so the fluxes are found from the bottom up. $w_i$ is the saturated share of the layer, which takes only what the layer passes on while the rest takes freely; it is $f_i$ to within $1/W$ below saturation, exactly 1 at it, and bounded by $W$ above it, so an explicit stage far above saturation cannot grow its successors by the power $b_{\rm sat}$ until they overflow. At saturation $q_{{\rm in},i} \le q_{{\rm out},i}$, so a layer that roots draw on or leave alone does not fill past $\theta_{\rm sat}$; above it (an explicit stage) $w_i > 1$ and the layer refuses more. What a layer refuses stays in the layer above, and at the surface is runoff, so mass is conserved. $\widetilde{\min}$ is symmetric and never exceeds the smaller argument; it is evaluated from the larger, and is zero where both are. $w_i$ reads $\max(\theta_i, 0)$, where it and its slope are zero. $\theta_{\rm sat}$ is layer $i$''s.'
+    note: 'Not on the Overstorey soil-water page. $s_i$ is what the layer above offers, $K(\theta_{i-1})$ (TF24.drainage), or $s_0$ at the surface (TF24.infiltration); $q_{{\rm out},i}$ is what layer $i$ passes on, $q_{{\rm in},i+1}$, or its own drainage for the deepest layer, so the fluxes are found from the bottom up. $w_i$ is the saturated share of the layer, which takes only what the layer passes on while the rest takes freely; it is $f_i$ to within $1/W$ below saturation, exactly 1 at it, and bounded by $W$ above it, so an explicit stage far above saturation cannot grow its successors by the power $b_{\rm sat}$ until they overflow. At saturation $q_{{\rm in},i} \le q_{{\rm out},i}$, so a layer that roots draw on or leave alone does not fill past $\theta_{\rm sat}$; above it (an explicit stage) $w_i > 1$ and the layer refuses more. What a layer refuses stays in the layer above, and at the surface is runoff, so mass is conserved. $\widetilde{\min}$ is symmetric and never exceeds the smaller argument; it is evaluated from the larger, and is the smaller argument exactly where that is not positive (an outflow an overfilled stage turned upward), where the p-norm would lie above it. $w_i$ reads $\max(\theta_i, 0)$, where it and its slope are zero. $\theta_{\rm sat}$ is layer $i$''s.'
   TF24.layer_balance:
     model: TF24
     section: tf24_soil
@@ -3656,7 +3656,7 @@ equations:
     writes: [soil]
     kind: derivative
     overstorey: theory/soil-water.qmd
-    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary or upward flux between layers. The inflow $q_{{\rm in},i}$ is what layer $i$ accepts of its supply (TF24.saturation_limit), so a layer does not fill past $\theta_{\rm sat}$ whatever the $K_{\rm sat}$ profile or the rain; a negative $u_i$ (roots releasing water) into a full layer still can, which the run refuses (TF24.soil_moist_sat). Writes the rates of the moisture states in soil.'
+    note: 'eq-layer-balance; the page gives the inflow chain in prose. The rate is set to zero where $\theta_i \le \theta_r$ and it is not positive (or is NaN), so a layer at the residual floor is only rewetted (the page''s residual-moisture callout); counted as the soil-positivity clamp. While it holds, that layer''s drainage still enters the layer below and its uptake is still booked in the uptake accumulator, so the column budget closes exactly only while the floor is slack. Except under TF24w, a step spanning a change in the rain''s form may substep these rates with the uptake held at its last value (Patch::subsystem_rates). No capillary flux between layers; a flux turns upward only where an explicit stage has overfilled a layer (TF24.saturation_limit). The inflow $q_{{\rm in},i}$ is what layer $i$ accepts of its supply (TF24.saturation_limit), so a layer does not fill past $\theta_{\rm sat}$ whatever the $K_{\rm sat}$ profile or the rain; a negative $u_i$ (roots releasing water) into a full layer still can, which the run refuses (TF24.soil_moist_sat). Writes the rates of the moisture states in soil.'
   TF24.layer_uptake:
     model: TF24
     section: tf24_soil

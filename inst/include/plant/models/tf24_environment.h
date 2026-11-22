@@ -809,9 +809,10 @@ public:
   // (rainfall, infiltration, deep drainage, total root uptake, pulse runoff).
   //
   // This is an explicit, first-order representation; drainage is instantaneous
-  // single-direction (no upward capillary flux between layers - that is handled
-  // hydraulically inside the plant, by the leaf's root network, phylloptim's
-  // E_from_Soil_to_Root_Collar).
+  // and downward, except where an explicit stage has overfilled a layer and
+  // accepted_inflow pushes the excess back up. There is no upward capillary
+  // flux between layers: that is handled hydraulically inside the plant, by the
+  // leaf's root network, phylloptim's E_from_Soil_to_Root_Collar.
   //
   // The inter-layer flux is FREE DRAINAGE, q = K(theta) evaluated at the donor
   // cell (Darcy's law with the matric gradient dropped), less what a nearly
@@ -875,17 +876,26 @@ public:
     return std::max(0.0, rainfall_raw);
   }
 
-  // The conductivity at theta held to [0, saturation], counting no clamp.
+  // The conductivity at theta, counting no clamp. Below zero it is held at
+  // zero, where the curve and its slope already are. Above saturation, which
+  // only an explicit stage reaches, it continues along its tangent: a layer
+  // held full above a slower one sits a hair below saturation, so its stages
+  // cross it, and a curve held flat there would put a kink in the slope
+  // exactly where the run sits. The tangent is linear, so a stage far above
+  // saturation cannot grow its successors by the curve's power either.
   template <class U> U conductivity(const U& theta, size_t layer) const {
     using std::max;
-    using std::min;
     using std::pow;
     const double k_sat_layer = soil_parameter_value(K_sat_layers, K_sat, layer);
     const double soil_moist_sat_layer =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
-    const U t = min(max(theta, U(0.0)), U(soil_moist_sat_layer));
-    return k_sat_layer * pow(t / soil_moist_sat_layer, 2 * n_psi_layer + 3);
+    const double b = 2 * n_psi_layer + 3;
+    const U s = max(theta, U(0.0)) / soil_moist_sat_layer;
+    if (s > 1.0) {
+      return k_sat_layer * (U(1.0) + b * (s - 1.0));
+    }
+    return k_sat_layer * pow(s, b);
   }
 
   // The share of the rain the top layer takes at moisture theta, before it is
@@ -917,23 +927,24 @@ public:
   // share, so it barely moves a column that passes on what it receives.
   static constexpr double inflow_limit_sharpness = 4.0;
 
-  // A smooth minimum of a and b that never exceeds the smaller: the reciprocal
-  // p-norm a b / (a^p + b^p)^(1/p), p = inflow_limit_sharpness. It is
-  // symmetric, so it is evaluated from the larger argument, which keeps the
-  // power in [0, 1] and finite however far apart the two are (conductivities
-  // span ~25 orders of magnitude); the two orderings are one analytic
-  // function, so choosing between them puts no kink in it. It is zero where
-  // both are zero, its limit.
+  // A smooth minimum of a and b that never exceeds the smaller. For positive
+  // arguments it is the reciprocal p-norm a b / (a^p + b^p)^(1/p),
+  // p = inflow_limit_sharpness, evaluated from the larger argument, which keeps
+  // the power in [0, 1] and finite however far apart the two are
+  // (conductivities span ~25 orders of magnitude); the two orderings are one
+  // analytic function, so choosing between them puts no kink in it. Where the
+  // smaller is not positive (an outflow an overfilled stage turned upward) it
+  // is the smaller exactly: the p-norm form would lie above a negative
+  // argument and break the barrier. The two forms meet at zero with equal
+  // value and first p derivatives.
   template <class U> static U smooth_min(const U& a, const U& b) {
     using std::pow;
     const bool a_smaller = a < b;
     const U& lo = a_smaller ? a : b;
     const U& hi = a_smaller ? b : a;
-    if (!(hi > 0.0)) {
-      return U(0.0);
+    if (!(lo > 0.0)) {
+      return lo;
     }
-    // The power is formed by squaring, so it stays real for a negative ratio
-    // (an outflow an overfilled stage turned upward).
     static_assert(inflow_limit_sharpness == 4.0,
                   "smooth_min forms (lo / hi)^p by two squarings");
     const U r = lo / hi;
@@ -956,10 +967,13 @@ public:
   // At saturation the layer's inflow is at most its outflow, so its rate is not
   // positive while its roots draw on it, and saturation is a barrier the
   // balance keeps by itself. Above saturation (an explicit stage can put it
-  // there) w exceeds one and the layer refuses more, which pushes it back. What
-  // a layer refuses stays in the layer above, which fills and refuses in turn;
-  // at the surface it is runoff. Nothing is lost: each flux leaves one layer
-  // and enters the next by the same amount.
+  // there) w exceeds one and the layer refuses more, which pushes it back; its
+  // accepted inflow can then turn negative, pushing water up into the layer
+  // above, which passes it on up in turn, and at the surface out of the
+  // column as negative infiltration. What a layer refuses stays in the layer
+  // above, which fills and refuses in turn; at the surface it is runoff.
+  // Nothing is lost: each flux leaves one layer and enters the next by the
+  // same amount.
   //
   // w is bounded above because, left as f, an explicit stage far above
   // saturation would weigh the refusal by theta^b, and the stages that follow
@@ -974,7 +988,12 @@ public:
     using std::pow;
     const double sat =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
-    const U f = pow(max(theta, U(0.0)) / sat, inflow_refusal_exponent);
+    static_assert(inflow_refusal_exponent == 16.0,
+                  "accepted_inflow forms (theta / sat)^b by four squarings");
+    U f = max(theta, U(0.0)) / sat;
+    for (int k = 0; k < 4; ++k) {
+      f = f * f;
+    }
     constexpr double W = inflow_refusal_bound;
     const U w = W * f / (W - 1.0 + f);
     return supply - w * (supply - smooth_min(supply, out));
