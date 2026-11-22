@@ -8,9 +8,10 @@ allometry_oracle <- function(s, height, area_heartwood, mass_heartwood) {
   eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
   area_leaf <- (height / p$a_l1)^(1.0 / p$a_l2)
   mass_leaf <- area_leaf * p$lma
-  area_sapwood <- area_leaf * p$theta
+  huber <- if (is.null(p$theta_tip)) p$theta else p$theta_tip  # FF16 | TF24 (uniform stem)
+  area_sapwood <- area_leaf * huber
   mass_sapwood <- area_sapwood * height * eta_c * p$rho
-  area_bark <- p$a_b1 * area_leaf * p$theta
+  area_bark <- p$a_b1 * area_leaf * huber
   mass_bark <- area_bark * height * eta_c * p$rho
   area_stem <- area_bark + area_sapwood + area_heartwood
   diameter_stem <- sqrt(4 * area_stem / pi)
@@ -19,12 +20,17 @@ allometry_oracle <- function(s, height, area_heartwood, mass_heartwood) {
   mass_live <- mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root
   mass_total <- mass_leaf + mass_bark + mass_sapwood + mass_heartwood + mass_root + mass_coarse_root
   mass_above_ground <- mass_leaf + mass_bark + mass_sapwood + mass_heartwood
-  list(area_leaf = area_leaf, mass_leaf = mass_leaf, area_sapwood = area_sapwood,
+  out <- list(area_leaf = area_leaf, mass_leaf = mass_leaf, area_sapwood = area_sapwood,
        mass_sapwood = mass_sapwood, area_bark = area_bark, mass_bark = mass_bark,
        area_stem = area_stem, diameter_stem = diameter_stem, mass_root = mass_root,
        mass_coarse_root = mass_coarse_root,
        mass_live = mass_live, mass_total = mass_total,
        mass_above_ground = mass_above_ground)
+  # TF24 also reports its basal Huber value, which on a uniform stem is the tip's.
+  if (!is.null(p$theta_tip)) {
+    out$huber_value_base <- rep(p$theta_tip, length(height))
+  }
+  out
 }
 
 check_allometry <- function(strategy_fn, cpp_fn, a_cr1 = 0) {

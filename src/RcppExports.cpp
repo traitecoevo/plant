@@ -17929,6 +17929,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_tf24_stem_profile
+Rcpp::List test_tf24_stem_profile(plant::TF24_Model<double> s, double area_leaf, double sapwood_departure);
+RcppExport SEXP _plant_test_tf24_stem_profile(SEXP sSEXP, SEXP area_leafSEXP, SEXP sapwood_departureSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::TF24_Model<double> >::type s(sSEXP);
+    Rcpp::traits::input_parameter< double >::type area_leaf(area_leafSEXP);
+    Rcpp::traits::input_parameter< double >::type sapwood_departure(sapwood_departureSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_tf24_stem_profile(s, area_leaf, sapwood_departure));
+    return rcpp_result_gen;
+END_RCPP
+}
 // trapezium
 double trapezium(const std::vector<double>& x, const std::vector<double>& y);
 RcppExport SEXP _plant_trapezium(SEXP xSEXP, SEXP ySEXP) {
@@ -19574,6 +19587,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_test_stem_effective_path_length", (DL_FUNC) &_plant_test_stem_effective_path_length, 3},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
     {"_plant_test_light_field_floor", (DL_FUNC) &_plant_test_light_field_floor, 2},
+    {"_plant_test_tf24_stem_profile", (DL_FUNC) &_plant_test_tf24_stem_profile, 3},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},

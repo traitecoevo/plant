@@ -172,7 +172,7 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
     expect_identical(ladder_seed_geometry_tangent_tf24(patch, at)$dheight, 0,
                      info = paste("reaches the seed-height residual:", name))
   }
-  # The one at zero still reaches the residual: a zero here would be the channel
+  # The ones at zero still reach the residual: a zero here would be the channel
   # dropped.
   for (name in ladder_birth_size_parameters_at_zero()) {
     at <- match(paste0("1.", name), columns)

@@ -717,7 +717,7 @@ ladder_storage_capacity <- function(x, species, height) {
   par <- function(n) ladder_strategy_parameter(x, species, n)
   eta <- par("eta")
   eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
-  area_sapwood <- ladder_area_leaf(x, species, height) * par("theta")
+  area_sapwood <- ladder_area_leaf(x, species, height) * par("theta_tip")
   par("a_st1") * area_sapwood * height * eta_c * par("rho")
 }
 
@@ -1640,7 +1640,7 @@ ladder_run_difference_pair <- function(name, species = 2L,
   # changes which steps the error estimator accepts, and the census then lands a
   # fixed distance away however small the move was -- so the quotient grows as
   # 1/h and every reading under that floor carries a derivative's units and none
-  # of its content. DO NOT drop the pin to save the base run: unpinned, 1.theta's
+  # of its content. DO NOT drop the pin to save the base run: unpinned, 1.theta_tip's
   # leaf_area on drought reads 1.9e+05, -3.4e+04, -1196, -1043 over the four
   # steps, against -815.2, -815.7, -816.6, -744.4 pinned and -815.7 from the
   # sweep -- and no column on that stand did better, the census difference
@@ -1733,16 +1733,19 @@ ladder_shortlist <- function() {
 # Reaching all eight needs a difference that perturbs a registered parameter
 # rather than a trait, because only three of them are traits the fixture carries.
 ladder_birth_size_parameters <- function() {
-  c("lma", "rho", "omega", "theta", "a_l1", "a_l2", "a_r1", "a_b1")
+  c("lma", "rho", "omega", "theta_tip", "a_l1", "a_l2", "a_r1", "a_b1")
 }
 
-# A ninth reaches birth size, because mass_live counts the coarse-root pool, and
-# is kept apart from the eight because its default is zero: the whole-run
-# differences the eight are refereed by take a step relative to the parameter's
-# value, which moves nothing at zero. Its column is refereed against pinned-step differences, at zero and with
-# the pool on, in test-coarse-roots.R.
+# Two more reach birth size and are kept apart from the eight because their
+# default is zero: the whole-run differences the eight are refereed by take a
+# step relative to the parameter's value, which moves nothing at zero. a_cr1
+# does because mass_live counts the coarse-root pool, and its column is refereed
+# against pinned-step differences, at zero and with the pool on, in
+# test-coarse-roots.R. theta_c does because the seed's sapwood and bark are the
+# stem's Huber profile, and its column is refereed against a pinned-step
+# difference at zero in test-tf24-stem-hydraulics.R.
 ladder_birth_size_parameters_at_zero <- function() {
-  "a_cr1"
+  c("a_cr1", "theta_c")
 }
 
 # Which registered parameters a trait moves through the hyperparameter function,

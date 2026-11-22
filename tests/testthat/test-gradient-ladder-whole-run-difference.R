@@ -59,9 +59,12 @@ reference_stand <- function(regime) {
 }
 
 # The columns this reference carries no row for, and the reason is not that
-# nobody captured them. Three default to 0, so the capture's RELATIVE step
-# `abs(value) * rel` is 0 and the difference moves no parameter at all; their
-# rows record that refusal and carry no metric, which reference_rows() drops.
+# nobody captured them. Four default to 0, so the capture's RELATIVE step
+# `abs(value) * rel` is 0 and the difference moves no parameter at all; three of
+# their rows record that refusal and carry no metric, which reference_rows()
+# drops, and theta_c, which joined the sweep after the capture, would record the
+# same. Its column is refereed by a pinned-step difference at zero in
+# test-tf24-stem-hydraulics.R.
 # S_D is captured: it enters no rate, so its census rows are zero by
 # construction (ladder_zero_outside_every_rate), and the sweep carries it as a
 # fitness column.
@@ -71,7 +74,7 @@ reference_stand <- function(regime) {
 # notice a column the REFERENCE does not carry, so a reference missing columns
 # would pass with nothing said.
 reference_uncaptured_columns <- function() {
-  c("TF24_floor_lambda_o", "recruitment_decay", "a_cr1")
+  c("TF24_floor_lambda_o", "recruitment_decay", "a_cr1", "theta_c")
 }
 
 # The rows held to a wider floor than their own scale, by name, with the floor.

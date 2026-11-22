@@ -41,7 +41,7 @@ test_that("Defaults", {
     lma    = 0.1978791,
     rho    = 608,
     omega  = 3.8e-5,
-    theta  = 1.0/4669,
+    theta_tip = 1.0/4669,
     k_I = 0.5,
     vcmax_25 = 96,
     stem_P50 = 2.8887256653360196,
@@ -70,8 +70,8 @@ test_that("Defaults", {
     root_psi_crit = (3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147)) *
                       log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
-    # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
-    # meaning. See plant/models/stem_hydraulics.h.
+    # Stem hydraulic path. theta_c is 0, a uniform stem, so theta_tip is also
+    # the whole-stem Huber value. See plant/models/stem_hydraulics.h.
     D_c = 0.2,
     theta_c = 0,
     L_tip = 0.02,
@@ -932,7 +932,7 @@ test_that("the sapwood departure sets the Huber value and rests inert", {
 test_that("sapwood area is theta * leaf area * exp(sapwood departure)", {
   env <- tf24_departure_env()
   s <- TF24_Model(collect_all_auxiliary = TRUE)
-  theta <- s$pars$theta
+  theta <- s$pars$theta_tip
 
   for (h in c(1.0, 5.0, 15.0)) {
     ind <- TF24_Individual(s)
@@ -1207,7 +1207,7 @@ test_that("new growth is priced at the Huber value the plant actually carries", 
   env <- tf24_departure_env()
   s <- TF24_Model(collect_all_auxiliary = TRUE)
 
-  ## dmass_sapwood_darea_leaf used pars.theta, so a plant holding extra
+  ## dmass_sapwood_darea_leaf used the resting Huber value, so a plant holding extra
   ## conducting area got its hydraulic benefit for free and paid the pipe-model
   ## price for new growth. That is most of why net production appeared to peak
   ## at 3.3x the pipe-model ratio; priced properly, GROWTH peaks near 1.4-1.8x.

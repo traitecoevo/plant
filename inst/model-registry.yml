@@ -859,17 +859,17 @@ parameters:
     cite: Towers-2024
     placeholder: false
     code: plant::TF24_Pars::rho
-  TF24.theta:
+  TF24.theta_tip:
     model: TF24
     section: tf24_allometry
-    symbol: '\theta'
+    symbol: '\theta_{\rm tip}'
     units: '–'
     class: trait
-    meaning: 'Huber value: sapwood area per leaf area of a plant on its allometry; the sapwood departure displaces it'
+    meaning: 'Huber value of the terminal segment: sapwood area per leaf area at the stem''s tip, of a plant on its allometry; the whole-stem value while $\theta_{\rm c} = 0$. The sapwood departure displaces it'
     source: 'TF24_Pars default (1/4669, FF16''s value)'
     cite: Towers-2024
     placeholder: false
-    code: plant::TF24_Pars::theta
+    code: plant::TF24_Pars::theta_tip
   TF24.eta:
     model: TF24
     section: tf24_allometry
@@ -1324,8 +1324,8 @@ parameters:
     symbol: '\theta_{\rm c}'
     units: '–'
     class: hyperparameter
-    meaning: 'Huber-profile exponent: sapwood area per leaf area rises toward the base as $\theta(L) = \theta (L / L_{\rm tip})^{\theta_{\rm c}}$, which is why it adds to the path exponent $\beta_L$; refused unless zero, because $\theta$ also sets sapwood mass, respiration and storage, which still read a constant $\theta$'
-    source: 'TF24_Pars default, zero; prepare_strategy refuses any other value'
+    meaning: 'Huber-profile exponent: sapwood area per leaf area rises toward the base as $\theta(L) = \theta_{\rm tip} (L / L_{\rm tip})^{\theta_{\rm c}}$ with distance $L$ below the mean leaf height. It adds to the path exponent $\beta_L$, and sets the basal sapwood and bark areas and their masses'
+    source: 'TF24_Pars default, zero (a uniform stem); the design note''s derived value $2 D_{\rm c}$ waits for within-tree data'
     placeholder: false
     code: plant::TF24_Pars::theta_c
   TF24.L_tip:
@@ -1334,7 +1334,7 @@ parameters:
     symbol: 'L_{\rm tip}'
     units: 'm'
     class: hyperparameter
-    meaning: 'terminal segment length, the anchor of both within-stem profiles; identifiable only with $K_{\rm s}$ and $\theta$ in $L_{\rm tip}^{\beta_L} / (K_{\rm s} \theta)$'
+    meaning: 'terminal segment length, the anchor of both within-stem profiles; in the resistance, identifiable only with $K_{\rm s}$ and $\theta_{\rm tip}$ in $L_{\rm tip}^{\beta_L} / (K_{\rm s} \theta_{\rm tip})$'
     source: TF24_Pars default
     placeholder: false
     code: plant::TF24_Pars::L_tip
@@ -2954,45 +2954,49 @@ equations:
   TF24.sapwood_area:
     model: TF24
     section: tf24_allometry
-    title: Sapwood area, at the Huber value carried
+    title: Basal sapwood area, at the Huber value carried
     latex: |
-      A_{\rm s} = \theta \, e^{\delta_{\rm s}} \, A_{\rm l}
+      A_{\rm s} = \theta_{\rm tip} \, e^{\delta_{\rm s}} \, m(H) \, A_{\rm l}, \qquad
+      m(H) = \left( \frac{H \eta_{\rm c}}{L_{\rm tip}} \right)^{\theta_{\rm c}}
     code: plant::TF24_Model::area_sapwood
-    also: [plant::TF24_Model::sapwood_per_leaf_area]
-    reads: [TF24.theta]
+    also: [plant::TF24_Model::sapwood_per_leaf_area, plant::TF24_Model::sapwood_per_leaf_area_at_base, plant::TF24_Model::huber_base_factor]
+    reads: [TF24.theta_tip, TF24.theta_c, TF24.L_tip, TF24.eta]
     writes: []
     kind: closed_form
-    note: '$\delta_{\rm s} \ge 0$ is the sapwood departure state, the log of the Huber value carried over $\theta$; zero unless flexible allometry or sapwood acclimation is on. The one-argument form, used at birth, is $\theta A_{\rm l}$.'
+    note: 'Read at the base of the flow path, $L = H \eta_{\rm c}$, the same path the resistance integrates; $m = 1$ below the terminal segment ($H \eta_{\rm c} \le L_{\rm tip}$) and on a uniform stem ($\theta_{\rm c} = 0$, the default). $\delta_{\rm s} \ge 0$ is the sapwood departure state, the log of the Huber value carried over the resting profile; zero unless flexible allometry or sapwood acclimation is on, and at birth.'
   TF24.sapwood_mass:
     model: TF24
     section: tf24_allometry
     title: Sapwood mass
     latex: |
-      M_{\rm s} = \rho \, A_{\rm s} \, H \, \eta_{\rm c}
+      M_{\rm s} = \rho \, \frac{A_{\rm s}}{m(H)} \, V(H), \qquad
+      V(H) = L_{\rm tip} + \int_{L_{\rm tip}}^{H \eta_{\rm c}} \left( \frac{L}{L_{\rm tip}} \right)^{\theta_{\rm c}} {\rm d}L
     code: plant::TF24_Model::mass_sapwood
-    also: [plant::CanopyShape::eta_c]
-    reads: [TF24.rho, TF24.eta]
+    also: [plant::CanopyShape::eta_c, plant::TF24_Model::stem_tissue_mass, plant::TF24_Model::stem_volume_per_tip_area]
+    reads: [TF24.rho, TF24.eta, TF24.theta_c, TF24.L_tip]
     writes: []
     kind: closed_form
+    note: 'The profile''s volume: $A_{\rm s}/m$ is the sapwood area at the tip, and $V$ the volume per unit of it down the mean path. On a uniform stem $V = H \eta_{\rm c}$, giving $\rho A_{\rm s} H \eta_{\rm c}$; below the terminal segment $V = H \eta_{\rm c}$ too.'
   TF24.bark_area:
     model: TF24
     section: tf24_allometry
-    title: Bark area
+    title: Basal bark area
     latex: |
-      A_{\rm b} = \alpha_{{\rm b1}} \, \theta \, A_{\rm l}
+      A_{\rm b} = \alpha_{{\rm b1}} \, \theta_{\rm tip} \, m(H) \, A_{\rm l}
     code: plant::TF24_Model::area_bark
-    reads: [TF24.a_b1, TF24.theta]
+    reads: [TF24.a_b1, TF24.theta_tip, TF24.theta_c, TF24.L_tip, TF24.eta]
     writes: []
     kind: closed_form
-    note: 'Bark follows leaf area at the resting Huber value: it does not take up the sapwood departure.'
+    note: 'Bark follows leaf area at the resting Huber profile: it tapers with the sapwood but does not take up the sapwood departure.'
   TF24.bark_mass:
     model: TF24
     section: tf24_allometry
     title: Bark mass
     latex: |
-      M_{\rm b} = \rho \, A_{\rm b} \, H \, \eta_{\rm c}
+      M_{\rm b} = \rho \, \frac{A_{\rm b}}{m(H)} \, V(H)
     code: plant::TF24_Model::mass_bark
-    reads: [TF24.rho, TF24.eta]
+    also: [plant::TF24_Model::stem_tissue_mass]
+    reads: [TF24.rho, TF24.eta, TF24.theta_c, TF24.L_tip]
     writes: []
     kind: closed_form
   TF24.root_mass:
@@ -3097,9 +3101,9 @@ equations:
     section: tf24_hydraulics
     title: Leaf-specific stem conductance
     latex: |
-      k_{\max} = \frac{K_{\rm s} \, \theta \, e^{\delta_{\rm s}}}{L_{\rm eff}}
+      k_{\max} = \frac{K_{\rm s} \, \theta_{\rm tip} \, e^{\delta_{\rm s}}}{L_{\rm eff}}
     code: plant::TF24_Model::update_leaf_specific_conductance_max
-    reads: [TF24.K_s, TF24.theta]
+    reads: [TF24.K_s, TF24.theta_tip]
     writes: ['phylloptim:leaf_specific_conductance_max']
     kind: closed_form
     note: 'Handed to the leaf as its $k_{\max}$, so the stem''s supply per unit leaf area follows the Huber value the plant carries. Not on an Overstorey page.'
@@ -3290,16 +3294,16 @@ equations:
     title: Marginal tissue costs of leaf area
     latex: |
       \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} = \phi, \qquad
-      \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} = \rho \, \theta \, e^{\delta_{\rm s}} \, \eta_{\rm c} \, \big(H + A_{\rm l}^{*} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big), \qquad
-      \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c}\big(H + A_{\rm l}^{*} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big), \qquad
+      \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} = \rho \, \theta_{\rm tip} \, e^{\delta_{\rm s}} \, \big(V(H) + A_{\rm l}^{*} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \, \eta_{\rm c} \, m(H) \big), \qquad
+      \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} = \alpha_{{\rm b1}} \, \rho \, \theta_{\rm tip} \big(V(H) + A_{\rm l}^{*} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \, \eta_{\rm c} \, m(H) \big), \qquad
       \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} = \alpha_{{\rm r1}}, \qquad
       \frac{{\rm d}M_{\rm cr}}{{\rm d}A_{\rm l}} = \alpha_{{\rm cr1}} \, \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}}
     code: plant::TF24_Model::dmass_sapwood_darea_leaf
     also: [plant::TF24_Model::dmass_leaf_darea_leaf, plant::TF24_Model::dmass_bark_darea_leaf, plant::TF24_Model::dmass_root_darea_leaf, plant::TF24_Model::dmass_coarse_root_darea_leaf]
-    reads: [TF24.lma, TF24.rho, TF24.theta, TF24.eta, TF24.a_l1, TF24.a_l2, TF24.a_b1, TF24.a_r1, TF24.a_cr1]
+    reads: [TF24.lma, TF24.rho, TF24.theta_tip, TF24.theta_c, TF24.L_tip, TF24.eta, TF24.a_l1, TF24.a_l2, TF24.a_b1, TF24.a_r1, TF24.a_cr1]
     writes: []
     kind: closed_form
-    note: 'Sapwood is priced at the Huber value the plant carries; bark at the resting one. The code writes $H + A_{\rm l}^{*}\,{\rm d}H/{\rm d}A_{\rm l}$ as $\alpha_{\rm l1} (\alpha_{\rm l2} + 1) A_{\rm l}^{*\,\alpha_{\rm l2}}$.'
+    note: 'Sapwood is priced at the Huber value the plant carries; bark at the resting one. $V$ and $m$ are those of the sapwood mass and area, and ${\rm d}V/{\rm d}H = \eta_{\rm c} m$. On a uniform stem the bracket is $H \eta_{\rm c} + A_{\rm l}^{*}\,{\rm d}H/{\rm d}A_{\rm l}\,\eta_{\rm c}$, which the code writes as $\eta_{\rm c} \alpha_{\rm l1} (\alpha_{\rm l2} + 1) A_{\rm l}^{*\,\alpha_{\rm l2}}$. Written by hand rather than differentiated, so it is tested against a tangent derivative of the mass.'
   TF24.leaf_area_cost:
     model: TF24
     section: tf24_growth
@@ -3398,10 +3402,10 @@ equations:
     title: The share of growth spent rebuilding the canopy
     latex: |
       b = u_{\rm l} \big(1 - e^{\delta_{\rm l} / \alpha_{\rm pl2}}\big), \qquad
-      m_A(H) = \phi + \alpha_{\rm r1} + \theta \, H \, \eta_{\rm c} \, \rho \, (1 + \alpha_{\rm b1})
+      m_A(H) = \phi + \alpha_{\rm r1} + \theta_{\rm tip} \, V(H) \, \rho \, (1 + \alpha_{\rm b1})
     code: plant::TF24_Model::compute_rates
     also: [plant::TF24_Model::mass_live_per_area_leaf_at_height]
-    reads: [TF24.a_pl2, TF24.lma, TF24.a_r1, TF24.theta, TF24.eta, TF24.rho, TF24.a_b1]
+    reads: [TF24.a_pl2, TF24.lma, TF24.a_r1, TF24.theta_tip, TF24.theta_c, TF24.L_tip, TF24.eta, TF24.rho, TF24.a_b1]
     writes: []
     kind: closed_form
     note: 'Zero when the canopy is whole ($\delta_{\rm l} = 0$), and gated by the same signal as replacement, so a plant rebuilds only as far as it is willing to maintain. $m_A$ is the mass of a unit of leaf area bought at unchanged height with its fine root, sapwood and bark, at the resting Huber value. Not on an Overstorey page.'
@@ -3516,7 +3520,7 @@ equations:
       M_{\rm a}(H_0) = \omega
     code: plant::TF24_Model::height_seed
     also: [plant::TF24_Model::prepare_strategy, plant::TF24_Model::mass_live_given_height, plant::TF24_Model::seed_geometry, plant::TF24_Model::set_initial_states, plant::TF24_Model::initial_height]
-    reads: [TF24.omega, TF24.lma, TF24.rho, TF24.theta, TF24.eta, TF24.a_l1, TF24.a_l2, TF24.a_b1, TF24.a_r1, TF24.a_cr1]
+    reads: [TF24.omega, TF24.lma, TF24.rho, TF24.theta_tip, TF24.theta_c, TF24.L_tip, TF24.eta, TF24.a_l1, TF24.a_l2, TF24.a_b1, TF24.a_r1, TF24.a_cr1]
     writes: []
     kind: closed_form
     fills: H_0
