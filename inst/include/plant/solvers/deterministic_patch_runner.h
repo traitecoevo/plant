@@ -813,6 +813,10 @@ DeterministicPatchRunner<T, E>::DeterministicPatchRunner(parameters_type p, envi
       control(c) {
 
   parameters.validate();
+  // Events that name introductions replace p's; the parameters then say so,
+  // as a schedule set from R makes them, since reset() hands their times to
+  // the patch, and a result's parameters are read as the schedule it ran.
+  parameters.node_schedule_times = schedule.get_times();
   check_fitness_window();
   require_partial_harvests(schedule.get_events());
 
@@ -1335,8 +1339,9 @@ typename DeterministicPatchRunner<T, E>::recording DeterministicPatchRunner<T, E
 }
 
 // Upwind bisection of flagged intervals. For each flagged node j (j >= 1; the
-// first and last nodes are never flagged), insert the midpoint of the interval
-// (t[j-1], t[j]). Equivalent to sort(c(times, times[i] - dt[i-1]/2)) in R.
+// first node has no interval and the last is never flagged), insert the
+// midpoint of the interval (t[j-1], t[j]). Equivalent to
+// sort(c(times, times[i] - dt[i-1]/2)) in R.
 template <typename T, typename E>
 std::vector<double> DeterministicPatchRunner<T, E>::bisect_flagged_intervals(const std::vector<double>& times,
                                                         const std::vector<bool>& split) {
@@ -1376,15 +1381,25 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
       throw;
     }
 
-    std::vector<std::vector<double>> node_error = patch.refinement_error_by_node();
+    const std::vector<std::vector<double>> node_error = patch.refinement_error_by_node();
+    std::vector<std::vector<double>> times = schedule.get_times();
 
-    // Flag nodes whose refinement error exceeds the threshold.
+    // Flag nodes whose refinement error exceeds the threshold. A species' nodes
+    // are its starting ones, which a resumed run holds and no time here made,
+    // then one per time, so its last times.size() errors are the schedule's.
+    // A node's interval reaches back to the node before, so the first
+    // scheduled node has none here to bisect.
     std::vector<std::vector<bool>> split(node_error.size());
     bool any = false;
     for (size_t i = 0; i < node_error.size(); ++i) {
-      split[i].assign(node_error[i].size(), false);
-      for (size_t j = 0; j < node_error[i].size(); ++j) {
-        if (node_error[i][j] > eps) {
+      if (node_error[i].size() < times[i].size()) {
+        util::stop("refine_schedule: species " + util::to_string(i + 1) +
+                   " holds fewer nodes than its schedule introduced");
+      }
+      const size_t held = node_error[i].size() - times[i].size();
+      split[i].assign(times[i].size(), false);
+      for (size_t j = 1; j < times[i].size(); ++j) {
+        if (node_error[i][held + j] > eps) {
           split[i][j] = true;
           any = true;
         }
@@ -1397,7 +1412,6 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
 
     // Bisect flagged intervals and install the denser schedule. Steps pinned
     // from the parameters were taken on the schedule before it.
-    std::vector<std::vector<double>> times = schedule.get_times();
     for (size_t i = 0; i < times.size(); ++i) {
       times[i] = bisect_flagged_intervals(times[i], split[i]);
     }

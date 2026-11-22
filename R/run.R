@@ -155,7 +155,11 @@ print.plant_scenario <- function(x, ...) {
 ##'   result's \code{scenario$p}, with the ODE schedule that run took
 ##'   (\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
 ##'   \code{ode_soil_substep_ends}), so a later run of those parameters takes
-##'   those steps exactly. With \code{record = "states"}, refinement's own
+##'   those steps exactly; where the scenario's events name the introductions,
+##'   as a resumed run's do, their introductions are the refined schedule too,
+##'   and a run of it steps to those ODE times, which agrees to rounding.
+##'   A resumed run refines only the introductions still to come, and not the
+##'   interval before the first of them. With \code{record = "states"}, refinement's own
 ##'   passes keep no states, and the run the result reports keeps them; if the
 ##'   refinement converged, that is one more run.
 ##' @return A \code{plant_run}: a list with \code{scenario} (what was run, its
@@ -268,6 +272,11 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
     solver$run_to(until)
   }
   x$p <- solver$parameters
+  ## Events that name introductions are where a run takes them from, so a
+  ## refined schedule goes there too, or the scenario reruns the old one.
+  if (refine_schedule && names_introductions(x$events)) {
+    x$events <- events(node_introductions(x$p), event_actions(x$events))
+  }
   new_plant_run(solver, x, record)
 }
 
@@ -351,14 +360,21 @@ resume_scenario <- function(x, from) {
   if (length(pending$time) > 0L) {
     ## An events list naming introductions replaces p's schedule as their
     ## source, so the introductions in it are rebuilt from the schedule just set.
-    keep <- pending$type != "node_introduction"
-    actions <- Events(time = pending$time[keep], type = pending$type[keep],
-                      target = pending$target[keep],
-                      target_index = pending$target_index[keep],
-                      params = pending$params[keep])
-    x$events <- events(node_introductions(x$p), actions)
+    x$events <- events(node_introductions(x$p), event_actions(pending))
   }
   x
+}
+
+## Whether an events list names introductions, and so replaces p's schedule.
+names_introductions <- function(ev) {
+  !is.null(ev) && any(ev$type == "node_introduction")
+}
+
+## An events list without its introductions.
+event_actions <- function(ev) {
+  keep <- ev$type != "node_introduction"
+  Events(time = ev$time[keep], type = ev$type[keep], target = ev$target[keep],
+         target_index = ev$target_index[keep], params = ev$params[keep])
 }
 
 check_until <- function(until) {
