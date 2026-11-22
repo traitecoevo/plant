@@ -336,8 +336,8 @@ struct TF24_Pars {
   // every leaf trait through `pars`; a non-zero value is untested in plant.
   S g_min = 0.0;
   // The stem's gravitational head. use_stem_gravity gates it (0 = off; != 0 =
-  // on), and is off by default, which is exactly the model without it: the head
-  // is never formed, so no result moves.
+  // on), and is on by default. Off is exactly the model without it: the head is
+  // never formed.
   //
   // When on, the leaf must hold its water rho*g*H*eta_c above the collar, where
   // H*eta_c is the leaf-area-weighted mean leaf height and the upper end of the
@@ -348,7 +348,7 @@ struct TF24_Pars {
   //
   // A gate, not a scale: rho*g is phylloptim's gravity_head, the constant the
   // soil layers' own heads use, so the two lifts cannot disagree.
-  S use_stem_gravity = 0.0;
+  S use_stem_gravity = 1.0;
 
   // Where a parameter lives and what it is called. Nothing here says what its
   // gradient will be: the sweep computes one for every parameter except the
