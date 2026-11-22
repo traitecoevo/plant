@@ -324,13 +324,17 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' stand a periodic orbit whose field, taken at an introduction, is the top of
 ##' the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in
 ##' constant-field fitness at a cohort a year and 0.02 \% at four. So each call
-##' checks: it runs a copy of the resident on to the middle of the introduction
-##' interval it stands at, scores the invaders again in the field there, and
-##' warns when any invader's fitness moves by more than \code{grid_tol}
-##' (relative). A warning means the stand is not at a fixed point between
-##' introductions: introduce cohorts more often, or run the resident on until it
-##' settles. The check costs the copy's half interval and a second run of the
-##' invaders; \code{grid_tol = NULL} skips it. The copy resumes the resident, so
+##' checks: it runs a copy of the resident on by half an introduction interval
+##' (the longest of the species' intervals, and at a species' last introduction
+##' the one before it), scores the invaders again in the field there, and warns
+##' when any invader's fitness moves by more than \code{grid_tol}. A warning
+##' means the stand is not at a fixed point between introductions: introduce
+##' cohorts more often, or run the resident on until it settles. An event
+##' inside that half interval moves the field too, and shows as a swing. The
+##' check costs the copy's half interval and a second run of the invaders;
+##' \code{grid_tol = NULL} skips it, and a check that fails warns and leaves
+##' the fitness returned as it is. \code{run_mutant(..., constant = TRUE)}
+##' holds a field without this check. The copy resumes the resident, so
 ##' it needs the resident stopped at an introduction, as
 ##' \code{run(res, until = t)} and \code{run_until_converged} leave it; a
 ##' resident run to its end, or stopped between introductions, is warned of as
@@ -351,15 +355,23 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##'   that never establishes scores zero.
 ##' @param survival_tol The survival since establishment below which a cohort
 ##'   that has stopped growing counts as dead.
-##' @param grid_tol The largest relative change in an invader's fitness between
-##'   the field \code{x} stands in and the field half an introduction interval
-##'   later that passes without a warning; \code{NULL} skips the check.
+##' @param grid_tol The largest change in an invader's fitness between the
+##'   field \code{x} stands in and the field half an introduction interval later
+##'   that passes without a warning, relative to the larger of the two fitnesses
+##'   and one (so absolute for an invader far below one); \code{NULL} skips the
+##'   check.
 ##' @return Lifetime offspring per seed, one per row of \code{traits}.
 ##' @seealso \code{\link{run_until_converged}}
 ##' @export
 fixed_point_fitness <- function(x, p, traits, hyperpar = param_hyperpar(p),
                                 lifetime = 3000, survival_tol = 1e-8,
                                 grid_tol = 1e-3) {
+  if (!is.null(grid_tol) &&
+      !(is.numeric(grid_tol) && length(grid_tol) == 1L && !is.na(grid_tol) &&
+        grid_tol >= 0)) {
+    stop("`grid_tol` must be one non-negative number, or NULL to skip the check",
+         call. = FALSE)
+  }
   x <- as_solver(x)
   ## The copy is taken before the invaders' run, which consumes the resident.
   mid <- if (!is.null(grid_tol)) mid_interval_scenario(x)
@@ -371,18 +383,31 @@ fixed_point_fitness <- function(x, p, traits, hyperpar = param_hyperpar(p),
   }
   R <- constant_field_fitness(x, p, traits, hyperpar, lifetime, survival_tol)
   if (!is.null(mid)) {
-    R_mid <- constant_field_fitness(run(mid$scenario, from = mid$state)$solver,
-                                    p, traits, hyperpar, lifetime, survival_tol)
-    scale <- pmax(abs(R), abs(R_mid))
-    swing <- ifelse(scale > 0, abs(R_mid - R) / scale, 0)
-    if (any(swing > grid_tol)) {
-      warning(sprintf(paste(
-        "The stand is not at a fixed point between introductions: invader",
-        "fitness moves by up to %.2g (relative) from the field at t = %g to the",
-        "field at t = %g, mid-interval, above `grid_tol` = %g. Introduce cohorts",
-        "more often, or run the resident on until it settles"),
-        max(swing), mid$state$time, mid$scenario$p$max_patch_lifetime, grid_tol),
-        call. = FALSE)
+    ## The resident is consumed by now, so a check that fails warns rather than
+    ## losing R.
+    R_mid <- tryCatch(
+      constant_field_fitness(run(mid$scenario, from = mid$state)$solver,
+                             p, traits, hyperpar, lifetime, survival_tol),
+      error = function(e) {
+        warning("The introduction grid could not be checked: in the field at t = ",
+                format(mid$scenario$p$max_patch_lifetime), ", ",
+                conditionMessage(e), call. = FALSE)
+        NULL
+      })
+    if (!is.null(R_mid)) {
+      ## Against one, the fitness of a resident at its fixed point, for an
+      ## invader far below it: a change there cannot move it across one.
+      swing <- abs(R_mid - R) / pmax(abs(R), abs(R_mid), 1)
+      if (isTRUE(any(swing > grid_tol))) {
+        warning(sprintf(paste(
+          "The stand is not at a fixed point between introductions: invader",
+          "fitness moves by up to %.2g from the field at t = %g to the field at",
+          "t = %g, mid-interval, above `grid_tol` = %g. Introduce cohorts more",
+          "often, or run the resident on until it settles"),
+          max(swing, na.rm = TRUE), mid$state$time,
+          mid$scenario$p$max_patch_lifetime, grid_tol),
+          call. = FALSE)
+      }
     }
   }
   R
@@ -393,8 +418,8 @@ fixed_point_fitness <- function(x, p, traits, hyperpar = param_hyperpar(p),
 ## run_to() stops only at introductions, so the copy ends there instead. A
 ## resumed run integrates only from introductions it has still to make, so the
 ## copy needs the resident stopped on arrival at one, as run_to() leaves it;
-## NULL otherwise. The interval is the one that introduction opens, or, at the
-## last, the one before it.
+## NULL otherwise. A species' interval is the one its introductions bracket at
+## the resident's time, or, past its last, the one before.
 mid_interval_scenario <- function(solver) {
   tol <- 1e-8
   t0 <- solver$time
@@ -403,17 +428,24 @@ mid_interval_scenario <- function(solver) {
   if (!any(abs(unlist(state$node_schedule_times) - t0) <= tol)) {
     return(NULL)
   }
-  tt <- sort(unique(unlist(p$node_schedule_times)))
-  later <- tt[tt > t0 + tol]
-  earlier <- tt[tt < t0 - tol]
-  interval <- if (length(later) > 0L) {
-    later[[1]] - t0
-  } else if (length(earlier) > 0L) {
-    t0 - earlier[[length(earlier)]]
-  } else {
+  ## Each species' cohorts swing the field over that species' own interval, so
+  ## the copy reads half the longest of them on.
+  spacing <- vapply(p$node_schedule_times, function(s) {
+    s <- sort(unique(s))
+    later <- s[s > t0 + tol]
+    upto <- s[s <= t0 + tol]
+    if (length(later) > 0L && length(upto) > 0L) {
+      later[[1]] - upto[[length(upto)]]
+    } else if (length(upto) >= 2L) {
+      diff(utils::tail(upto, 2L))
+    } else {
+      NA_real_
+    }
+  }, numeric(1))
+  if (all(is.na(spacing))) {
     return(NULL)
   }
-  t_mid <- t0 + interval / 2
+  t_mid <- t0 + max(spacing, na.rm = TRUE) / 2
   ev <- state$events
   keep <- ev$time < t_mid - tol
   state$events <- Events(time = ev$time[keep], type = ev$type[keep],

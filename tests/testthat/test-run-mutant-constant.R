@@ -238,6 +238,11 @@ test_that("a coarse grid makes the fixed point a periodic orbit", {
   fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = 0.25)
   expect_no_warning(R <- fixed_point_fitness(fp$solver, fp$p, lma))
   expect_identical(R, fine[["start"]])
+  ## An invader far below one (R ~ 1e-23 here) moves by a larger fraction of
+  ## itself on the fine grid, but not by one that could carry it across one.
+  fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = 0.25)
+  expect_no_warning(R <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.05, "lma")))
+  expect_lt(R, 1e-10)
 })
 
 test_that("the grid check takes its copy from a plant_run as from a runner", {
@@ -253,8 +258,8 @@ test_that("the grid check takes its copy from a plant_run as from a runner", {
   expect_equal(mid$scenario$p$max_patch_lifetime, 41)
   expect_identical(mid$scenario$control$absorb_epsilon, 0.02)
   expect_equal(run(mid$scenario, from = mid$state)$time, 41)
-  ## Run to its end, or stopped mid-interval, the resident has no introduction
-  ## to resume to, and the grid goes unchecked, with a warning.
+  ## Run to its end, whether or not that end is an introduction, the resident
+  ## has none left to resume to, and the grid goes unchecked, with a warning.
   done <- run(p, control = ctrl)
   expect_null(mid_interval_scenario(as_solver(done)))
   expect_warning(fixed_point_fitness(done, p, trait_matrix(0.0825, "lma"), lifetime = 200,
@@ -275,8 +280,9 @@ test_that("the grid check's copy carries a bare runner's environment and control
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   p$node_schedule_times <- list(0:6)
+  ## Not TF24's default rainfall, which the default environment would carry.
   env <- Environment("TF24")
-  env$extrinsic_drivers_set_constant("rainfall", 1)
+  env$extrinsic_drivers_set_constant("rainfall", 0.4)
   ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
   solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
   solver$run_to(5)
@@ -286,6 +292,38 @@ test_that("the grid check's copy carries a bare runner's environment and control
   expect_equal(copy$time, 5.5)
   p$max_patch_lifetime <- 5.5
   p$node_schedule_times <- list(0:5)
-  ref <- run(p, env = env, control = ctrl)$solver
-  expect_equal(copy$patch$ode_state, ref$patch$ode_state, tolerance = 1e-6)
+  ref <- run(p, env = env, control = ctrl)$solver$patch$ode_state
+  ## Entry by entry: the copy takes its own steps, so it agrees to the solver's
+  ## tolerance; in the default rain it would be off by tens of times.
+  y <- copy$patch$ode_state
+  expect_lt(max(abs(y - ref) / pmax(abs(ref), 1e-8)), 1e-3)
+})
+
+test_that("the grid check reads half the longest species interval on", {
+  ## A species introduced every 4 years swings the field over 4 years, however
+  ## often another is introduced.
+  p <- testing_parameters("FF16")
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 40
+  p <- add_strategies(p, trait_matrix(c(0.0825, 0.1), "lma"), birth_rate = c(1, 1))
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 40, 0.25),
+                                node_schedule_times_periodic(0, 40, 4))
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  solver <- run(p, control = ctrl, until = 20)$solver
+  expect_equal(solver$time, 20)
+  mid <- mid_interval_scenario(solver)
+  expect_equal(mid$scenario$p$max_patch_lifetime, 22)
+  expect_equal(run(mid$scenario, from = mid$state)$time, 22)
+})
+
+test_that("a grid check that fails warns, and keeps the fitness", {
+  fp <- ff16_fixed_point(t_eq = 60)
+  R <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"), grid_tol = NULL)
+  fp <- ff16_fixed_point(t_eq = 60)
+  local_mocked_bindings(run = function(...) stop("the copy failed"))
+  expect_warning(R_failed <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma")),
+                 "could not be checked.*the copy failed")
+  expect_identical(R_failed, R)
+  expect_error(fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"), grid_tol = NA),
+               "grid_tol")
 })
