@@ -2380,7 +2380,7 @@ equations:
     writes: []
     kind: integrator
     overstorey: theory/size-structured-pde.qmd
-    note: 'At the current patch age, per patch (not divided by the patch area). A trapezium over the nodes in the density''s own coordinate ($\int \nu\, w \, {\rm d}a_0$ on the birth-date one), plus the absorbed top layer. $K$ is the number of species.'
+    note: 'At the current patch age, per m², as the density is. A trapezium over the nodes in the density''s own coordinate ($\int \nu\, w \, {\rm d}a_0$ on the birth-date one), plus the absorbed top layer. $K$ is the number of species.'
 
   # --- FF16: production -----------------------------------------------------------
   FF16.leaf_photosynthesis:

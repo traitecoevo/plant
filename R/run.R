@@ -93,8 +93,8 @@ print.plant_scenario <- function(x, ...) {
 ##' the canopy closes a small patch's mean stand departs from the deterministic
 ##' one, which is its limit as the area grows. For FF16's default strategy at
 ##' age 40, the mean density is 50\% below the deterministic density at 5 m2,
-##' 28\% at 20, 14\% at 80 and 3\% at 320. A larger patch costs run time in
-##' proportion to the plants it holds. Averaging many small patches narrows the
+##' 28\% at 20, 14\% at 80 and 3\% at 320. Run time grows faster than the
+##' area. Averaging many small patches narrows the
 ##' noise but not this gap, so a comparison with the deterministic run needs a
 ##' large area. The deterministic run has no area: its state is a density per
 ##' m2.

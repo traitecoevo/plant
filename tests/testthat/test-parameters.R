@@ -133,7 +133,7 @@ test_that("Patch runtime", {
   }
 })
 
-test_that("patch_area is retired: 1 is ignored, any other value refused", {
+test_that("patch_area is retired: a deterministic run ignores 1, refuses others", {
   ## Every Parameters saved before the stochastic area moved to Control carries
   ## patch_area, nearly always at 1, which is what the deterministic patch read.
   p <- base_parameters("FF16")
@@ -148,5 +148,9 @@ test_that("patch_area is retired: 1 is ignored, any other value refused", {
   p$patch_area <- 50
   expect_error(run(p, method = "stochastic"), "control\\(stochastic_patch_area = \\)")
   expect_error(run(p), "patch_area` is retired")
+  ## A stochastic run refuses it at 1 too: 1 was its old default, so ignoring it
+  ## would run at the new default without a word.
+  p$patch_area <- 1
+  expect_error(run(p, method = "stochastic"), "control\\(stochastic_patch_area = \\)")
   expect_error(Parameters("FF16", "FF16_Env")(patch_area = 2), "Unknown fields: patch_area")
 })

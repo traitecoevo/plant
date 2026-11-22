@@ -10,7 +10,7 @@ n_environment_ode_states <- c(FF16 = 0L, TF24 = 10L, K93 = 0L)
 ## can actually take.
 ##
 ## ⚠️ This caps the step size in the TEST, not in the library. Running TF24
-## stochastically at the `Control(stochastic_patch_area = 1)` default of 5 yr throws out of the leaf's
+## stochastically at the `Control()` default of 5 yr throws out of the leaf's
 ## collar root-find on a substantial fraction of seeds -- 5 of 40 measured on
 ## macOS, and 17 of 40 on develop's model code, so the dense regime is broken
 ## independently of this branch. The soil balance is stiff (the conductivity
@@ -28,7 +28,7 @@ n_environment_ode_states <- c(FF16 = 0L, TF24 = 10L, K93 = 0L)
 ## or odelia's stiff RODAS stepper for environments carrying stiff state. Delete
 ## this helper when #599 lands.
 ##
-## FF16 and K93 keep plain Control(stochastic_patch_area = 1): they carry no environment ODE state, are not
+## FF16 and K93 keep plain Control() steps: they carry no environment ODE state, are not
 ## affected, and their seeded baselines below were derived without the cap.
 stochastic_control <- function(x) {
   ctrl <- Control(stochastic_patch_area = 1)
@@ -569,7 +569,7 @@ test_that("the deterministic runner refuses a stochastic runner's schedule", {
                                                    Control(stochastic_patch_area = 1))
   obj$set_node_schedule_times(p$node_schedule_times)
   det <- DeterministicPatchRunner("FF16", "FF16_Env")(
-    p, Environment("FF16"), empty_events(), Control(stochastic_patch_area = 1))
+    p, Environment("FF16"), empty_events(), Control())
   expect_error(det$schedule <- obj$schedule, "death checks")
   ## A whole-cohort harvest is refused on this path too, before any run.
   s <- det$schedule
@@ -607,6 +607,16 @@ test_that("a harvest of fraction 1 removes everyone alive", {
   after <- which(st$time > 2.5)[[1]]
   expect_gt(sum(ia[after - 1, ], na.rm = TRUE), 0)
   expect_identical(sum(ia[after, ], na.rm = TRUE), 0L)
+})
+
+test_that("a harvest reports its removals per unit of the patch's area", {
+  p <- events_stand()
+  set.seed(1)
+  res <- run(p, control = Control(stochastic_patch_area = 2), method = "stochastic",
+             events = events(harvest(time = 2.5, fraction = 1)))
+  applied <- res$event_log$applied[[1]]
+  expect_gt(applied[[2]], 0)
+  expect_identical(applied[[3]], applied[[2]] / 2)
 })
 
 test_that("a harvest draws for its size band, with probability fraction", {
