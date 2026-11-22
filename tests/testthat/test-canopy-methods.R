@@ -541,11 +541,10 @@ test_that("the fused value tracks the association the value reduction uses", {
     y[1 + 2 * n1] <- y[1 + 2 * n1] + 0.53 * i
     patch$set_ode_state(y, i * 1.0)
   }
-  area <- patch$get_area
   z <- seq(0, 1.2 * patch$height_max, length.out = 400)
   fused <- vapply(z, function(zz) patch$compute_competition_and_slope(zz)[1], 0)
   f <- lapply(1:3, function(k)
-    vapply(z, function(zz) patch$species[[k]]$compute_competition(zz), 0) / area)
+    vapply(z, function(zz) patch$species[[k]]$compute_competition(zz), 0))
   expect_true(identical(fused, (f[[1]] + f[[2]]) + f[[3]]))
   expect_false(identical(fused, f[[1]] + (f[[2]] + f[[3]])))
 })
