@@ -296,7 +296,7 @@ allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
 
 ## The intensity-by-size grid the "does not buy survival" section rests on.
 allometry_drought_grid <- function(heights = c(10, 20, 24),
-                                   thetas = c(0.145, 0.140, 0.135),
+                                   thetas = c(0.150, 0.145, 0.140),
                                    years_dry = 4) {
   g <- expand.grid(height = heights, theta_dry = thetas)
   out <- lapply(seq_len(nrow(g)), function(i) {

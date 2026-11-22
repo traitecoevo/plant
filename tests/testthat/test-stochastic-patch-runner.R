@@ -303,9 +303,11 @@ test_that("collect output is reproducible and matches a seeded baseline", {
   ## surviving, TF24 52 and 1 (51 and 1 at a zero offset), K93 101 and 4.
   ## Smoothing TF24's net production over a share of each plant's maintenance
   ## flux moved its zero-offset run to 52 and 1; the others did not move.
+  ## Turning the stem's gravitational head on (TF24 v18) moved it to 49 and 1;
+  ## with the head off it is still 52 and 1.
   baseline <- list(
     FF16 = list(n_total = 76L, n_alive_final = 11L),
-    TF24 = list(n_total = 52L, n_alive_final = 1L),
+    TF24 = list(n_total = 49L, n_alive_final = 1L),
     K93  = list(n_total = 101L, n_alive_final = 4L)
   )
   for (x in names(strategy_types)) {

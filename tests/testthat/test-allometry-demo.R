@@ -303,10 +303,12 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   ## because its tables are prose rather than chunks. These guard the claims.
   g <- allometry_drought_grid()
 
-  ## 1. THE ORDERING, which is the section's decisive argument. At soil 0.145
+  ## 1. THE ORDERING, which is the section's decisive argument. At soil 0.150
   ##    no plant thins; by 0.140 a 10 m plant is dead. Mortality saturates
-  ##    ahead of shedding.
-  mild <- g[g$theta_dry == 0.145, ]
+  ##    ahead of shedding. The stem's gravitational head (TF24 v18) moved the
+  ##    no-thinning level up a step, from 0.145: a tall plant's leaves sit the
+  ##    head drier than its soil, and at 0.145 they now die unthinned.
+  mild <- g[g$theta_dry == 0.150, ]
   expect_true(all(mild$min_canopy > 0.99))
   expect_true(all(abs(mild$gain - 1) < 0.01))
 
@@ -318,7 +320,9 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   course <- allometry_drought_course(height = 10, theta_dry = 0.140)
   first_move <- which(course$canopy < 0.999)[1]
   expect_false(is.na(first_move))                       # it does thin
-  expect_lt(course$survivorship[[first_move]], 0.25)    # but only once dying
+  # but only once dying: two-thirds are dead (0.33 survive) when the canopy
+  # has moved by a tenth of a per cent, and under a tenth by when it is at 0.9
+  expect_lt(course$survivorship[[first_move]], 0.5)
 
   ## 2. NO RESCUE. The large ratios sit between two very small numbers, so the
   ##    ratio alone must never be quoted as a survival benefit.
