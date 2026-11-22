@@ -6173,6 +6173,14 @@ census_clear_diagnostics <- function(x, model) {
     invisible(.Call('_plant_census_clear_diagnostics', PACKAGE = 'plant', x, model))
 }
 
+census_trait_tangent_prototype <- function(x, model, direction) {
+    .Call('_plant_census_trait_tangent_prototype', PACKAGE = 'plant', x, model, direction)
+}
+
+census_trait_tangent_lanes_ff16 <- function(x, dirs) {
+    .Call('_plant_census_trait_tangent_lanes_ff16', PACKAGE = 'plant', x, dirs)
+}
+
 ladder_block_jacobian_forward_tf24 <- function(obj_, node) {
     .Call('_plant_ladder_block_jacobian_forward_tf24', PACKAGE = 'plant', obj_, node)
 }

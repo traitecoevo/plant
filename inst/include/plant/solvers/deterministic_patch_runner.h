@@ -450,6 +450,11 @@ public:
   // reference to a different function, and the gap is this check's own floor.
   std::vector<double> census_trait_tangent(const std::vector<double>& direction,
                                            std::vector<double>& value);
+  // Prototype: W directions at once on tangent_lanes<W>; ret[m][k] is metric
+  // m's derivative along directions[k].
+  template <std::size_t W>
+  std::vector<std::vector<double>>
+  census_trait_tangent_lanes(const std::vector<std::vector<double>>& directions);
 
   // One exact directional derivative of the census with respect to the first
   // recorded state, by a forward tangent stepped at the sizes the run recorded.
@@ -1852,6 +1857,52 @@ DeterministicPatchRunner<T, E>::census_trait_tangent(const std::vector<double>& 
   return ret;
 }
 
+
+template <typename T, typename E>
+template <std::size_t W>
+std::vector<std::vector<double>>
+DeterministicPatchRunner<T, E>::census_trait_tangent_lanes(
+    const std::vector<std::vector<double>>& directions) {
+  require_birth_date_coordinate("census_trait_tangent_lanes");
+  require_differentiable_rates("census_trait_tangent_lanes");
+  using lanes = odelia::ode::tangent_lanes<W>;
+  if (directions.size() != W) {
+    util::stop("census_trait_tangent_lanes: one direction per lane");
+  }
+  const recording rec = store_recording();
+  patch_type& live = solver.get_system_ref();
+  odelia::ode::be_at_step(live, rec, 0);
+  auto active = live.template rebind<lanes>();
+  size_t at = 0;
+  for (lanes* p : active.ad_parameters()) {
+    for (size_t k = 0; k < W; ++k) {
+      odelia::ode::set_direction(*p, k, directions[k][at]);
+    }
+    ++at;
+  }
+  std::vector<lanes> x0(rec[0].state.size());
+  for (size_t i = 0; i < x0.size(); ++i) {
+    x0[i] = rec[0].state[i];
+  }
+  active.set_ode_state(x0.begin(), rec[0].time);
+  odelia::ode::Solver<decltype(active)> forward(active, make_ode_control(control));
+  forward.set_collect(false);
+  forward.set_state_from_system();
+  forward.advance_schedule(odelia::ode::schedule_from(
+      rec, 0, {forward.time(), std::numeric_limits<double>::quiet_NaN()}));
+  odelia::ode::be_at_step(solver.get_system_ref(), rec, rec.size() - 1);
+  const auto& reached = forward.get_system_ref();
+  std::vector<std::vector<double>> ret;
+  for (const stand_metric& metric : stand_metrics()) {
+    const lanes v = metric_value(reached, metric);
+    std::vector<double> row(W);
+    for (size_t k = 0; k < W; ++k) {
+      row[k] = odelia::ode::derivative_along(v, k);
+    }
+    ret.push_back(row);
+  }
+  return ret;
+}
 
 template <typename T, typename E>
 template <class Scalar, class Fill>

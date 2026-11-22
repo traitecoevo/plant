@@ -17301,6 +17301,31 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// census_trait_tangent_prototype
+SEXP census_trait_tangent_prototype(SEXP x, std::string model, std::vector<double> direction);
+RcppExport SEXP _plant_census_trait_tangent_prototype(SEXP xSEXP, SEXP modelSEXP, SEXP directionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type direction(directionSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_trait_tangent_prototype(x, model, direction));
+    return rcpp_result_gen;
+END_RCPP
+}
+// census_trait_tangent_lanes_ff16
+SEXP census_trait_tangent_lanes_ff16(SEXP x, Rcpp::NumericMatrix dirs);
+RcppExport SEXP _plant_census_trait_tangent_lanes_ff16(SEXP xSEXP, SEXP dirsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type dirs(dirsSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_trait_tangent_lanes_ff16(x, dirs));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ladder_block_jacobian_forward_tf24
 Rcpp::NumericMatrix ladder_block_jacobian_forward_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double>, plant::TF24_Environment<double> > > obj_, int node);
 RcppExport SEXP _plant_ladder_block_jacobian_forward_tf24(SEXP obj_SEXP, SEXP nodeSEXP) {
@@ -19548,6 +19573,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_census_clamp_counts", (DL_FUNC) &_plant_census_clamp_counts, 3},
     {"_plant_census_clamp_names", (DL_FUNC) &_plant_census_clamp_names, 0},
     {"_plant_census_clear_diagnostics", (DL_FUNC) &_plant_census_clear_diagnostics, 2},
+    {"_plant_census_trait_tangent_prototype", (DL_FUNC) &_plant_census_trait_tangent_prototype, 3},
+    {"_plant_census_trait_tangent_lanes_ff16", (DL_FUNC) &_plant_census_trait_tangent_lanes_ff16, 2},
     {"_plant_ladder_block_jacobian_forward_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_forward_tf24, 2},
     {"_plant_ladder_block_value_tf24", (DL_FUNC) &_plant_ladder_block_value_tf24, 2},
     {"_plant_ladder_block_jacobian_reverse_tf24", (DL_FUNC) &_plant_ladder_block_jacobian_reverse_tf24, 2},

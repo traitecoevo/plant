@@ -339,3 +339,43 @@ void census_clear_diagnostics(SEXP x, std::string model) {
     return R_NilValue;
   });
 }
+
+// Prototype for the forward-mode gate: one forward tangent of the runner's last
+// run along `direction` (one weight per trait column), its census value and
+// directional derivative per metric.
+// [[Rcpp::export]]
+SEXP census_trait_tangent_prototype(SEXP x, std::string model,
+                                    std::vector<double> direction) {
+  return with_census_runner(x, model, [&](auto& runner) {
+    std::vector<double> value;
+    const std::vector<double> tangent =
+      runner.census_trait_tangent(direction, value);
+    return Rcpp::List::create(Rcpp::_["value"] = value,
+                              Rcpp::_["tangent"] = tangent);
+  });
+}
+
+template <std::size_t W>
+SEXP lanes_ff16(SEXP x, const Rcpp::NumericMatrix& dirs) {
+  plant::RcppR6::RcppR6<FF16_runner> r = Rcpp::as<plant::RcppR6::RcppR6<FF16_runner>>(x);
+  std::vector<std::vector<double>> d(W);
+  for (size_t k = 0; k < W; ++k) {
+    d[k].assign(dirs.column(k).begin(), dirs.column(k).end());
+  }
+  auto out = r->template census_trait_tangent_lanes<W>(d);
+  Rcpp::NumericMatrix m(out.size(), W);
+  for (size_t i = 0; i < out.size(); ++i) for (size_t k = 0; k < W; ++k) m(i, k) = out[i][k];
+  return m;
+}
+
+// Prototype for the forward-mode gate: FF16 only, W = ncol(dirs) in 1, 2, 4, 8.
+// [[Rcpp::export]]
+SEXP census_trait_tangent_lanes_ff16(SEXP x, Rcpp::NumericMatrix dirs) {
+  switch (dirs.ncol()) {
+    case 1: return lanes_ff16<1>(x, dirs);
+    case 2: return lanes_ff16<2>(x, dirs);
+    case 4: return lanes_ff16<4>(x, dirs);
+    case 8: return lanes_ff16<8>(x, dirs);
+  }
+  Rcpp::stop("lanes: 1, 2, 4 or 8");
+}
