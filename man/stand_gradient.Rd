@@ -44,14 +44,17 @@ partial derivatives. See the section on traits and parameters.}
 the recorded steps once per metric, at the same cost whatever the number
 of traits. \code{"forward"} walks forward over the same steps carrying one
 direction per trait column, up to eight in a walk, so its cost grows with
-the columns and does not depend on the number of metrics; it is for FF16
-only, and an error for any other model. \code{"auto"}, the default, takes
-the forward route for FF16 when fewer than nine columns are needed and
-the sweep otherwise. The two give the same numbers to rounding (about
-1e-13 relative), the same shape and names, and the same refusals. Under a
-hyperparameter function the columns counted are the ones the chain rule
-reads: the traits asked for and each parameter derived from them that
-moves with one (FF16's lma adds \code{k_l} and \code{r_l}).}
+the columns and does not depend on the number of metrics. It is for FF16
+only, and not with the absorbing top layer on
+(\code{control$absorb_epsilon > 0}); either is an error. \code{"auto"},
+the default, takes the forward route where it can when fewer than nine
+columns are needed, and the sweep otherwise. The two routes give the same
+shape, names and refusals; a partial derivative agrees to rounding (about
+1e-15 of the metric's largest entry), and a total through a
+hyperparameter function can lose more to cancellation in the chain rule.
+Under a hyperparameter function the columns counted are the ones the
+chain rule reads: the traits asked for and each parameter derived from
+them that moves with one (FF16's lma adds \code{k_l} and \code{r_l}).}
 }
 \value{
 A list with \code{value}, the metrics at the end of the run;

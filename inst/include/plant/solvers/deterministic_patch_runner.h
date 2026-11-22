@@ -451,7 +451,9 @@ public:
   // direct term the sweep starts from is in the answer without being added.
   // Refused as the sweep refuses: the same requirements, and a refusal any
   // species recorded during a walk, or a derivative that is not finite (the
-  // forward form of an adjoint that overflowed), costs every metric.
+  // forward form of an adjoint that overflowed), costs every metric. Only the
+  // columns asked for are checked, where the sweep's overflow can be in any.
+  // Refused also with the absorbing top layer on; see the definition.
   census_gradient
   census_trait_gradient_forward(const std::vector<size_t>& columns,
                                 const std::vector<std::string>& which_metrics = {});
@@ -1920,6 +1922,16 @@ DeterministicPatchRunner<T, E>::census_trait_gradient_forward(
   require_differentiable_rates(entry);
   const std::vector<size_t> rows = metric_rows(which_metrics, entry);
   require_transposable_events(entry);
+  // ⚠️ CHECKED: with the top layer on, once a cohort is absorbed the walk's
+  // columns through the layer (hmat, a_f2) were 1-2% off the sweep, and the
+  // sweep agrees with a pinned-step difference. Every number is finite, so the
+  // walk is refused rather than trusted until it is shown to follow a cohort
+  // into the layer.
+  if (control.absorb_epsilon > 0.0) {
+    util::stop(std::string(entry) + ": the forward walk does not follow "
+               "cohorts into the absorbing top layer "
+               "(control$absorb_epsilon > 0). Use mode = \"reverse\".");
+  }
   const recording rec = store_recording();
 
   patch_type& live = solver.get_system_ref();

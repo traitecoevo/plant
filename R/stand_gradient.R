@@ -38,28 +38,45 @@ forward_gradient_crossover <- 9L
 
 # Whether to take the forward route, for `n` trait columns of `solver`.
 use_forward_gradient <- function(solver, mode, n) {
-  model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
   switch(mode,
          reverse = FALSE,
          forward = TRUE,
-         auto = model %in% forward_gradient_models &&
+         auto = is.null(forward_gradient_refusal(solver)) &&
            n < forward_gradient_crossover)
 }
 
-# mode = "forward" on a model the forward route does not walk is refused before
-# anything runs, naming the model.
+# Why the forward route cannot take `solver`'s run, or NULL where it can. The
+# C++ entry refuses the same runs; this says so before anything runs.
+forward_gradient_refusal <- function(solver) {
+  model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
+  if (!model %in% forward_gradient_models) {
+    return(paste0(
+      "it is available for ", paste(forward_gradient_models, collapse = ", "),
+      " only, not the ", model, " model",
+      if (startsWith(model, "TF24")) {
+        paste0(": its strategy keeps the choices of its leaf solve, which a ",
+               "forward walk would solve again rather than replay")
+      }))
+  }
+  # The walk's columns through the layer were measured off the sweep's once a
+  # cohort was absorbed; see census_trait_gradient_forward.
+  if (solver$control$absorb_epsilon > 0) {
+    return(paste("the forward walk does not follow cohorts into the absorbing",
+                 "top layer (control$absorb_epsilon > 0)"))
+  }
+  NULL
+}
+
+# mode = "forward" on a run the forward route cannot take is refused before
+# anything runs, saying why.
 check_gradient_mode <- function(solver, mode) {
   if (identical(mode, "forward")) {
-    model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
-    if (!model %in% forward_gradient_models) {
-      stop("mode = \"forward\" is available for ",
-           paste(forward_gradient_models, collapse = ", "), " only, not the ",
-           model, " model: ",
-           if (startsWith(model, "TF24")) {
-             paste("its leaf solve would need tangent rows for every",
-                   "derivative phylloptim supplies. ")
-           },
-           "Use mode = \"reverse\" or \"auto\"")
+    why <- forward_gradient_refusal(solver)
+    if (!is.null(why)) {
+      # The sweep is the alternative only for a model that declares a census.
+      model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
+      stop("mode = \"forward\" refused: ", why,
+           if (model %in% c("FF16", "TF24", "TF24f")) ". Use mode = \"reverse\"")
     }
   }
 }
@@ -212,14 +229,17 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   the recorded steps once per metric, at the same cost whatever the number
 ##'   of traits. \code{"forward"} walks forward over the same steps carrying one
 ##'   direction per trait column, up to eight in a walk, so its cost grows with
-##'   the columns and does not depend on the number of metrics; it is for FF16
-##'   only, and an error for any other model. \code{"auto"}, the default, takes
-##'   the forward route for FF16 when fewer than nine columns are needed and
-##'   the sweep otherwise. The two give the same numbers to rounding (about
-##'   1e-13 relative), the same shape and names, and the same refusals. Under a
-##'   hyperparameter function the columns counted are the ones the chain rule
-##'   reads: the traits asked for and each parameter derived from them that
-##'   moves with one (FF16's lma adds \code{k_l} and \code{r_l}).
+##'   the columns and does not depend on the number of metrics. It is for FF16
+##'   only, and not with the absorbing top layer on
+##'   (\code{control$absorb_epsilon > 0}); either is an error. \code{"auto"},
+##'   the default, takes the forward route where it can when fewer than nine
+##'   columns are needed, and the sweep otherwise. The two routes give the same
+##'   shape, names and refusals; a partial derivative agrees to rounding (about
+##'   1e-15 of the metric's largest entry), and a total through a
+##'   hyperparameter function can lose more to cancellation in the chain rule.
+##'   Under a hyperparameter function the columns counted are the ones the
+##'   chain rule reads: the traits asked for and each parameter derived from
+##'   them that moves with one (FF16's lma adds \code{k_l} and \code{r_l}).
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
 ##'   metric holding the reason and the species it was found in (\code{NA}
@@ -398,7 +418,8 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
 }
 
 # The chain rule through a hyperparameter function: a trait's total is its partial
-# plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the sweep.
+# plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the
+# sweep or the forward walk.
 stand_gradient_through <- function(solver, metrics, traits, hyperpar,
                                    mode = "auto") {
   if (!is.function(hyperpar)) {

@@ -132,21 +132,30 @@ test_that("the forward route refuses what the sweep refuses", {
   solver <- ff16_stand(lifetime = 2,
                        ctrl = ff16_referee_control(shading_model = "ppa"))
   expect_error(forward(solver, traits = "1.lma"), "staircase")
+})
 
-  # A harvest that reached the stand with the absorbing top layer on.
+test_that("the absorbing top layer sends every call to the sweep", {
+  # Once a cohort is absorbed the walk's columns through the layer (hmat,
+  # a_f2) came out 1-2% off the sweep, which agrees with a pinned-step
+  # difference, so the walk is refused with the layer on.
   p <- add_strategies(testing_parameters("FF16"),
                       trait_matrix(c(0.0825, 3), c("lma", "hmat")), birth_rate = 2)
   p$fitness_weighting <- "none"
-  p$max_patch_lifetime <- 12
-  p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))
-  cut <- run(p, NULL, Control(node_density_coordinate = "birth_date",
-                               absorb_epsilon = 0.05),
-             events = events(node_introductions(p),
-                             harvest(time = 10.25, fraction = 0.5, size_min = 3)),
-             record = "states")$solver
-  expect_gt(cut$event_log$applied[[1]][[2]], 0)
-  expect_error(forward(cut, metrics = "leaf_area", traits = "1.lma"),
-               "does not transpose an event on the layer")
+  p$max_patch_lifetime <- 19
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 19, 0.5))
+  solver <- run(p, NULL, ff16_referee_control(absorb_epsilon = 0.05),
+                record = "states")$solver
+  expect_true(any(solver$patch$species[[1]]$retired))
+  traits <- c("1.lma", "1.hmat")
+  expect_false(use_forward_gradient(solver, "auto", 1L))
+  expect_identical(stand_gradient(solver, traits = traits, hyperpar = NULL),
+                   stand_gradient(solver, traits = traits, hyperpar = NULL,
+                                  mode = "reverse"))
+  expect_error(stand_gradient(solver, traits = traits, hyperpar = NULL,
+                              mode = "forward"),
+               "does not follow cohorts into the absorbing top layer")
+  expect_error(census_trait_gradient_forward(solver, "FF16", 1L),
+               "does not follow cohorts into the absorbing top layer")
 })
 
 test_that("mode = \"forward\" is an error on any model but FF16", {
@@ -157,7 +166,7 @@ test_that("mode = \"forward\" is an error on any model but FF16", {
   tf24 <- DeterministicPatchRunner("TF24", "TF24_Env")(p, Environment("TF24"),
                                                        empty_events(), ctrl)
   expect_error(stand_gradient(tf24, traits = "1.lma", mode = "forward"),
-               "available for FF16 only, not the TF24 model: its leaf solve")
+               "available for FF16 only, not the TF24 model: its strategy keeps")
   expect_false(use_forward_gradient(tf24, "auto", 1L))
   # The C++ entry refuses it too, and never compiles the walk for it.
   expect_error(census_trait_gradient_forward(tf24, "TF24", 1L),
