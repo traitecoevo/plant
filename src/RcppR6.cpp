@@ -3119,11 +3119,6 @@ size_t Patch___FF16__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Patch<plan
 }
 
 // [[Rcpp::export]]
-double Patch___FF16__FF16_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->get_area();
-}
-
-// [[Rcpp::export]]
 double Patch___FF16__FF16_Env__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->height_max();
 }
@@ -3292,11 +3287,6 @@ double Patch___TF24__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plan
 // [[Rcpp::export]]
 size_t Patch___TF24__TF24_Env__size__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->size();
-}
-
-// [[Rcpp::export]]
-double Patch___TF24__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_area();
 }
 
 // [[Rcpp::export]]
@@ -3471,11 +3461,6 @@ size_t Patch___TF24f__TF24_Env__size__get(plant::RcppR6::RcppR6<plant::Patch<pla
 }
 
 // [[Rcpp::export]]
-double Patch___TF24f__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_area();
-}
-
-// [[Rcpp::export]]
 double Patch___TF24f__TF24_Env__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->height_max();
 }
@@ -3644,11 +3629,6 @@ double Patch___TF24t__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<pla
 // [[Rcpp::export]]
 size_t Patch___TF24t__TF24_Env__size__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->size();
-}
-
-// [[Rcpp::export]]
-double Patch___TF24t__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_area();
 }
 
 // [[Rcpp::export]]
@@ -3823,11 +3803,6 @@ size_t Patch___TF24w__TF24_Env__size__get(plant::RcppR6::RcppR6<plant::Patch<pla
 }
 
 // [[Rcpp::export]]
-double Patch___TF24w__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->get_area();
-}
-
-// [[Rcpp::export]]
 double Patch___TF24w__TF24_Env__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->height_max();
 }
@@ -3996,11 +3971,6 @@ double Patch___K93__K93_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant:
 // [[Rcpp::export]]
 size_t Patch___K93__K93_Env__size__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_) {
   return obj_->size();
-}
-
-// [[Rcpp::export]]
-double Patch___K93__K93_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_) {
-  return obj_->get_area();
 }
 
 // [[Rcpp::export]]

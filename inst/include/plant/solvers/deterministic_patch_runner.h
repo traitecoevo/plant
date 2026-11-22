@@ -823,11 +823,6 @@ DeterministicPatchRunner<T, E>::DeterministicPatchRunner(parameters_type p, envi
   collect = false;
   collect_refinement_errors = false;
   solver.set_collect(false);
-
-  if (!util::identical(parameters.patch_area, 1.0)) {
-    util::warning("We recommened keeping patch_area = 1 for the deterministic solver, as need to check units for all other sizes");
-  }
-
 }
 
 template <typename T, typename E>

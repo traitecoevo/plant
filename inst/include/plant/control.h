@@ -144,6 +144,17 @@ struct Control {
   // before the canopy closes not at all. Each draw re-syncs the solver, so a
   // shorter interval costs run time. Positive and finite.
   double stochastic_death_interval;
+
+  // The ground area of a stochastic patch (m^2). Arrivals are drawn from the
+  // birth rate per m^2 over this area, and the patch's competition and uptake
+  // are its plants' sums divided by it. A stochastic patch is a finite stand:
+  // the environment is a nonlinear function of a random population, so its mean
+  // differs from the deterministic stand, which is its large-area limit, and
+  // the gap closes only as the area grows. For FF16's default strategy at
+  // age 40, the mean density falls short by 50% at 5 m^2, 14% at 80 and 3% at
+  // 320. The default, 100 m^2, holds about a thousand such plants at that age.
+  // Run time grows faster than the area. Positive and finite.
+  double stochastic_patch_area;
 };
 
 // Resolve Control::node_density_coordinate for a model whose own preference is

@@ -128,6 +128,29 @@ if (!any(grepl("theta, renamed theta_tip", lines, fixed = TRUE))) {
   }
   lines <- c(lines[seq_len(i - 1L)], tf24_theta_tip, lines[-seq_len(i)])
 }
+## Parameters carried patch_area until the stochastic patch's area moved to
+## Control::stochastic_patch_area. Every Parameters saved before then carries
+## it, almost always at 1, which is what the deterministic patch assumed: read
+## that as nothing. Any other value was set for a stochastic run, and dropping
+## it would run that at the default area without a word, so it is refused.
+legacy_patch_area <- c(
+  "  // patch_area, retired: 1 (what every deterministic run had) is ignored, and",
+  "  // anything else is refused.",
+  "  if (xl.containsElementNamed(\"patch_area\") &&",
+  "      Rcpp::as<double>(xl[\"patch_area\"]) != 1.0) {",
+  "    Rcpp::stop(\"`p$patch_area` is retired. A deterministic patch is per m2 \"",
+  "               \"and has no area; set a stochastic patch's area with \"",
+  "               \"control(stochastic_patch_area = ), and remove patch_area\");",
+  "  }")
+if (!any(grepl("patch_area, retired", lines, fixed = TRUE))) {
+  for (s in rev(grep("^template <> inline plant::Parameters<.*> as\\(SEXP x\\) \\{$", lines))) {
+    i <- s
+    while (!grepl("^\\s*ret\\.validate\\(\\);$", lines[i])) {
+      i <- i + 1L
+    }
+    lines <- append(lines, legacy_patch_area, after = i - 1L)
+  }
+}
 writeLines(lines, path)
 message("tolerated missing fields in ", length(starts), " converters (",
         n, " fields)")

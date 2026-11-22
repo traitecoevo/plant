@@ -422,6 +422,7 @@ Control:
     - ci_abs_tol: double
     - ci_niter: double
     - stochastic_death_interval: double
+    - stochastic_patch_area: double
 
 OdeControl:
   name_cpp: "odelia::ode::OdeControl"
@@ -619,7 +620,6 @@ Parameters:
   validator:
     name_cpp: validate
   list:
-    - patch_area: double
     - n_patches: size_t
     - fitness_weighting: "std::string"
     - max_patch_lifetime: double
@@ -777,7 +777,6 @@ Patch:
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
-    get_area: {type: double, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}

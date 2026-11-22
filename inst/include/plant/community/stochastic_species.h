@@ -391,7 +391,7 @@ StochasticSpecies<T,E>::draw_arrivals(double from, double to,
       ret.push_back(t);
       if (static_cast<double>(ret.size()) > max_arrivals) {
         util::stop("More than " + util::to_string(max_arrivals) +
-                   " arrivals in one draw; lower patch_area or the birth rate");
+                   " arrivals in one draw; lower stochastic_patch_area or the birth rate");
       }
     }
   }

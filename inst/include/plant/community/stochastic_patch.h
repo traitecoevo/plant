@@ -105,7 +105,10 @@ private:
 
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p, environment_type e, Control c)
-  : base_type(p, e, c) {
+  : base_type(p, e, c, c.stochastic_patch_area) {
+  if (!(area > 0.0 && std::isfinite(area))) {
+    util::stop("stochastic_patch_area must be positive and finite");
+  }
   parameters.validate();
   this->add_strategies(parameters.strategies);
   reset();

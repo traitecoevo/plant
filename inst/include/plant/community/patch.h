@@ -762,7 +762,7 @@ private:
 
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
-  : base_type(p, e, c) {
+  : base_type(p, e, c, 1.0) {
 
   parameters.validate();
   validate_ode_tolerances(control);
@@ -789,7 +789,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
                   const std::vector<strategy_type_ptr>& prepared)
-  : base_type(p, e, c) {
+  : base_type(p, e, c, 1.0) {
 
   parameters.validate();
   validate_ode_tolerances(control);
@@ -825,7 +825,6 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   // n_patches, which nothing reads, so a rebind copies no trajectory into an
   // object that never looks at it.
   Parameters<T2,E2> p2;
-  p2.patch_area = parameters.patch_area;
   p2.fitness_weighting = parameters.fitness_weighting;
   p2.max_patch_lifetime = parameters.max_patch_lifetime;
   // The fitness window is built from these four by the same validate(): left
@@ -919,7 +918,6 @@ void Patch<T,E>::overwrite_parameters(const parameters_type& p) {
   // The invaders' strategies are checked as the constructor checks the
   // residents': an absorbing height they cannot have would absorb every cohort.
   check_retirement_coordinate();
-  area = parameters.patch_area;
   overwrite_strategies(parameters.strategies);
 }
 

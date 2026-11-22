@@ -232,16 +232,6 @@ slots:
 
 parameters:
   # --- light ------------------------------------------------------------------
-  patch_area:
-    section: light
-    symbol: 'A_{\rm P}'
-    units: 'm²'
-    class: setting
-    meaning: 'ground area of the patch; the summed competition contribution is divided by it'
-    source: Parameters default; the deterministic runner warns unless it is 1
-    placeholder: false
-    code: plant::Parameters::patch_area
-
   # --- patch age --------------------------------------------------------------
   fitness_weighting:
     section: patch_age
@@ -2071,14 +2061,14 @@ equations:
     section: light
     title: Canopy openness
     latex: |
-      E_a(z) = \exp \left(-\frac{k_{\rm I}}{A_{\rm P}} \sum_{i = 1}^{K} \int_{0}^{\infty} A_{\rm l}(H) \, Q(z, H) \, N(H | x_i, a) \, {\rm d}H \right)
+      E_a(z) = \exp \left(-k_{\rm I} \sum_{i = 1}^{K} \int_{0}^{\infty} A_{\rm l}(H) \, Q(z, H) \, N(H | x_i, a) \, {\rm d}H \right)
     code: plant::build_extinction_field
     also: [plant::Patch::compute_environment, plant::Patch::compute_competition_and_slope, plant::Species::compute_competition_and_slope, plant::Node::compute_competition, plant::Individual::compute_competition]
-    reads: [k_I, A_l, Q, patch_area]
+    reads: [k_I, A_l, Q]
     writes: []
     kind: integrator
     overstorey: theory/size-structured-pde.qmd
-    note: 'The code divides the summed contribution by the patch area $A_{\rm P}$, which the page omits (it is 1 by default). Each model returns $k_{\rm I} A_{\rm l}(H) Q(z, H)$ as one competition contribution (K93 returns $k_{\rm I}$ times basal area times $Q$: basal area takes the place of $A_{\rm l}$). The integral is a trapezium over the nodes in the coordinate the density is carried in (over birth date, $\int \nu(a_0) \ldots {\rm d}a_0$, on that coordinate), and $E_a$ is then interpolated by a spline in height. The Control shading model can replace $Q$ (flat-top boxes) or step the profile (PPA).'
+    note: 'The sum is per m², as the density $N$ is. A stochastic patch sums over its plants instead and divides by its ground area (`Control::stochastic_patch_area`). Each model returns $k_{\rm I} A_{\rm l}(H) Q(z, H)$ as one competition contribution (K93 returns $k_{\rm I}$ times basal area times $Q$: basal area takes the place of $A_{\rm l}$). The integral is a trapezium over the nodes in the coordinate the density is carried in (over birth date, $\int \nu(a_0) \ldots {\rm d}a_0$, on that coordinate), and $E_a$ is then interpolated by a spline in height. The Control shading model can replace $Q$ (flat-top boxes) or step the profile (PPA).'
   crown_profile:
     section: light
     title: Leaf area above a height
@@ -2892,15 +2882,15 @@ equations:
     section: k93_competition
     title: Basal area of larger trees
     latex: |
-      B(t, a, x) = - \frac{\ln E_a(x)}{k_{\rm I}} = \frac{\pi}{4 \cdot A_{\rm P}} \int_{x}^{x_{max}} y^2 \cdot Q(x, y) \cdot f(t, a, y) \, dy
+      B(t, a, x) = - \frac{\ln E_a(x)}{k_{\rm I}} = \frac{\pi}{4} \int_{x}^{x_{max}} y^2 \cdot Q(x, y) \cdot f(t, a, y) \, dy
     code: plant::K93_Model::compute_rates
     also: [plant::K93_Model::compute_competition, plant::build_extinction_field]
-    reads: [K93.k_I, K93.eta, Q, patch_area]
+    reads: [K93.k_I, K93.eta, Q]
     writes: []
     kind: integrator
     cite: Kohyama-1993
     overstorey: theory/models/k93.qmd
-    note: 'Eq. 8 of Kohyama-1993 writes $\frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) \, dy$. The code builds the shared environment $E_a = \exp(-k_{\rm I} B)$ from every species'' contributions and back-transforms it, so each larger tree is weighted by $Q(x, y)$ (the smoothing $\eta$; 1 in the page''s limit $\eta \to \infty$), the page''s $s(t, a)$ is the patch area $A_{\rm P}$, and $k_{\rm I}$ cancels when every species shares it (otherwise it weights each species, as K93.k_I says). The focal tree''s own basal area is not counted ($Q(x, x) = 0$). $f$ is the page''s size density, not the fecundity slot. The run stops if $B$ is not finite.'
+    note: 'Eq. 8 of Kohyama-1993 writes $\frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) \, dy$. The code builds the shared environment $E_a = \exp(-k_{\rm I} B)$ from every species'' contributions and back-transforms it, so each larger tree is weighted by $Q(x, y)$ (the smoothing $\eta$; 1 in the page''s limit $\eta \to \infty$), the page''s plot area $s(t, a)$ is 1 m², the density being per m², and $k_{\rm I}$ cancels when every species shares it (otherwise it weights each species, as K93.k_I says). The focal tree''s own basal area is not counted ($Q(x, x) = 0$). $f$ is the page''s size density, not the fecundity slot. The run stops if $B$ is not finite.'
   K93.competition:
     model: K93
     section: k93_competition
@@ -3621,10 +3611,10 @@ equations:
     section: tf24_soil
     title: Root uptake from each layer, summed over the stand
     latex: |
-      u_i = \frac{1}{A_{\rm P}} \sum_{s} \int_0^\infty N(H | x_s, a)\, c_i(x_s, H) \, {\rm d}H
+      u_i = \sum_{s} \int_0^\infty N(H | x_s, a)\, c_i(x_s, H) \, {\rm d}H
     code: plant::Patch::compute_rates
     also: [plant::Species::consumption_rate, plant::Node::consumption_rate, plant::Individual::consumption_rate]
-    reads: [patch_area]
+    reads: []
     writes: []
     kind: integrator
     overstorey: theory/soil-water.qmd
