@@ -1665,8 +1665,8 @@ parameters:
     symbol: 'Z'
     units: 'm'
     class: hyperparameter
-    meaning: 'total depth of the soil column, the sum of the layer widths and the depth to the bottom of the deepest layer; read-only from R, since only the geometry setters rebuild the layers from it'
-    source: 'TF24_Environment constructor default; set_soil_layer_widths overwrites it with the sum of the widths. No source recorded'
+    meaning: 'total depth of the soil column: the sum of the layer widths and the depth to the bottom of the deepest layer, to rounding when set_soil_number_of_depths divides it into equal layers; read-only from R, since only the geometry setters rebuild the layers from it'
+    source: 'TF24_Environment constructor default; set_soil_layer_widths overwrites it with the sum of the widths, and set_soil_number_of_depths divides it into equal layers and leaves it as it was. No source recorded'
     placeholder: true
     code: plant::TF24_Environment::depth
   TF24.dz:
@@ -3565,7 +3565,7 @@ equations:
     writes: ['phylloptim:soil_depth']
     kind: closed_form
     overstorey: theory/soil-water.qmd
-    note: 'The page (sec-layers) gives these in prose. With equal layers (set_soil_number_of_depths) $\Delta z_i = Z / N$ and the code builds $z_i = (i + 1) Z / N$ rather than the running sum, which differs from it in the last bit; set_soil_layer_widths takes the $\Delta z_i$ and sets $Z$ from them. $z_i$ is handed to the leaf as its layer depths and $\bar z_i$ as its precomputed midpoints (use_precomputed_z_soil_mid_), in place of phylloptim''s own (phylloptim:layer_midpoints, the same rule), where it sets the gravity head. The root network reads the widths as phylloptim''s layer_thicknesses of $z$ (z_thickness), equal to $\Delta z_i$ only to rounding. Setting the geometry resets the water state and drops per-layer soil parameters.'
+    note: 'The page (sec-layers) gives these in prose. Both setters build $z_i$ as the running sum in the code. With equal layers (set_soil_number_of_depths) $\Delta z_i = Z / N$ for the $Z$ in force, which $z_{N-1}$ then reaches only to rounding; set_soil_layer_widths takes the $\Delta z_i$ and sets $Z$ to $z_{N-1}$. $z_i$ is handed to the leaf as its layer depths and $\bar z_i$ as its precomputed midpoints (use_precomputed_z_soil_mid_), in place of phylloptim''s own (phylloptim:layer_midpoints, the same rule), where it sets the gravity head. The root network reads the widths as phylloptim''s layer_thicknesses of $z$ (z_thickness), equal to $\Delta z_i$ only to rounding. Setting the geometry resets the water state and drops per-layer soil parameters.'
   TF24.rainfall_floor:
     model: TF24
     section: tf24_soil

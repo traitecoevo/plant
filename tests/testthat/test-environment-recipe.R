@@ -25,9 +25,9 @@ saved_and_read_back <- function(x) {
   readRDS(f)
 }
 
-## Equal layers are built from the total depth, as (i + 1) * depth / n; the
-## running sum of their widths misses that in the last bits for many columns,
-## here layers 6 and 7 of 1.2 m in seven.
+## Equal layers divide a stated total, which the running sum of their widths
+## misses in the last bits for many columns, here 1.2 m in seven. The recipe
+## keeps the total, so the rebuilt environment divides the same one again.
 tf24_equal_layer_environment <- function() {
   env <- Environment("TF24")
   env$set_soil_layer_widths(c(0.6, 0.6))
@@ -46,6 +46,9 @@ test_that("a TF24 environment's recipe rebuilds it exactly", {
     expect_identical(rebuilt$get_soil_mid_depths(), env$get_soil_mid_depths())
     expect_identical(rebuilt$get_soil_water_state(), env$get_soil_water_state())
     expect_identical(rebuilt$depth, env$depth)
+    rebuilt$set_soil_number_of_depths(3)
+    env$set_soil_number_of_depths(3)
+    expect_identical(rebuilt$get_soil_depths(), env$get_soil_depths())
     ## Between the knots too, where the slopes the series was given decide it.
     for (d in env$extrinsic_drivers_get_names()) {
       u <- seq(0, 7, length.out = 101)
@@ -53,13 +56,10 @@ test_that("a TF24 environment's recipe rebuilds it exactly", {
                        env$extrinsic_drivers_evaluate_range(d, u), info = d)
     }
   }
-  ## Against the C++ running sum, not R's cumsum(), which accumulates in long
-  ## double on x86-64 and there agrees with the product.
-  equal <- environment_recipe(tf24_equal_layer_environment())
-  expect_identical(equal$layer_depths, (1:7) * (1.2 / 7))
-  by_widths <- Environment("TF24")
-  by_widths$set_soil_layer_widths(equal$layer_widths)
-  expect_false(identical(by_widths$get_soil_depths(), equal$layer_depths))
+  ## The case is live: the total is not the bottom of the last layer.
+  equal <- tf24_equal_layer_environment()
+  expect_identical(equal$depth, 1.2)
+  expect_false(identical(equal$get_soil_depths()[[7]], 1.2))
 })
 
 ## Every run builds its environment from the recipe, so a setting the recipe
@@ -142,10 +142,10 @@ test_that("a scenario refuses an environment of another model or a dead one", {
   expect_error(environment_recipe(list()), "must be an Environment")
 })
 
-test_that("a recipe whose layer depths disagree with its widths is refused", {
+test_that("a recipe whose depth disagrees with its widths is refused", {
   recipe <- environment_recipe(Environment("TF24"))
-  recipe$layer_depths[3] <- recipe$layer_depths[3] + 0.01
-  expect_error(Environment(recipe), "not the running sum of its layer_widths")
+  recipe$depth <- recipe$depth + 0.01
+  expect_error(Environment(recipe), "from the bottom of its last layer")
   recipe <- environment_recipe(Environment("FF16"))
   recipe$soil_moist_sat <- 0.4
   expect_error(Environment(recipe), "holds its type alone")
@@ -222,12 +222,27 @@ test_that("a recipe lacking a field keeps the fresh environment's value", {
                    rep(configured$soil_moist_sat * 0.5, 4))
 })
 
+test_that("a recipe saved with layer depths sets the column from its widths", {
+  ## As a recipe saved when it carried the depths would, here with the depths
+  ## equal layers were then given, built from the total.
+  env <- tf24_equal_layer_environment()
+  old <- environment_recipe(env)
+  old$layer_depths <- (1:7) * (1.2 / 7)
+  expect_false(identical(old$layer_depths, env$get_soil_depths()))
+  rebuilt <- Environment(old)
+  expect_identical(rebuilt$get_soil_depths(), env$get_soil_depths())
+  expect_null(environment_recipe(rebuilt)$layer_depths)
+})
+
 test_that("a recipe with a field it does not know is refused by name", {
   recipe <- environment_recipe(Environment("TF24"))
   recipe$Ksat <- 100
   expect_error(Environment(recipe), "no field 'Ksat'")
   recipe <- environment_recipe(Environment("TF24"))
   recipe$layer_widths <- NULL
+  expect_error(Environment(recipe), "without the layer_widths")
+  recipe$depth <- NULL
+  recipe$layer_depths <- (1:5) * 0.3
   expect_error(Environment(recipe), "without the layer_widths")
 })
 

@@ -145,15 +145,18 @@ public:
     z.resize(soil_number_of_depths);
     dz.resize(soil_number_of_depths);
 
-    // TODO(next rebaseline): build `z` as the running sum of `dz`, as
-    // set_soil_layer_widths does. `(i+1)*delta_z` and that sum disagree in the
-    // last bit for 103 of 180 (depth, n) pairs, and `z` feeds Q() and the
-    // gravitational head, so the change moves every TF24 number.
+    // `z` is the running sum of the widths, as set_soil_layer_widths builds it,
+    // so a column's boundaries are one function of its widths whichever setter
+    // gave them. `(i + 1) * delta_z` is not that sum in the last bits, and `z`
+    // feeds Q() and the gravitational head. `depth` stays the total the caller
+    // stated, which the sum reaches only to rounding.
     const double delta_z = depth / soil_number_of_depths;
+    double cumulative = 0.0;
     for (int i = 0; i < soil_number_of_depths; i++)
     {
-      z[i] = (i + 1) * delta_z;
       dz[i] = delta_z;
+      cumulative += delta_z;
+      z[i] = cumulative;
     }
 
     finalise_soil_geometry_();
@@ -240,9 +243,9 @@ public:
       cumulative += dz[i];
       z[i] = cumulative;
     }
-    // Taken off the running sum rather than summed again, so `depth` and
-    // `z.back()` cannot disagree by rounding. Everything downstream reads one or
-    // the other and they must be the same number.
+    // Taken off the running sum rather than summed again, so here `depth` is
+    // the bottom of the last layer exactly. Under set_soil_number_of_depths it
+    // is the stated total instead, which nothing but the next division reads.
     depth = z.back();
 
     finalise_soil_geometry_();
@@ -692,10 +695,13 @@ public:
 
   int soil_number_of_depths;
 
-  // Total column depth, m: the sum of the layer widths, and equal to z.back() by
-  // construction. READ-ONLY from R: only the geometry setters rebuild z/z_mid/z_thickness/dz,
-  // so a raw write would leave them describing the old column. To change it, call set_soil_number_of_depths() again (equal layers spanning the
-  // new depth) or set_soil_layer_widths() (which sets it from the widths).
+  // Total column depth, m. set_soil_layer_widths() sets it to z.back(), the sum
+  // of the widths; under set_soil_number_of_depths() it is the total the equal
+  // layers divide, which z.back() reaches only to rounding. READ-ONLY from R:
+  // only the geometry setters rebuild z/z_mid/z_thickness/dz, so a raw write
+  // would leave them describing the old column. To change it, call
+  // set_soil_number_of_depths() again (equal layers spanning the new depth) or
+  // set_soil_layer_widths() (which sets it from the widths).
   double depth;
   //saturated soil moisture
   double soil_moist_sat;
@@ -1170,7 +1176,6 @@ public:
     const std::vector<double> water(initial_states.begin(),
                                     initial_states.begin() + soil_number_of_depths);
     return Rcpp::List::create(_["layer_widths"] = dz,
-                              _["layer_depths"] = z,
                               _["depth"] = depth,
                               _["soil_moist_sat"] = soil_moist_sat,
                               _["K_sat"] = K_sat,
@@ -1185,10 +1190,10 @@ public:
                               _["drivers"] = r_driver_recipe());
   }
 
-  // The column is set from its widths, which checks them, and then given the
-  // recipe's own layer depths and total, which may differ from the running sum
-  // of the widths in the last bits: set_soil_number_of_depths() builds them
-  // from the total, and TF24's numbers move with that difference.
+  // The column is set from its widths, which checks them and builds every
+  // layer's depth as their running sum. The recipe's own total is then kept:
+  // equal layers divide a stated total, which the sum of the widths reaches
+  // only to rounding, and set_soil_number_of_depths() divides it again.
   //
   // Made for a fresh environment, which is the only one plant hands it. There a
   // field the recipe lacks takes its default, so a recipe saved before a field
@@ -1198,6 +1203,10 @@ public:
   // per-layer parameters the recipe does not give again are dropped. A name the
   // recipe has and this does not know is refused, so a misspelt field is not
   // dropped unseen.
+  //
+  // `layer_depths` is accepted and not read: a recipe saved by a plant that
+  // built equal layers' depths from the total carries it, and a column's
+  // depths are the running sum of its widths.
   void set_recipe(Rcpp::List r) {
     static const std::vector<std::string> known = {
       "layer_widths", "layer_depths", "depth", "soil_moist_sat", "K_sat",
@@ -1228,37 +1237,20 @@ public:
     }
     if (column) {
       set_soil_layer_widths(Rcpp::as<std::vector<double>>(r["layer_widths"]));
-      const std::vector<double> depths = has("layer_depths")
-        ? Rcpp::as<std::vector<double>>(r["layer_depths"]) : z;
-      const double total = has("depth") ? Rcpp::as<double>(r["depth"]) : z.back();
-      if (depths.size() != z.size()) {
-        util::stop("The recipe's layer_depths has " +
-                   util::to_string(depths.size()) + " entries for " +
-                   util::to_string(z.size()) + " layer_widths");
-      }
-      // A running sum of n widths drifts from the product built from the total
-      // by about one rounding per layer, so the tolerance grows with n.
-      const double tol = 4.0 * static_cast<double>(z.size() + 1) *
-        std::numeric_limits<double>::epsilon();
-      auto close = [tol](double a, double b) {
-        return std::abs(a - b) <= tol * std::max(std::abs(a), std::abs(b));
-      };
-      for (size_t i = 0; i < z.size(); ++i) {
-        if (!close(depths[i], z[i])) {
-          util::stop("The recipe's layer_depths are not the running sum of its "
-                     "layer_widths: layer " + util::to_string(i + 1) +
-                     " ends " + util::format_double(depths[i] - z[i]) +
-                     " m from the sum of the widths above it");
+      if (has("depth")) {
+        const double total = Rcpp::as<double>(r["depth"]);
+        // The running sum of n widths drifts from the total they divide by
+        // about one rounding per layer, so the tolerance grows with n.
+        const double tol = 4.0 * static_cast<double>(z.size() + 1) *
+          std::numeric_limits<double>::epsilon();
+        if (!(std::abs(total - z.back()) <=
+              tol * std::max(std::abs(total), std::abs(z.back())))) {
+          util::stop("The recipe's depth is " +
+                     util::format_double(total - z.back()) +
+                     " m from the bottom of its last layer");
         }
+        depth = total;
       }
-      if (!close(total, z.back())) {
-        util::stop("The recipe's depth is " +
-                   util::format_double(total - z.back()) +
-                   " m from the bottom of its last layer");
-      }
-      z = depths;
-      depth = total;
-      finalise_soil_geometry_();
     }
 
     set_double("soil_moist_sat", soil_moist_sat);
