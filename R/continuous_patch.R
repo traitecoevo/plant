@@ -330,7 +330,11 @@ convergence_statistic <- function(statistics, environment_entries) {
 ##' (relative). A warning means the stand is not at a fixed point between
 ##' introductions: introduce cohorts more often, or run the resident on until it
 ##' settles. The check costs the copy's half interval and a second run of the
-##' invaders; \code{grid_tol = NULL} skips it.
+##' invaders; \code{grid_tol = NULL} skips it. The copy resumes the resident, so
+##' it needs the resident stopped at an introduction, as
+##' \code{run(res, until = t)} and \code{run_until_converged} leave it; a
+##' resident run to its end, or stopped between introductions, is warned of as
+##' unchecked.
 ##'
 ##' @title Invader fitness at a fixed point
 ##' @param x The resident's \code{plant_run} or \code{DeterministicPatchRunner},
@@ -359,6 +363,12 @@ fixed_point_fitness <- function(x, p, traits, hyperpar = param_hyperpar(p),
   x <- as_solver(x)
   ## The copy is taken before the invaders' run, which consumes the resident.
   mid <- if (!is.null(grid_tol)) mid_interval_scenario(x)
+  if (!is.null(grid_tol) && is.null(mid)) {
+    warning("The introduction grid cannot be checked: that needs the resident ",
+            "stopped at an introduction, as run(res, until = t) and ",
+            "run_until_converged() leave it. Stop it there, or set ",
+            "`grid_tol = NULL`", call. = FALSE)
+  }
   R <- constant_field_fitness(x, p, traits, hyperpar, lifetime, survival_tol)
   if (!is.null(mid)) {
     R_mid <- constant_field_fitness(run(mid$scenario, from = mid$state)$solver,
@@ -380,24 +390,30 @@ fixed_point_fitness <- function(x, p, traits, hyperpar = param_hyperpar(p),
 
 ## A copy of the resident, to run from where it stands to the middle of the
 ## introduction interval there: `scenario` to run, and `state` to run it from.
-## run_to() stops only at introductions, so the copy ends there instead. NULL
-## when the schedule has no interval to take the middle of.
+## run_to() stops only at introductions, so the copy ends there instead. A
+## resumed run integrates only from introductions it has still to make, so the
+## copy needs the resident stopped on arrival at one, as run_to() leaves it;
+## NULL otherwise. The interval is the one that introduction opens, or, at the
+## last, the one before it.
 mid_interval_scenario <- function(solver) {
   tol <- 1e-8
   t0 <- solver$time
   p <- solver$parameters
+  state <- export_patch_state(solver)
+  if (!any(abs(unlist(state$node_schedule_times) - t0) <= tol)) {
+    return(NULL)
+  }
   tt <- sort(unique(unlist(p$node_schedule_times)))
   later <- tt[tt > t0 + tol]
-  earlier <- tt[tt <= t0 + tol]
+  earlier <- tt[tt < t0 - tol]
   interval <- if (length(later) > 0L) {
     later[[1]] - t0
-  } else if (length(earlier) >= 2L) {
-    diff(utils::tail(earlier, 2L))
+  } else if (length(earlier) > 0L) {
+    t0 - earlier[[length(earlier)]]
   } else {
     return(NULL)
   }
   t_mid <- t0 + interval / 2
-  state <- export_patch_state(solver)
   ev <- state$events
   keep <- ev$time < t_mid - tol
   state$events <- Events(time = ev$time[keep], type = ev$type[keep],

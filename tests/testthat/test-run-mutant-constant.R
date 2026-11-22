@@ -36,7 +36,7 @@ in_stand_fitness <- function(fp, lma, life = 400) {
 test_that("an invader in the fixed point's constant field scores its cohort in the stand", {
   fp <- ff16_fixed_point()
   lma <- c(0.0825, 0.06, 0.1)
-  in_field <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(lma, "lma"))
+  in_field <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(lma, "lma"), grid_tol = NULL)
   expect_true(all(is.finite(in_field)) && all(in_field > 0))
   for (k in seq_along(lma)) {
     ref <- in_stand_fitness(ff16_fixed_point(), lma[k])
@@ -53,12 +53,12 @@ test_that("an invader in the fixed point's constant field scores its cohort in t
 
 test_that("every invader stands in the field taken at the first call", {
   fp <- ff16_fixed_point(t_eq = 150)
-  a <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"))
+  a <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"), grid_tol = NULL)
   # Run again alone, the same strategy takes the same steps in the same field.
-  expect_identical(fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma")), a)
+  expect_identical(fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"), grid_tol = NULL), a)
   # Beside another it shares their step sequence, so it agrees to the solver's
   # tolerance rather than bit for bit.
-  b <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(c(0.06, 0.1), "lma"))
+  b <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(c(0.06, 0.1), "lma"), grid_tol = NULL)
   expect_equal(b[[2]], a, tolerance = 1e-3)
 })
 
@@ -95,7 +95,7 @@ test_that("a constant field keeps the environment's own state", {
   # Through the deterministic runner, the invader runs in it and the
   # deterministic runner clears it afterwards.
   R <- fixed_point_fitness(solver, p, trait_matrix(0.0825, "lma"), lifetime = 200,
-                           survival_tol = 1)
+                           survival_tol = 1, grid_tol = NULL)
   expect_true(is.finite(R))
   expect_false(solver$patch$has_constant_field)
 })
@@ -104,7 +104,7 @@ test_that("a constant field is cleared once the invaders have run", {
   # A later run of the deterministic runner builds its own field: a rerun of the invaders'
   # parameters is a fresh run of them, not another constant-field one.
   fp <- ff16_fixed_point(t_eq = 150)
-  in_field <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"))
+  in_field <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"), grid_tol = NULL)
   fp$solver$run()
   rerun <- fp$solver$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
     fp$p$strategies[[1]]$pars$S_D
@@ -119,11 +119,11 @@ test_that("a field taken inside an interval scores as one taken at its start", {
   # Between two introductions the field swings; on a grid fine enough for a
   # fixed point the swing is small, which is the check a coarse grid fails.
   fp <- ff16_fixed_point(t_eq = 150)
-  at_start <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"))
+  at_start <- fixed_point_fitness(fp$solver, fp$p, trait_matrix(0.1, "lma"), grid_tol = NULL)
   p <- fp$p
   p$max_patch_lifetime <- 150.5
   mid <- run(p, control = fp$ctrl)$solver
-  at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.1, "lma"), grid_tol = 1e-2)
+  at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.1, "lma"), grid_tol = NULL)
   expect_equal(at_mid, at_start, tolerance = 1e-2)
 })
 
@@ -241,20 +241,51 @@ test_that("a coarse grid makes the fixed point a periodic orbit", {
 })
 
 test_that("the grid check takes its copy from a plant_run as from a runner", {
-  ## A run() result, at the end of its run: the interval is the last one.
   p <- testing_parameters("FF16")
   p$fitness_weighting <- "none"
   p$max_patch_lifetime <- 60
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 2))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
-  res <- run(p, control = ctrl)
+  ## Stopped at an introduction, with the control the scenario carried.
+  res <- run(p, control = ctrl, until = 40)
   mid <- mid_interval_scenario(as_solver(res))
-  expect_equal(mid$scenario$p$max_patch_lifetime, 61)
+  expect_equal(mid$scenario$p$max_patch_lifetime, 41)
   expect_identical(mid$scenario$control$absorb_epsilon, 0.02)
-  expect_equal(run(mid$scenario, from = mid$state)$time, 61)
-  ## A stand of one introduction has no interval, and is not checked.
-  p$node_schedule_times <- list(0)
-  solver <- run(p, control = ctrl, until = 0)$solver
-  expect_null(mid_interval_scenario(solver))
+  expect_equal(run(mid$scenario, from = mid$state)$time, 41)
+  ## Run to its end, or stopped mid-interval, the resident has no introduction
+  ## to resume to, and the grid goes unchecked, with a warning.
+  done <- run(p, control = ctrl)
+  expect_null(mid_interval_scenario(as_solver(done)))
+  expect_warning(fixed_point_fitness(done, p, trait_matrix(0.0825, "lma"), lifetime = 200,
+                                     survival_tol = 1),
+                 "cannot be checked")
+  p$max_patch_lifetime <- 41
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 41, 2))
+  expect_null(mid_interval_scenario(run(p, control = ctrl)$solver))
+})
+
+test_that("the grid check's copy carries a bare runner's environment and control", {
+  ## TF24 under constant rain: the copy takes the soil and the driver from the
+  ## runner's patch, and the control from the runner, and lands where a run from
+  ## empty to the same instant does.
+  p <- testing_parameters("TF24")
+  p$fitness_weighting <- "none"
+  p$max_patch_lifetime <- 7
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
+                      birth_rate = 1)
+  p$node_schedule_times <- list(0:6)
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
+  solver <- DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
+  solver$run_to(5)
+  mid <- mid_interval_scenario(solver)
+  expect_identical(mid$scenario$control$ode_step_size_max, 0.05)
+  copy <- run(mid$scenario, from = mid$state)$solver
+  expect_equal(copy$time, 5.5)
+  p$max_patch_lifetime <- 5.5
+  p$node_schedule_times <- list(0:5)
+  ref <- run(p, env = env, control = ctrl)$solver
+  expect_equal(copy$patch$ode_state, ref$patch$ode_state, tolerance = 1e-6)
 })

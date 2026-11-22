@@ -10,7 +10,8 @@ fixed_point_fitness(
   traits,
   hyperpar = param_hyperpar(p),
   lifetime = 3000,
-  survival_tol = 1e-08
+  survival_tol = 1e-08,
+  grid_tol = 0.001
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ that never establishes scores zero.}
 
 \item{survival_tol}{The survival since establishment below which a cohort
 that has stopped growing counts as dead.}
+
+\item{grid_tol}{The largest relative change in an invader's fitness between
+the field \code{x} stands in and the field half an introduction interval
+later that passes without a warning; \code{NULL} skips the check.}
 }
 \value{
 Lifetime offspring per seed, one per row of \code{traits}.
@@ -66,9 +71,18 @@ The introduction grid has to make the stand a fixed point. Between two
 introductions the field swings, and a grid that is too coarse makes the
 stand a periodic orbit whose field, taken at an introduction, is the top of
 the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in
-constant-field fitness at a cohort a year and 0.02 \% at four. \code{DeterministicPatchRunner$run_to()} stops
-only at introduction instants, so to take a field mid-interval, and check
-the grid, end the resident's run there with \code{max_patch_lifetime}.
+constant-field fitness at a cohort a year and 0.02 \% at four. So each call
+checks: it runs a copy of the resident on to the middle of the introduction
+interval it stands at, scores the invaders again in the field there, and
+warns when any invader's fitness moves by more than \code{grid_tol}
+(relative). A warning means the stand is not at a fixed point between
+introductions: introduce cohorts more often, or run the resident on until it
+settles. The check costs the copy's half interval and a second run of the
+invaders; \code{grid_tol = NULL} skips it. The copy resumes the resident, so
+it needs the resident stopped at an introduction, as
+\code{run(res, until = t)} and \code{run_until_converged} leave it; a
+resident run to its end, or stopped between introductions, is warned of as
+unchecked.
 }
 \seealso{
 \code{\link{run_until_converged}}
