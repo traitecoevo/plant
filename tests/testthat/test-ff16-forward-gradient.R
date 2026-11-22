@@ -75,6 +75,9 @@ test_that("the hyperparameter chain is applied alike in both modes", {
   partial <- stand_gradient(solver, traits = traits, hyperpar = NULL)
   expect_false(isTRUE(all.equal(g$forward$gradient[, "1.lma"],
                                 partial$gradient[, "1.lma"], tolerance = 1e-3)))
+  # FF16's trade-off derives nine parameters, and only k_l and r_l move with
+  # lma or hmat, so "auto" walks four columns forward rather than eleven.
+  expect_identical(stand_gradient(solver, traits = traits), g$forward)
   # Every trait the strategy has, which the sweep takes under "auto".
   g <- both_modes(solver, metrics = "1.offspring_production")
   expect_same_gradient(g$forward, g$reverse)

@@ -218,7 +218,8 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   the sweep otherwise. The two give the same numbers to rounding (about
 ##'   1e-13 relative), the same shape and names, and the same refusals. Under a
 ##'   hyperparameter function the columns counted are the ones the chain rule
-##'   reads: the traits asked for and the parameters derived from them.
+##'   reads: the traits asked for and each parameter derived from them that
+##'   moves with one (FF16's lma adds \code{k_l} and \code{r_l}).
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
 ##'   metric holding the reason and the species it was found in (\code{NA}
@@ -434,13 +435,28 @@ stand_gradient_through <- function(solver, metrics, traits, hyperpar,
          "species' traits, which has no gradient column, so the chain rule ",
          "cannot be completed")
   }
-  partial <- stand_gradient(solver, metrics, union(traits, read), hyperpar = NULL,
+  # A derived parameter that no trait asked for moves adds only terms of exactly
+  # zero to the sum. The sweep computes every column at once and is given them
+  # all; on the forward route each column is a lane, so it is given only the
+  # derived parameters that move.
+  moved <- unlist(lapply(trade_offs, function(J) {
+    along <- intersect(colnames(J), traits)
+    rownames(J)[rowSums(J[, along, drop = FALSE] != 0) > 0]
+  }))
+  wanted <- union(traits, intersect(read, moved))
+  if (use_forward_gradient(solver, mode, length(wanted))) {
+    mode <- "forward"
+  } else {
+    mode <- "reverse"
+    wanted <- union(traits, read)
+  }
+  partial <- stand_gradient(solver, metrics, wanted, hyperpar = NULL,
                             mode = mode)
   G <- partial$gradient
   total <- G[, traits, drop = FALSE]
   for (J in trade_offs) {
     along <- intersect(colnames(J), traits)
-    from <- intersect(rownames(J), read)
+    from <- intersect(rownames(J), colnames(G))
     total[, along] <- total[, along] +
       G[, from, drop = FALSE] %*% J[from, along, drop = FALSE]
   }

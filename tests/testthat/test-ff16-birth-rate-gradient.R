@@ -63,11 +63,15 @@ test_that("a variable birth rate has no column rather than a zero", {
 test_that("the birth-rate column passes through a hyperparameter function as itself", {
   solver <- ff16_stand_run(ff16_stand_parameters(lifetime = 6),
                        Control(node_density_coordinate = "birth_date"))
-  through <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
-                            traits = c("1.lma", "1.birth_rate"),
-                            hyperpar = default_hyperpar("FF16"))
-  partial <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
-                            traits = "1.birth_rate", hyperpar = NULL)
-  expect_identical(through$gradient[, "1.birth_rate"],
-                   partial$gradient[, "1.birth_rate"])
+  # Each route against itself: the two agree only to rounding.
+  for (mode in c("reverse", "forward")) {
+    through <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
+                              traits = c("1.lma", "1.birth_rate"),
+                              hyperpar = default_hyperpar("FF16"), mode = mode)
+    partial <- stand_gradient(solver, metrics = "1.net_reproduction_ratio",
+                              traits = "1.birth_rate", hyperpar = NULL,
+                              mode = mode)
+    expect_identical(through$gradient[, "1.birth_rate"],
+                     partial$gradient[, "1.birth_rate"], label = mode)
+  }
 })

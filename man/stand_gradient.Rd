@@ -50,7 +50,8 @@ the forward route for FF16 when fewer than nine columns are needed and
 the sweep otherwise. The two give the same numbers to rounding (about
 1e-13 relative), the same shape and names, and the same refusals. Under a
 hyperparameter function the columns counted are the ones the chain rule
-reads: the traits asked for and the parameters derived from them.}
+reads: the traits asked for and each parameter derived from them that
+moves with one (FF16's lma adds \code{k_l} and \code{r_l}).}
 }
 \value{
 A list with \code{value}, the metrics at the end of the run;
