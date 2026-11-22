@@ -32,8 +32,11 @@ pulse_run <- function(p, depth, record = TRUE) {
 }
 
 test_that("a pulse the layer takes whole is the pinned-step central difference", {
-  # 2 mm into a layer at 0.3: nothing is shed. Measured 1e-8 to 3e-8 against the
-  # difference below at a relative step of 1e-5; held to 1e-6.
+  # 2 mm into a layer at 0.3: nothing is shed. Against the difference below at
+  # relative steps of 1e-5 and 2e-5, extrapolated to remove the step's square:
+  # lma's column has curvature enough that one step of 1e-5 is off by 1.4e-6
+  # relative.
+  # Measured within 4e-8; held to 1e-6.
   depth <- 0.002
   solver <- pulse_run(pulse_stand(), depth)
   expect_true(all(vapply(solver$event_log$applied, function(a) a[[2]], 0) == 0))
@@ -44,7 +47,8 @@ test_that("a pulse the layer takes whole is the pinned-step central difference",
   pinned <- pin_steps(solver)
   census_of <- function(q) stand_census(pulse_run(q, depth, record = FALSE))[metrics]
   for (name in traits) {
-    fd <- central_difference(pinned, 1, name, NULL, census_of, rel = 1e-5)
+    fd <- (4 * central_difference(pinned, 1, name, NULL, census_of, rel = 1e-5) -
+           central_difference(pinned, 1, name, NULL, census_of, rel = 2e-5)) / 3
     for (m in metrics) {
       expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd[[m]]), 1e-6 * abs(fd[[m]]),
                 label = paste(m, name))

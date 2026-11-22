@@ -301,6 +301,8 @@ test_that("collect output is reproducible and matches a seeded baseline", {
   ## Drawing deaths every 0.01 yr by default instead of every 0.05 changes the
   ## number of draws, so the stream again: FF16 76 established and 11
   ## surviving, TF24 52 and 1 (51 and 1 at a zero offset), K93 101 and 4.
+  ## Smoothing TF24's net production over a share of each plant's maintenance
+  ## flux moved its zero-offset run to 52 and 1; the others did not move.
   baseline <- list(
     FF16 = list(n_total = 76L, n_alive_final = 11L),
     TF24 = list(n_total = 52L, n_alive_final = 1L),
@@ -333,7 +335,7 @@ test_that("collect output is reproducible and matches a seeded baseline", {
   res <- tidy(run(p, Environment("TF24"), stochastic_control("TF24"),
                   method = "stochastic", record = "steps"))
   ia <- attr(res$species, "is_alive")[[1]]
-  expect_equal(dim(res$species[[1]])[3], 51L)
+  expect_equal(dim(res$species[[1]])[3], 52L)
   expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 1L)
 })
 
