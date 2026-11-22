@@ -78,7 +78,11 @@ bisected, that schedule is run once more. The schedule is in the
 result's \code{scenario$p}, with the ODE schedule that run took
 (\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
 \code{ode_soil_substep_ends}), so a later run of those parameters takes
-those steps exactly. With \code{record = "states"}, refinement's own
+those steps exactly; where the scenario's events name the introductions,
+as a resumed run's do, their introductions are the refined schedule too,
+and a run of it steps to those ODE times, which agrees to rounding.
+A resumed run refines only the introductions still to come, and not the
+interval before the first of them. With \code{record = "states"}, refinement's own
 passes keep no states, and the run the result reports keeps them; if the
 refinement converged, that is one more run.}
 

@@ -93,6 +93,89 @@ test_that("a refinement allowed no pass runs the schedule it was given", {
   expect_identical(outputs(run(res$scenario)), outputs(res))
 })
 
+## A refined scenario whose events name its introductions, run again: the
+## same introductions, and the same outputs to rounding, since with events the
+## run steps to p's ODE times rather than replaying their step sizes.
+expect_reruns_refined <- function(res) {
+  again <- run(res$scenario)
+  expect_identical(again$solver$patch$species[[1]]$node_times,
+                   res$solver$patch$species[[1]]$node_times)
+  expect_equal(again$offspring_production, res$offspring_production,
+               tolerance = 1e-9)
+  expect_equal(again$net_reproduction_ratios, res$net_reproduction_ratios,
+               tolerance = 1e-9)
+}
+
+test_that("a refined run whose events name its introductions reruns the refined schedule", {
+  p <- ff16_parameters(10)
+  ctrl <- control(node_density_coordinate = "birth_date", schedule_eps = 5e-4)
+  ev <- events(node_introductions(p), harvest(time = 5, fraction = 0.3))
+  res <- run(p, control = ctrl, events = ev, refine_schedule = TRUE)
+  refined <- res$scenario$p$node_schedule_times[[1]]
+  expect_gt(length(refined), length(p$node_schedule_times[[1]]))
+  ## The events carry the refined introductions, and keep their actions.
+  ev_res <- res$scenario$events
+  intro <- ev_res$type == "node_introduction"
+  expect_identical(ev_res$time[intro], refined)
+  expect_identical(ev_res$type[!intro], "harvest")
+  expect_reruns_refined(res)
+})
+
+test_that("a species introduced at no time refines and resumes", {
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(c(0.0825, 0.12), "lma"), birth_rate = c(1, 1))
+  t1 <- p$node_schedule_times[[1]]
+  only_first <- p
+  only_first$node_schedule_times <- list(t1, numeric(0))
+  expect_identical(node_introductions(only_first)$target_index, rep(1L, length(t1)))
+  ev <- events(node_introductions(only_first), harvest(time = 2, fraction = 0.2))
+  ctrl <- control(node_density_coordinate = "birth_date", schedule_eps = 5e-4)
+  res <- run(p, control = ctrl, events = ev, refine_schedule = TRUE)
+  expect_length(res$scenario$p$node_schedule_times[[2]], 0L)
+  expect_false(2L %in% res$scenario$events$target_index[
+    res$scenario$events$type == "node_introduction"])
+  expect_reruns_refined(res)
+  ## Species 2 stops recruiting before the export, so has none left to come.
+  q <- p
+  q$node_schedule_times[[2]] <- c(0, 0.5, 1)
+  part <- run(q, until = 2)
+  resumed <- run(q, from = part)
+  expect_true(resumed$complete)
+  expect_length(resumed$scenario$p$node_schedule_times[[2]], 0L)
+})
+
+test_that("a run's parameters carry the introductions its events name", {
+  p <- ff16_parameters(10)
+  few <- p$node_schedule_times[[1]][c(1, 5, 20, 40, 60)]
+  q <- p
+  q$node_schedule_times <- list(few)
+  res <- run(p, events = events(node_introductions(q)))
+  expect_identical(res$scenario$p$node_schedule_times, list(few))
+  expect_identical(res$solver$patch$species[[1]]$node_times, few)
+})
+
+test_that("a resumed run refines the introductions still to come", {
+  p <- ff16_parameters(10)
+  part <- run(p, until = 4)
+  residual <- run(p, from = part)$scenario$p$node_schedule_times[[1]]
+  ## One pass at this tolerance bisects and does not converge.
+  ctrl <- control(schedule_eps = 1e-6, schedule_nsteps = 1)
+  res <- run(p, control = ctrl, from = part, refine_schedule = TRUE)
+  refined <- res$scenario$p$node_schedule_times[[1]]
+  expect_gt(length(refined), length(residual))
+  expect_true(all(residual %in% refined))
+  ## Nothing goes before the first time still to come, whose interval reaches
+  ## back past the resume.
+  expect_identical(refined[[1]], residual[[1]])
+  expect_reruns_refined(res)
+  ## Converged, as in the run that found it.
+  conv <- run(p, control = control(schedule_eps = 5e-4), from = part,
+              refine_schedule = TRUE)
+  expect_reruns_refined(conv)
+})
+
 test_that("record keeps what tidy() and a gradient read", {
   p <- ff16_parameters(10)
   res <- run(p, record = "steps")

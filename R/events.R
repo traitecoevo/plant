@@ -178,7 +178,9 @@ events_default <- function(p) {
 ##' @export
 node_introductions <- function(p) {
   times <- p$node_schedule_times
-  parts <- lapply(seq_along(times), function(i) {
+  ## A species introduced at no time has no rows.
+  introduced <- which(lengths(times) > 0L)
+  parts <- lapply(introduced, function(i) {
     event_rows("node_introduction", time = times[[i]],
                target = "species", target_index = i)
   })
