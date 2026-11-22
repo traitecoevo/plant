@@ -183,7 +183,8 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{scenario} is what that patch ran, its events including what
 ##'   reached it down the flows), \code{flows} (a data frame of every amount
 ##'   passed between patches: \code{time}, \code{from}, \code{to},
-##'   \code{resource}, \code{into} and \code{amount}) and \code{method}.
+##'   \code{type}, \code{out_of}, \code{into} and \code{amount}, the amount
+##'   that reached \code{to}) and \code{method}.
 ##'   \code{tidy()} of it is a list of each patch's.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}

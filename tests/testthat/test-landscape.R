@@ -39,11 +39,15 @@ test_that("unlinked patches run as each does alone, whatever their models", {
   land <- landscape(list(a = light_patch("FF16"), b = light_patch("K93")))
   expect_s3_class(land, "plant_landscape")
   expect_equal(nrow(land$flows), 0)
+  ## The flows table has the same columns whatever is carried, and none here.
+  expect_named(land$flows, c("from", "to", "type", "out_of", "into", "weight"))
 
   res <- run(land)
   expect_s3_class(res, "plant_landscape_run")
   expect_named(res$patches, c("a", "b"))
   expect_equal(nrow(res$flows), 0)
+  expect_named(res$flows,
+               c("time", "from", "to", "type", "out_of", "into", "amount"))
   for (patch in names(land$patches)) {
     alone <- run(land$patches[[patch]])
     expect_identical(res$patches[[patch]]$offspring_production,
@@ -130,7 +134,8 @@ test_that("a flow leaves the pool it names and reaches the pool it names", {
   ## Only what the second layer shed is passed, and half of it.
   expect_equal(res$flows$time, c(0.5, 1.5))
   expect_equal(res$flows$amount, 0.5 * shed[deep])
-  expect_equal(res$flows$resource, c(2L, 2L))
+  expect_equal(res$flows$type, c("resource", "resource"))
+  expect_equal(res$flows$out_of, c(2L, 2L))
   expect_equal(res$flows$into, c(3L, 3L))
 
   ## It reached the gully's third layer, and nothing else did.
@@ -261,6 +266,11 @@ test_that("a landscape changed after it was made is checked again when run", {
   heavier$flows$weight <- 2
   expect_error(run(heavier), "between 0 and 1")
 
+  ## A kind of flow plant does not have is refused by name.
+  pollen <- land
+  pollen$flows$type <- "pollen"
+  expect_error(run(pollen), "\"pollen\" is not a kind of flow; the kinds are resource")
+
   astray <- land
   astray$flows$to <- "creek"
   expect_error(run(astray), "\"creek\", which is not a patch")
@@ -287,4 +297,28 @@ test_that("a flow into a pool the receiver lacks names the patch it stopped at",
   ## A flow out of a pool the source lacks passes nothing.
   none <- run(landscape(list(a = dry, b = dry), resource_flow("a", "b")))
   expect_equal(nrow(none$flows), 0)
+})
+
+test_that("the run reads a kind of flow only through its three functions", {
+  ## A made-up kind: one unit leaves at times 1 and 2, whatever the patch did,
+  ## and arrives as a note on the receiving scenario.
+  kinds <- list(token = list(
+    check = function(flows) NULL,
+    leaving = function(result, out_of) data.frame(time = c(1, 2), amount = c(1, 1)),
+    arriving = function(scenario, arrivals) {
+      scenario$received <- arrivals
+      scenario
+    }))
+  flows <- new_flows(c("a", "a"), c("b", "c"), "token", 1L, c(1L, 2L), c(0.25, 0.5))
+  out <- transfers_out_of("a", NULL, flows, kinds)
+  expect_named(out, names(empty_transfers()))
+  expect_equal(out$to, c("b", "b", "c", "c"))
+  expect_equal(out$into, c(1L, 1L, 2L, 2L))
+  expect_equal(out$amount, c(0.25, 0.25, 0.5, 0.5))
+  expect_equal(nrow(transfers_out_of("b", NULL, flows, kinds)), 0)
+
+  ## An amount that is not a number is refused, not passed on.
+  kinds$token$leaving <- function(result, out_of) data.frame(time = 1, amount = NaN)
+  expect_error(transfers_out_of("a", NULL, flows, kinds),
+               "Patch \"a\" reported an amount leaving it by a token flow")
 })

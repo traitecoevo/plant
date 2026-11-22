@@ -33,7 +33,9 @@ to at most 1; what they leave over leaves the landscape.}
 }
 \value{
 A list of class \code{plant_landscape} with \code{patches}, the
-  named scenarios, and \code{flows}, a data frame with one row per flow.
+  named scenarios, and \code{flows}, a data frame with one row per flow:
+  \code{from}, \code{to}, \code{type}, \code{out_of}, \code{into} and
+  \code{weight}.
 }
 \description{
 A landscape is a set of patches and the flows that link them. Each patch is
@@ -43,11 +45,19 @@ from one patch to another during a run. \code{\link{run}} takes a landscape
 as it takes a scenario.
 }
 \details{
-Nothing here is specific to a model. A landscape knows patches, and flows
-between them of whatever the patches' environments count as a resource: in
-TF24 that is water in a soil layer, and \code{resource_flow("ridge",
-"gully")} passes the part of each rain pulse the ridge's surface cannot
-hold to the gully.
+Nothing here is specific to a model, or to what flows. Every flow is one
+row of the same table: the patch it leaves (\code{from}) and the patch it
+reaches (\code{to}); its \code{type}, which says what it carries; which
+part of the source it comes \code{out_of} and which part of the receiver
+it goes \code{into}, each an index (of a resource pool of the environment,
+or of a species, as the type reads them); and its \code{weight}, the share
+of what leaves that reaches \code{to}. A kind of flow is a function that
+writes rows of this table, so a landscape can mix kinds.
+
+One kind exists so far. \code{resource_flow} carries whatever the patches'
+environments count as a resource: in TF24 that is water in a soil layer,
+and \code{resource_flow("ridge", "gully")} passes the part of each rain
+pulse the ridge's surface cannot hold to the gully.
 
 The patches run over one span of time and share its clock, so they must
 have the same \code{max_patch_lifetime}. They are taken to be of equal
