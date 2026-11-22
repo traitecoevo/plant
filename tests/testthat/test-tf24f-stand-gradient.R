@@ -3,9 +3,9 @@
 # differences of runs pinned to the recorded steps, as TF24's and FF16's are
 # (test-tf24-fitness-gradient.R, test-ff16-stand-gradient.R).
 #
-# Two stands. On the one test-model-tf24f.R runs (five years, hmat 5, a birth
-# rate of 20, the default soil) the position stays near the middle of the
-# feasible interval. Under dry pulses, at a gain high enough to reach it, the
+# Two environments. On the default soil (five years, hmat 5, a birth rate of
+# 20, as test-model-tf24f.R runs it, at two lma) the position stays near the
+# middle of the feasible interval. Under dry pulses, at a gain high enough to reach it, the
 # position is held at the interval's dry end through each dry spell, and the
 # interval itself moves as the soil dries, so the collar's rows there are the
 # end's rows.

@@ -192,7 +192,8 @@ clamp_class <- list(
   rainfall               = "never",
   infiltration           = "never",
   # `supply_kink_step_off` is deliberately absent: there is no note_clamp site for
-  # it. At a coincident collar the supply kernels return not-a-number, and nothing
+  # it. Where the supply kernels return not-a-number (a zero collar, or a layer's
+  # potential or gravity balance outside the uptake's quadrature span), nothing
   # steps four kink tolerances off it -- the marginal profit falls back to a
   # central difference at the same collar, and a row built on a NaN supply
   # derivative is differenced instead of read. Neither is a clamp, so neither is
