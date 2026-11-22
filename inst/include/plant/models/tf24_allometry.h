@@ -22,35 +22,51 @@ S TF24_Model<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
 }
 
-// Area and mass of sapwood
+// Basal sapwood area: the conducting area a plant actually has (at a resting
+// departure, the one its leaf area prefers), read at the base of the flow path.
+// On a uniform stem at a resting departure the Huber value is theta_tip * 1 * 1,
+// both multiplications exact, so this is area_leaf * theta_tip bit for bit.
 template <typename S>
-S TF24_Model<S>::area_sapwood(const S& area_leaf) const {
-  return area_leaf * pars.theta;
-}
-
-// The conducting area a plant actually has, as against the one its leaf area
-// prefers. At a resting departure sapwood_per_leaf_area() returns pars.theta
-// unchanged, so this is bit-identical to the overload above.
-template <typename S>
-S TF24_Model<S>::area_sapwood(const S& area_leaf,
-                                 const S& sapwood_departure) const {
-  return area_leaf * sapwood_per_leaf_area(sapwood_departure);
+S TF24_Model<S>::area_sapwood(const S& area_leaf, const S& sapwood_departure,
+                              const S& height) const {
+  return area_leaf * sapwood_per_leaf_area_at_base(sapwood_departure, height);
 }
 
 template <typename S>
 S TF24_Model<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
-  return area_sapwood * height * eta_c * pars.rho;
+  return stem_tissue_mass(area_sapwood, height);
 }
 
-// Area and mass of bark
+// Basal bark area. The trailing factor is exactly 1 on a uniform stem.
 template <typename S>
-S TF24_Model<S>::area_bark(const S& area_leaf) const {
-  return pars.a_b1 * area_leaf * pars.theta;
+S TF24_Model<S>::area_bark(const S& area_leaf, const S& height) const {
+  return pars.a_b1 * area_leaf * pars.theta_tip * huber_base_factor(height);
 }
 
 template <typename S>
 S TF24_Model<S>::mass_bark(const S& area_bark, const S& height) const {
-  return area_bark * height * eta_c * pars.rho;
+  return stem_tissue_mass(area_bark, height);
+}
+
+// A uniform stem's tissue is its basal area over the mean path length
+// height * eta_c, in that order of operations. A profiled one is its basal area
+// times V / theta_base-factor: the volume per unit tip area, over the basal
+// area per unit tip area. The attached column is d(V/m)/dtheta_c at 0, which
+// is dV/dtheta_c - L_top * log(L_top/L_tip) = L_tip - L_top above the segment.
+template <typename S>
+S TF24_Model<S>::stem_tissue_mass(const S& basal_area, const S& height) const {
+  if (uniform_stem()) {
+    S m = basal_area * height * eta_c * pars.rho;
+    if constexpr (!std::is_same_v<S, double>) {
+      const S L_top = height * eta_c;
+      if (path_beyond_tip(L_top)) {
+        m += basal_area * pars.theta_c * (pars.L_tip - L_top) * pars.rho;
+      }
+    }
+    return m;
+  }
+  return basal_area *
+    (stem_volume_per_tip_area(height) / huber_base_factor(height)) * pars.rho;
 }
 
 template <typename S>
@@ -151,10 +167,37 @@ template <typename S>
 S TF24_Model<S>::dmass_sapwood_darea_leaf(const S& area_leaf,
                                              const S& sapwood_departure) const {
   // Priced at the Huber value the plant ACTUALLY carries. At rest
-  // sapwood_per_leaf_area() returns pars.theta unchanged, so this is bitwise
-  // the expression it replaces.
-  return pars.rho * eta_c * pars.a_l1 * sapwood_per_leaf_area(sapwood_departure) *
-    (pars.a_l2 + 1.0) * pow(area_leaf, pars.a_l2);
+  // sapwood_per_leaf_area() returns pars.theta_tip unchanged, so on a uniform
+  // stem this is bitwise the expression it replaces.
+  //
+  // Derived by hand rather than by differentiating mass_sapwood, so it must be
+  // kept in step with it by hand: test-tf24-stem-hydraulics.R checks it against
+  // a tangent derivative of the mass. The mass is
+  //   M_s(A) = rho * theta_tip * exp(psi) * A * V(H(A)),   H(A) = a_l1 * A^a_l2,
+  // along the resting allometry through A, and since A * dH/dA = a_l2 * H and
+  // dV/dH = eta_c * theta_base/theta_tip,
+  //   dM_s/dA = rho * theta_tip * exp(psi) * (V + a_l2 * H * eta_c * m(H)).
+  // On a uniform stem V = H * eta_c and m = 1, which is the line below.
+  if (uniform_stem()) {
+    S d = pars.rho * eta_c * pars.a_l1 * sapwood_per_leaf_area(sapwood_departure) *
+      (pars.a_l2 + 1.0) * pow(area_leaf, pars.a_l2);
+    if constexpr (!std::is_same_v<S, double>) {
+      // d/dtheta_c at 0 of V + a_l2 * H * eta_c * m: dV/dtheta_c plus
+      // a_l2 * H * eta_c * log(L_top/L_tip). Both vanish below the segment.
+      const S height = pars.a_l1 * pow(area_leaf, pars.a_l2);
+      const S L_top = height * eta_c;
+      if (path_beyond_tip(L_top)) {
+        d += pars.rho * sapwood_per_leaf_area(sapwood_departure) * pars.theta_c *
+          (dstem_volume_dtheta_c_uniform(height) +
+           pars.a_l2 * L_top * log(L_top / pars.L_tip));
+      }
+    }
+    return d;
+  }
+  const S height = pars.a_l1 * pow(area_leaf, pars.a_l2);
+  return pars.rho * sapwood_per_leaf_area(sapwood_departure) *
+    (stem_volume_per_tip_area(height) +
+     pars.a_l2 * height * eta_c * huber_base_factor(height));
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
@@ -181,11 +224,13 @@ S TF24_Model<S>::dmass_coarse_root_darea_leaf(const S& area_leaf,
   return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf, sapwood_departure);
 }
 
-// Heartwood grows from the sapwood already there, not from leaf-area growth.
+// Heartwood grows from the sapwood already there, not from leaf-area growth,
+// and from the basal area, which is the stem it thickens.
 template <typename S>
 S TF24_Model<S>::area_heartwood_dt(const S& area_leaf,
-                                      const S& sapwood_departure) const {
-  return pars.k_s * area_sapwood(area_leaf, sapwood_departure);
+                                   const S& sapwood_departure,
+                                   const S& height) const {
+  return pars.k_s * area_sapwood(area_leaf, sapwood_departure, height);
 }
 
 template <typename S>
@@ -197,9 +242,10 @@ S TF24_Model<S>::mass_heartwood_dt(const S& mass_sapwood) const {
 template <typename S>
 S TF24_Model<S>::mass_live_given_height(const S& height) const {
   S area_leaf_ = area_leaf(height);
-  const S mass_sapwood_ = mass_sapwood(area_sapwood(area_leaf_), height);
+  const S mass_sapwood_ =
+    mass_sapwood(area_sapwood(area_leaf_, S(0.0), height), height);
   return mass_leaf(area_leaf_) +
-         mass_bark(area_bark(area_leaf_), height) +
+         mass_bark(area_bark(area_leaf_, height), height) +
          mass_sapwood_ +
          mass_root(area_leaf_) +
          mass_coarse_root(mass_sapwood_);

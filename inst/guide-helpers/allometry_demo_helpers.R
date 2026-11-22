@@ -22,7 +22,7 @@ tf24_seat <- function(ind, env, height, phi = 0, psi = 0) {
   ind$set_state("log_area_leaf_departure", phi)
   ind$set_state("log_area_sapwood_departure", psi)
   s <- ind$strategy
-  ## mass_sapwood is linear in sapwood area, A*(h) exp(phi) theta exp(psi).
+  ## mass_sapwood is linear in sapwood area, A*(h) exp(phi) theta_tip exp(psi).
   mass_sapwood <- plant:::TF24_strategy_expand_allometry(s, height, 0, 0)$mass_sapwood *
     exp(phi) * exp(psi)
   ind$set_state("storage", s$pars$a_st3 * s$pars$a_st1 * mass_sapwood)
@@ -209,9 +209,9 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0,
   ## Costs that scale with leaf area: leaf, fine root, and bark (pinned to leaf
   ## area). Sapwood is the one that does not.
   per_area <- cc * (p$r_l * p$lma + p$r_r * p$a_r1 +
-                      p$r_b * p$a_b1 * p$theta * height * eta_c * p$rho) +
+                      p$r_b * p$a_b1 * p$theta_tip * height * eta_c * p$rho) +
     (p$k_l * p$lma + p$k_r * p$a_r1 +
-       p$k_b * p$a_b1 * p$theta * height * eta_c * p$rho)
+       p$k_b * p$a_b1 * p$theta_tip * height * eta_c * p$rho)
   m_s <- a$A_s * height * eta_c * p$rho
   dPdA <- (b$P - a$P) / (b$A - a$A)
 

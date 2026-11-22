@@ -3,6 +3,7 @@
 #define PLANT_PLANT_STEM_HYDRAULICS_H_
 
 #include <cmath>
+#include <type_traits>
 #include <odelia/ode_util.hpp>
 
 namespace plant {
@@ -64,15 +65,14 @@ T effective_path_length(const T& L_top, const T& L_tip, const T& beta) {
   // differentiating the choice rather than the model at a fixed choice is what
   // manufactures a discontinuity the model does not have.
   //
-  // ⚠️ beta == 0 IS THE ONE CONFIGURATION WHOSE D_c AND theta_c ROWS ARE ZERO
-  // RATHER THAN SMALL. The expm1 form below is not merely close to L_top -
-  // L_tip at beta == 0, it is that limit exactly, so this arm is a bit-identity
-  // shortcut and not a numerical necessity -- but it returns a value that does
-  // not read beta, and the recorded row is therefore an exact zero where the
-  // true dL_eff/dbeta is L_top*(log(L_top/L_tip) - 1) + L_tip. TF24 defaults to
-  // D_c = 0.2, so nothing on the gradient path takes this arm; the height-linear
-  // configuration that does (D_c = theta_c = L_tip = 0) exists to assert
-  // bit-identity with the pre-v10 model and takes no gradient.
+  // ⚠️ THE TWO LIMIT ARMS RETURN VALUES THAT DO NOT READ beta, so on an active
+  // scalar each attaches its beta column by hand as (beta - value) * dL/dbeta,
+  // an exact zero in the value. Without it the D_c and theta_c columns lose the
+  // whole of the path's share at beta == 0 and beta == 1 and come back as
+  // numbers that read as answers. With L_tip == 0 (only admissible at
+  // beta == 0) the derivative is unbounded, and nothing is attached: that is
+  // the height-linear configuration, which exists to assert bit-identity and
+  // takes no gradient.
   if (to_passive(beta) == 0.0) {
     // Return the operand verbatim when there is no terminal segment. `L_top -
     // 0.0` is exact in IEEE-754, so this is not about rounding; it removes any
@@ -80,7 +80,16 @@ T effective_path_length(const T& L_top, const T& L_tip, const T& beta) {
     // -ffp-contract fuses the caller's multiply into an fma with it. A
     // regression gate asserting bit-identity should not rest on that reasoning
     // surviving a toolchain upgrade.
-    return to_passive(L_tip) == 0.0 ? L_top : T(L_top - L_tip);
+    if (to_passive(L_tip) == 0.0) {
+      return L_top;
+    }
+    if constexpr (std::is_same_v<T, double>) {
+      return L_top - L_tip;
+    } else {
+      // dL/dbeta at 0 = -INT_{L_tip}^{L_top} log(L/L_tip) dL.
+      const T dL_dbeta = -(L_top * (log(L_top / L_tip) - 1.0) + L_tip);
+      return T(L_top - L_tip + beta * dL_dbeta);
+    }
   }
 
   const T x = log(L_top / L_tip);  // > 0 given the precondition
@@ -90,7 +99,13 @@ T effective_path_length(const T& L_top, const T& L_tip, const T& beta) {
   // basipetal rise in theta) makes the resistance per unit length fall as 1/L,
   // so resistance grows only as log(H).
   if (to_passive(e) == 0.0) {
-    return T(L_tip * x);
+    if constexpr (std::is_same_v<T, double>) {
+      return T(L_tip * x);
+    } else {
+      // dL/dbeta at 1 = -L_tip * x^2 / 2; e - 0 is beta's departure from 1,
+      // negated.
+      return T(L_tip * x + e * (L_tip * x * x * 0.5));
+    }
   }
 
   // L_tip * ((L_top/L_tip)^e - 1) / e, written with expm1 rather than as the

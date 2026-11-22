@@ -217,21 +217,24 @@ public:
          const S area_leaf = p.area_leaf_carried(vars);
          return p.mass_above_ground(
              p.mass_leaf(area_leaf),
-             p.mass_bark(p.area_bark(area_leaf), height),
+             p.mass_bark(p.area_bark(area_leaf, height), height),
              p.mass_sapwood(
                  p.area_sapwood(
                      area_leaf,
-                     vars.state(p.state_idx_log_area_sapwood_departure)),
+                     vars.state(p.state_idx_log_area_sapwood_departure),
+                     height),
                  height),
              vars.state(p.state_idx_mass_heartwood));
        }},
       {"area_stem",
        [](const strategy& p, const Internals<S>& vars) -> S {
+         const S height = vars.state(HEIGHT_INDEX);
          const S area_leaf = p.area_leaf_carried(vars);
          return p.area_stem(
-             p.area_bark(area_leaf),
+             p.area_bark(area_leaf, height),
              p.area_sapwood(area_leaf,
-                            vars.state(p.state_idx_log_area_sapwood_departure)),
+                            vars.state(p.state_idx_log_area_sapwood_departure),
+                            height),
              vars.state(p.state_idx_area_heartwood));
        }},
     }};
@@ -365,26 +368,134 @@ public:
   // Leaf mass from leaf area
   S mass_leaf(const S& area_leaf) const;
 
-  // Sapwood area per unit leaf area -- the Huber value, `theta` displaced by
-  // the sapwood departure state. ALWAYS form the ratio this way rather than as
-  // area_sapwood / area_leaf: the two are algebraically equal but not bitwise,
-  // because a multiply followed by a divide does not recover its operand, and
-  // that difference is enough to lose the exactness of the resting model.
+  // Sapwood area per unit leaf area at the TERMINAL SEGMENT -- the Huber value
+  // theta_tip, displaced by the sapwood departure state. This is what the water
+  // path's numerator reads; the stem's own areas are read at its base, below.
+  // ALWAYS form the ratio this way rather than as area_sapwood / area_leaf: the
+  // two are algebraically equal but not bitwise, because a multiply followed by
+  // a divide does not recover its operand, and that difference is enough to
+  // lose the exactness of the resting model.
   S sapwood_per_leaf_area(const S& sapwood_departure) const {
     using std::exp;
-    return pars.theta * exp(sapwood_departure);
+    return pars.theta_tip * exp(sapwood_departure);
   }
 
-  // Area and mass of sapwood. The one-argument form is the resting
-  // allometry (used where a plant is on its trajectory by definition, e.g. the
-  // germination inversion); the two-argument form reads the departure state.
-  S area_sapwood(const S& area_leaf) const;
-  S area_sapwood(const S& area_leaf, const S& sapwood_departure) const;
+  // * The Huber profile along the stem.
+  //
+  // Sapwood area per leaf area at distance L below the leaf-area-weighted mean
+  // leaf height is theta_tip * exp(psi) * (max(L, L_tip) / L_tip)^theta_c, on
+  // the path the resistance integrates (L from 0 to L_top = height * eta_c; see
+  // stem_hydraulics.h). The terminal segment itself is uniform at theta_tip.
+  // The same profile sets the water path (through beta = 2*D_c + theta_c) and
+  // the stem that is built and paid for, so the two cannot describe different
+  // plants. The departure psi scales the whole profile, which leaves the
+  // sapwood controller's derivatives as they were.
+  //
+  // At theta_c == 0 the stem is uniform and every function below returns the
+  // uniform stem's own expression, bit for bit. On an active scalar the value
+  // is the same, and the theta_c column is attached by hand as
+  // theta_c * (d/dtheta_c at 0), which is an exact zero in the value: the
+  // general closed forms are exact in the limit only to rounding, and the
+  // recorded value must be the run's.
+
+  // Whether the stem is uniform, read off the value.
+  bool uniform_stem() const {
+    return odelia::util::to_passive(pars.theta_c) == 0.0;
+  }
+
+  // Whether the flow path reaches beyond the terminal segment, where the
+  // profile starts. Below it the plant is all terminal segment and uniform.
+  // A selector, so read off the values.
+  bool path_beyond_tip(const S& L_top) const {
+    using odelia::util::to_passive;
+    return to_passive(pars.L_tip) > 0.0 &&
+      to_passive(L_top) > to_passive(pars.L_tip);
+  }
+
+  // theta_base / theta_tip = (height * eta_c / L_tip)^theta_c: the Huber value
+  // at the base of the flow path as a multiple of the tip's. 1 below the
+  // terminal segment, and at theta_c == 0.
+  S huber_base_factor(const S& height) const {
+    using std::log;
+    using std::pow;
+    if constexpr (std::is_same_v<S, double>) {
+      if (uniform_stem()) {
+        return 1.0;
+      }
+    }
+    const S L_top = height * eta_c;
+    if (!path_beyond_tip(L_top)) {
+      return S(1.0);
+    }
+    if (uniform_stem()) {
+      return S(1.0) + pars.theta_c * log(L_top / pars.L_tip);
+    }
+    return pow(L_top / pars.L_tip, pars.theta_c);
+  }
+
+  // V(height): stem tissue volume per unit terminal-segment area [m],
+  //   V = L_tip + INT_{L_tip}^{L_top} (L / L_tip)^theta_c dL,
+  // which is L_top for a uniform stem. Only the profiled branch is written
+  // here: callers keep the uniform stem's expression where theta_c == 0, so
+  // that its operations, and therefore its bits, are the ones they always were.
+  // Written with expm1 for the same reason as effective_path_length, whose
+  // integral this is at exponent -theta_c; theta_c = -1 takes the log limit.
+  S stem_volume_per_tip_area(const S& height) const {
+    using std::expm1;
+    using std::log;
+    const S L_top = height * eta_c;
+    if (!path_beyond_tip(L_top)) {
+      return L_top;
+    }
+    const S x = log(L_top / pars.L_tip);
+    const S e = S(1.0) + pars.theta_c;
+    if (odelia::util::to_passive(e) == 0.0) {
+      // The limit does not read theta_c, so an active scalar attaches its
+      // column, dV/de at 0 = L_tip * x^2 / 2, as e * that: zero in the value.
+      if constexpr (std::is_same_v<S, double>) {
+        return pars.L_tip * (S(1.0) + x);
+      } else {
+        return pars.L_tip * (S(1.0) + x + e * (x * x * 0.5));
+      }
+    }
+    return pars.L_tip * (S(1.0) + expm1(e * x) / e);
+  }
+
+  // dV/dtheta_c at theta_c = 0, the attached column of the uniform stem's
+  // volume: INT_{L_tip}^{L_top} log(L / L_tip) dL. Zero below the segment.
+  S dstem_volume_dtheta_c_uniform(const S& height) const {
+    using std::log;
+    const S L_top = height * eta_c;
+    if (!path_beyond_tip(L_top)) {
+      return S(0.0);
+    }
+    return L_top * (log(L_top / pars.L_tip) - 1.0) + pars.L_tip;
+  }
+
+  // Sapwood area per unit leaf area at the base of the flow path: the tip's
+  // value times the profile. What area_sapwood() and the stem diameter read.
+  S sapwood_per_leaf_area_at_base(const S& sapwood_departure,
+                                  const S& height) const {
+    return sapwood_per_leaf_area(sapwood_departure) * huber_base_factor(height);
+  }
+
+  // Area and mass of sapwood. The area is the BASAL area, at the sapwood
+  // departure the plant carries (zero for the resting allometry, as in the
+  // germination inversion). One signature, with the departure before the
+  // height, so a call written for the older two-argument forms fails to
+  // compile rather than reading a height as a departure.
+  S area_sapwood(const S& area_leaf, const S& sapwood_departure,
+                 const S& height) const;
   S mass_sapwood(const S& area_sapwood, const S& height) const;
 
-  // Area and mass of bark
-  S area_bark(const S& area_leaf) const;
+  // Area and mass of bark. Bark is a_b1 times the resting sapwood, so it tapers
+  // with the same profile.
+  S area_bark(const S& area_leaf, const S& height) const;
   S mass_bark (const S& area_bark, const S& height) const;
+
+  // Mass of a stem tissue (sapwood or bark) from its basal area: the profile's
+  // volume, basal area / theta_base * theta_tip * V, times wood density.
+  S stem_tissue_mass(const S& basal_area, const S& height) const;
 
   S area_stem(const S& area_bark, const S& area_sapwood,
                             const S& area_heartwood) const;
@@ -509,9 +620,21 @@ public:
   // the fine root, and the sapwood and bark that supply it, at the ratio the
   // plant prefers rather than the one it currently has. Buying the whole
   // package is what stops rebuilding a canopy from diluting the Huber value.
+  // The sapwood and bark are the profile's volume per unit leaf area,
+  // theta_tip * V(height), which is theta * height * eta_c on a uniform stem.
   S mass_live_per_area_leaf_at_height(const S& height) const {
+    if (uniform_stem()) {
+      S m = pars.lma + pars.a_r1 +
+        pars.theta_tip * height * eta_c * pars.rho * (1.0 + pars.a_b1);
+      if constexpr (!std::is_same_v<S, double>) {
+        m += pars.theta_tip * pars.theta_c *
+          dstem_volume_dtheta_c_uniform(height) * pars.rho * (1.0 + pars.a_b1);
+      }
+      return m;
+    }
     return pars.lma + pars.a_r1 +
-      pars.theta * height * eta_c * pars.rho * (1.0 + pars.a_b1);
+      pars.theta_tip * stem_volume_per_tip_area(height) * pars.rho *
+        (1.0 + pars.a_b1);
   }
 
   // Net production
@@ -691,7 +814,7 @@ public:
 
   // Leaf area bought per unit live mass. Takes the sapwood departure because
   // the stem that comes with a new leaf is priced at the Huber value the plant
-  // ACTUALLY carries, not at pars.theta. Without that a plant holding extra
+  // ACTUALLY carries, not at pars.theta_tip. Without that a plant holding extra
   // conducting area gets its hydraulic benefit free, which is most of why net
   // production appeared to peak at 3.3x the pipe-model ratio.
   S darea_leaf_dmass_live(const S& area_leaf,
@@ -705,8 +828,8 @@ public:
   S dmass_sapwood_darea_leaf(const S& area_leaf,
                              const S& sapwood_departure) const;
   // Mass of bark needed for new unit area leaf, d m_b / d a_l
-  // Bark is pinned to LEAF area, not to sapwood, so it keeps pars.theta and
-  // does not move with the departure. Sharing the sapwood expression would give
+  // Bark is pinned to LEAF area, not to sapwood, so it keeps the resting Huber
+  // profile and does not move with the departure. Sharing the sapwood expression would give
   // it the Huber value's excursion, which it has no business having.
   S dmass_bark_darea_leaf(const S& area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
@@ -717,8 +840,9 @@ public:
   S dmass_coarse_root_darea_leaf(const S& area_leaf,
                                  const S& sapwood_departure) const;
   // Growth rate of heartwood area: it depends on the sapwood already there,
-  // not on leaf-area growth.
-  S area_heartwood_dt(const S& area_leaf, const S& sapwood_departure) const;
+  // not on leaf-area growth, and forms from the basal sapwood area.
+  S area_heartwood_dt(const S& area_leaf, const S& sapwood_departure,
+                      const S& height) const;
   S mass_heartwood_dt(const S& mass_sapwood) const;
 
   S mass_live_given_height(const S& height) const;
@@ -832,7 +956,8 @@ public:
 
   // Set constants within TF24_Model
   void prepare_strategy();
-  // Two steps of prepare_strategy.
+  // Steps of prepare_strategy.
+  void refuse_bad_huber_profile() const;
   void refuse_unsupported_traits() const;
   void construct_leaf();
 
@@ -1331,6 +1456,9 @@ void TF24_Model<S>::prepare_strategy() {
   crown = canopy_shape.unit_crown(function_integrator);
 
   eta_c = CanopyShape<S>::eta_c(pars.eta);
+  // Before the seed: its mass is the stem's profile, so a NaN theta_c or a
+  // missing terminal segment would first surface as a failed root search.
+  refuse_bad_huber_profile();
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
@@ -1355,34 +1483,29 @@ void TF24_Model<S>::prepare_strategy() {
   construct_leaf();
 }
 
+// The Huber profile is anchored at the terminal segment, so a non-zero theta_c
+// needs one. The path-length check in prepare_strategy covers this whenever
+// beta != 0, but theta_c = -2*D_c gives beta == 0 with the profile still on in
+// the stem's areas and masses. A NaN would pass the uniform test and reach every
+// one of them. Both read through to_passive because prepare_strategy also runs
+// on a rebound strategy carrying an active scalar.
+template <typename S>
+void TF24_Model<S>::refuse_bad_huber_profile() const {
+  const double theta_c = odelia::util::to_passive(pars.theta_c);
+  if (!std::isfinite(theta_c)) {
+    throw std::invalid_argument("theta_c must be finite");
+  }
+  if (theta_c != 0.0 && !(odelia::util::to_passive(pars.L_tip) > 0.0)) {
+    throw std::invalid_argument(
+      "theta_c != 0 needs a terminal segment: the Huber profile is anchored "
+      "at L_tip, which must be > 0");
+  }
+}
+
 // The trait values the model cannot run, refused once the seed size is known,
 // since L_tip is measured against it.
 template <typename S>
 void TF24_Model<S>::refuse_unsupported_traits() const {
-  // theta_c is declared but NOT YET USABLE. It profiles theta along the flow
-  // path, and theta is not a hydraulics-only trait: it also sets area_sapwood,
-  // area_bark, their growth rates, mass_sapwood (hence construction cost,
-  // respiration, turnover and NSC capacity) and the hard-coded
-  // dmass_sapwood_darea_leaf derivative. Those all still read a flat pars.theta.
-  //
-  // Applying the profile to the hydraulic term alone would give a plant whose
-  // stem conducts as though theta varied while it is built and respired as
-  // though theta were constant -- two different plants sharing one trait. There
-  // is no staged version of this worth having, so it is refused rather than
-  // half-applied. Lift the guard in the same change that profiles theta
-  // everywhere.
-  //
-  // Read through to_passive because prepare_strategy also runs on a rebound
-  // strategy carrying an active scalar, where the comparison is of the value
-  // either way and an active operand only records a statement to reach it.
-  if (odelia::util::to_passive(pars.theta_c) != 0.0) {
-    throw std::invalid_argument(
-      "theta_c is not implemented yet: theta also sets sapwood and bark area, "
-      "construction cost, respiration and storage capacity, and those still "
-      "use a constant theta. A hydraulics-only theta profile would be "
-      "physically inconsistent, so it is refused rather than half-applied. Use "
-      "D_c to vary the height dependence of resistance.");
-  }
 
   // The rooting depth's smooth cap is scaled by rooting_depth_max, so a value at
   // or below zero leaves it no width. Written to refuse NaN.

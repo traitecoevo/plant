@@ -1831,7 +1831,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars<double>& x) {
   ret["hmat"] = Rcpp::wrap(x.hmat);
   ret["omega"] = Rcpp::wrap(x.omega);
   ret["eta"] = Rcpp::wrap(x.eta);
-  ret["theta"] = Rcpp::wrap(x.theta);
+  ret["theta_tip"] = Rcpp::wrap(x.theta_tip);
   ret["a_l1"] = Rcpp::wrap(x.a_l1);
   ret["a_l2"] = Rcpp::wrap(x.a_l2);
   ret["a_r1"] = Rcpp::wrap(x.a_r1);
@@ -1921,8 +1921,23 @@ template <> inline plant::TF24_Pars<double> as(SEXP x) {
   ret.omega = Rcpp::as<double >(xl["omega"]);
   // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
   ret.eta = Rcpp::as<double >(xl["eta"]);
-  // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
-  ret.theta = Rcpp::as<double >(xl["theta"]);
+  // ret.theta_tip = Rcpp::as<decltype(rettheta_tip) >(xl["theta_tip"]);
+  // theta, renamed theta_tip: translated on an object saved before the
+  // rename (theta_c = 0, where the two coincide), refused otherwise.
+  if (xl.containsElementNamed("theta")) {
+    if (xl.containsElementNamed("theta_tip")) {
+      Rcpp::stop("TF24's `theta` is now `theta_tip`, the Huber value of the "
+                 "stem's terminal segment: set theta_tip, and remove theta");
+    }
+    if (Rcpp::as<double>(xl["theta_c"]) != 0.0) {
+      Rcpp::stop("TF24's `theta` is now `theta_tip`, the Huber value of the "
+                 "stem's terminal segment; with theta_c != 0 it differs from "
+                 "a whole-stem value, so give theta_tip explicitly");
+    }
+    ret.theta_tip = Rcpp::as<double>(xl["theta"]);
+  } else {
+    ret.theta_tip = Rcpp::as<double >(xl["theta_tip"]);
+  }
   // ret.a_l1 = Rcpp::as<decltype(reta_l1) >(xl["a_l1"]);
   ret.a_l1 = Rcpp::as<double >(xl["a_l1"]);
   // ret.a_l2 = Rcpp::as<decltype(reta_l2) >(xl["a_l2"]);

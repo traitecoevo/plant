@@ -111,7 +111,7 @@ tf24_departure_rates_r <- function(s, height, phi, psi, tracked, P, A) {
   u_s   <- 1 - rho_s
 
   ## Reserves still gate growth, as they did before.
-  A_s   <- p$theta * A * exp(psi)
+  A_s   <- p$theta_tip * A * exp(psi)
   S_max <- p$a_st1 * A_s * height * eta_c * p$rho
   ## (r is supplied by the caller through P's own individual; recomputed here
   ## only for the growth gate.)
@@ -123,7 +123,7 @@ tf24_departure_rates_r <- function(s, height, phi, psi, tracked, P, A) {
          f_g   <- 1 - p$a_f1 / (1 + exp(p$a_f2 * (1 - height / p$hmat)))
          sigma <- rho_l * (1 - exp(phi / p$a_pl2))
          c_reb <- p$lma + p$a_r1 +
-           p$theta * height * eta_c * p$rho * (1 + p$a_b1)
+           p$theta_tip * height * eta_c * p$rho * (1 + p$a_b1)
          b <- sigma * F * f_g / (c_reb * A)
          list(dphi = b - u_l * p$k_l,
               dpsi = u_l * p$k_l - u_s * p$k_s + b * (exp(-psi) - 1))

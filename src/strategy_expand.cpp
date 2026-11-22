@@ -9,6 +9,13 @@
 namespace plant {
 namespace {
 
+// TF24 and its subclasses read their stem areas at the base of a Huber profile,
+// which needs the height; FF16's stem is uniform and takes leaf area alone.
+template <typename S>
+concept HasHuberProfile = requires(const S& s, double x) {
+  s.sapwood_per_leaf_area_at_base(x, x);
+};
+
 template <typename S>
 Rcpp::List strategy_expand_allometry_impl(S s,
                                           const Rcpp::NumericVector& height,
@@ -25,15 +32,22 @@ Rcpp::List strategy_expand_allometry_impl(S s,
   Rcpp::NumericVector area_leaf(n), mass_leaf(n), area_sapwood(n),
     mass_sapwood(n), area_bark(n), mass_bark(n), area_stem(n),
     diameter_stem(n), mass_root(n), mass_coarse_root(n), mass_live(n),
-    mass_total(n), mass_above_ground(n);
+    mass_total(n), mass_above_ground(n), huber_value_base(n);
 
   for (R_xlen_t i = 0; i < n; ++i) {
     const double h  = height[i];
     const double al = s.area_leaf(h);
     const double ml = s.mass_leaf(al);
-    const double as = s.area_sapwood(al);
+    double as, ab;
+    if constexpr (HasHuberProfile<S>) {
+      as = s.area_sapwood(al, 0.0, h);
+      ab = s.area_bark(al, h);
+      huber_value_base[i] = s.sapwood_per_leaf_area_at_base(0.0, h);
+    } else {
+      as = s.area_sapwood(al);
+      ab = s.area_bark(al);
+    }
     const double ms = s.mass_sapwood(as, h);
-    const double ab = s.area_bark(al);
     const double mb = s.mass_bark(ab, h);
     const double ast = s.area_stem(ab, as, area_heartwood[i]);
     const double mr = s.mass_root(al);
@@ -55,7 +69,7 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     mass_above_ground[i] = s.mass_above_ground(ml, mb, ms, mh);
   }
 
-  return Rcpp::List::create(
+  Rcpp::List out = Rcpp::List::create(
     Rcpp::_["area_leaf"]         = area_leaf,
     Rcpp::_["mass_leaf"]         = mass_leaf,
     Rcpp::_["area_sapwood"]      = area_sapwood,
@@ -69,6 +83,13 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     Rcpp::_["mass_live"]         = mass_live,
     Rcpp::_["mass_total"]        = mass_total,
     Rcpp::_["mass_above_ground"] = mass_above_ground);
+  // The resting Huber value at the base of the flow path: theta_tip on a
+  // uniform stem, and rising with height when theta_c > 0. Appended, so the
+  // historical columns keep their positions.
+  if constexpr (HasHuberProfile<S>) {
+    out["huber_value_base"] = huber_value_base;
+  }
+  return out;
 }
 
 // The crown a strategy's CanopyShape gives, on the unit crown u = z / H: Q, the

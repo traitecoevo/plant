@@ -178,6 +178,8 @@ sweep_parameters <- function(model, x, energy_balance = FALSE) {
   p$max_patch_lifetime <- 10
   traits <- unlist(x[sweep_traits(model)])
   if (model == "TF24") {
+    # The Huber axis is the tip value for TF24 (theta_c = 0: the whole stem).
+    names(traits)[names(traits) == "theta"] <- "theta_tip"
     traits <- c(traits, jmax_25 = 1.64 * traits[["vcmax_25"]],
                 rooting_depth_max = x$depth,
                 use_energy_balance = as.numeric(energy_balance))

@@ -85,6 +85,49 @@ if (!any(grepl("patch_type, renamed fitness_weighting", lines, fixed = TRUE))) {
     lines <- append(lines, legacy_patch_type, after = i - 1L)
   }
 }
+## TF24's `theta` became `theta_tip`, the Huber value of the terminal segment,
+## when the Huber profile (theta_c) reached the stem's carbon budget. The rename
+## is the gate (invariance criterion I11): a measured whole-stem or basal value
+## handed over as `theta` must be refused, not read as a tip value. Beside a
+## theta_tip, `theta` is old code setting a field nothing reads, and is refused.
+## Alone, it is an object saved before the rename, which can only carry
+## theta_c = 0 (anything else was refused then), where tip and whole stem are
+## the same number: translated. With any other theta_c it is refused, since
+## then the two differ and the list cannot say which it meant. This converter
+## is the one place every route from R to C++ passes.
+tf24_theta_tip <- c(
+  "  // theta, renamed theta_tip: translated on an object saved before the",
+  "  // rename (theta_c = 0, where the two coincide), refused otherwise.",
+  "  if (xl.containsElementNamed(\"theta\")) {",
+  "    if (xl.containsElementNamed(\"theta_tip\")) {",
+  "      Rcpp::stop(\"TF24's `theta` is now `theta_tip`, the Huber value of the \"",
+  "                 \"stem's terminal segment: set theta_tip, and remove theta\");",
+  "    }",
+  "    if (Rcpp::as<double>(xl[\"theta_c\"]) != 0.0) {",
+  "      Rcpp::stop(\"TF24's `theta` is now `theta_tip`, the Huber value of the \"",
+  "                 \"stem's terminal segment; with theta_c != 0 it differs from \"",
+  "                 \"a whole-stem value, so give theta_tip explicitly\");",
+  "    }",
+  "    ret.theta_tip = Rcpp::as<double>(xl[\"theta\"]);",
+  "  } else {",
+  "    ret.theta_tip = Rcpp::as<double >(xl[\"theta_tip\"]);",
+  "  }")
+if (!any(grepl("theta, renamed theta_tip", lines, fixed = TRUE))) {
+  s <- grep("^template <> inline plant::TF24_Pars<double> as\\(SEXP x\\) \\{$",
+            lines)
+  if (length(s) != 1L) {
+    stop("expected one TF24_Pars converter in ", path)
+  }
+  i <- s
+  target <- "  ret.theta_tip = Rcpp::as<double >(xl[\"theta_tip\"]);"
+  while (lines[i] != target) {
+    if (grepl("^\\s*return ret;$", lines[i])) {
+      stop("no theta_tip field in the TF24_Pars converter in ", path)
+    }
+    i <- i + 1L
+  }
+  lines <- c(lines[seq_len(i - 1L)], tf24_theta_tip, lines[-seq_len(i)])
+}
 writeLines(lines, path)
 message("tolerated missing fields in ", length(starts), " converters (",
         n, " fields)")

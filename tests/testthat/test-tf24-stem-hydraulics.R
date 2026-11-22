@@ -23,8 +23,8 @@ ETA_C_AT_12 <- 0.8861538461538462
 
 test_that("stem path parameters carry their shipped defaults", {
   p <- TF24_Model()$pars
-  # Widening is on; theta_c stays at zero so `theta` keeps its whole-plant
-  # meaning and no parameter-file migration is needed yet.
+  # Widening is on; theta_c is zero, a uniform stem, so theta_tip is also the
+  # whole-stem Huber value.
   expect_identical(p$D_c, 0.2)
   expect_identical(p$theta_c, 0)
   expect_identical(p$L_tip, 0.02)
@@ -59,8 +59,39 @@ test_that("zeroing the profile parameters recovers the height-linear model", {
     expect_identical(L, h * eta_c)
     # ...and the conductance the strategy forms from it must be, expression for
     # expression, the one the height-linear code computed.
-    expect_identical(s$pars$K_s * s$pars$theta / L,
-                     s$pars$K_s * s$pars$theta / (h * eta_c))
+    expect_identical(s$pars$K_s * s$pars$theta_tip / L,
+                     s$pars$K_s * s$pars$theta_tip / (h * eta_c))
+  }
+})
+
+test_that("a uniform stem builds the stem it always built, bit for bit", {
+  # I7 for the carbon budget. At theta_c = 0 the Huber profile must be absent
+  # from every structural quantity -- not merely close to absent -- in the
+  # operation order the uniform stem always used, whatever L_tip is. The stand
+  # pins elsewhere sit at tolerance 2e-2 and would not see a last-bit change.
+  s <- TF24_Model()
+  p <- s$pars
+  expect_identical(p$theta_c, 0)
+  # The strategy's own eta_c, so the comparison is of the same operands.
+  eta_c <- canopy_profile(s, u = 1)$eta_c
+  # Below and above the terminal segment (L_tip / eta_c = 0.0226 m).
+  h <- c(0.01, 0.2, 0.3941, 1, 5, 16.5958691, 40)
+  a <- plant:::TF24_strategy_expand_allometry(s, h, rep(0, length(h)),
+                                              rep(0, length(h)))
+  A <- (h / p$a_l1)^(1 / p$a_l2)
+  expect_identical(a$area_sapwood, A * p$theta_tip)
+  expect_identical(a$mass_sapwood, A * p$theta_tip * h * eta_c * p$rho)
+  expect_identical(a$area_bark, p$a_b1 * A * p$theta_tip)
+  expect_identical(a$mass_bark, p$a_b1 * A * p$theta_tip * h * eta_c * p$rho)
+  expect_identical(a$huber_value_base, rep(p$theta_tip, length(h)))
+  # And the hand-written marginal cost, at a resting and a displaced departure.
+  for (psi in c(0, 0.3)) {
+    for (A1 in A) {
+      st <- plant:::test_tf24_stem_profile(s, A1, psi)
+      expect_identical(st$dmass_sapwood_darea_leaf,
+                       p$rho * eta_c * p$a_l1 * (p$theta_tip * exp(psi)) *
+                         (p$a_l2 + 1) * A1^p$a_l2)
+    }
   }
 })
 
@@ -119,32 +150,192 @@ test_that("stem path parameters are settable", {
   expect_equal(s$pars$L_tip, 0.05)
 })
 
-test_that("a non-zero theta_c is refused rather than half-applied", {
-  # theta is not a hydraulics-only trait: it also sets area_sapwood, area_bark,
-  # mass_sapwood (hence construction cost, respiration, turnover and NSC
-  # capacity) and the hard-coded dmass_sapwood_darea_leaf derivative, all of
-  # which read a flat pars.theta. Profiling it on the hydraulic side alone would
-  # give a plant that conducts as though theta varied along the stem and is
-  # built as though it did not -- two different plants sharing one trait.
-  #
-  # The field is declared so the closed form can be exercised and swept in
-  # isolation, but a strategy carrying it must not build. Invariance criterion
-  # I13. Delete this test in the same change that profiles theta everywhere.
+test_that("the stem's areas and masses follow the Huber profile", {
+  # theta(L) = theta_tip * (max(L, L_tip)/L_tip)^theta_c with L measured down
+  # from the mean leaf height, the path the resistance integrates. Basal areas
+  # are read at L = H*eta_c; masses are the profile's volume. Checked against
+  # the profile integrated by R's quadrature, so the closed form is not checked
+  # against itself, at exponents either side of the log limit theta_c = -1 and
+  # on both sides of the terminal segment.
+  base <- TF24_Model()
+  p <- base$pars
+  eta_c <- ETA_C_AT_12
+  h <- c(0.01, 0.0225, 0.0227, 0.3941, 1, 16.5958691, 40)
+  A <- (h / p$a_l1)^(1 / p$a_l2)
+  for (theta_c in c(0.4, 1, 1.5, -0.3, -1)) {
+    s <- base
+    s$pars$theta_c <- theta_c
+    a <- plant:::TF24_strategy_expand_allometry(s, h, rep(0, length(h)),
+                                                rep(0, length(h)))
+    L_top <- h * eta_c
+    m <- ifelse(L_top > p$L_tip, (L_top / p$L_tip)^theta_c, 1)
+    V <- vapply(L_top, function(Lt) {
+      if (Lt <= p$L_tip) return(Lt)
+      p$L_tip + stats::integrate(function(L) (L / p$L_tip)^theta_c, p$L_tip, Lt,
+                                 rel.tol = 1e-12)$value
+    }, numeric(1))
+    info <- sprintf("theta_c = %g", theta_c)
+    expect_equal(a$huber_value_base, p$theta_tip * m, tolerance = 1e-13, info = info)
+    expect_equal(a$area_sapwood, A * p$theta_tip * m, tolerance = 1e-13, info = info)
+    expect_equal(a$area_bark, p$a_b1 * A * p$theta_tip * m, tolerance = 1e-13,
+                 info = info)
+    expect_equal(a$mass_sapwood, p$rho * A * p$theta_tip * V, tolerance = 1e-10,
+                 info = info)
+    expect_equal(a$mass_bark, p$a_b1 * p$rho * A * p$theta_tip * V,
+                 tolerance = 1e-10, info = info)
+  }
+})
+
+test_that("a positive theta_c tapers the stem: more sapwood at the base", {
+  # The direction of the compensation: basal Huber value rises with height,
+  # and the sapwood a tall plant pays for rises with it.
   s <- TF24_Model()
   s$pars$theta_c <- 0.4
-  expect_error(TF24_Individual(s), "theta_c is not implemented")
+  h <- c(1, 5, 16.5958691, 40)
+  zero <- rep(0, length(h))
+  tapered <- plant:::TF24_strategy_expand_allometry(s, h, zero, zero)
+  uniform <- plant:::TF24_strategy_expand_allometry(TF24_Model(), h, zero, zero)
+  expect_true(all(diff(tapered$huber_value_base) > 0))
+  expect_true(all(tapered$mass_sapwood > uniform$mass_sapwood))
+  expect_true(all(diff(tapered$mass_sapwood / uniform$mass_sapwood) > 0))
+})
 
-  # ...including when it would exactly cancel the widening term, which is the
-  # case a beta-only guard would miss.
+test_that("the hand-written sapwood cost is the derivative of the sapwood mass", {
+  # dmass_sapwood_darea_leaf is written out rather than differentiated, so
+  # nothing else fails if it drifts from mass_sapwood. Checked against a tangent
+  # derivative of the mass along the resting allometry, H = a_l1 * A^a_l2, at
+  # displaced departures and across the terminal segment.
+  base <- TF24_Model()
+  p <- base$pars
+  h <- c(0.01, 0.3941, 1, 16.5958691, 40)
+  A <- (h / p$a_l1)^(1 / p$a_l2)
+  for (theta_c in c(0, 0.4, 1, 1.5, -0.3)) {
+    s <- base
+    s$pars$theta_c <- theta_c
+    for (psi in c(0, 0.3)) {
+      for (A1 in A) {
+        st <- plant:::test_tf24_stem_profile(s, A1, psi)
+        expect_equal(st$dmass_sapwood_darea_leaf,
+                     st$dmass_sapwood_darea_leaf_tangent, tolerance = 1e-12,
+                     info = sprintf("theta_c = %g, psi = %g, A = %g",
+                                    theta_c, psi, A1))
+      }
+    }
+  }
+})
+
+test_that("theta_c's derivative is carried at a uniform stem and off it", {
+  # At theta_c = 0 the value is the uniform stem's expression and the theta_c
+  # column is attached by hand, as it is at theta_c = -1, the volume's log limit;
+  # elsewhere the general closed forms carry it. All checked against a central
+  # difference of the double values in theta_c.
+  base <- TF24_Model()
+  p <- base$pars
+  h <- c(0.3941, 5, 16.5958691)
+  A <- (h / p$a_l1)^(1 / p$a_l2)
+  fields <- c("area_sapwood", "mass_sapwood", "area_bark", "mass_bark",
+              "mass_live_per_area_leaf_at_height", "dmass_sapwood_darea_leaf")
+  at <- function(theta_c, A1, psi) {
+    s <- base
+    s$pars$theta_c <- theta_c
+    plant:::test_tf24_stem_profile(s, A1, psi)
+  }
+  d <- 1e-6
+  for (theta_c in c(0, 0.4, -1)) {
+    for (A1 in A) {
+      for (psi in c(0, 0.3)) {
+        ad <- at(theta_c, A1, psi)$by_theta_c
+        up <- at(theta_c + d, A1, psi)
+        dn <- at(theta_c - d, A1, psi)
+        for (f in fields) {
+          fd <- (up[[f]] - dn[[f]]) / (2 * d)
+          expect_equal(ad[[f]], fd, tolerance = 1e-7,
+                       info = sprintf("%s, theta_c = %g, A = %g, psi = %g",
+                                      f, theta_c, A1, psi))
+        }
+      }
+    }
+  }
+})
+
+test_that("theta_c's stand-gradient column is the pinned-step difference", {
+  # At the default theta_c = 0, where the column is attached by hand. The
+  # difference itself scatters by about 1e-5 relative across steps of 5e-6 to
+  # 2e-5 on this stand (net reproduction ratio -93.8150, -93.8141, -93.8151),
+  # and the gradient sits inside that scatter, so 3e-5 is the difference's
+  # floor rather than a loosened tolerance. A missing or wrong attached term
+  # is out by order one.
+  p <- tf24_fitness_stand_parameters()
+  solver <- tf24_fitness_stand_run(p)
+  metrics <- c("leaf_area", "1.net_reproduction_ratio")
+  g <- stand_gradient(solver, metrics = metrics, traits = "1.theta_c",
+                      hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  pinned <- pin_steps(solver)
+  measure <- function(q) {
+    sv <- tf24_fitness_stand_run(q, record = FALSE)
+    c(stand_census(sv), stand_fitness(sv))
+  }
+  at <- function(v) {
+    q <- pinned
+    q$strategies[[1]]$pars$theta_c <- v
+    measure(q)
+  }
+  h <- 1e-5
+  up <- at(h)
+  dn <- at(-h)
+  for (m in metrics) {
+    fd <- (up[[m]] - dn[[m]]) / (2 * h)
+    expect_lt(abs(g$gradient[m, "1.theta_c"] - fd), 3e-5 * abs(fd), label = m)
+  }
+})
+
+test_that("a profiled stem builds, runs and needs a terminal segment", {
+  s <- TF24_Model()
+  s$pars$theta_c <- 0.4
+  expect_silent(TF24_Individual(s))
+  expect_true(is.finite(tf24_probe(s, rep(0.25, 5), height = 5)[["assimilation"]]))
+
+  # theta_c = -2*D_c makes beta zero, so the path-length check does not ask for
+  # a terminal segment, but the stem's profile still needs one.
   s2 <- TF24_Model()
-  s2$pars$D_c <- 0.2
   s2$pars$theta_c <- -0.4
+  s2$pars$L_tip <- 0
   expect_identical(2 * s2$pars$D_c + s2$pars$theta_c, 0)
-  expect_error(TF24_Individual(s2), "theta_c is not implemented")
+  expect_error(TF24_Individual(s2), "theta_c != 0 needs a terminal segment")
 
-  # Zero is fine, and widening on its own is unaffected -- it enters through
-  # k_s(L), which has no structural counterpart to keep in step.
-  expect_silent(TF24_Individual(TF24_Model()))
+  s3 <- TF24_Model()
+  s3$pars$theta_c <- NaN
+  expect_error(TF24_Individual(s3), "theta_c must be finite")
+})
+
+test_that("theta was renamed theta_tip, and the old name is refused", {
+  # Invariance criterion I11: a measured whole-stem or basal Huber value handed
+  # over under the old name must not be read as a tip value.
+  s <- TF24_Model()
+  expect_null(s$pars$theta)
+
+  # Beside theta_tip: old code setting a field nothing reads.
+  s$pars$theta <- 1e-3
+  expect_error(TF24_Individual(s), "`theta` is now `theta_tip`")
+
+  # Alone, with theta_c = 0: an object saved before the rename, translated.
+  old <- TF24_Model()
+  pars <- old$pars
+  names(pars)[names(pars) == "theta_tip"] <- "theta"
+  pars$theta <- 3e-4
+  old$pars <- pars
+  expect_identical(TF24_Individual(old)$strategy$pars$theta_tip, 3e-4)
+
+  # Alone, with theta_c != 0: tip and whole stem differ, so it is refused.
+  pars$theta_c <- 0.4
+  old$pars <- pars
+  expect_error(TF24_Individual(old), "give theta_tip explicitly")
+
+  # As a trait, named for what it became rather than its nearest spelling.
+  p <- testing_parameters("TF24")
+  expect_error(generate_strategy(p, trait_matrix(3e-4, "theta"), hyperpar = NULL),
+               "theta \\(renamed theta_tip\\)")
 })
 
 test_that("the closed form matches numerical quadrature of the integrand", {
@@ -194,6 +385,24 @@ test_that("beta = 1 takes the logarithmic limit, continuously", {
   # expm1 form keeps all of them. If someone "simplifies" back to the note's
   # version, this assertion is what fails.
   expect_equal(f(1 - 1e-12), f(1), tolerance = 1e-11)
+})
+
+test_that("the path length's beta derivative is carried at the limits too", {
+  # beta == 0 and beta == 1 take arms that return values not reading beta, so an
+  # active scalar attaches the column by hand there. Without it the D_c and
+  # theta_c columns lose the path's whole share at exactly those exponents and
+  # read as answers. Checked against a central difference, which crosses into
+  # the expm1 form on both sides.
+  d <- 1e-6
+  for (L_top in c(0.5, 7, 40)) {
+    for (beta in c(0, 1, 0.4, 1.5)) {
+      fd <- (test_stem_effective_path_length(L_top, 0.02, beta + d) -
+               test_stem_effective_path_length(L_top, 0.02, beta - d)) / (2 * d)
+      expect_equal(plant:::test_stem_effective_path_length_dbeta(L_top, 0.02, beta),
+                   fd, tolerance = 1e-7,
+                   info = sprintf("L_top = %g, beta = %g", L_top, beta))
+    }
+  }
 })
 
 test_that("path length is monotone and its height elasticity is the analytic one", {
@@ -261,8 +470,9 @@ test_that("path length is monotone and its height elasticity is the analytic one
 })
 
 test_that("theta_c enters with the sign that compensates", {
-  # theta(L) = theta * (L/L_tip)^(-theta_c): theta FALLS basipetally while the
-  # Huber value 1/theta rises. A positive theta_c must therefore reduce the
+  # theta(L) = theta_tip * (L/L_tip)^theta_c: the Huber value, sapwood area per
+  # leaf area, RISES basipetally, so resistance per unit length falls as
+  # (L/L_tip)^-(2*D_c + theta_c). A positive theta_c must therefore reduce the
   # effective path length, i.e. reduce resistance. Getting this sign backwards
   # inverts the compensation the whole exercise is about, and every other test
   # in this file would still pass -- they are all symmetric in beta.

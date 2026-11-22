@@ -1407,7 +1407,7 @@ TF24_Pars:
     - hmat: double
     - omega: double
     - eta: double
-    - theta: double
+    - theta_tip: double
     - a_l1: double
     - a_l2: double
     - a_r1: double
