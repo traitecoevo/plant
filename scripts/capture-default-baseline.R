@@ -9,8 +9,10 @@
 ## The cases are built by default_baseline_cases(), defined in the test's
 ## helper, so the test and the capture run the same code. The helper runs
 ## through run(), so the capture needs a build that has it (#428 onwards). All
-## six cases were last captured at TF24's scientific version 17, which moved
-## the TF24 case deliberately and left the other five bit-identical.
+## six cases were last captured at TF24's scientific version 17, when net
+## production's smoothing width became a share of the plant's maintenance
+## flux; that moved the TF24 case deliberately and left the other five
+## bit-identical.
 
 args <- commandArgs(trailingOnly = TRUE)
 out <- if (length(args) > 0) args[[1]] else
