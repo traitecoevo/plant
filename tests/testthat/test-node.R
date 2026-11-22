@@ -84,12 +84,12 @@ for (x in names(strategy_types)) {
 
   test_that("ODE interface", {
     plant <- Individual(x, e)(s)
-    node <- Node(x, e)(s)
+    ## The boundary node of a fresh patch, seeded at a birth rate of one and a
+    ## patch survival of one, in the patch's environment.
+    patch <- one_species_patch(x, s)
+    node <- patch$species[[1]]$new_node
+    env <- patch$environment
 
-    env <- Environment(x)
-    env$set_fixed_environment(1.0, 100)
-
-    node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
     ## Seed the reference plant's strategy-specific initial states the same way
     ## the node does (via compute_initial_conditions), so the two agree for
     ## strategies that carry seeded states -- e.g. TF24's NSC storage pool (#517).
@@ -147,30 +147,38 @@ for (x in names(strategy_types)) {
 
   test_that("leaf area calculations", {
     plant <- Individual(x, e)(s)
-    node <- Node(x, e)(s)
 
-    env <- Environment(x)
-    env$set_fixed_environment(1, 100)
+    ## A node no patch has seeded carries no density.
+    unseeded <- Node(x, e)(s)
+    expect_equal(unseeded$log_density, -Inf) # zero
+    expect_equal(exp(unseeded$log_density), 0.0) # zero
+    expect_equal(unseeded$compute_competition(0.0), 0) # zero density
 
+    patch <- one_species_patch(x, s)
+    node <- patch$species[[1]]$new_node
     h <- node$height
 
-    expect_equal(node$log_density, -Inf) # zero
-    expect_equal(exp(node$log_density), 0.0) # zero
-    expect_equal(node$compute_competition(0.0), 0) # zero density
-    node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
-
-    expect_equal(node$ode_state[[node$ode_size]], node$log_density)
+    ## The ODE state carries the density in its last entry. On the birth-date
+    ## coordinate the density the node contributes also counts the establishment
+    ## its species supplies; on the height coordinate the two are the same.
+    carried <- node$ode_state[[node$ode_size]]
+    supplied <- if (node$density_in_birth_date)
+      log(node$individual$establishment_probability(patch$environment)) else 0
+    expect_equal(node$log_density, carried + supplied)
     density <- exp(node$log_density)
     expect_equal(node$compute_competition(0.0), plant$compute_competition(0.0) * density)
     expect_equal(node$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
 
+    ## Introduced and grown to 8 m through the patch's state: the height reaches
+    ## the node's individual, and the density it was born with is kept.
     h <- 8.0
     plant$set_state("height", h)
-    v <- node$ode_state
-    v[[1]] <- h
-    node$ode_state <- v
-    expect_identical(plant$state("height"), h)
+    patch$introduce_new_node(1, 0)
+    set_node_states(patch, "height", h)
+    node <- patch$species[[1]]$nodes[[1]]
     expect_identical(node$height, h)
+    expect_identical(node$individual$state("height"), h)
+    expect_equal(exp(node$log_density), density)
 
     expect_equal(node$compute_competition(0.0), plant$compute_competition(0) * density)
     expect_equal(node$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
@@ -181,27 +189,25 @@ for (x in names(strategy_types)) {
   e <- environment_types[[x]]
 
   test_that(sprintf("density in birth date (%s)", x), {
-    ctrl <- Control()
-    ctrl$node_density_coordinate <- "birth_date"
     s <- strategy_types[[x]]()
-    s$control <- ctrl
+    s$birth_rate_y <- 2
 
-    env <- Environment(x)
-    env$set_fixed_environment(1.0, 100)
-    env$time <- 3.5
+    patch <- one_species_patch(x, s, coordinate = "birth_date")
+    node <- patch$species[[1]]$new_node
+    expect_true(node$density_in_birth_date)
 
-    node <- Node(x, e)(s)
-    node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
-
-    ## No division by the growth rate at the boundary, and no establishment:
-    ## a node is born per seed that establishes, at the birth rate, with no
-    ## hazard paid. Its species supplies the establishment over its cell.
-    expect_equal(node$log_density, log(2))
+    ## No division by the growth rate at the boundary, and no establishment in
+    ## the state: a node is born per seed that establishes, at the birth rate,
+    ## with no hazard paid. Its species supplies the establishment over its
+    ## cell, which the density the node contributes counts.
+    carried <- node$ode_state[[node$ode_size]]
+    expect_equal(carried, log(2))
+    expect_equal(node$log_density - carried,
+                 log(node$individual$establishment_probability(patch$environment)))
     expect_identical(node$individual$state("mortality"), 0)
 
     ## Nothing moves an individual along the birth-date axis, so the only
     ## term left is mortality.
-    node$compute_rates(env, 1)
     rates <- node$ode_rates
     expect_equal(rates[[length(rates)]],
                  -node$individual$rate("mortality"))
@@ -209,16 +215,42 @@ for (x in names(strategy_types)) {
     ## And the height coordinate keeps its compression term. Named explicitly:
     ## TF24 resolves "auto" to birth date, so a default Control here would test
     ## the same coordinate as the block above.
-    s2 <- strategy_types[[x]]()
-    ctrl2 <- s2$control
-    ctrl2$node_density_coordinate <- "height"
-    s2$control <- ctrl2
-    node2 <- Node(x, e)(s2)
-    node2$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
-    node2$compute_rates(env, 1)
+    patch2 <- one_species_patch(x, s, coordinate = "height")
+    node2 <- patch2$species[[1]]$new_node
+    expect_false(node2$density_in_birth_date)
     rates2 <- node2$ode_rates
     expect_equal(rates2[[length(rates2)]],
                  -node2$individual$rate("mortality") -
-                   node2$growth_rate_gradient(env))
+                   node2$growth_rate_gradient(patch2$environment))
   })
 }
+
+## A node's seed output accrues at its fecundity rate times its own survival and
+## the patch's survival since its birth: the patch survival now over the patch
+## survival it was born at. Checked over a run, whose nodes span a range of
+## survivals at birth, so a node that read another's -- or none -- would show.
+test_that("the seed-output rate divides by the patch survival at birth", {
+  p0 <- testing_parameters("FF16")
+  p0$max_patch_lifetime <- 20
+  p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
+  solver <- DeterministicPatchRunner("FF16", "FF16_Env")(
+    p, Environment("FF16"), empty_events(), Control())
+  solver$run()
+
+  patch <- solver$patch
+  sp <- patch$species[[1]]
+  at_birth <- sp$pr_patch_survival_at_birth
+  expect_lt(min(at_birth), 0.01)
+  expect_equal(max(at_birth), 1)
+
+  pr_now <- patch$pr_survival(patch$time)
+  nodes <- sp$nodes
+  i <- match("offspring_produced_survival_weighted", nodes[[1]]$ode_names)
+  for (k in seq_along(nodes)) {
+    ind <- nodes[[k]]$individual
+    expect_equal(nodes[[k]]$ode_rates[[i]],
+                 ind$rate("fecundity") * exp(-ind$state("mortality")) *
+                   pr_now / at_birth[[k]],
+                 tolerance = 1e-12)
+  }
+})

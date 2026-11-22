@@ -157,8 +157,9 @@ test_that("the competition integral runs over the coordinate the density is carr
 ## drop out of the integral -- silently, because a trapezium sum over a grid
 ## with a zero-width interval is still a valid trapezium sum over that grid. No
 ## comparison of integral values can see it (the assertion above holds either
-## way, as the next test shows), so the grid is checked for strict monotonicity
-## in its own right.
+## way), so the grid is checked for strict monotonicity in its own right, and a
+## patch refuses a repeated birth date where one could enter (the resume test
+## below).
 test_that("the birth-date quadrature grid is strictly increasing", {
   for (x in c("FF16", "K93")) {
     solver <- short_run(x, TRUE)
@@ -177,49 +178,40 @@ test_that("the birth-date quadrature grid is strictly increasing", {
   }
 })
 
-## What a repeated birth date actually costs, and why the check above is the one
-## that catches it. Introducing the boundary node twice without advancing the
-## clock is the only way to produce one, and it is what a patch seeded without
-## per-node times does.
-test_that("a repeated birth date drops a node out of the competition integral", {
-  build <- function(birth_date, times) {
-    ctrl <- Control()
-    ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
-    st <- FF16_Model()
-    st$control <- ctrl
-    s <- Species("FF16", "FF16_Env")(st)
-    env <- Environment("FF16")
-    env$set_fixed_environment(1.0, 200)
-    for (t in times) {
-      env$time <- t
-      s$compute_rates(env, 1.0, 1.0)
-      s$introduce_new_node()
-    }
-    s$heights <- c(9, 6, 4, 2)
-    s
+## And the patch refuses a repeated birth date where a node is introduced, on
+## the coordinate that integrates over them; the height coordinate does not, so
+## it accepts one.
+test_that("a patch refuses two introductions at one time on the birth-date coordinate", {
+  for (x in c("FF16", "TF24", "K93")) {
+    s <- get_list_of_strategy_types()[[x]]()
+    patch <- one_species_patch(x, s, coordinate = "birth_date")
+    patch$introduce_new_node(1, 0)
+    patch$introduce_new_node(1, 1)
+    expect_error(patch$introduce_new_node(1, 1), "sharing an introduction time",
+                 info = x)
+
+    patch_h <- one_species_patch(x, s, coordinate = "height")
+    patch_h$introduce_new_node(1, 1)
+    expect_no_error(patch_h$introduce_new_node(1, 1))
   }
+})
 
-  ok <- build(TRUE, c(0, 1, 2, 3))
-  bad <- build(TRUE, c(0, 1, 1, 3))
-  ## Same nodes, same heights, same carried densities: only the grid differs.
-  expect_equal(bad$heights, ok$heights)
-  expect_equal(bad$log_densities_state, ok$log_densities_state)
-
-  ## The monotonicity check is what catches it, and it does.
-  expect_strictly_increasing(ok$node_times)
-  expect_failure(expect_strictly_increasing(bad$node_times))
-
-  ## The integral, meanwhile, silently loses 15%+ of the competition -- and the
-  ## axis assertion above cannot see that, because both the C++ and the
-  ## by-hand trapezium walk the same defective grid.
-  expect_gt(abs(bad$compute_competition(0) - ok$compute_competition(0)) /
-              ok$compute_competition(0), 0.1)
-  expect_integrates_over(bad, quadrature_grid(bad), 0)
-
-  ## The height coordinate does not integrate over these times, so it is
-  ## unaffected: same nodes, same answer.
-  expect_identical(build(FALSE, c(0, 1, 1, 3))$compute_competition(0),
-                   build(FALSE, c(0, 1, 2, 3))$compute_competition(0))
+## The schedule-refinement signal is the competition integral's local error, so
+## it is taken over the same abscissa as the integral: birth dates on the
+## birth-date coordinate, heights on the height one.
+test_that("the competition error is taken over the coordinate's abscissa", {
+  for (x in c("FF16", "K93")) {
+    for (birth_date in c(FALSE, TRUE)) {
+      patch <- short_run(x, birth_date)$patch
+      s <- patch$species[[1]]
+      expect_identical(s$density_in_birth_date, birth_date)
+      abscissa <- if (birth_date) s$node_times else s$heights
+      expect_identical(
+        patch$compute_competition_effect_error_by_node_for_species_i(1),
+        local_error_integration(abscissa, s$compute_competition_effect_by_nodes,
+                                patch$compute_competition(0)))
+    }
+  }
 })
 
 ## Defect: the wrong density equation for the coordinate. A density in birth
@@ -240,8 +232,9 @@ test_that("only the height coordinate's density rate carries a compression term"
       s <- solver$patch$species[[1]]
       env <- solver$patch$environment
       compression <- 0
+      nodes <- s$nodes
       for (j in seq_len(min(s$size, 25L))) {
-        nd <- s$node_at(j)
+        nd <- nodes[[j]]
         rates <- nd$ode_rates
         grad <- nd$growth_rate_gradient(env)
         compression <- max(compression, abs(grad))

@@ -23,23 +23,6 @@ template <> SEXP wrap(const phylloptim::RootNetwork&);
 template <> phylloptim::RootNetwork as(SEXP);
 template <> SEXP wrap(const plant::Leaf&);
 template <> plant::Leaf as(SEXP);
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Model<double>, plant::FF16_Environment<double>> > as(SEXP);
-
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Model<double>, plant::TF24_Environment<double>> > as(SEXP);
-
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Model<double>, plant::TF24_Environment<double>> > as(SEXP);
-
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Model<double>, plant::TF24_Environment<double>> > as(SEXP);
-
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Model<double>, plant::TF24_Environment<double>> > as(SEXP);
-
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Model, plant::K93_Environment> > as(SEXP);
 template <> SEXP wrap(const plant::ScheduleEvent&);
 template <> plant::ScheduleEvent as(SEXP);
 template <> SEXP wrap(const plant::Events&);
@@ -73,23 +56,6 @@ template <> plant::Individual<plant::TF24w_Model<double> ,plant::TF24_Environmen
 
 template <> SEXP wrap(const plant::Individual<plant::K93_Model,plant::K93_Environment>&);
 template <> plant::Individual<plant::K93_Model,plant::K93_Environment> as(SEXP);
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> >&);
-template <> plant::tools::IndividualRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > as(SEXP);
-
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::tools::IndividualRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
-
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::tools::IndividualRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
-
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::tools::IndividualRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
-
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >&);
-template <> plant::tools::IndividualRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > as(SEXP);
-
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment>&);
-template <> plant::tools::IndividualRunner<plant::K93_Model,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Internals<double>&);
 template <> plant::Internals<double> as(SEXP);
 template <> SEXP wrap(const plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Environment<double> >&);

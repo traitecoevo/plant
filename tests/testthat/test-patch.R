@@ -10,8 +10,7 @@ for (x in names(strategy_types)) {
   
   e <- environment_types[[x]]
   plant <- Individual(x, e)(s)
-  node <- Node(x, e)(s)
-  
+
   p <- Parameters(x, e)(strategies=list(s),
                         fitness_weighting = "patch_age")
   env <- Environment(x)
@@ -21,14 +20,10 @@ for (x in names(strategy_types)) {
   # reads its coordinate from the default silently re-points at another function
   # when the default moves.
   #
-  # It has to be named in two places. A Patch imposes its own control on its
-  # species, but a standalone Node reads the coordinate from its own strategy's
-  # control, so the comparison node below is only the same function as the
-  # patch's node if the strategy carries the coordinate too.
+  # A Patch imposes its own control on its species, so naming it on the patch
+  # is what sets the coordinate.
   ctrl <- Control(node_density_coordinate = "birth_date")
-  p$strategies[[1]]$control <- ctrl
   patch <- Patch(x, e)(p, env, ctrl)
-  cmp <- Node(x, e)(p$strategies[[1]])
 
   test_that(sprintf("Basics %s", x), {
     ## Default birth rate (see #333): a fresh strategy should be a constant
@@ -38,7 +33,8 @@ for (x in names(strategy_types)) {
     expect_false(s_default$is_variable_birth_rate)
 
     expect_equal(patch$size, 1)
-    expect_identical(patch$height_max, cmp$height)
+    ## With no nodes, the tallest plant is a newborn.
+    expect_identical(patch$height_max, plant$state("height"))
     expect_equal(patch$parameters, p)
     expect_equal(patch$get_area, 1.0)
     expect_inherits(patch$environment, c(paste0(x, "_Environment"), "R6"))
@@ -89,10 +85,12 @@ for (x in names(strategy_types)) {
       expect_equal(patch$node_ode_size, 9)
       expect_equal(patch$ode_size, 9)
     }
-    ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
-                                   patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0))
-     
+    ## The comparison node: the boundary node the patch seeds after the
+    ## introduction, in the completed field, at the patch survival and birth
+    ## rate of time zero.
+    cmp <- patch$species[[1]]$new_node
+    expect_identical(cmp$introduction_time, 0)
+
     # The open interval starts empty, and grows at establishment minus one; its
     # first moment, against the time since the newest node's birth, starts at
     # rate zero.
@@ -101,12 +99,10 @@ for (x in names(strategy_types)) {
     ode_state <- c(cmp$ode_state, open, env_state)
     ode_rates <- c(cmp$ode_rates, open_rates, env_rates)
     expect_identical(patch$ode_state, ode_state)
-    # The patch's boundary node is evaluated by the field build, in a field that
-    # excludes the boundary interval; this comparison node is seeded afterwards in
-    # the completed field. So the two agree except through
-    # pr_patch_survival_at_birth, which divides the fecundity rate and is fixed at
-    # initialisation -- about 1% of a quantity of order 1e-21.
-    expect_equal(patch$ode_rates, ode_rates, tolerance = 1e-2)
+    # The node introduced at time zero shares its birth date with the boundary
+    # node, so the interval between them has no width and the introduction
+    # leaves the field as it was: the two are the same node, rates included.
+    expect_identical(patch$ode_rates, ode_rates)
     if (x == "FF16") {
       # Blessed on the birth-date coordinate, which ctrl names above. The two
       # coordinates are different functions rather than two discretisations of

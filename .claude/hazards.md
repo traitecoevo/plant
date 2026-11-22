@@ -97,6 +97,8 @@ Each species has one top cohort pinned at the height where its strategy allocate
 - A resume with no introductions left stops where it starts, because the deterministic runner's `$complete` counts schedule entries. It is refused when the run begins; keep at least one introduction ahead of a resume.
 - `make_initial_state()` on the birth-date coordinate stamps every node at time 0 and is refused for more than one node per species; it is not the resume entry point.
 - `history` under `collect` is a Patch copy per leg; never turn it on for a long run.
+- An invader must stop wherever the residents' run stopped. A pulse leaves the rates stale until the runner re-reads the system at its stop, so an invader that stepped through one began its next step from rates taken before it, and a copy of a pulsed TF24 resident scored 36% low. `run_mutant()` therefore gives invaders every action of the residents' run; a filter on event types there brings that back.
+- A species' first cohort takes establishment only from its birth on (`Species`' open interval), while a later cohort's cell reaches back to the cohort before. An invader's first cohort therefore differs from the residents' cohort of the same date unless the residents' is also their first. `run_mutant()` refuses a window that weights it; a resume is one way to get there, an invader schedule that starts at the window is another.
 - The introduction grid can make a fixed point a periodic orbit: between introductions the field swings (1.8% in held R for FF16 at b* with a cohort a year), and a field held at an introduction is the top of the swing. Check a held field inside an interval, by ending the resident's run off the grid, and refine the grid until the swing is below what the comparison needs (#665).
 
 ## TF24 variants
@@ -108,7 +110,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 - TF24t refuses the DeepCrown shading model: the leaf's damage rates are read at its leaf temperature after the crown loop, which under DeepCrown would be the last node's.
 - At non-damaging settings a rate evaluation is bit-identical to TF24 with `pars$use_energy_balance = 1` (alpha = 0, k_i = 0, topt_offset = 0, all costs 0).
 - The leaf's damage rates are per day; TF24t multiplies them by `DAYS_PER_YEAR = 365.25` for the yearly ODE clock, except leaf turnover and growth dilution, which are already per year.
-- `Individual$set_initial_states` must run before an `IndividualRunner` is built from a TF24t plant. The runner does not seed, and an unseeded storage pool starts empty, where a plant losing carbon has every step refused.
+- `Individual$set_initial_states` must run before a TF24t plant is grown with `run(individual, ...)`. The growers do not seed, and an unseeded storage pool starts empty, where a plant losing carbon has every step refused.
 
 ### 17. Flexible allometry (TF24's leaf and sapwood states)
 
@@ -119,7 +121,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 - The allocation derivatives are differentiated by hand and move together: `dmass_sapwood_darea_leaf` carries an `(a_l2 + 1)` factor that is the product rule against `H(A)`, `dmass_bark_darea_leaf` inherits it, and `darea_leaf_dmass_live` is their reciprocal sum.
 - Canopy shape stays `Q(z/height)`, so a smaller leaf area at unchanged height is a sparser crown of the same depth, not a shallower one.
 - `set_initial_states` is not virtual; TF24f must keep chaining to the base, or the leaf-area seed is silently dropped.
-- Height crossings are routine on the height coordinate once leaf area is free; `scale_node_densities` selects by height and `r_set_heights()` stops on one.
+- Height crossings are routine on the height coordinate once leaf area is free; `scale_node_densities` selects by height, and the competition reduction runs over the abscissa set rather than the node list so a crossing cannot give it a negative width (`test-canopy-methods.R`'s permutation test).
 - `test-model-version.R` snapshots only `pars` and `control` defaults, so adding a state without a parameter passes it. Bumping `scientific_version` for that is review discipline.
 - The six flexible-allometry parameters carry no gradient column (they are `undifferentiable`): at `a_pl0 = 0` four of them multiply zero, and a zero column reads as an answer. A gradient taken with `a_sw > 0` is refused, because the sapwood sensitivity is a finite difference through two further leaf solves that carry no rows.
 - The replacement gate's logistic has two branches by the sign of its exponent. A healthy plant sits tens of gate widths above the centre, where `1/(1 + e^x)` overflows: the value survives, its derivative is `inf/inf`, and a NaN partial times `a_pl0 = 0` is still NaN.

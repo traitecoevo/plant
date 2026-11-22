@@ -143,8 +143,9 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{\link{scenario}} takes them. For an \code{Individual}, \code{env} is
 ##'   the \code{Environment} it grows in, or a recipe of one, by default its
 ##'   model's.
-##' @param times,sizes For an \code{Individual}, the times to report it at, or
-##'   the sizes to grow it to (increasing); give one.
+##' @param times,sizes For an \code{Individual}, the times to report it at,
+##'   finite and not before the environment's time, or the sizes to grow it to;
+##'   either increasing. Give one.
 ##' @param size_name The size \code{sizes} are of.
 ##' @param refine_schedule Refine the node-introduction schedule before the
 ##'   run, bisecting the intervals whose nodes' error exceeds
@@ -504,6 +505,15 @@ tidy.plant_individual_run <- function(x, ...) {
 ##'   them.
 ##' @param constant Hold the field the resident stands in now, rather than
 ##'   replay the one it recorded.
+##' @details Invaders meet every event of the resident's run: its pulses,
+##'   harvests and climate extremes. On the birth-date coordinate a cohort's
+##'   density carries establishment averaged over the intervals beside it, and
+##'   an invader species' first cohort has none before it. A
+##'   \code{\link{fitness_window}} that weights an invader's first cohort born
+##'   after the residents' first (or after the resume of a resumed resident) is
+##'   refused: open the window after the invaders' first introduction.
+##'   TF24w's invaders are refused, because its private water is not in the
+##'   field a replay reads.
 ##' @return A \code{plant_run} of the invaders: their outputs, with
 ##'   \code{mutants} set to \code{p} and \code{scenario} the resident's. It
 ##'   shares the resident's solver, which now holds the invaders, so the
