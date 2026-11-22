@@ -188,10 +188,14 @@ print.plant_scenario <- function(x, ...) {
 ##'   \code{to}, per unit of its area), \code{offspring_production} and
 ##'   \code{net_reproduction_ratios} (per species, over the whole landscape:
 ##'   the patches' values, each weighted by its patch's share of the area,
-##'   which is the value for seed arriving evenly over the landscape; species
-##'   are matched across patches by position, and the values are \code{NULL}
-##'   where the patches hold different numbers of them or report none) and
-##'   \code{method}.
+##'   which is the value for seed arriving evenly over the landscape. They are
+##'   given only where every patch holds the same strategies, in the same
+##'   order and at the same birth rates, under the same fitness weighting, and
+##'   are \code{NULL} otherwise, as for a stochastic run. They are outputs at
+##'   the birth rates given: nothing here finds the birth rates at which the
+##'   residents replace themselves), \code{mutants} (for a
+##'   \code{\link{run_mutant}} result, the invaders' \code{Parameters} in each
+##'   patch, else \code{NULL}) and \code{method}.
 ##'   \code{tidy()} of it is a list of each patch's.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
@@ -508,13 +512,18 @@ tidy.plant_individual_run <- function(x, ...) {
 ##'
 ##' Against a landscape's run, the invaders run in every patch, each in what
 ##' that patch's resident recorded, what flowed into it included. They change
-##' nothing that flows. The result's landscape-wide fitness is theirs.
+##' nothing that flows. The result's landscape-wide fitness is theirs. Every
+##' patch's result is used up, as a single resident's is; if a patch refuses
+##' the invaders after others have run them, the landscape must be run again.
 ##'
 ##' @param resident A complete \code{plant_run} of the resident, or a
 ##'   landscape's run.
 ##' @param p The invaders' \code{Parameters}, as \code{\link{add_mutant}} builds
-##'   them. For a landscape, used in every patch, or a list of one for each
-##'   patch, named as the patches are.
+##'   them. For a landscape, either one \code{Parameters}, whose strategies
+##'   invade every patch under that patch's own \code{Parameters} (its fitness
+##'   weighting, and introductions at every time its residents had one); or a
+##'   list of one for each patch, named as the patches are and used as given,
+##'   each built from its own patch's \code{scenario$p}.
 ##' @param constant Hold the field the resident stands in now, rather than
 ##'   replay the one it recorded.
 ##' @details Invaders meet every event of the resident's run: its pulses,

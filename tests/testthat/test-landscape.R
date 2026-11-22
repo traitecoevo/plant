@@ -262,7 +262,9 @@ test_that("a landscape that cannot be run is refused where it is made", {
   expect_error(flow("ridge", "gully", "resource", wieght = 0.5),
                "A resource flow takes no further values; it was given wieght")
   expect_error(flow("ridge", "gully", "resource", 1, 1, 1, 7),
-               "it was given an unnamed value")
+               "it was given a value with no name")
+  expect_error(flow("ridge", "gully", "resource", weight = numeric(0)),
+               "'weight' must be a vector of length 1")
   expect_error(flow(c("a", "b"), c("c", "d", "e"), "resource"), "length 1 or 3")
 
   expect_equal(nrow(flow(character(0), character(0), "resource")), 0)
@@ -409,6 +411,10 @@ test_that("a kind may give its rows columns of its own", {
   banded <- flow("a", "b", "resource", size_min = 2)
   expect_error(flow("a", "b", "resource", size_max = 2),
                "A resource flow takes size_min; it was given size_max")
+  expect_error(flow("a", "b", "resource", size_min = 1, size_min = 2),
+               "A resource flow takes size_min; it was given size_min")
+  expect_error(flow("a", "b", "resource", size_min = list(1)),
+               "'size_min' must be a vector of length 1")
   flows <- bind_flows(list(empty_flows(), flow("b", "c", "resource"), banded))
   expect_s3_class(flows, "plant_flows")
   expect_named(flows, c(names(empty_flows()), "size_min"))
@@ -464,65 +470,184 @@ test_that("what leaves a larger patch reaches a smaller one deeper", {
                tolerance = 1e-12)
 })
 
+# Two patches of one species at a birth rate of 2, the second thinned at year
+# 10, so the same species has a different history in each.
+thinned_pair <- function(lifetime = 30) {
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- lifetime
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 2)
+  list(a = scenario(p),
+       b = scenario(p, events = events(harvest(time = 10, fraction = 0.9))))
+}
+
 test_that("a landscape's fitness weights each patch by its share of the area", {
-  thin <- light_patch("FF16", 30)
-  thick <- thin
-  thick$p <- add_strategies(thin$p, trait_matrix(0.12, "lma"),
-                            keep_existing = FALSE)
-  land <- landscape(list(a = thin, b = thick), area = c(3, 1))
+  patches <- thinned_pair()
+  land <- landscape(patches, area = c(3, 1))
   res <- run(land)
   each <- vapply(res$patches, function(r) r$offspring_production, numeric(1))
-  expect_gt(abs(each[["a"]] / each[["b"]] - 1), 0.01)
-  expect_equal(res$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
   ratios <- vapply(res$patches, function(r) r$net_reproduction_ratios, numeric(1))
+  expect_gt(abs(each[["a"]] / each[["b"]] - 1), 0.01)
+  expect_gt(abs(each[["a"]] / ratios[["a"]] - 1), 0.01)
+  expect_equal(res$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
   expect_equal(res$net_reproduction_ratios,
                (3 * ratios[["a"]] + ratios[["b"]]) / 4)
+  expect_null(res$mutants)
   ## Equal patches give the plain mean.
-  expect_equal(run(landscape(land$patches))$offspring_production, mean(each))
+  expect_equal(run(landscape(patches))$offspring_production, mean(each))
 
-  ## Species are matched by position, so patches holding different numbers
-  ## of them have no landscape-wide value; nor has a stochastic run.
-  two <- thin
-  two$p <- add_strategies(thin$p, trait_matrix(0.12, "lma"))
-  mixed <- run(landscape(list(a = thin, b = two)))
-  expect_null(mixed$offspring_production)
-  expect_null(mixed$net_reproduction_ratios)
+  ## The patches' values are of one thing only where the patches hold the
+  ## same species, at the same birth rates, scored the same way. Otherwise
+  ## there is no landscape-wide value.
+  none <- function(change) {
+    other <- patches
+    other$b$p <- change(other$b$p)
+    res <- run(landscape(other))
+    expect_null(res$offspring_production)
+    expect_null(res$net_reproduction_ratios)
+    expect_false(is.null(res$patches$b$offspring_production))
+  }
+  none(function(p) add_strategies(p, trait_matrix(0.12, "lma"),
+                                  birth_rate = 2, keep_existing = FALSE))
+  none(function(p) add_strategies(p, trait_matrix(0.0825, "lma"),
+                                  birth_rate = 1, keep_existing = FALSE))
+  none(function(p) add_strategies(p, trait_matrix(0.12, "lma"), birth_rate = 2))
+  none(function(p) {
+    p$fitness_weighting <- "none"
+    p
+  })
+  ## Nor has a stochastic run, which reports no fitness.
   set.seed(1)
   expect_null(run(land, method = "stochastic")$offspring_production)
 })
 
+test_that("amounts are scaled between every pair of patches by their areas", {
+  areas <- c(gully = 0.5, mid = 2, ridge = 7)
+  land <- landscape(list(gully = water_patch(),
+                         mid = water_patch(shallow_column),
+                         ridge = water_patch(shallow_column)),
+                    flow("ridge", c("mid", "gully"), "resource", weight = c(0.5, 0.25)),
+                    flow("mid", "gully", "resource"),
+                    area = areas)
+  res <- run(land)
+  accounts <- lapply(res$patches, water_accounts)
+  passed <- tapply(res$transfers$amount,
+                   list(res$transfers$from, res$transfers$to), sum)
+  ## Per unit of the receiver: the share, times what the source shed per unit
+  ## of its own area, times the ratio of the two areas.
+  expect_equal(passed[["ridge", "mid"]], 0.5 * accounts$ridge$shed * 7 / 2,
+               tolerance = 1e-12)
+  expect_equal(passed[["ridge", "gully"]], 0.25 * accounts$ridge$shed * 7 / 0.5,
+               tolerance = 1e-12)
+  expect_equal(passed[["mid", "gully"]], accounts$mid$shed * 2 / 0.5,
+               tolerance = 1e-12)
+  ## Over the landscape, depths times areas: the rain went into a patch, or
+  ## left with the quarter of the ridge's run-off that has no flow, or left
+  ## the gully.
+  rain <- sum(areas) * sum(storm_depths)
+  entered <- sum(areas * vapply(accounts[names(areas)],
+                                function(a) a$infiltration, numeric(1)))
+  left <- 0.25 * 7 * accounts$ridge$shed + 0.5 * accounts$gully$shed
+  expect_equal(rain, entered + left, tolerance = 1e-12)
+})
+
 test_that("invaders run in every patch of a landscape", {
-  thin <- light_patch("FF16", 30)
-  thick <- thin
-  thick$p <- add_strategies(thin$p, trait_matrix(0.12, "lma"),
-                            keep_existing = FALSE)
-  land <- landscape(list(a = thin, b = thick), area = c(3, 1))
-  copy_of <- function(sc, lma) add_mutant(sc$p, trait_matrix(lma, "lma"))
+  patches <- thinned_pair()
+  land <- landscape(patches, area = c(3, 1))
+  invader <- function(lma) {
+    add_mutant(patches$a$p, trait_matrix(lma, "lma"), birth_rate = 2)
+  }
+  ## The same invaders in one patch on its own, as run_mutant() has always
+  ## run them: built from that patch's own Parameters.
+  alone <- function(patch, lma, ...) {
+    resident <- run(patches[[patch]])
+    run_mutant(resident, add_mutant(resident$scenario$p, trait_matrix(lma, "lma"),
+                                    birth_rate = 2), ...)$offspring_production
+  }
 
-  ## A copy of each patch's own resident, replayed in it, scores as the
-  ## resident does, patch by patch and over the landscape.
+  ## One Parameters: its strategies invade every patch.
   res <- run(land)
-  copies <- run_mutant(res, list(a = copy_of(thin, 0.0825), b = copy_of(thick, 0.12)))
-  expect_s3_class(copies, "plant_landscape_run")
-  expect_named(copies$patches, c("a", "b"))
-  expect_false(is.null(copies$mutants))
-  expect_equal(copies$offspring_production / res$offspring_production, 1,
-               tolerance = 1e-8)
+  inv <- run_mutant(res, invader(0.1))
+  expect_s3_class(inv, "plant_landscape_run")
+  expect_named(inv$patches, c("a", "b"))
+  each <- vapply(inv$patches, function(r) r$offspring_production, numeric(1))
+  expect_equal(each[["a"]], alone("a", 0.1))
+  expect_equal(each[["b"]], alone("b", 0.1))
+  ## They are the invaders' values, not the residents', and the landscape's
+  ## is their weighted mean.
+  resident <- vapply(res$patches, function(r) r$offspring_production, numeric(1))
+  expect_gt(min(abs(each / resident - 1)), 0.01)
+  expect_equal(inv$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
+  ## What flowed is the residents', and the result says who invaded where.
+  expect_identical(inv$transfers, res$transfers)
+  expect_named(inv$mutants, c("a", "b"))
+  expect_identical(inv$mutants$b$strategies, invader(0.1)$strategies)
   ## Invaders are run against a resident's result, not against invaders'.
-  expect_error(run_mutant(copies, copy_of(thin, 0.0825)),
-               "must be a resident landscape's run")
+  expect_error(run_mutant(inv, invader(0.1)), "must be a resident landscape's run")
 
-  ## One Parameters is used in every patch: the same invader meets both
-  ## residents, and its landscape-wide value is the weighted mean of the two.
+  ## A copy of the resident scores as the resident does.
   res <- run(land)
-  one <- run_mutant(res, copy_of(thin, 0.1))
-  each <- vapply(one$patches, function(r) r$offspring_production, numeric(1))
-  expect_gt(abs(each[["a"]] / each[["b"]] - 1), 0.01)
-  expect_equal(one$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
+  copy <- run_mutant(res, invader(0.0825))
+  expect_equal(copy$offspring_production / res$offspring_production, 1,
+               tolerance = 1e-8)
+
+  ## Held in the field each resident stands in at its end.
+  res <- run(land)
+  held <- run_mutant(res, invader(0.1), constant = TRUE)
+  expect_equal(held$patches$b$offspring_production,
+               alone("b", 0.1, constant = TRUE))
+  expect_gt(abs(held$patches$b$offspring_production / each[["b"]] - 1), 1e-6)
+
+  ## A list is used as given, one for each patch. Different invaders in
+  ## different patches have no landscape-wide value.
+  res <- run(land)
+  mixed <- run_mutant(res, list(b = invader(0.12), a = invader(0.1)))
+  expect_equal(mixed$patches$a$offspring_production, each[["a"]])
+  expect_equal(mixed$patches$b$offspring_production, alone("b", 0.12))
+  expect_null(mixed$offspring_production)
+})
+
+test_that("a patch's invaders are scored under that patch's own Parameters", {
+  patches <- thinned_pair()
+  patches$b$p$fitness_weighting <- "none"
+  res <- run(landscape(patches))
+  resident <- vapply(res$patches, function(r) r$net_reproduction_ratios, numeric(1))
+  ## Built from patch a's Parameters, a copy still scores in b as b's resident
+  ## does, because b weights it its own way.
+  copy <- run_mutant(res, add_mutant(patches$a$p, trait_matrix(0.0825, "lma"),
+                                     birth_rate = 2))
+  copies <- vapply(copy$patches, function(r) r$net_reproduction_ratios, numeric(1))
+  expect_gt(abs(resident[["a"]] / resident[["b"]] - 1), 0.01)
+  expect_equal(copies / resident, c(a = 1, b = 1), tolerance = 1e-8)
+  expect_equal(copy$mutants$b$fitness_weighting, "none")
+})
+
+test_that("a landscape's patches are all checked before any takes invaders", {
+  ff16 <- thinned_pair()$a
+  land <- landscape(list(a = ff16, b = light_patch("K93", 30)))
+  mutant <- add_mutant(ff16$p, trait_matrix(0.1, "lma"), birth_rate = 2)
+
+  ## A patch of another model refuses these invaders, by name, and patch a's
+  ## resident is untouched: it still takes invaders on its own.
+  res <- run(land)
+  expect_error(run_mutant(res, mutant),
+               "Patch \"b\" runs Parameters<K93,K93_Env>, and its invaders are Parameters<FF16,FF16_Env>")
+  expect_no_error(run_mutant(res$patches$a, mutant))
+  ## Now patch a's result is spent, which is refused before b is touched.
+  k93 <- add_mutant(land$patches$b$p, trait_matrix(0.06, "b_0"))
+  expect_error(run_mutant(res, list(a = mutant, b = k93)),
+               "Patch \"a\": This result's solver has moved on")
+  expect_no_error(run_mutant(res$patches$b, k93))
 
   res <- run(land)
-  expect_error(run_mutant(res, list(a = copy_of(thin, 0.1))),
+  expect_error(run_mutant(res, list(a = mutant)),
                "one for each patch, named as the patches are \\(a, b\\)")
+  expect_error(run_mutant(res, list(a = mutant, a = mutant, b = k93)),
+               "one for each patch, named as the patches are")
+  set.seed(1)
+  drawn <- run(landscape(thinned_pair()), method = "stochastic")
+  expect_error(run_mutant(drawn, mutant),
+               "Patch \"a\" was run by the stochastic solver")
 })
 
 test_that("an invader in a patch meets what flowed into it", {

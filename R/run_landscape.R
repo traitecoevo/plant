@@ -320,12 +320,16 @@ flow <- function(from, to, type, out_of = 1L, into = out_of, weight = 1, ...) {
   ## become a column nobody reads.
   extra <- list(...)
   own <- kinds[[type]]$columns
+  takes <- if (length(own) == 0L) "no further values" else paste(own, collapse = ", ")
   if (length(extra) > 0L &&
-      (is.null(names(extra)) || !all(names(extra) %in% own))) {
-    stop("A ", type, " flow takes ",
-         if (length(own) == 0L) "no further values" else paste(own, collapse = ", "),
-         "; it was given ",
-         paste(setdiff(names(extra) %||% "an unnamed value", own), collapse = ", "),
+      (is.null(names(extra)) || any(names(extra) == ""))) {
+    stop("A ", type, " flow takes ", takes, "; it was given a value with no ",
+         "name", call. = FALSE)
+  }
+  if (!all(names(extra) %in% own) || anyDuplicated(names(extra)) > 0L) {
+    stop("A ", type, " flow takes ", takes, "; it was given ",
+         paste(names(extra)[!(names(extra) %in% own) | duplicated(names(extra))],
+               collapse = ", "),
          call. = FALSE)
   }
   if (length(from) == 0L && length(to) == 0L) {
@@ -334,8 +338,9 @@ flow <- function(from, to, type, out_of = 1L, into = out_of, weight = 1, ...) {
   n <- max(length(from), length(to), length(out_of), length(into),
            length(weight), lengths(extra))
   recycle <- function(x, what) {
-    if (!(length(x) %in% c(1L, n))) {
-      stop("'", what, "' must be length 1 or ", n, call. = FALSE)
+    if (!(length(x) %in% c(1L, n)) || !is.atomic(x)) {
+      stop("'", what, "' must be a vector of length 1",
+           if (n > 1L) paste(" or", n), call. = FALSE)
     }
     rep_len(x, n)
   }
@@ -453,22 +458,34 @@ new_landscape_run <- function(landscape, patches, transfers, method,
 }
 
 ## A per-species fitness value over the whole landscape: the patches' values,
-## each weighted by its patch's share of the area. That is the value for
-## seed arriving evenly over the landscape. Species are matched across patches
-## by position, so there is no such value unless every patch reports the same
-## number of them (a stochastic run reports none).
+## each weighted by its patch's share of the area. That is the value for seed
+## arriving evenly over the landscape, and it means that only where the patches
+## hold the same species, at the same birth rates, scored the same way. Where
+## they do not, the patches' values are not of one thing and there is none.
 landscape_mean <- function(results, field, area) {
   values <- lapply(results, function(r) r[[field]])
-  n <- lengths(values)
-  if (any(n == 0L) || length(unique(n)) > 1L) {
+  if (any(lengths(values) == 0L) || !same_species_scored_alike(results)) {
     return(NULL)
   }
   as.numeric(do.call(cbind, values) %*% (area / sum(area)))
 }
 
+## Whether every patch's result is of the same strategies, in the same order
+## (a strategy carries its birth rate), under the same fitness weighting.
+same_species_scored_alike <- function(results) {
+  scored <- lapply(results, function(r) {
+    p <- r$mutants %||% r$scenario$p
+    list(p$strategies, p$fitness_weighting, p$fitness_window_start,
+         p$fitness_window_end, p$fitness_window_weight_x,
+         p$fitness_window_weight_y)
+  })
+  all(vapply(scored[-1L], identical, logical(1), scored[[1L]]))
+}
+
 ## Invaders against a resident landscape: in each patch they run in what that
 ## patch's resident recorded, what flowed into it included, and they change
-## nothing that flows.
+## nothing that flows. run_mutant() uses a patch's result up, so every patch is
+## checked before any is touched.
 run_mutant_landscape <- function(resident, p, constant) {
   if (!is.null(resident$mutants)) {
     stop("`resident` must be a resident landscape's run, as run() returns",
@@ -476,25 +493,71 @@ run_mutant_landscape <- function(resident, p, constant) {
   }
   patches <- names(resident$patches)
   each <- if (inherits(p, "Parameters")) {
-    stats::setNames(rep(list(p), length(patches)), patches)
+    lapply(resident$patches, function(r) invaders_in(r$scenario$p, p))
   } else {
     p
   }
   if (!is.list(each) || inherits(each, "Parameters") ||
-      !setequal(names(each), patches) ||
+      anyDuplicated(names(each)) > 0L || !setequal(names(each), patches) ||
       !all(vapply(each, inherits, logical(1), "Parameters"))) {
-    stop("`p` is the invaders' Parameters, for every patch alike, or a list of ",
-         "one for each patch, named as the patches are (",
-         paste(patches, collapse = ", "), ")", call. = FALSE)
+    stop("`p` is the invaders' Parameters, or a list of one for each patch, ",
+         "named as the patches are (", paste(patches, collapse = ", "), ")",
+         call. = FALSE)
   }
-  invaded <- lapply(stats::setNames(patches, patches), function(patch) {
-    tryCatch(run_mutant(resident$patches[[patch]], each[[patch]], constant),
-             error = function(e) {
-               stop("Patch \"", patch, "\": ", conditionMessage(e), call. = FALSE)
-             })
-  })
+  each <- each[patches]
+  for (patch in patches) {
+    r <- resident$patches[[patch]]
+    refuse <- function(...) stop("Patch \"", patch, "\" ", ..., call. = FALSE)
+    if (identical(r$method, "stochastic")) {
+      refuse("was run by the stochastic solver, which keeps no recording for ",
+             "invaders to run in")
+    }
+    if (solver_is_gone(r)) {
+      refuse("was read back without its solver: run the landscape again, as ",
+             "run(res$landscape)")
+    }
+    if (!is.null(r$mutants)) {
+      refuse("already holds invaders: run the landscape again")
+    }
+    tryCatch(as_solver(r), error = function(e) {
+      stop("Patch \"", patch, "\": ", conditionMessage(e), call. = FALSE)
+    })
+    if (!identical(class(each[[patch]]), class(r$scenario$p))) {
+      refuse("runs ", class(r$scenario$p)[[1L]], ", and its invaders are ",
+             class(each[[patch]])[[1L]])
+    }
+  }
+  invaded <- list()
+  for (patch in patches) {
+    invaded[[patch]] <- tryCatch(
+      run_mutant(resident$patches[[patch]], each[[patch]], constant),
+      error = function(e) {
+        stop("Patch \"", patch, "\": ", conditionMessage(e),
+             if (length(invaded) > 0L) {
+               paste0(". Invaders had already run in ",
+                      paste(names(invaded), collapse = ", "),
+                      ", so this landscape's run is used up: run the ",
+                      "landscape again")
+             }, call. = FALSE)
+      })
+  }
   new_landscape_run(resident$landscape, invaded, resident$transfers,
-                    resident$method, mutants = p)
+                    resident$method, mutants = each)
+}
+
+## The invaders `p` holds, as one patch runs them: `p`'s strategies under the
+## patch's own Parameters, introduced at every time its residents were. That
+## is what add_mutant() makes of the patch's Parameters, so each patch keeps
+## its own fitness weighting and schedule.
+invaders_in <- function(patch_p, p) {
+  if (!identical(class(p), class(patch_p))) {
+    return(p)   # refused by name in run_mutant_landscape()
+  }
+  ret <- patch_p
+  ret$strategies <- p$strategies
+  times <- unique(sort(unlist(patch_p$node_schedule_times)))
+  ret$node_schedule_times <- rep(list(times), length(p$strategies))
+  ret
 }
 
 ## Every amount passed between patches: when, from where to where, and how
