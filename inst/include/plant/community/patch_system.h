@@ -192,7 +192,7 @@ public:
 protected:
   // `a` is the ground the species' sums are counted over: 1 for the
   // deterministic patch, whose state is already a density per m^2, and the
-  // drawn area for the stochastic one.
+  // control's stochastic_patch_area for the stochastic one.
   PatchSystem(parameters_type p, environment_type e, Control c, double a)
     : parameters(p), area(a), environment(e), control(c) {}
 

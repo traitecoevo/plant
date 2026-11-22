@@ -4,6 +4,15 @@
 ## introductions replaces the drawn arrivals: one arrival per time, and none
 ## drawn.
 stochastic_runner <- function(p, env, ctrl, events = NULL) {
+  ## A p saved before the area moved to Control carries patch_area. The C++
+  ## converter ignores it at 1, the deterministic value, but 1 was also the old
+  ## stochastic default: ignored here, such a run would draw a hundred times the
+  ## plants without a word.
+  if ("patch_area" %in% names(p)) {
+    stop("`p$patch_area` is retired. Set a stochastic patch's area with ",
+         "control(stochastic_patch_area = ) (100 m2 by default; 1 repeats ",
+         "the old default), and remove patch_area", call. = FALSE)
+  }
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
   given <- !is.null(events) && length(events$time) > 0L
