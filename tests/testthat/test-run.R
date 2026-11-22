@@ -121,6 +121,31 @@ test_that("a refined run whose events name its introductions reruns the refined 
   expect_reruns_refined(res)
 })
 
+test_that("a species introduced at no time refines and resumes", {
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(c(0.0825, 0.12), "lma"), birth_rate = c(1, 1))
+  t1 <- p$node_schedule_times[[1]]
+  only_first <- p
+  only_first$node_schedule_times <- list(t1, numeric(0))
+  expect_identical(node_introductions(only_first)$target_index, rep(1L, length(t1)))
+  ev <- events(node_introductions(only_first), harvest(time = 2, fraction = 0.2))
+  ctrl <- control(node_density_coordinate = "birth_date", schedule_eps = 5e-4)
+  res <- run(p, control = ctrl, events = ev, refine_schedule = TRUE)
+  expect_length(res$scenario$p$node_schedule_times[[2]], 0L)
+  expect_false(2L %in% res$scenario$events$target_index[
+    res$scenario$events$type == "node_introduction"])
+  expect_reruns_refined(res)
+  ## Species 2 stops recruiting before the export, so has none left to come.
+  q <- p
+  q$node_schedule_times[[2]] <- c(0, 0.5, 1)
+  part <- run(q, until = 2)
+  resumed <- run(q, from = part)
+  expect_true(resumed$complete)
+  expect_length(resumed$scenario$p$node_schedule_times[[2]], 0L)
+})
+
 test_that("a run's parameters carry the introductions its events name", {
   p <- ff16_parameters(10)
   few <- p$node_schedule_times[[1]][c(1, 5, 20, 40, 60)]
