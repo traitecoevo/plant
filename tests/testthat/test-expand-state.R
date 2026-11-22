@@ -29,8 +29,7 @@ allometry_oracle <- function(s, height, area_heartwood, mass_heartwood) {
   # TF24 also reports its basal Huber value, which on a uniform stem is the tip's.
   if (!is.null(p$theta_tip)) {
     out$huber_value_base <- rep(p$theta_tip, length(height))
-    L_top <- height * eta_c
-    out$conduit_widening_base <- ifelse(L_top > p$L_tip, (L_top / p$L_tip)^p$D_c, 1)
+    out$conduit_widening_base <- ifelse(height > p$L_tip, (height / p$L_tip)^p$D_c, 1)
   }
   out
 }

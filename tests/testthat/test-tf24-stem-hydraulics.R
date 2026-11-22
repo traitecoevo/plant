@@ -469,23 +469,28 @@ test_that("path length is monotone and its height elasticity is the analytic one
   expect_true(all(diff(at_10m) < 0))
 })
 
-test_that("the conduit widening the profile implies is reported at the base", {
-  # The diagnostic of #615's Phase 4: D_base / D_tip = (H*eta_c/L_tip)^D_c, the
-  # widening a plant of height H needs, to set against measured vessels. It is
-  # read at the base of the flow path, as the resistance is, and is 1 below the
-  # terminal segment and with widening off.
-  h <- c(0.01, 0.3941, 1, 16.5958691, 60)
+test_that("the conduit widening the law implies is reported at the ground", {
+  # The diagnostic of #615's Phase 4: D_base / D_tip = (H/L_tip)^D_c, the
+  # widening a plant of height H needs at the ground, L = H from the apex, to
+  # set against measured vessels. It is 1 for a plant no taller than its
+  # terminal segment and with widening off. Checked over L_tip, D_c and the
+  # crown shape, so a hard-coded segment length, or the mean-path base
+  # H*eta_c the resistance uses, fails here.
+  h <- c(0.01, 0.0201, 0.3941, 1, 16.5958691, 60)
   zero <- rep(0, length(h))
-  for (D_c in c(0.2, 0.3, 0)) {
+  grid <- expand.grid(D_c = c(0.2, 0.3, 0), L_tip = c(0.02, 0.05), eta = c(12, 1))
+  for (k in seq_len(nrow(grid))) {
+    g <- grid[k, ]
     s <- TF24_Model()
-    s$pars$D_c <- D_c
+    s$pars$D_c <- g$D_c
+    s$pars$L_tip <- g$L_tip
+    s$pars$eta <- g$eta
     a <- plant:::TF24_strategy_expand_allometry(s, h, zero, zero)
-    L_top <- h * ETA_C_AT_12
-    expected <- ifelse(L_top > s$pars$L_tip, (L_top / s$pars$L_tip)^D_c, 1)
+    expected <- ifelse(h > g$L_tip, (h / g$L_tip)^g$D_c, 1)
     expect_equal(a$conduit_widening_base, expected, tolerance = 1e-14,
-                 info = sprintf("D_c = %g", D_c))
+                 info = sprintf("D_c = %g, L_tip = %g, eta = %g", g$D_c, g$L_tip, g$eta))
   }
-  # Exactly 1 with widening off, and below the segment whatever D_c is.
+  # Exactly 1 with widening off, and for a plant within its terminal segment.
   s <- TF24_Model()
   s$pars$D_c <- 0
   expect_identical(
@@ -494,13 +499,19 @@ test_that("the conduit widening the profile implies is reported at the base", {
   expect_identical(
     plant:::TF24_strategy_expand_allometry(TF24_Model(), 0.01, 0, 0)$conduit_widening_base,
     1)
+  # A missing height is not a plant within its terminal segment.
+  expect_true(is.nan(
+    plant:::TF24_strategy_expand_allometry(TF24_Model(), NaN, 0, 0)$conduit_widening_base))
 
-  # At the defaults, the widening the issue quotes: 2.1x at 1 m, 3.7x at hmat,
-  # 4.8x at 60 m. A change to D_c, L_tip or the crown that moves these moves
-  # the comparison with measured vessels.
+  # At the defaults: the widening at 1 m, at hmat and at 60 m. A change to D_c
+  # or L_tip that moves these moves the comparison with measured vessels.
   a <- plant:::TF24_strategy_expand_allometry(TF24_Model(), c(1, 16.5958691, 60),
                                               c(0, 0, 0), c(0, 0, 0))
-  expect_equal(a$conduit_widening_base, c(2.1345, 3.7437, 4.8409), tolerance = 1e-4)
+  expect_equal(a$conduit_widening_base, c(2.1867, 3.8353, 4.9593), tolerance = 1e-4)
+
+  # The subclasses report it too.
+  a <- plant:::TF24f_strategy_expand_allometry(TF24f_Model(), 16.5958691, 0, 0)
+  expect_equal(a$conduit_widening_base, (16.5958691 / 0.02)^0.2, tolerance = 1e-14)
 
   # It reaches a run's tidied output per cohort, through TF24_expand_state().
   p <- tf24_fitness_stand_parameters()
@@ -510,9 +521,9 @@ test_that("the conduit widening the profile implies is reported at the base", {
   sp <- TF24_expand_state(tidy(res))$species
   ok <- is.finite(sp$height)
   expect_true(any(ok))
-  L_top <- sp$height[ok] * ETA_C_AT_12
   expect_equal(sp$conduit_widening_base[ok],
-               ifelse(L_top > 0.02, (L_top / 0.02)^0.2, 1), tolerance = 1e-12)
+               ifelse(sp$height[ok] > 0.02, (sp$height[ok] / 0.02)^0.2, 1),
+               tolerance = 1e-12)
 })
 
 test_that("theta_c enters with the sign that compensates", {
