@@ -6,8 +6,8 @@ tf24_allometry_r <- function(pars, eta) {
   eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
   function(height, area_heartwood, mass_heartwood) {
     area_leaf <- (height / pars$a_l1)^(1 / pars$a_l2)
-    area_sapwood <- area_leaf * pars$theta
-    area_bark <- pars$a_b1 * area_leaf * pars$theta
+    area_sapwood <- area_leaf * pars$theta_tip
+    area_bark <- pars$a_b1 * area_leaf * pars$theta_tip
     mass_leaf <- area_leaf * pars$lma
     mass_sapwood <- area_sapwood * height * eta_c * pars$rho
     mass_bark <- area_bark * height * eta_c * pars$rho

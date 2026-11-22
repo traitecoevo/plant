@@ -148,7 +148,14 @@ refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar
     ## is a name that is almost right, so "did you mean" is the message doing the
     ## real work.
     candidates <- c(known, fields, consumed)
+    ## A renamed parameter is named outright, since the nearest spelling can be
+    ## another parameter: TF24's `theta` is closer to `theta_c` than to
+    ## `theta_tip`, which it became.
+    renamed <- c(theta = "theta_tip")
     suggest <- vapply(unknown, function(u) {
+      if (u %in% names(renamed) && renamed[[u]] %in% candidates) {
+        return(sprintf("%s (renamed %s)", u, renamed[[u]]))
+      }
       d <- utils::adist(u, candidates, ignore.case = TRUE)[1, ]
       near <- candidates[d == min(d) & d <= max(2L, ceiling(nchar(u) / 3))]
       if (length(near) == 0L) u else sprintf("%s (did you mean %s?)", u,

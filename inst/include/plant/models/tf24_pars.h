@@ -35,7 +35,13 @@ struct TF24_Pars {
   S omega     = 3.8e-5;     // Seed mass [kg]
   // * Individual allometry
   S eta       = 12.0;       // Canopy shape parameter [dimensionless]
-  S theta     = 1.0/4669;   // Sapwood area per leaf area [dimensionless]
+  // Sapwood area per leaf area of the TERMINAL SEGMENT, the Huber value at the
+  // stem's tip [dimensionless]. The stem's own Huber value rises from it
+  // towards the base as (L/L_tip)^theta_c, so this is the whole-stem value
+  // only while theta_c == 0, which is the default. Named for the tip so that a
+  // measured whole-stem or basal value cannot be handed to it under the old
+  // name: a parameter set or trait matrix naming `theta` is refused.
+  S theta_tip = 1.0/4669;
   S a_l1      = 5.44;       // height with 1m2 leaf [m]
   S a_l2      = 0.306;      // scaling of height with leaf area
   S a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m2]
@@ -178,7 +184,7 @@ struct TF24_Pars {
   // test-tf24-stem-hydraulics.R checks against the path integral. The ratio is
   // 2.9782.
   //
-  // Only theta*K_s is identifiable, so agreement with the height-linear model
+  // Only theta_tip*K_s is identifiable, so agreement with the height-linear model
   // holds at exactly ONE height and nowhere else. That is by construction:
   // changing the height dependence is the object of the exercise.
   S K_s = 0.33577377016801868;
@@ -265,10 +271,7 @@ struct TF24_Pars {
   // plant/models/stem_hydraulics.h for the closed form and what it assumes.
   //
   // Setting all three to zero collapses the path integral to a resistance
-  // linear in height bit for bit, which is
-  // what the regression test asserts. theta_c is zero by default, so `theta`
-  // keeps its whole-plant meaning and no parameter-file migration is needed
-  // yet.
+  // linear in height bit for bit, which is what the regression test asserts.
   //
   // Conduit widening exponent: D(L) = D_tip*(L/L_tip)^D_c. Reaches the model
   // only through beta = 2*D_c + theta_c -- the diameter itself is never
@@ -278,19 +281,21 @@ struct TF24_Pars {
   // Measured, not fitted: conserved across terrestrial vascular plants, with a
   // within-stem range of roughly 0.1-0.3.
   S D_c = 0.2;
-  // Huber-profile exponent: theta(L) = theta*(L/L_tip)^theta_c. NOTE THE
+  // Huber-profile exponent: theta(L) = theta_tip*(L/L_tip)^theta_c. NOTE THE
   // PLUS SIGN. theta is sapwood area per leaf area, the Huber value, and rises
   // basipetally, so a positive theta_c means less leaf area supported per unit
   // sapwood towards the base -- that is the compensation mechanism.
   //
-  // NOT YET IMPLEMENTED: prepare_strategy() throws on any non-zero value. theta
-  // is not a hydraulics-only trait -- it also sets area_sapwood, area_bark,
-  // mass_sapwood (hence construction cost, respiration, turnover and NSC
-  // capacity) and the hard-coded dmass_sapwood_darea_leaf derivative, all of
-  // which still read a flat pars.theta. Profiling it on the hydraulic side
-  // alone would give a plant that conducts as though theta varied and is built
-  // as though it did not. The two uses are the same trait and must move
-  // together, so the field is declared and refused rather than half-applied.
+  // One profile serves both uses of the trait: the water path, through beta,
+  // and the stem that is built -- basal sapwood and bark area, their masses
+  // (hence construction cost, respiration, turnover, storage capacity and
+  // coarse roots) and the cost of rebuilding leaf area. See "The Huber profile
+  // along the stem" in tf24_model.h.
+  //
+  // 0 by default, a uniform stem. The design note's derived value is 2*D_c,
+  // but that implies a Huber value about 14x larger at the base of a 16 m tree
+  // than at its tip, with no within-tree data yet to support it, and it would
+  // roughly triple sapwood mass at hmat. Turning it on waits for that evidence.
   //
   // Name clash to be aware of: phylloptim's Leaf spells soil water content
   // theta_, theta_w_ and theta_fc_ (m^3 m^-3), all R-visible, so s$pars$theta_c
@@ -298,11 +303,11 @@ struct TF24_Pars {
   S theta_c = 0.0;
   // Terminal segment length [m]. Not an innocuous numerical cutoff: it enters
   // the resistance with an elasticity close to beta (0.4 at the defaults), and
-  // trades off against both K_s and theta, which are identifiable only in the
-  // grouping L_tip^beta/(K_s*theta). It must therefore come from the SAME
-  // terminal-segment definition over which K_s and theta were measured -- none
-  // of the three may be calibrated independently of the others (invariance
-  // criterion I5).
+  // trades off against both K_s and theta_tip, which are identifiable only in the
+  // grouping L_tip^beta/(K_s*theta_tip) in the resistance. It must therefore
+  // come from the SAME terminal-segment definition over which K_s and theta_tip
+  // were measured -- none of the three may be calibrated independently of the
+  // others (invariance criterion I5). It also anchors the Huber profile.
   S L_tip = 0.02;
   // Germination
   S recruitment_decay = 0.0;
@@ -406,14 +411,6 @@ struct TF24_Pars {
                   "the residual conductance is opt-in and has no gradient "
                   "fixture; at the default g_min = 0 its column would be an "
                   "exact zero"},
-      // Refused by the model, so a row would describe half of it.
-      no_gradient{"theta_c",
-                  "prepare_strategy refuses any non-zero value, because theta "
-                  "also sets sapwood and bark area, construction cost, "
-                  "respiration and storage capacity and those still read a flat "
-                  "theta -- the path length does move with it, so a column here "
-                  "would be a live number for the hydraulic half of a trait the "
-                  "carbon budget does not yet follow"},
       // No equation reads them, which the chain through a trade-off relies on.
       no_gradient{"stem_b", "derived from (stem_P50, stem_c); phylloptim derives it itself, so setting it reaches nothing and a row here would describe a path the model does not take", false},
       no_gradient{"psi_crit", "derived from (stem_P50, stem_c), as above", false},
@@ -430,7 +427,7 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(hmat),
       PLANT_TF24_AD_PARAMETER(omega),
       PLANT_TF24_AD_PARAMETER(eta),
-      PLANT_TF24_AD_PARAMETER(theta),
+      PLANT_TF24_AD_PARAMETER(theta_tip),
       PLANT_TF24_AD_PARAMETER(a_l1),
       PLANT_TF24_AD_PARAMETER(a_l2),
       PLANT_TF24_AD_PARAMETER(a_r1),
@@ -495,9 +492,9 @@ struct TF24_Pars {
       // The root curve's dry limit, and a limit for the same reason.
       PLANT_TF24_AD_PARAMETER(root_psi_crit),
       PLANT_TF24_AD_PARAMETER(rooting_depth_max),
-      // The stem path integral's two live parameters. Both reach the leaf
-      // through stem_path_exponent() and the path length, so both carry a
-      // column; theta_c is the third and is excluded below.
+      // The stem path integral's three parameters. All reach the leaf through
+      // stem_path_exponent() and the path length; theta_c and L_tip also reach
+      // the stem's areas and masses through the Huber profile.
       PLANT_TF24_AD_PARAMETER(D_c),
       PLANT_TF24_AD_PARAMETER(theta_c),
       PLANT_TF24_AD_PARAMETER(L_tip),

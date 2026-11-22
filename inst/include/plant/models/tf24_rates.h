@@ -23,7 +23,7 @@ template <typename S>
 void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Internals<S>& vars) {
   const S& height = vars.state(HEIGHT_INDEX);
   const S& area_leaf_ = vars.aux(aux_idx_competition_effect);
-  // The Huber value's departure from theta. Read once here and threaded through
+  // The Huber value's departure from its resting profile. Read once here and threaded through
   // every sapwood quantity below, so the conducting area a plant has and the
   // one its leaf area prefers cannot disagree between two call sites.
   const S& sapwood_departure = vars.state(state_idx_log_area_sapwood_departure);
@@ -178,8 +178,8 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // Sapwood -> heartwood conversion is turnover-driven, so it proceeds
   // regardless of carbon status. DO NOT gate it behind net production > 0.
   vars.set_rate(state_idx_area_heartwood,
-                area_heartwood_dt(area_leaf_, sapwood_departure));
-  const S area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure);
+                area_heartwood_dt(area_leaf_, sapwood_departure, height));
+  const S area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure, height);
   const S mass_sapwood_ = mass_sapwood(area_sapwood_, height);
   vars.set_rate(state_idx_mass_heartwood, mass_heartwood_dt(mass_sapwood_));
 
@@ -254,8 +254,8 @@ void TF24_Model<S>::compute_rates(const TF24_Environment<S>& environment,  Inter
   // is the restoring force.
   //
   // The rebuilding term is exact geometry, not a parameter: rebuilding adds leaf
-  // area and sapwood in the ratio theta, so it moves the two logs by b/A and
-  // theta*b/A_s, whose difference is (b/A) * (exp(-psi) - 1). It vanishes at
+  // area and sapwood in the resting ratio at this height, theta_base, so it
+  // moves the two logs by b/A and theta_base*b/A_s, whose difference is (b/A) * (exp(-psi) - 1). It vanishes at
   // psi = 0, which is what leaves the inward-pointing boundary flow intact.
   vars.set_rate(state_idx_log_area_sapwood_departure,
                 withheld * pars.k_l - withheld_sapwood * pars.k_s +
@@ -518,13 +518,13 @@ S TF24_Model<S>::mortality_growth_dependent_dt(const S& carbon_status) const {
   return pars.a_dG1 * exp(-pars.a_dG2 * carbon_status);
 }
 
-// NSC storage capacity: scales with sapwood mass (per Daniel). mass_sapwood
-// = area_sapwood(area_leaf, departure) * height * eta_c * rho.
+// NSC storage capacity: scales with sapwood mass (per Daniel), at the sapwood
+// the plant carries, so it follows the Huber profile too.
 template <typename S>
 S TF24_Model<S>::storage_capacity(const S& area_leaf_, const S& height,
                                      const S& sapwood_departure) const {
   return pars.a_st1 *
-    mass_sapwood(area_sapwood(area_leaf_, sapwood_departure), height);
+    mass_sapwood(area_sapwood(area_leaf_, sapwood_departure, height), height);
 }
 
 // Initialise the storage state for a newly germinated individual at a_st3 fraction of

@@ -330,7 +330,8 @@ S TF24_Model<S>::update_leaf_specific_conductance_max(
   // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
   //   the whole-stem value while pars.D_c == 0 (kg m^-1 s^-1 MPa^-1)
-  // pars.theta: huber value
+  // pars.theta_tip: Huber value of the terminal segment, the whole-stem value
+  //   while pars.theta_c == 0
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
   //
@@ -346,7 +347,7 @@ S TF24_Model<S>::update_leaf_specific_conductance_max(
   // then bit-identical to the height-linear code it replaces.
   const S stem_path_length = stem_hydraulics::effective_path_length(
       S(height * eta_c), pars.L_tip, stem_path_exponent());
-  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta. Supply per unit leaf area
+  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta_tip. Supply per unit leaf area
   // follows the Huber value the plant actually carries, so a stem that keeps its
   // conducting area while the canopy thins supplies each remaining leaf better.
   // That is the acclimation half of flexible allometry, and it is also what the
@@ -675,9 +676,9 @@ S TF24_Model<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
   // (cached aux); unused here as the TF24 root-water path works in height directly.
   (void)height_inverse;
   const S mass_leaf_    = mass_leaf(area_leaf_);
-  const S area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure);
+  const S area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure, height);
   const S mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-  const S area_bark_    = area_bark(area_leaf_);
+  const S area_bark_    = area_bark(area_leaf_, height);
   const S mass_bark_    = mass_bark(area_bark_, height);
   const S mass_root_    = mass_root(area_leaf_);
 
