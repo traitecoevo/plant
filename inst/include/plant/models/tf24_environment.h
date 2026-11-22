@@ -571,12 +571,12 @@ public:
   // saturation the retention curve gives a suction smaller than a saturated
   // soil's. Asked as "is it inside", so a NaN fails.
   //
-  // ⚠️ A REFUSAL IS NOT ALWAYS AN OVERSHOOT. The balance itself can fill a layer
-  // past saturation: a layer's inflow is the drainage of the layer above, up to
-  // that layer's K_sat, and nothing limits it when the layer is full, so a
-  // K_sat that falls with depth, or a_infil < 1 under rain heavier than K_sat,
-  // overfills one. No smaller step escapes that, and the run stops, naming the
-  // layer, where it would otherwise carry on with moisture no soil can hold.
+  // The balance itself keeps every layer at or below saturation (see
+  // accepted_inflow), so a refusal is an explicit step's overshoot, which a
+  // smaller step removes. The one inflow the balance does not limit is water
+  // the roots release into a layer (a negative uptake): released into a full
+  // layer it overfills it, no smaller step escapes that, and the run stops,
+  // naming the layer.
   template <class It>
   std::string saturation_refusal(It first) const {
     // The bound allows a few ulps above saturation. A capped rain pulse fills
@@ -795,12 +795,17 @@ public:
   //   d(theta_i)/dt = (water_in_i - water_out_i - root_uptake_i) / dz[i]
   //
   // where:
-  //   * water_in_0   = infiltration (rainfall reduced by a saturation-excess
-  //                    runoff term controlled by a_infil/b_infil);
-  //   * water_in_i>0 = drainage out of the layer above (water_flux[i-1]);
-  //   * water_out_i  = gravitational drainage = conductivity(theta_i, i),
-  //                    a Clapp & Hornberger (1978) / Zeng & Decker (2009)
-  //                    unsaturated hydraulic conductivity;
+  //   * water_in_0   = infiltration: rainfall reduced by a saturation-excess
+  //                    runoff term controlled by a_infil/b_infil, of which the
+  //                    top layer accepts what accepted_inflow allows;
+  //   * water_in_i>0 = what layer i accepts of the gravitational drainage of
+  //                    the layer above, conductivity(theta_{i-1}, i-1), a
+  //                    Clapp & Hornberger (1978) / Zeng & Decker (2009)
+  //                    unsaturated hydraulic conductivity. A nearly full layer
+  //                    accepts no more than it passes on, so the excess stays
+  //                    above it and, at the surface, runs off;
+  //   * water_out_i  = water_in_{i+1}, and for the deepest layer its own
+  //                    gravitational drainage (water_flux[i] either way);
   //   * root_uptake_i= resource_depletion[i] (m yr^-1): the plants' uptake from
   //                    the layer, built from each strategy's
   //                    evapotranspiration_dt and divided by the patch area in
@@ -810,13 +815,15 @@ public:
   // (rainfall, infiltration, deep drainage, total root uptake, pulse runoff).
   //
   // This is an explicit, first-order representation; drainage is instantaneous
-  // single-direction (no upward capillary flux between layers - that is handled
-  // hydraulically inside the plant, by the leaf's root network, phylloptim's
-  // E_from_Soil_to_Root_Collar).
+  // and downward, except where an explicit stage has overfilled a layer and
+  // accepted_inflow pushes the excess back up. There is no upward capillary
+  // flux between layers: that is handled hydraulically inside the plant, by the
+  // leaf's root network, phylloptim's E_from_Soil_to_Root_Collar.
   //
   // The inter-layer flux is FREE DRAINAGE, q = K(theta) evaluated at the donor
-  // cell (Darcy's law with the matric gradient dropped). It contains no internode
-  // distance, so it holds unchanged for unequal layers, and mass conservation,
+  // cell (Darcy's law with the matric gradient dropped), less what a nearly
+  // full receiver refuses. Neither part contains an internode distance, so the
+  // flux holds unchanged for unequal layers, and mass conservation,
   // sum(dz[i] * dtheta_i/dt) = infiltration - deep drainage - total uptake, is
   // exact for any widths (pinned on a graded profile in
   // test-tf24-water-budget.R) while no layer is held at the residual moisture.
@@ -875,17 +882,26 @@ public:
     return std::max(0.0, rainfall_raw);
   }
 
-  // The conductivity at theta held to [0, saturation], counting no clamp.
+  // The conductivity at theta, counting no clamp. Below zero it is held at
+  // zero, where the curve and its slope already are. Above saturation, which
+  // only an explicit stage reaches, it continues along its tangent: a layer
+  // held full above a slower one sits a hair below saturation, so its stages
+  // cross it, and a curve held flat there would put a kink in the slope
+  // exactly where the run sits. The tangent is linear, so a stage far above
+  // saturation cannot grow its successors by the curve's power either.
   template <class U> U conductivity(const U& theta, size_t layer) const {
     using std::max;
-    using std::min;
     using std::pow;
     const double k_sat_layer = soil_parameter_value(K_sat_layers, K_sat, layer);
     const double soil_moist_sat_layer =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
-    const U t = min(max(theta, U(0.0)), U(soil_moist_sat_layer));
-    return k_sat_layer * pow(t / soil_moist_sat_layer, 2 * n_psi_layer + 3);
+    const double b = 2 * n_psi_layer + 3;
+    const U s = max(theta, U(0.0)) / soil_moist_sat_layer;
+    if (s > 1.0) {
+      return k_sat_layer * (U(1.0) + b * (s - 1.0));
+    }
+    return k_sat_layer * pow(s, b);
   }
 
   // The share of the rain the top layer takes at moisture theta, before it is
@@ -897,44 +913,148 @@ public:
     return U(1) - a_infil * pow(theta / soil_moist_sat_0, b_infil);
   }
 
+  // The exponent b of the saturated share w in accepted_inflow, which sets how
+  // near saturation a layer begins to refuse what it cannot pass on: w is
+  // 1.5e-5 at half saturation and 1% at three-quarters. A flatter w refuses
+  // water a layer has room for, and moves columns no layer of which is full;
+  // a steeper one stiffens a layer held full above a slower one, where the
+  // stiffness is about b (supply - out) / (theta_sat dz). 16 is where a
+  // perched column's outcome stops depending on b. Hazard 12 has the
+  // measurements.
+  static constexpr double inflow_refusal_exponent = 16.0;
+  // The most the saturated share w can reach, which it approaches only far
+  // above saturation.
+  static constexpr double inflow_refusal_bound = 100.0;
+  // The sharpness p of smooth_min. The smooth minimum falls short of min(a, b)
+  // most where a = b, by a factor 2^(-1/p), 16% at 4. A draining column's
+  // interfaces sit near a = b, where its curvature grows with p, so a sharp
+  // minimum puts a near-kink on the path of ordinary runs, which a difference
+  // in a trait then straddles. The shortfall is weighted by the saturated
+  // share, so it barely moves a column that passes on what it receives.
+  static constexpr double inflow_limit_sharpness = 4.0;
+
+  // A smooth minimum of a and b that never exceeds the smaller. For positive
+  // arguments it is the reciprocal p-norm a b / (a^p + b^p)^(1/p),
+  // p = inflow_limit_sharpness, evaluated from the larger argument, which keeps
+  // the power in [0, 1] and finite however far apart the two are
+  // (conductivities span ~25 orders of magnitude); the two orderings are one
+  // analytic function, so choosing between them puts no kink in it. Where the
+  // smaller is not positive (an outflow an overfilled stage turned upward) it
+  // is the smaller exactly: the p-norm form would lie above a negative
+  // argument and break the barrier. The two forms meet at zero with equal
+  // value and first p derivatives.
+  template <class U> static U smooth_min(const U& a, const U& b) {
+    using std::pow;
+    const bool a_smaller = a < b;
+    const U& lo = a_smaller ? a : b;
+    const U& hi = a_smaller ? b : a;
+    if (!(lo > 0.0)) {
+      return lo;
+    }
+    static_assert(inflow_limit_sharpness == 4.0,
+                  "smooth_min forms (lo / hi)^p by two squarings");
+    const U r = lo / hi;
+    const U r2 = r * r;
+    return lo / pow(U(1.0) + r2 * r2, 1.0 / inflow_limit_sharpness);
+  }
+
+  // What layer `layer`, at moisture theta, takes of a supply from above when
+  // it passes `out` on below. A dry layer takes the whole supply, into its free
+  // pore space; a full one takes only what it passes on. Between the two, w is
+  // read as the saturated share of the layer, which takes only what the layer
+  // passes on while the rest takes freely:
+  //
+  //   accepted = supply - w (supply - smooth_min(supply, out)),
+  //   w = W f / (W - 1 + f),  f = (theta / theta_sat)^b,
+  //
+  // with b = inflow_refusal_exponent and W = inflow_refusal_bound, so w is f
+  // to within 1/W below saturation and exactly 1 at it.
+  //
+  // At saturation the layer's inflow is at most its outflow, so its rate is not
+  // positive while its roots draw on it, and saturation is a barrier the
+  // balance keeps by itself. Above saturation (an explicit stage can put it
+  // there) w exceeds one and the layer refuses more, which pushes it back; its
+  // accepted inflow can then turn negative, pushing water up into the layer
+  // above, which passes it on up in turn, and at the surface out of the
+  // column as negative infiltration. What a layer refuses stays in the layer
+  // above, which fills and refuses in turn; at the surface it is runoff.
+  // Nothing is lost: each flux leaves one layer and enters the next by the
+  // same amount.
+  //
+  // w is bounded above because, left as f, an explicit stage far above
+  // saturation would weigh the refusal by theta^b, and the stages that follow
+  // it would grow by that power until they overflowed, where a bounded flux
+  // lets the step be rejected. The moisture is floored at zero in f only,
+  // where f and its slope are already zero; a stage below zero is already
+  // outside the domain.
+  template <class U>
+  U accepted_inflow(const U& supply, const U& out, const U& theta,
+                    size_t layer) const {
+    using std::max;
+    using std::pow;
+    const double sat =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
+    static_assert(inflow_refusal_exponent == 16.0,
+                  "accepted_inflow forms (theta / sat)^b by four squarings");
+    U f = max(theta, U(0.0)) / sat;
+    for (int k = 0; k < 4; ++k) {
+      f = f * f;
+    }
+    constexpr double W = inflow_refusal_bound;
+    const U w = W * f / (W - 1.0 + f);
+    return supply - w * (supply - smooth_min(supply, out));
+  }
+
   // Each layer's rate under `rainfall`, less the uptake u from it, held at the
-  // residual moisture; returns the infiltration. `note` counts each clamp, and
-  // `drainage`, if given, takes each layer's.
+  // residual moisture; returns the infiltration, the water that enters the top
+  // layer. `note` counts each clamp, and `drainage`, if given, takes the flux
+  // out of the base of each layer.
+  //
+  // A layer's inflow depends on what the layers below it pass on, so the
+  // fluxes are found from the bottom up: the flux out of the deepest layer is
+  // its free drainage, and the flux into each layer is accepted_inflow of what
+  // the layer above offers (its free drainage, or the infiltrated rain at the
+  // surface) against what this layer passes on.
   template <class U, class Note>
   U layer_rates(double rainfall, const std::vector<U>& theta,
                 const std::vector<U>& u, std::vector<U>& rate,
                 std::vector<U>* drainage, Note note) const {
     using std::max;
+    const size_t n = soil_number_of_depths;
     const U share = infiltrated_share(theta[0]);
     // Where the top layer is wet enough that this goes negative, the infiltrated
     // fraction stops reading that layer's state at all.
     if (share < U(0.0)) {
       note(CLAMP_INFILTRATION);
     }
-    const U infiltration = rainfall * max(U(0.0), share);
-    U water_input = infiltration;
-    for (size_t i = 0; i < soil_number_of_depths; ++i) {
+    // An explicit stage can evaluate theta outside [0, saturation], where the
+    // conductivity curve is held.
+    auto free_drainage = [&](size_t i) {
       const U& t = theta[i];
-      // An explicit stage can evaluate theta outside [0, saturation], where the
-      // conductivity curve is held.
       if (t < U(0.0) ||
           t > U(soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i))) {
         note(CLAMP_SOIL_CONDUCTIVITY);
       }
-      const U k = conductivity(t, i);
+      return conductivity(t, i);
+    };
+    U out = free_drainage(n - 1);
+    for (size_t i = n; i-- > 0;) {
+      const U supply =
+        i == 0 ? U(rainfall * max(U(0.0), share)) : free_drainage(i - 1);
+      const U in = accepted_inflow(supply, out, theta[i], i);
       if (drainage != nullptr) {
-        (*drainage)[i] = k;
+        (*drainage)[i] = out;
       }
-      rate[i] = (water_input - k - u[i]) / dz[i];
+      rate[i] = (in - out - u[i]) / dz[i];
       // At or below the residual moisture a layer is not dried further, and a
       // NaN rate (from the retention curve near residual) is held too.
-      if (t <= soil_moist_residual && !(rate[i] > 0.0)) {
+      if (theta[i] <= soil_moist_residual && !(rate[i] > 0.0)) {
         note(CLAMP_SOIL_POSITIVITY);
         rate[i] = U(0.0);
       }
-      water_input = k;
+      out = in;
     }
-    return infiltration;
+    return out;
   }
 
   // The times in (from, to) where the rain changes form: the soil's knots.

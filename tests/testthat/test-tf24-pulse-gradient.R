@@ -122,3 +122,40 @@ test_that("the forward tangent walks a harvest between introductions", {
               1e-6 * abs(tangent$tangent[[i]]), label = paste("tangent of", m))
   }
 })
+
+test_that("a column held full above a slower layer is the pinned-step central difference", {
+  # K_sat falling with depth holds layers 2 to 5 at saturation, where each takes
+  # only what the layer below passes on, through a smooth minimum weighted by
+  # the layer's saturated share. Measured 2e-10 to 4e-8 against the difference
+  # at a relative step of 1e-5; held to 1e-6.
+  p <- testing_parameters("TF24")
+  p$max_patch_lifetime <- 0.5
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
+  full <- p$node_schedule_times[[1]]
+  p$node_schedule_times <- list(full[round(seq(1, length(full), length.out = 12))])
+  saturating_run <- function(q, record = TRUE) {
+    env <- Environment("TF24")
+    set_tf24_soil(env, K_sat = c(163.0411, 163.0411, 163.0411, 20, 0.5))
+    env$extrinsic_drivers_set_constant("rainfall", 1)
+    run(q, env,
+        Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
+                ode_tol_abs = 1e-6),
+        record = if (record) "states" else character(0))$solver
+  }
+  solver <- saturating_run(p)
+  theta <- solver$patch$environment$get_soil_water_state()
+  expect_equal(theta[2:5], rep(0.428, 4), tolerance = 1e-4)
+  traits <- c("lma", "a_r1", "K_s")
+  metrics <- c("leaf_area", "mass_above_ground")
+  g <- stand_gradient(solver, metrics = metrics, traits = paste0("1.", traits),
+                      hyperpar = NULL)
+  pinned <- pin_steps(solver)
+  census_of <- function(q) stand_census(saturating_run(q, record = FALSE))[metrics]
+  for (name in traits) {
+    fd <- central_difference(pinned, 1, name, NULL, census_of, rel = 1e-5)
+    for (m in metrics) {
+      expect_lt(abs(g$gradient[m, paste0("1.", name)] - fd[[m]]), 1e-6 * abs(fd[[m]]),
+                label = paste(m, name))
+    }
+  }
+})
