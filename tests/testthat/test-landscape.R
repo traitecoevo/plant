@@ -63,7 +63,7 @@ test_that("unlinked patches run as each does alone, whatever their models", {
 test_that("what a patch sheds reaches the patch below, and none is lost", {
   land <- landscape(list(ridge = water_patch(shallow_column),
                          gully = water_patch()),
-                    resource_flow("ridge", "gully"))
+                    flow("ridge", "gully", "resource"))
   res <- run(land)
   ridge <- res$patches$ridge
   gully <- res$patches$gully
@@ -122,7 +122,7 @@ test_that("a flow leaves the pool it names and reaches the pool it names", {
   ridge <- water_patch(shallow_column)
   ridge$events <- events(ridge$events, resource_pulse(c(0.5, 1.5), 2, 0.2))
   land <- landscape(list(ridge = ridge, gully = water_patch()),
-                    resource_flow("ridge", "gully", resource = 2, into = 3,
+                    flow("ridge", "gully", "resource", out_of = 2, into = 3,
                                   weight = 0.5))
   res <- run(land)
 
@@ -151,8 +151,8 @@ test_that("a patch passes on what it sheds again, split by its flows' weights", 
   land <- landscape(list(gully = water_patch(),
                          mid = water_patch(shallow_column),
                          ridge = water_patch(shallow_column)),
-                    resource_flow("ridge", c("mid", "gully"), weight = c(0.5, 0.25)),
-                    resource_flow("mid", "gully"))
+                    flow("ridge", c("mid", "gully"), "resource", weight = c(0.5, 0.25)),
+                    flow("mid", "gully", "resource"))
   ## Sources run first, whatever order the patches were given in.
   expect_equal(landscape_order(names(land$patches), land$flows),
                c("ridge", "mid", "gully"))
@@ -177,7 +177,7 @@ test_that("a patch passes on what it sheds again, split by its flows' weights", 
 test_that("a landscape is a value: saved and read back, it runs the same", {
   land <- landscape(list(ridge = water_patch(shallow_column),
                          gully = water_patch()),
-                    resource_flow("ridge", "gully"))
+                    flow("ridge", "gully", "resource"))
   path <- tempfile(fileext = ".rds")
   on.exit(unlink(path))
   saveRDS(land, path)
@@ -191,7 +191,7 @@ test_that("a landscape is a value: saved and read back, it runs the same", {
 test_that("a run's arguments reach every patch", {
   land <- landscape(list(ridge = water_patch(shallow_column),
                          gully = water_patch()),
-                    resource_flow("ridge", "gully"))
+                    flow("ridge", "gully", "resource"))
   res <- run(land, record = "steps")
   out <- tidy(res)
   expect_named(out, c("ridge", "gully"))
@@ -203,7 +203,7 @@ test_that("a run's arguments reach every patch", {
   coarse <- water_patch()
   coarse$p$node_schedule_times <- list(seq(0, 2, length.out = 8))
   deep <- landscape(list(upper = coarse, lower = coarse),
-                    resource_flow("upper", "lower"))
+                    flow("upper", "lower", "resource"))
   refined <- run(deep, refine_schedule = TRUE)
   upper <- refined$patches$upper
   expect_gt(length(upper$scenario$p$node_schedule_times[[1]]), 8)
@@ -233,31 +233,39 @@ test_that("a landscape that cannot be run is refused where it is made", {
                               b = light_patch("FF16", 30))),
                "one span of time")
   expect_error(landscape(patches, data.frame(from = "ridge", to = "gully")),
-               "resource_flow\\(\\) returns")
+               "flow\\(\\) returns")
 
-  expect_error(landscape(patches, resource_flow("ridge", "creek")),
+  expect_error(landscape(patches, flow("ridge", "creek", "resource")),
                "\"creek\", which is not a patch")
-  expect_error(landscape(patches, resource_flow("ridge", "gully"),
-                         resource_flow("gully", "ridge")),
+  expect_error(landscape(patches, flow("ridge", "gully", "resource"),
+                         flow("gully", "ridge", "resource")),
                "form a loop")
-  expect_error(landscape(patches, resource_flow("ridge", "gully", weight = 0.6),
-                         resource_flow("ridge", "gully", weight = 0.6)),
+  expect_error(landscape(patches, flow("ridge", "gully", "resource", weight = 0.6),
+                         flow("ridge", "gully", "resource", weight = 0.6)),
                "summing to more than 1")
 
-  expect_error(resource_flow("ridge", "ridge"), "cannot flow into itself")
-  expect_error(resource_flow("ridge", "gully", weight = 1.5), "between 0 and 1")
-  expect_error(resource_flow("ridge", "gully", resource = 0),
-               "`resource` and `into` are indices of resource pools")
-  expect_error(resource_flow("ridge", "gully", into = Inf),
-               "`resource` and `into` are indices of resource pools")
-  expect_error(resource_flow("ridge", "gully", resource = 1e10),
-               "`resource` and `into` are indices of resource pools")
+  expect_error(flow("ridge", "ridge", "resource"), "cannot flow into itself")
+  expect_error(flow("ridge", "gully", "resource", weight = 1.5), "between 0 and 1")
+  expect_error(flow("ridge", "gully", "resource", out_of = 0),
+               "`out_of` and `into` are indices, counted from 1")
+  expect_error(flow("ridge", "gully", "resource", into = Inf),
+               "`out_of` and `into` are indices, counted from 1")
+  expect_error(flow("ridge", "gully", "resource", out_of = 1e10),
+               "`out_of` and `into` are indices, counted from 1")
   ## Shares out of different pools of one patch are not summed together.
   expect_no_error(landscape(patches,
-                            resource_flow("ridge", "gully", resource = 1:2)))
-  expect_error(resource_flow(c("a", "b"), c("c", "d", "e")), "length 1 or 3")
+                            flow("ridge", "gully", "resource", out_of = 1:2)))
+  ## The kind is named, and a value no kind takes is refused, so a misspelt
+  ## argument cannot pass as a column.
+  expect_error(flow("ridge", "gully"), "`type` is the kind of flow: one of \"resource\"")
+  expect_error(flow("ridge", "gully", "pollen"), "`type` is the kind of flow")
+  expect_error(flow("ridge", "gully", "resource", wieght = 0.5),
+               "A resource flow takes no further values; it was given wieght")
+  expect_error(flow("ridge", "gully", "resource", 1, 1, 1, 7),
+               "it was given an unnamed value")
+  expect_error(flow(c("a", "b"), c("c", "d", "e"), "resource"), "length 1 or 3")
 
-  expect_equal(nrow(resource_flow(character(0), character(0))), 0)
+  expect_equal(nrow(flow(character(0), character(0), "resource")), 0)
 
   land <- landscape(patches)
   expect_error(run(land, until = 5), "cannot take `until` or `from`")
@@ -268,7 +276,7 @@ test_that("a landscape that cannot be run is refused where it is made", {
 test_that("a landscape changed after it was made is checked again when run", {
   land <- landscape(list(ridge = water_patch(shallow_column),
                          gully = water_patch()),
-                    resource_flow("ridge", "gully"))
+                    flow("ridge", "gully", "resource"))
 
   heavier <- land
   heavier$flows$weight <- 2
@@ -298,12 +306,12 @@ test_that("a flow into a pool the receiver lacks names the patch it stopped at",
   ridge <- water_patch(shallow_column)
   dry <- light_patch("FF16", lifetime = 2)
   land <- landscape(list(ridge = ridge, slope = dry),
-                    resource_flow("ridge", "slope"))
+                    flow("ridge", "slope", "resource"))
   expect_error(run(land),
                "Patch \"slope\", with what flowed into it: .*0 resources")
 
   ## A flow out of a pool the source lacks passes nothing.
-  none <- run(landscape(list(a = dry, b = dry), resource_flow("a", "b")))
+  none <- run(landscape(list(a = dry, b = dry), flow("a", "b", "resource")))
   expect_equal(nrow(none$transfers), 0)
 })
 
@@ -329,9 +337,7 @@ test_that("the run reads a kind of flow only through its three functions", {
       leaving = function(result, flow) data.frame(time = 1.5, amount = 10),
       arriving = note("tags"))))
   local_mocked_bindings(flow_kinds = function() kinds)
-  flow_of <- function(type, from, to, out_of = 1L, into = 1L, weight = 1) {
-    new_flows(from, to, type, as.integer(out_of), as.integer(into), weight)
-  }
+  flow_of <- function(type, from, to, ...) flow(from, to, type, ...)
 
   patches <- list(a = light_patch("FF16", 3), b = light_patch("FF16", 3),
                   c = light_patch("FF16", 3))
@@ -397,13 +403,17 @@ test_that("the run reads a kind of flow only through its three functions", {
 })
 
 test_that("a kind may give its rows columns of its own", {
-  banded <- new_flows("a", "b", "resource", 1L, 1L, 1)
-  banded$size_min <- 2
-  flows <- bind_flows(list(empty_flows(), resource_flow("b", "c"), banded))
+  kinds <- flow_kinds()
+  kinds$resource$columns <- "size_min"
+  local_mocked_bindings(flow_kinds = function() kinds)
+  banded <- flow("a", "b", "resource", size_min = 2)
+  expect_error(flow("a", "b", "resource", size_max = 2),
+               "A resource flow takes size_min; it was given size_max")
+  flows <- bind_flows(list(empty_flows(), flow("b", "c", "resource"), banded))
   expect_s3_class(flows, "plant_flows")
   expect_named(flows, c(names(empty_flows()), "size_min"))
   expect_equal(flows$size_min, c(NA, 2))
   patches <- list(a = light_patch("FF16", 3), b = light_patch("FF16", 3),
                   c = light_patch("FF16", 3))
-  expect_equal(nrow(run(landscape(patches, resource_flow("b", "c"), banded))$transfers), 0)
+  expect_equal(nrow(run(landscape(patches, flow("b", "c", "resource"), banded))$transfers), 0)
 })

@@ -2,34 +2,41 @@
 % Please edit documentation in R/run_landscape.R
 \name{landscape}
 \alias{landscape}
-\alias{resource_flow}
+\alias{flow}
 \title{Describe a landscape of linked patches}
 \usage{
 landscape(patches, ...)
 
-resource_flow(from, to, resource = 1L, into = resource, weight = 1)
+flow(from, to, type, out_of = 1L, into = out_of, weight = 1, ...)
 }
 \arguments{
 \item{patches}{A list of \code{\link{scenario}}s, one per patch. Its names
 are the patches' names; an unnamed list is named \code{"1"}, \code{"2"},
 and so on.}
 
-\item{...}{Flows between the patches, as \code{resource_flow} returns
-them, or none for patches that run side by side unlinked.}
+\item{...}{For \code{landscape}, the flows between the patches, as
+\code{flow} returns them, or none for patches that run side by side
+unlinked. For \code{flow}, further values that its kind takes; a
+resource flow takes none.}
 
-\item{from, to}{The names of the patch the resource leaves and the patch it
+\item{from, to}{The names of the patch the flow leaves and the patch it
 reaches.}
 
-\item{resource}{Index of the resource pool it leaves, in \code{from}'s
+\item{type}{The kind of flow, which says what it carries:
+\code{"resource"}.}
+
+\item{out_of}{Which part of \code{from}'s patch the flow comes out of, an
+index that its kind reads. For a resource flow, a resource pool of the
 environment, as \code{\link{resource_pulse}} counts them: TF24's are its
 soil layers, so 1 is the surface.}
 
-\item{into}{Index of the pool it reaches, in \code{to}'s environment; by
-default the same one.}
+\item{into}{Which part of \code{to}'s patch it goes into, read the same
+way; by default the same index.}
 
-\item{weight}{The fraction of what \code{from} sheds that reaches
-\code{to}, between 0 and 1. The weights of the flows out of one pool sum
-to at most 1; what they leave over leaves the landscape.}
+\item{weight}{How strongly the flow joins the two patches: what leaves
+\code{from} is multiplied by it on the way to \code{to}. For a resource
+flow, the share of what \code{from} sheds that reaches \code{to},
+between 0 and 1.}
 }
 \value{
 A list of class \code{plant_landscape} with \code{patches}, the
@@ -52,9 +59,10 @@ part of the source it comes \code{out_of} and which part of the receiver
 it goes \code{into}, each an index that the type reads; and its
 \code{weight}, how strongly it joins the two.
 
-One kind exists so far. \code{resource_flow} carries whatever the patches'
-environments count as a resource: in TF24 that is water in a soil layer,
-and \code{resource_flow("ridge", "gully")} passes the part of each rain
+\code{flow} writes rows of that table. One kind of flow exists so far:
+\code{"resource"}, which carries whatever the patches' environments count
+as a resource. In TF24 that is water in a soil layer, and
+\code{flow("ridge", "gully", "resource")} passes the part of each rain
 pulse the ridge's surface cannot hold to the gully.
 
 The patches run over one span of time and share its clock, so they must
@@ -69,14 +77,19 @@ another that feeds it back) is refused.
 A landscape is a plain list, and \code{run} checks it again, so a patch or
 a flow can be changed in place.
 
-\code{resource_flow} links two patches by what a resource pool
-  cannot hold. A resource pulse is capped at what its pool can take, and
-  the rest is shed (\code{\link{resource_pulse}}). With a flow out of that
-  pool, the shed amount, times \code{weight}, becomes a pulse into the
-  receiving patch's pool at the same instant, after any pulse the receiver
-  has of its own at that instant. The receiver may shed it in turn, and
-  pass it on down its own flows. The arguments are vectorised, so several
-  flows are one call.
+\code{flow}'s arguments are vectorised over everything but
+  \code{type}, so several flows of one kind are one call.
+}
+\section{Resource flows}{
+
+  A resource flow links two patches by what a resource pool cannot hold. A
+  resource pulse is capped at what its pool can take, and the rest is shed
+  (\code{\link{resource_pulse}}). With a flow out of that pool, the shed
+  amount, times \code{weight}, becomes a pulse into the receiving patch's
+  pool at the same instant, after any pulse the receiver has of its own at
+  that instant. The receiver may shed it in turn, and pass it on down its
+  own flows. The weights of the flows out of one pool sum to at most 1;
+  what they leave over leaves the landscape.
 
   Only what a pulse sheds is passed. A resource a patch loses in any other
   way stays lost to the landscape: in TF24, the run-off and drainage of
@@ -86,6 +99,7 @@ a flow can be changed in place.
   environment does not have; a flow into a pool the receiving environment
   does not have stops the run at that patch.
 }
+
 \examples{
 p <- default_parameters("TF24", quiet = TRUE)
 p$max_patch_lifetime <- 2
@@ -97,7 +111,7 @@ shallow$set_soil_layer_widths(c(0.05, 0.1, 0.15, 0.2, 0.25))
 land <- landscape(
   list(ridge = scenario(p, shallow, events = storms),
        gully = scenario(p, Environment("TF24"), events = storms)),
-  resource_flow("ridge", "gully"))
+  flow("ridge", "gully", "resource"))
 \donttest{
 res <- run(land)
 res$transfers                         # what the ridge passed to the gully

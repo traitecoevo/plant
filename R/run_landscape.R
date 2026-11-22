@@ -18,9 +18,10 @@
 ##' it goes \code{into}, each an index that the type reads; and its
 ##' \code{weight}, how strongly it joins the two.
 ##'
-##' One kind exists so far. \code{resource_flow} carries whatever the patches'
-##' environments count as a resource: in TF24 that is water in a soil layer,
-##' and \code{resource_flow("ridge", "gully")} passes the part of each rain
+##' \code{flow} writes rows of that table. One kind of flow exists so far:
+##' \code{"resource"}, which carries whatever the patches' environments count
+##' as a resource. In TF24 that is water in a soil layer, and
+##' \code{flow("ridge", "gully", "resource")} passes the part of each rain
 ##' pulse the ridge's surface cannot hold to the gully.
 ##'
 ##' The patches run over one span of time and share its clock, so they must
@@ -38,8 +39,10 @@
 ##' @param patches A list of \code{\link{scenario}}s, one per patch. Its names
 ##'   are the patches' names; an unnamed list is named \code{"1"}, \code{"2"},
 ##'   and so on.
-##' @param ... Flows between the patches, as \code{resource_flow} returns
-##'   them, or none for patches that run side by side unlinked.
+##' @param ... For \code{landscape}, the flows between the patches, as
+##'   \code{flow} returns them, or none for patches that run side by side
+##'   unlinked. For \code{flow}, further values that its kind takes; a
+##'   resource flow takes none.
 ##' @return A list of class \code{plant_landscape} with \code{patches}, the
 ##'   named scenarios, and \code{flows}, a data frame with one row per flow:
 ##'   \code{from}, \code{to}, \code{type}, \code{out_of}, \code{into} and
@@ -58,7 +61,7 @@
 ##' land <- landscape(
 ##'   list(ridge = scenario(p, shallow, events = storms),
 ##'        gully = scenario(p, Environment("TF24"), events = storms)),
-##'   resource_flow("ridge", "gully"))
+##'   flow("ridge", "gully", "resource"))
 ##' \donttest{
 ##' res <- run(land)
 ##' res$transfers                         # what the ridge passed to the gully
@@ -70,8 +73,8 @@ landscape <- function(patches, ...) {
   }
   flows <- list(...)
   if (!all(vapply(flows, inherits, logical(1), "plant_flows"))) {
-    stop("A landscape's flows are rows of its flows table, as resource_flow() ",
-         "returns them", call. = FALSE)
+    stop("A landscape's flows are rows of its flows table, as flow() returns ",
+         "them", call. = FALSE)
   }
   flows <- bind_flows(c(list(empty_flows()), flows))
   check_landscape(patches, flows)
@@ -100,8 +103,8 @@ check_landscape <- function(patches, flows) {
 
   if (!is.data.frame(flows) ||
       !all(names(empty_flows()) %in% names(flows))) {
-    stop("A landscape's flows are rows of its flows table, as resource_flow() ",
-         "returns them", call. = FALSE)
+    stop("A landscape's flows are rows of its flows table, as flow() returns ",
+         "them", call. = FALSE)
   }
   check_flows(flows)
   unknown <- setdiff(c(flows$from, flows$to), names(patches))
@@ -171,7 +174,9 @@ bind_flows <- function(tables) {
 }
 
 ## The kinds of flow, by the name a flow's `type` holds. A kind is three
-## functions, and the landscape's run reads a kind through these alone:
+## functions, and the landscape's run reads a kind through these alone, with
+## `columns`, the names of any columns its rows carry beyond the table's own
+## (flow() takes a value for each and refuses any other):
 ##   check(flows)            -- refuses rows of this kind that make no sense
 ##                              for it, beyond what check_flows() asks of all;
 ##   leaving(result, flow)   -- what a patch that has run let go by `flow`, one
@@ -181,12 +186,13 @@ bind_flows <- function(tables) {
 ##                              amounts in `arrivals` (rows of the transfers
 ##                              table, in time order) added to it, before it
 ##                              runs.
-## A new kind is an entry here and a constructor of its rows. What the run
+## A new kind is an entry here; flow() writes its rows. What the run
 ## cannot do for any kind is in run.plant_landscape(): each patch is run whole,
 ## sources first, so a flow that feeds back, into its own patch included, is
 ## refused there whatever its kind.
 flow_kinds <- function() {
-  list(resource = list(check = resource_flow_check,
+  list(resource = list(columns = character(0),
+                       check = resource_flow_check,
                        leaving = resource_leaving,
                        arriving = resource_arriving))
 }
@@ -232,24 +238,31 @@ resource_arriving <- function(scenario, arrivals) {
   scenario
 }
 
-##' @param from,to The names of the patch the resource leaves and the patch it
+##' @param from,to The names of the patch the flow leaves and the patch it
 ##'   reaches.
-##' @param resource Index of the resource pool it leaves, in \code{from}'s
+##' @param type The kind of flow, which says what it carries:
+##'   \code{"resource"}.
+##' @param out_of Which part of \code{from}'s patch the flow comes out of, an
+##'   index that its kind reads. For a resource flow, a resource pool of the
 ##'   environment, as \code{\link{resource_pulse}} counts them: TF24's are its
 ##'   soil layers, so 1 is the surface.
-##' @param into Index of the pool it reaches, in \code{to}'s environment; by
-##'   default the same one.
-##' @param weight The fraction of what \code{from} sheds that reaches
-##'   \code{to}, between 0 and 1. The weights of the flows out of one pool sum
-##'   to at most 1; what they leave over leaves the landscape.
-##' @details \code{resource_flow} links two patches by what a resource pool
-##'   cannot hold. A resource pulse is capped at what its pool can take, and
-##'   the rest is shed (\code{\link{resource_pulse}}). With a flow out of that
-##'   pool, the shed amount, times \code{weight}, becomes a pulse into the
-##'   receiving patch's pool at the same instant, after any pulse the receiver
-##'   has of its own at that instant. The receiver may shed it in turn, and
-##'   pass it on down its own flows. The arguments are vectorised, so several
-##'   flows are one call.
+##' @param into Which part of \code{to}'s patch it goes into, read the same
+##'   way; by default the same index.
+##' @param weight How strongly the flow joins the two patches: what leaves
+##'   \code{from} is multiplied by it on the way to \code{to}. For a resource
+##'   flow, the share of what \code{from} sheds that reaches \code{to},
+##'   between 0 and 1.
+##' @details \code{flow}'s arguments are vectorised over everything but
+##'   \code{type}, so several flows of one kind are one call.
+##' @section Resource flows:
+##'   A resource flow links two patches by what a resource pool cannot hold. A
+##'   resource pulse is capped at what its pool can take, and the rest is shed
+##'   (\code{\link{resource_pulse}}). With a flow out of that pool, the shed
+##'   amount, times \code{weight}, becomes a pulse into the receiving patch's
+##'   pool at the same instant, after any pulse the receiver has of its own at
+##'   that instant. The receiver may shed it in turn, and pass it on down its
+##'   own flows. The weights of the flows out of one pool sum to at most 1;
+##'   what they leave over leaves the landscape.
 ##'
 ##'   Only what a pulse sheds is passed. A resource a patch loses in any other
 ##'   way stays lost to the landscape: in TF24, the run-off and drainage of
@@ -260,26 +273,46 @@ resource_arriving <- function(scenario, arrivals) {
 ##'   does not have stops the run at that patch.
 ##' @rdname landscape
 ##' @export
-resource_flow <- function(from, to, resource = 1L, into = resource, weight = 1) {
+flow <- function(from, to, type, out_of = 1L, into = out_of, weight = 1, ...) {
+  kinds <- flow_kinds()
+  if (missing(type) || !is.character(type) || length(type) != 1L ||
+      !(type %in% names(kinds))) {
+    stop("`type` is the kind of flow: one of ",
+         paste0("\"", names(kinds), "\"", collapse = ", "), call. = FALSE)
+  }
+  ## A value no kind asked for is refused, so a misspelt argument cannot
+  ## become a column nobody reads.
+  extra <- list(...)
+  own <- kinds[[type]]$columns
+  if (length(extra) > 0L &&
+      (is.null(names(extra)) || !all(names(extra) %in% own))) {
+    stop("A ", type, " flow takes ",
+         if (length(own) == 0L) "no further values" else paste(own, collapse = ", "),
+         "; it was given ",
+         paste(setdiff(names(extra) %||% "an unnamed value", own), collapse = ", "),
+         call. = FALSE)
+  }
   if (length(from) == 0L && length(to) == 0L) {
     return(empty_flows())
   }
-  n <- max(length(from), length(to), length(resource), length(into),
-           length(weight))
+  n <- max(length(from), length(to), length(out_of), length(into),
+           length(weight), lengths(extra))
   recycle <- function(x, what) {
     if (!(length(x) %in% c(1L, n))) {
       stop("'", what, "' must be length 1 or ", n, call. = FALSE)
     }
     rep_len(x, n)
   }
-  if (!is_index(resource) || !is_index(into)) {
-    stop("`resource` and `into` are indices of resource pools, counted from 1",
-         call. = FALSE)
+  if (!is_index(out_of) || !is_index(into)) {
+    stop("`out_of` and `into` are indices, counted from 1", call. = FALSE)
   }
-  flows <- new_flows(recycle(from, "from"), recycle(to, "to"), "resource",
-                     recycle(as.integer(resource), "resource"),
+  flows <- new_flows(recycle(from, "from"), recycle(to, "to"), type,
+                     recycle(as.integer(out_of), "out_of"),
                      recycle(as.integer(into), "into"),
                      recycle(weight, "weight"))
+  for (column in names(extra)) {
+    flows[[column]] <- recycle(extra[[column]], column)
+  }
   check_flows(flows)
   flows
 }
