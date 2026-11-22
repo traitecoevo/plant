@@ -122,6 +122,9 @@ using TF24f_runner = plant::DeterministicPatchRunner<plant::TF24f_Model<double>,
                                                      plant::TF24_Environment<double>>;
 using FF16_runner = plant::DeterministicPatchRunner<plant::FF16_Model<double>,
                                                     plant::FF16_Environment<double>>;
+// stand_gradient(mode = "auto") sends FF16 forward, and a gate that turned
+// false would refuse it there rather than fail here.
+static_assert(FF16_runner::walks_forward, "FF16 is walked by the forward route");
 
 template <class Runner>
 struct runner_tag {
@@ -261,6 +264,42 @@ SEXP census_trait_gradient(SEXP x, std::string model,
                            Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
   return with_census_runner(x, model, [&](auto& runner) {
     return trait_gradient_of(runner, which_metrics);
+  });
+}
+
+// The same answer by forward tangents, for the trait columns `columns` names
+// (1-based positions in census_trait_names() order) and no others. A model the
+// forward route cannot walk is refused by name, and its walk is never compiled.
+// [[Rcpp::export]]
+SEXP census_trait_gradient_forward(SEXP x, std::string model,
+                                   std::vector<int> columns,
+                                   Rcpp::Nullable<Rcpp::CharacterVector> which_metrics = R_NilValue) {
+  return with_census_runner(x, model, [&](auto& runner) -> SEXP {
+    using Runner = std::decay_t<decltype(runner)>;
+    if constexpr (Runner::walks_forward) {
+      std::vector<size_t> at;
+      at.reserve(columns.size());
+      for (int c : columns) {
+        if (c < 1) {
+          Rcpp::stop("census_trait_gradient_forward: columns are 1-based");
+        }
+        at.push_back(static_cast<size_t>(c - 1));
+      }
+      std::vector<std::string> wanted;
+      if (which_metrics.isNotNull()) {
+        const Rcpp::CharacterVector v(which_metrics);
+        for (int i = 0; i < v.size(); ++i) {
+          wanted.push_back(Rcpp::as<std::string>(v[i]));
+        }
+      }
+      return census_gradient_to_r(runner.census_trait_gradient_forward(at, wanted));
+    } else {
+      Rcpp::stop("The forward-mode gradient is not available for the " + model +
+                 " model: its strategy keeps the choices of an inner solve, "
+                 "which a forward walk would solve again rather than replay. "
+                 "Use mode = \"reverse\"");
+      return R_NilValue;
+    }
   });
 }
 

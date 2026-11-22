@@ -16,7 +16,69 @@ census_backend <- function(solver) {
        trait_names = function(x) census_trait_names(x, model),
        undifferentiable = function() census_undifferentiable(model),
        trait_gradient = function(x, metrics) census_trait_gradient(x, model, metrics),
+       trait_gradient_forward = function(x, columns, metrics)
+         census_trait_gradient_forward(x, model, columns, metrics),
        control = function(x) census_gradient_control(x, model))
+}
+
+# The models the forward route walks. TF24 and its subclasses solve the leaf
+# inside every rate evaluation and keep that solve's choices, which a forward
+# walk would solve again rather than replay.
+forward_gradient_models <- "FF16"
+
+# Below this many trait columns, mode = "auto" takes the forward route. A forward
+# walk costs about a run plus a share per column, and does not depend on the
+# metrics; the sweep costs the same whatever the number of columns, plus a
+# share per metric. Measured on FF16 at lifetime 30, for an invader's single
+# fitness metric, the forward route is the cheaper up to 8 columns, one walk at
+# 8 lanes, and a ninth column needs a second walk, which costs more than the
+# sweep. A resident, or more metrics, moves the break-even further out, so the
+# invader's single metric sets it.
+forward_gradient_crossover <- 9L
+
+# Whether to take the forward route, for `n` trait columns of `solver`.
+use_forward_gradient <- function(solver, mode, n) {
+  switch(mode,
+         reverse = FALSE,
+         forward = TRUE,
+         auto = is.null(forward_gradient_refusal(solver)) &&
+           n < forward_gradient_crossover)
+}
+
+# Why the forward route cannot take `solver`'s run, or NULL where it can. The
+# C++ entry refuses the same runs; this says so before anything runs.
+forward_gradient_refusal <- function(solver) {
+  model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
+  if (!model %in% forward_gradient_models) {
+    return(paste0(
+      "it is available for ", paste(forward_gradient_models, collapse = ", "),
+      " only, not the ", model, " model",
+      if (startsWith(model, "TF24")) {
+        paste0(": its strategy keeps the choices of its leaf solve, which a ",
+               "forward walk would solve again rather than replay")
+      }))
+  }
+  # The walk's columns through the layer were measured off the sweep's once a
+  # cohort was absorbed; see census_trait_gradient_forward.
+  if (solver$control$absorb_epsilon > 0) {
+    return(paste("the forward walk does not follow cohorts into the absorbing",
+                 "top layer (control$absorb_epsilon > 0)"))
+  }
+  NULL
+}
+
+# mode = "forward" on a run the forward route cannot take is refused before
+# anything runs, saying why.
+check_gradient_mode <- function(solver, mode) {
+  if (identical(mode, "forward")) {
+    why <- forward_gradient_refusal(solver)
+    if (!is.null(why)) {
+      # The sweep is the alternative only for a model that declares a census.
+      model <- extract_RcppR6_template_types(solver, "DeterministicPatchRunner")[[1]]
+      stop("mode = \"forward\" refused: ", why,
+           if (model %in% c("FF16", "TF24", "TF24f")) ". Use mode = \"reverse\"")
+    }
+  }
 }
 
 # Every metric the run reports, named, with each one's kind ("census" or
@@ -155,13 +217,29 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
 ##'   The steps are recorded once for all the metrics asked for, and each
 ##'   further metric adds only a walk back over them, a small part of the
-##'   first metric's cost; asking for fewer traits saves nothing.
+##'   first metric's cost; under the sweep, asking for fewer traits saves
+##'   nothing (see \code{mode}).
 ##' @param traits Column names to differentiate with respect to; defaults to
 ##'   every differentiable trait every species declares. A column is named for
 ##'   its species and its parameter, as \code{"1.lma"}.
 ##' @param hyperpar The hyperparameter function the strategies were built with,
 ##'   by default the one \code{add_strategies()} uses; or \code{NULL} for
 ##'   partial derivatives. See the section on traits and parameters.
+##' @param mode How the gradient is computed. \code{"reverse"} sweeps back over
+##'   the recorded steps once per metric, at the same cost whatever the number
+##'   of traits. \code{"forward"} walks forward over the same steps carrying one
+##'   direction per trait column, up to eight in a walk, so its cost grows with
+##'   the columns and does not depend on the number of metrics. It is for FF16
+##'   only, and not with the absorbing top layer on
+##'   (\code{control$absorb_epsilon > 0}); either is an error. \code{"auto"},
+##'   the default, takes the forward route where it can when fewer than nine
+##'   columns are needed, and the sweep otherwise. The two routes give the same
+##'   shape, names and refusals; a partial derivative agrees to rounding (about
+##'   1e-15 of the metric's largest entry), and a total through a
+##'   hyperparameter function can lose more to cancellation in the chain rule.
+##'   Under a hyperparameter function the columns counted are the ones the
+##'   chain rule reads: the traits asked for and each parameter derived from
+##'   them that moves with one (FF16's lma adds \code{k_l} and \code{r_l}).
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
 ##'   metric holding the reason and the species it was found in (\code{NA}
@@ -261,12 +339,15 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' crossing.
 ##' @export
 stand_gradient <- function(x, metrics = NULL, traits = NULL,
-                           hyperpar = param_hyperpar(x$parameters)) {
+                           hyperpar = param_hyperpar(x$parameters),
+                           mode = c("auto", "reverse", "forward")) {
   x <- as_solver(x)
+  mode <- match.arg(mode)
+  check_gradient_mode(x, mode)
   ## The identity (hyperpar = NULL, or Parameters carrying no trade-offs)
   ## derives nothing, so the total is the partial.
   if (!is.null(hyperpar) && !is_identity_hyperpar(hyperpar)) {
-    return(stand_gradient_through(x, metrics, traits, hyperpar))
+    return(stand_gradient_through(x, metrics, traits, hyperpar, mode))
   }
   b <- census_backend(x)
   all_metrics <- stand_metric_table(x)$name
@@ -316,9 +397,19 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
   value <- stats::setNames(b$census(x), all_metrics)[metrics]
   # Only the metrics asked for are swept. Named, not positioned: C++ resolves
   # the names against the same list it reports them from.
-  swept <- b$trait_gradient(x, as.character(metrics))
-  gradient <- do.call(rbind, swept$gradient)
-  dimnames(gradient) <- list(metrics, all_traits)
+  if (use_forward_gradient(x, mode, length(unique(traits)))) {
+    # The forward route computes only the columns asked for, one lane each;
+    # the sweep computes every column at once.
+    columns <- unique(traits)
+    swept <- b$trait_gradient_forward(x, match(columns, all_traits),
+                                      as.character(metrics))
+  } else {
+    columns <- all_traits
+    swept <- b$trait_gradient(x, as.character(metrics))
+  }
+  gradient <- matrix(unlist(swept$gradient), nrow = length(metrics),
+                     ncol = length(columns), byrow = TRUE,
+                     dimnames = list(metrics, columns))
 
   list(value = value,
        gradient = gradient[metrics, traits, drop = FALSE],
@@ -327,8 +418,10 @@ stand_gradient <- function(x, metrics = NULL, traits = NULL,
 }
 
 # The chain rule through a hyperparameter function: a trait's total is its partial
-# plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the sweep.
-stand_gradient_through <- function(solver, metrics, traits, hyperpar) {
+# plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the
+# sweep or the forward walk.
+stand_gradient_through <- function(solver, metrics, traits, hyperpar,
+                                   mode = "auto") {
   if (!is.function(hyperpar)) {
     stop("`hyperpar` must be a trade-off function f(m, s, filter = TRUE), as ",
          "param_hyperpar(p) or default_hyperpar(\"TF24\") give, or NULL for ",
@@ -363,12 +456,28 @@ stand_gradient_through <- function(solver, metrics, traits, hyperpar) {
          "species' traits, which has no gradient column, so the chain rule ",
          "cannot be completed")
   }
-  partial <- stand_gradient(solver, metrics, union(traits, read), hyperpar = NULL)
+  # A derived parameter that no trait asked for moves adds only terms of exactly
+  # zero to the sum. The sweep computes every column at once and is given them
+  # all; on the forward route each column is a lane, so it is given only the
+  # derived parameters that move.
+  moved <- unlist(lapply(trade_offs, function(J) {
+    along <- intersect(colnames(J), traits)
+    rownames(J)[rowSums(J[, along, drop = FALSE] != 0) > 0]
+  }))
+  wanted <- union(traits, intersect(read, moved))
+  if (use_forward_gradient(solver, mode, length(wanted))) {
+    mode <- "forward"
+  } else {
+    mode <- "reverse"
+    wanted <- union(traits, read)
+  }
+  partial <- stand_gradient(solver, metrics, wanted, hyperpar = NULL,
+                            mode = mode)
   G <- partial$gradient
   total <- G[, traits, drop = FALSE]
   for (J in trade_offs) {
     along <- intersect(colnames(J), traits)
-    from <- intersect(rownames(J), read)
+    from <- intersect(rownames(J), colnames(G))
     total[, along] <- total[, along] +
       G[, from, drop = FALSE] %*% J[from, along, drop = FALSE]
   }

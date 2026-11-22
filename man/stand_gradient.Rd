@@ -8,7 +8,8 @@ stand_gradient(
   x,
   metrics = NULL,
   traits = NULL,
-  hyperpar = param_hyperpar(x$parameters)
+  hyperpar = param_hyperpar(x$parameters),
+  mode = c("auto", "reverse", "forward")
 )
 }
 \arguments{
@@ -28,7 +29,8 @@ a model that declares its fitness differentiable, each species'
 \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
 The steps are recorded once for all the metrics asked for, and each
 further metric adds only a walk back over them, a small part of the
-first metric's cost; asking for fewer traits saves nothing.}
+first metric's cost; under the sweep, asking for fewer traits saves
+nothing (see \code{mode}).}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable trait every species declares. A column is named for
@@ -37,6 +39,22 @@ its species and its parameter, as \code{"1.lma"}.}
 \item{hyperpar}{The hyperparameter function the strategies were built with,
 by default the one \code{add_strategies()} uses; or \code{NULL} for
 partial derivatives. See the section on traits and parameters.}
+
+\item{mode}{How the gradient is computed. \code{"reverse"} sweeps back over
+the recorded steps once per metric, at the same cost whatever the number
+of traits. \code{"forward"} walks forward over the same steps carrying one
+direction per trait column, up to eight in a walk, so its cost grows with
+the columns and does not depend on the number of metrics. It is for FF16
+only, and not with the absorbing top layer on
+(\code{control$absorb_epsilon > 0}); either is an error. \code{"auto"},
+the default, takes the forward route where it can when fewer than nine
+columns are needed, and the sweep otherwise. The two routes give the same
+shape, names and refusals; a partial derivative agrees to rounding (about
+1e-15 of the metric's largest entry), and a total through a
+hyperparameter function can lose more to cancellation in the chain rule.
+Under a hyperparameter function the columns counted are the ones the
+chain rule reads: the traits asked for and each parameter derived from
+them that moves with one (FF16's lma adds \code{k_l} and \code{r_l}).}
 }
 \value{
 A list with \code{value}, the metrics at the end of the run;

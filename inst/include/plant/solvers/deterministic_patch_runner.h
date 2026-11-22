@@ -431,6 +431,33 @@ public:
   census_trait_gradient(const std::vector<size_t>& extra_stops = {},
                         const std::vector<std::string>& which_metrics = {});
 
+  // Whether the forward route can walk this model. A strategy that keeps its
+  // inner solve's choices cannot be walked: the walk at the lane scalar would
+  // solve those values again rather than load what the run chose, and so
+  // differentiate a function the run never computed.
+  static constexpr std::size_t forward_lanes_max = 8;
+  static constexpr bool walks_forward =
+    !KeepsSolvedChoices<T> &&
+    PatchRebindable<T, E, odelia::ode::tangent_lanes<forward_lanes_max>>;
+
+  // The same rows as census_trait_gradient, for the trait columns named in
+  // `columns` (positions in its column order) and no others, by forward
+  // tangents of the recorded run, one direction per lane. A walk costs about
+  // a run plus a share per lane, and the sweep costs the same whatever the
+  // number of columns, so this is the cheaper route for a few columns and the
+  // sweep for many. Each answer's columns follow `columns`.
+  //
+  // The tangent carries the census's own reading of the traits with it, so the
+  // direct term the sweep starts from is in the answer without being added.
+  // Refused as the sweep refuses: the same requirements, and a refusal any
+  // species recorded during a walk, or a derivative that is not finite (the
+  // forward form of an adjoint that overflowed), costs every metric. Only the
+  // columns asked for are checked, where the sweep's overflow can be in any.
+  // Refused also with the absorbing top layer on; see the definition.
+  census_gradient
+  census_trait_gradient_forward(const std::vector<size_t>& columns,
+                                const std::vector<std::string>& which_metrics = {});
+
   // The four references the ladder checks census_trait_gradient against.
 
   // The same quantity differenced, by moving the prepared strategy exactly where
@@ -703,6 +730,19 @@ private:
     x.set_start_time(parameters.initial_time);
   }
   void schedule_changed() {}
+
+  // The rows `which_metrics` names, as positions in stand_metrics(), empty
+  // meaning every one; an unknown name is refused, naming `entry`.
+  std::vector<size_t> metric_rows(const std::vector<std::string>& which_metrics,
+                                  const char* entry) const;
+
+  // One forward walk over the recording, carrying columns[first] onwards, one
+  // per lane and at most W, and writing each one's derivative of each metric in
+  // `rows` into out[m][first + k]. Lanes past the last column carry nothing.
+  template <std::size_t W>
+  void forward_pass(recording rec, const std::vector<size_t>& columns,
+                    size_t first, const std::vector<size_t>& rows,
+                    std::vector<std::vector<double>>& out);
 
   // The environment's tallies: its own, where it keeps one, and its light
   // field's, which every model's has.
@@ -1636,6 +1676,43 @@ DeterministicPatchRunner<T, E>::census_trait_difference(double rel) {
   return ret;
 }
 
+// Named rather than positional: a caller indexing by position gets a different
+// metric's gradient when the list changes, and nothing says so.
+template <typename T, typename E>
+std::vector<size_t>
+DeterministicPatchRunner<T, E>::metric_rows(const std::vector<std::string>& which_metrics,
+                                            const char* entry) const {
+  const std::vector<stand_metric> metrics = stand_metrics();
+  std::vector<size_t> rows;
+  if (which_metrics.empty()) {
+    rows.resize(metrics.size());
+    for (size_t m = 0; m < rows.size(); ++m) {
+      rows[m] = m;
+    }
+    return rows;
+  }
+  for (const std::string& want : which_metrics) {
+    size_t at = metrics.size();
+    for (size_t m = 0; m < metrics.size(); ++m) {
+      if (want == metrics[m].name) {
+        at = m;
+        break;
+      }
+    }
+    if (at == metrics.size()) {
+      std::string known;
+      for (const stand_metric& metric : metrics) {
+        known += known.empty() ? "" : ", ";
+        known += metric.name;
+      }
+      util::stop(std::string(entry) + ": this model has no metric `" +
+                 want + "`; it has " + known);
+    }
+    rows.push_back(at);
+  }
+  return rows;
+}
+
 // Set lambda on the states the census reads at T, then run the reverse pass
 // back over the recorded steps. The trait adjoints accumulate across every
 // cohort and every step, so the accumulator is cleared once per metric and read
@@ -1648,36 +1725,8 @@ DeterministicPatchRunner<T, E>::census_trait_gradient(const std::vector<size_t>&
   require_differentiable_rates("census_trait_gradient");
   // Which rows to sweep, resolved against the strategy's own list before
   // anything runs, so the shape of the answer is known on the refusal path too.
-  // Named rather than positional: a caller indexing by position gets a different
-  // metric's gradient when the list changes, and nothing says so.
-  const std::vector<stand_metric> metrics = stand_metrics();
-  std::vector<size_t> rows;
-  if (which_metrics.empty()) {
-    rows.resize(metrics.size());
-    for (size_t m = 0; m < rows.size(); ++m) {
-      rows[m] = m;
-    }
-  } else {
-    for (const std::string& want : which_metrics) {
-      size_t at = metrics.size();
-      for (size_t m = 0; m < metrics.size(); ++m) {
-        if (want == metrics[m].name) {
-          at = m;
-          break;
-        }
-      }
-      if (at == metrics.size()) {
-        std::string known;
-        for (const stand_metric& metric : metrics) {
-          known += known.empty() ? "" : ", ";
-          known += metric.name;
-        }
-        util::stop("census_trait_gradient: this model has no metric `" +
-                   want + "`; it has " + known);
-      }
-      rows.push_back(at);
-    }
-  }
+  const std::vector<size_t> rows =
+    metric_rows(which_metrics, "census_trait_gradient");
   // The sweep needs the state at every accepted step, and reads them off the
   // solver itself. store_recording() repeats the run to get them unless
   // keep_states kept them the first time, and either way it may run, so the
@@ -1850,6 +1899,149 @@ DeterministicPatchRunner<T, E>::census_trait_tangent(const std::vector<double>& 
     value.push_back(odelia::util::to_passive(reached_metric));
   }
   return ret;
+}
+
+
+// The forward route. Each pass is census_trait_tangent at several directions at
+// once, every direction a coordinate one, so a lane is one column; the value
+// is computed once per pass for all of them. More columns than lanes take
+// further passes, and as the lanes do not mix, the answer does not depend on
+// how the columns are split between passes.
+template <typename T, typename E>
+census_gradient
+DeterministicPatchRunner<T, E>::census_trait_gradient_forward(
+    const std::vector<size_t>& columns,
+    const std::vector<std::string>& which_metrics) {
+  static_assert(walks_forward,
+                "the forward route walks a model whose strategy keeps no inner "
+                "solve's choices");
+  const char* entry = "census_trait_gradient_forward";
+  // The sweep's requirements, in the sweep's order, so either route refuses
+  // the same runs with the same words.
+  require_birth_date_coordinate(entry);
+  require_differentiable_rates(entry);
+  const std::vector<size_t> rows = metric_rows(which_metrics, entry);
+  require_transposable_events(entry);
+  // ⚠️ CHECKED: with the top layer on, once a cohort is absorbed the walk's
+  // columns through the layer (hmat, a_f2) were 1-2% off the sweep, and the
+  // sweep agrees with a pinned-step difference. Every number is finite, so the
+  // walk is refused rather than trusted until it is shown to follow a cohort
+  // into the layer.
+  if (control.absorb_epsilon > 0.0) {
+    util::stop(std::string(entry) + ": the forward walk does not follow "
+               "cohorts into the absorbing top layer "
+               "(control$absorb_epsilon > 0). Use mode = \"reverse\".");
+  }
+  const recording rec = store_recording();
+
+  patch_type& live = solver.get_system_ref();
+  const size_t width = live.trait_adjoint_size();
+  for (size_t c : columns) {
+    if (c >= width) {
+      util::stop(std::string(entry) + ": column " + util::to_string(c + 1) +
+                 " is past the " + util::to_string(width) + " trait columns");
+    }
+  }
+
+  clear_recorded_refusal(live);
+  std::vector<std::vector<double>> out(rows.size(),
+                                       std::vector<double>(columns.size(), 0.0));
+  refusal why;
+  try {
+    for (size_t first = 0; first < columns.size(); first += forward_lanes_max) {
+      const size_t n = std::min(forward_lanes_max, columns.size() - first);
+      // The lane counts compiled are powers of two, and a pass carries the
+      // smallest that holds its columns.
+      if (n == 1) {
+        forward_pass<1>(rec, columns, first, rows, out);
+      } else if (n == 2) {
+        forward_pass<2>(rec, columns, first, rows, out);
+      } else if (n <= 4) {
+        forward_pass<4>(rec, columns, first, rows, out);
+      } else {
+        forward_pass<forward_lanes_max>(rec, columns, first, rows, out);
+      }
+      // Polled after every pass, which is where a walk raises one; a pass
+      // after a refusal would only be thrown away.
+      why = recorded_refusal(live);
+      if (why.happened()) {
+        break;
+      }
+    }
+  } catch (...) {
+    odelia::ode::be_at_step(live, rec, rec.size() - 1);
+    throw;
+  }
+  // Leave the double system where the run left it, so this call is repeatable
+  // beside the sweep that shares its trajectory.
+  odelia::ode::be_at_step(live, rec, rec.size() - 1);
+
+  if (!why.happened()) {
+    for (const std::vector<double>& row : out) {
+      if (!std::all_of(row.begin(), row.end(),
+                       [](double x) { return std::isfinite(x); })) {
+        why = refusal{"stand gradient: the forward tangent left the range a "
+                      "double holds", -1};
+        break;
+      }
+    }
+  }
+
+  census_gradient ret;
+  ret.gradient.reserve(rows.size());
+  ret.why.reserve(rows.size());
+  for (size_t m = 0; m < rows.size(); ++m) {
+    if (why.happened()) {
+      ret.gradient.push_back(std::vector<double>(
+          columns.size(), std::numeric_limits<double>::quiet_NaN()));
+      ret.why.push_back(why);
+    } else {
+      ret.gradient.push_back(std::move(out[m]));
+      ret.why.emplace_back();
+    }
+  }
+  return ret;
+}
+
+// Stepped at the recorded sizes, for the reason census_trait_tangent gives.
+template <typename T, typename E>
+template <std::size_t W>
+void DeterministicPatchRunner<T, E>::forward_pass(
+    recording rec, const std::vector<size_t>& columns, size_t first,
+    const std::vector<size_t>& rows, std::vector<std::vector<double>>& out) {
+  using lanes = odelia::ode::tangent_lanes<W>;
+  const size_t n = std::min(W, columns.size() - first);
+  patch_type& live = solver.get_system_ref();
+  odelia::ode::be_at_step(live, rec, 0);
+  auto active = live.template rebind<lanes>();
+
+  // Directions set before the state is: the quantities a state determines read
+  // the parameters, and would otherwise be derived at the values without them.
+  const std::vector<lanes*> pars = active.ad_parameters();
+  util::check_length(pars.size(), live.trait_adjoint_size());
+  for (size_t k = 0; k < n; ++k) {
+    set_direction(*pars[columns[first + k]], k, 1.0);
+  }
+  std::vector<lanes> x0(rec[0].state.size());
+  for (size_t i = 0; i < x0.size(); ++i) {
+    x0[i] = rec[0].state[i];
+  }
+  active.set_ode_state(x0.begin(), rec[0].time);
+
+  odelia::ode::Solver<decltype(active)> forward(active, make_ode_control(control));
+  forward.set_collect(false);
+  forward.set_state_from_system();
+  forward.advance_schedule(odelia::ode::schedule_from(
+      rec, 0, {forward.time(), std::numeric_limits<double>::quiet_NaN()}));
+
+  const auto& reached = forward.get_system_ref();
+  const std::vector<stand_metric> metrics = stand_metrics();
+  for (size_t m = 0; m < rows.size(); ++m) {
+    const lanes v = metric_value(reached, metrics[rows[m]]);
+    for (size_t k = 0; k < n; ++k) {
+      out[m][first + k] = derivative_along(v, k);
+    }
+  }
 }
 
 

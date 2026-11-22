@@ -17221,6 +17221,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// census_trait_gradient_forward
+SEXP census_trait_gradient_forward(SEXP x, std::string model, std::vector<int> columns, Rcpp::Nullable<Rcpp::CharacterVector> which_metrics);
+RcppExport SEXP _plant_census_trait_gradient_forward(SEXP xSEXP, SEXP modelSEXP, SEXP columnsSEXP, SEXP which_metricsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type columns(columnsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type which_metrics(which_metricsSEXP);
+    rcpp_result_gen = Rcpp::wrap(census_trait_gradient_forward(x, model, columns, which_metrics));
+    return rcpp_result_gen;
+END_RCPP
+}
 // census_gradient_control
 SEXP census_gradient_control(SEXP x, std::string model);
 RcppExport SEXP _plant_census_gradient_control(SEXP xSEXP, SEXP modelSEXP) {
@@ -19541,6 +19555,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_census_trait_names", (DL_FUNC) &_plant_census_trait_names, 2},
     {"_plant_census_undifferentiable", (DL_FUNC) &_plant_census_undifferentiable, 1},
     {"_plant_census_trait_gradient", (DL_FUNC) &_plant_census_trait_gradient, 3},
+    {"_plant_census_trait_gradient_forward", (DL_FUNC) &_plant_census_trait_gradient_forward, 4},
     {"_plant_census_gradient_control", (DL_FUNC) &_plant_census_gradient_control, 2},
     {"_plant_census_operating_point_counts", (DL_FUNC) &_plant_census_operating_point_counts, 2},
     {"_plant_census_operating_point_names", (DL_FUNC) &_plant_census_operating_point_names, 0},
