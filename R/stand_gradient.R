@@ -475,7 +475,7 @@ stand_gradient_through <- function(solver, metrics, traits, hyperpar,
                             mode = mode)
   # The chain is applied once per distinct trait, then copied to every place
   # the trait was asked for: assigning by name reaches only a name's first
-  # column, so chaining a repeated column in place left its copies partial.
+  # column, so the sum runs over columns whose names are unique.
   G <- partial$gradient
   distinct <- unique(traits)
   total <- G[, distinct, drop = FALSE]
