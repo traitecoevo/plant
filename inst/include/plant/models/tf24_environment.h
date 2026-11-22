@@ -903,6 +903,9 @@ public:
   // its supply refuses little of it. It sets no time scale, so the steps a run
   // takes barely depend on it.
   static constexpr double inflow_limit_sharpness = 16.0;
+  // The most the saturated share w in accepted_inflow can reach, which it
+  // approaches only far above saturation.
+  static constexpr double inflow_refusal_bound = 100.0;
 
   // A smooth minimum of a and b that never exceeds the smaller: the reciprocal
   // p-norm a b / (a^p + b^p)^(1/p), p = inflow_limit_sharpness. It is
@@ -938,7 +941,9 @@ public:
   // the layer passes on, the rest takes freely.
   //
   //   accepted = supply - w (supply - smooth_min(supply, out)),
-  //   w = (theta / theta_sat)^b_infil.
+  //   w = W f / (W - 1 + f),  f = (theta / theta_sat)^b_infil,
+  //
+  // with W = inflow_refusal_bound, so w is f to within 1/W below saturation.
   //
   // At saturation the layer's inflow is at most its outflow, so its rate is not
   // positive while its roots draw on it, and saturation is a barrier the
@@ -965,7 +970,14 @@ public:
     using std::pow;
     const double sat =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
-    const U w = pow(max(theta, U(0.0)) / sat, b_infil);
+    const U f = pow(max(theta, U(0.0)) / sat, b_infil);
+    // Bounded smoothly above by W, and still exactly 1 at saturation. Left as
+    // f, an explicit stage far above saturation would weigh the refusal by
+    // theta^b_infil, and the stages that follow it would grow by that power
+    // until they overflow, where a bounded flux lets the step be rejected.
+    // Below saturation it stays within 1/W of f.
+    constexpr double W = inflow_refusal_bound;
+    const U w = W * f / (W - 1.0 + f);
     return supply - w * (supply - smooth_min(supply, out));
   }
 
