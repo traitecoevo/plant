@@ -479,6 +479,39 @@ public:
     return sapwood_per_leaf_area(sapwood_departure) * huber_base_factor(height);
   }
 
+  // D_base / D_tip = (height / L_tip)^D_c: the conduit diameter the widening
+  // law D(L) = D_tip * (L/L_tip)^D_c implies at the ground, L = height from the
+  // apex, as a multiple of the diameter at L_tip from the apex. 1 for a plant
+  // no taller than its terminal segment and at D_c == 0; NaN for a NaN height.
+  //
+  // A diagnostic, not part of the model: the resistance reads widening only
+  // through beta, and D itself has no upper limit (stem_hydraulics.h). Its use
+  // is checking that the widening plants need at the heights they reach is
+  // anatomically possible, against measured vessel diameters (invariance
+  // criterion I9). The implied basal diameter is a measured D_tip times this,
+  // which needs the twig vessel measured at L_tip from the apex, because D
+  // varies along the twig as L^D_c too. Without twig vessels, the slope of log
+  // basal diameter against log height across plants estimates D_c directly.
+  // A mismatch tests D_c and L_tip as much as uncapped widening, so it is read
+  // across heights; a widening the plant cannot reach is not a reason to add a
+  // cap.
+  //
+  // Read at the ground (L = height), which is where vessels are measured, and
+  // not at the base of the mean flow path (height * eta_c), which the
+  // resistance and the Huber profile use. For the resistance the two readings
+  // differ by a constant K_s absorbs; for a diameter set against a measured
+  // vessel nothing absorbs it, and the gap, eta_c^-D_c, is 2.4% at eta = 12 but
+  // about 25% at eta = 1.
+  S conduit_widening_at_base(const S& height) const {
+    using std::pow;
+    using odelia::util::to_passive;
+    // Written so a NaN height falls through to pow and stays NaN.
+    if (to_passive(height) <= to_passive(pars.L_tip)) {
+      return S(1.0);
+    }
+    return pow(height / pars.L_tip, pars.D_c);
+  }
+
   // Area and mass of sapwood. The area is the BASAL area, at the sapwood
   // departure the plant carries (zero for the resting allometry, as in the
   // germination inversion). One signature, with the departure before the

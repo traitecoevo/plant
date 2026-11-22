@@ -469,6 +469,63 @@ test_that("path length is monotone and its height elasticity is the analytic one
   expect_true(all(diff(at_10m) < 0))
 })
 
+test_that("the conduit widening the law implies is reported at the ground", {
+  # The diagnostic of #615's Phase 4: D_base / D_tip = (H/L_tip)^D_c, the
+  # widening a plant of height H needs at the ground, L = H from the apex, to
+  # set against measured vessels. It is 1 for a plant no taller than its
+  # terminal segment and with widening off. Checked over L_tip, D_c and the
+  # crown shape, so a hard-coded segment length, or the mean-path base
+  # H*eta_c the resistance uses, fails here.
+  h <- c(0.01, 0.0201, 0.3941, 1, 16.5958691, 60)
+  zero <- rep(0, length(h))
+  grid <- expand.grid(D_c = c(0.2, 0.3, 0), L_tip = c(0.02, 0.05), eta = c(12, 1))
+  for (k in seq_len(nrow(grid))) {
+    g <- grid[k, ]
+    s <- TF24_Model()
+    s$pars$D_c <- g$D_c
+    s$pars$L_tip <- g$L_tip
+    s$pars$eta <- g$eta
+    a <- plant:::TF24_strategy_expand_allometry(s, h, zero, zero)
+    expected <- ifelse(h > g$L_tip, (h / g$L_tip)^g$D_c, 1)
+    expect_equal(a$conduit_widening_base, expected, tolerance = 1e-14,
+                 info = sprintf("D_c = %g, L_tip = %g, eta = %g", g$D_c, g$L_tip, g$eta))
+  }
+  # Exactly 1 with widening off, and for a plant within its terminal segment.
+  s <- TF24_Model()
+  s$pars$D_c <- 0
+  expect_identical(
+    plant:::TF24_strategy_expand_allometry(s, h, zero, zero)$conduit_widening_base,
+    rep(1, length(h)))
+  expect_identical(
+    plant:::TF24_strategy_expand_allometry(TF24_Model(), 0.01, 0, 0)$conduit_widening_base,
+    1)
+  # A missing height is not a plant within its terminal segment.
+  expect_true(is.nan(
+    plant:::TF24_strategy_expand_allometry(TF24_Model(), NaN, 0, 0)$conduit_widening_base))
+
+  # At the defaults: the widening at 1 m, at hmat and at 60 m. A change to D_c
+  # or L_tip that moves these moves the comparison with measured vessels.
+  a <- plant:::TF24_strategy_expand_allometry(TF24_Model(), c(1, 16.5958691, 60),
+                                              c(0, 0, 0), c(0, 0, 0))
+  expect_equal(a$conduit_widening_base, c(2.1867, 3.8353, 4.9593), tolerance = 1e-4)
+
+  # The subclasses report it too.
+  a <- plant:::TF24f_strategy_expand_allometry(TF24f_Model(), 16.5958691, 0, 0)
+  expect_equal(a$conduit_widening_base, (16.5958691 / 0.02)^0.2, tolerance = 1e-14)
+
+  # It reaches a run's tidied output per cohort, through TF24_expand_state().
+  p <- tf24_fitness_stand_parameters()
+  res <- run(p, tf24_half_wet_environment(),
+             Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
+                     ode_tol_abs = 1e-6), record = "steps")
+  sp <- TF24_expand_state(tidy(res))$species
+  ok <- is.finite(sp$height)
+  expect_true(any(ok))
+  expect_equal(sp$conduit_widening_base[ok],
+               ifelse(sp$height[ok] > 0.02, (sp$height[ok] / 0.02)^0.2, 1),
+               tolerance = 1e-12)
+})
+
 test_that("theta_c enters with the sign that compensates", {
   # theta(L) = theta_tip * (L/L_tip)^theta_c: the Huber value, sapwood area per
   # leaf area, RISES basipetally, so resistance per unit length falls as
