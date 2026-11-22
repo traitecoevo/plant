@@ -18,11 +18,17 @@
 ##' it goes \code{into}, each an index that the type reads; and its
 ##' \code{weight}, how strongly it joins the two.
 ##'
-##' \code{flow} writes rows of that table. One kind of flow exists so far:
-##' \code{"resource"}, which carries whatever the patches' environments count
-##' as a resource. In TF24 that is water in a soil layer, and
-##' \code{flow("ridge", "gully", "resource")} passes the part of each rain
-##' pulse the ridge's surface cannot hold to the gully.
+##' \code{flow} writes rows of that table. There are two kinds of flow:
+##' \itemize{
+##'   \item \code{"resource"} carries whatever the patches' environments count
+##'     as a resource, during the run. In TF24 that is water in a soil layer,
+##'     and \code{flow("ridge", "gully", "resource")} passes the part of each
+##'     rain pulse the ridge's surface cannot hold to the gully.
+##'   \item \code{"offspring"} says where a patch's seed lands: the share of
+##'     it that reaches each patch, its own included. Together these flows are
+##'     the landscape's dispersal matrix. They are read when a run is scored,
+##'     not during it.
+##' }
 ##'
 ##' The patches run over one span of time and share its clock, so they must
 ##' have the same \code{max_patch_lifetime}.
@@ -34,9 +40,11 @@
 ##' times the depth it shed. A run's landscape-wide fitness weights each patch
 ##' by its share (see \code{\link{run}}).
 ##'
-##' Flows must lead one way. A landscape is run patch by patch, each one whole,
-##' sources before the patches they feed, so a loop of flows (one patch feeding
-##' another that feeds it back) is refused.
+##' Flows that pass something during the run must lead one way. A landscape is
+##' run patch by patch, each one whole, sources before the patches they feed,
+##' so a loop of resource flows (one patch feeding another that feeds it back)
+##' is refused. Offspring flows are read after the patches have run, so they
+##' may go any way.
 ##'
 ##' A landscape is a plain list, and \code{run} checks it again, so a patch or
 ##' a flow can be changed in place.
@@ -146,7 +154,7 @@ check_landscape <- function(patches, flows) {
          ", which is not a patch of this landscape (",
          paste(names(patches), collapse = ", "), ")", call. = FALSE)
   }
-  landscape_order(names(patches), flows)
+  landscape_order(names(patches), flows_during_run(flows))
   invisible(TRUE)
 }
 
@@ -206,12 +214,14 @@ bind_flows <- function(tables) {
   structure(flows, class = c("plant_flows", "data.frame"))
 }
 
-## The kinds of flow, by the name a flow's `type` holds. A kind is three
-## functions, and the landscape's run reads a kind through these alone, with
-## `columns`, the names of any columns its rows carry beyond the table's own
-## (flow() takes a value for each and refuses any other):
-##   check(flows)            -- refuses rows of this kind that make no sense
-##                              for it, beyond what check_flows() asks of all;
+## The kinds of flow, by the name a flow's `type` holds. Every kind has
+## `check(flows)`, which refuses rows of this kind that make no sense for it,
+## beyond what check_flows() asks of all, and `columns`, the names of any
+## columns its rows carry beyond the table's own (flow() takes a value for
+## each and refuses any other).
+##
+## A kind that passes something during the run has two more functions, and the
+## landscape's run reads it through these alone:
 ##   leaving(result, flow)   -- what a patch that has run let go by `flow`, one
 ##                              row of the flows table: a data frame of `time`
 ##                              and `amount`, per unit of that patch's area and
@@ -220,37 +230,67 @@ bind_flows <- function(tables) {
 ##                              amounts in `arrivals` (rows of the transfers
 ##                              table, in time order, per unit of this
 ##                              patch's area) added to it, before it runs.
-## A new kind is an entry here; flow() writes its rows. What the run
-## cannot do for any kind is in run.plant_landscape(): each patch is run whole,
-## sources first, so a flow that feeds back, into its own patch included, is
-## refused there whatever its kind.
+## Each patch is run whole, sources first, so the flows of such a kind must
+## lead one way: run.plant_landscape() refuses a loop of them.
+##
+## A kind without the two is not passed during the run. The offspring kind is
+## one: its flows are read when the run is scored (landscape_scores()), so
+## they may form any graph, a patch's flow into itself included.
 flow_kinds <- function() {
   list(resource = list(columns = character(0),
                        check = resource_flow_check,
                        leaving = resource_leaving,
-                       arriving = resource_arriving))
+                       arriving = resource_arriving),
+       offspring = list(columns = character(0),
+                        check = offspring_flow_check))
+}
+
+## The flows that pass something during the run, which order the patches.
+flows_during_run <- function(flows) {
+  kinds <- flow_kinds()
+  passes <- vapply(kinds, function(kind) is.function(kind$leaving), logical(1))
+  flows[flows$type %in% names(kinds)[passes], , drop = FALSE]
+}
+
+## Weights that are shares of what leaves one source: each at most 1, and
+## those out of one source summing to at most 1. `source` names each row's.
+check_shares <- function(flows, source, what) {
+  if (any(flows$weight > 1)) {
+    stop("A", if (grepl("^[aeiou]", flows$type[[1L]])) "n" else "", " ",
+         flows$type[[1L]], " flow's `weight` is a share of ", what,
+         ", between 0 and 1", call. = FALSE)
+  }
+  leaving <- tapply(flows$weight, source, sum)
+  if (any(leaving > 1 + 1e-12)) {
+    stop("The flows out of ", names(leaving)[leaving > 1 + 1e-12][[1L]],
+         " have weights summing to more than 1, which passes on more than ",
+         what, call. = FALSE)
+  }
 }
 
 ## A resource leaves one patch's environment for another's, and no more of it
-## arrives than left: a weight is a share, and the shares out of one pool sum
-## to at most 1.
+## arrives than left.
 resource_flow_check <- function(flows) {
   if (any(flows$from == flows$to)) {
     stop("A resource flows between two patches; \"",
          flows$from[flows$from == flows$to][[1L]],
          "\" cannot flow into itself", call. = FALSE)
   }
-  if (any(flows$weight > 1)) {
-    stop("A resource flow's `weight` is a share of what is shed, between 0 ",
-         "and 1", call. = FALSE)
+  check_shares(flows, paste("resource", flows$out_of, "of patch",
+                            paste0("\"", flows$from, "\"")),
+               "what the patch sheds")
+}
+
+## Seed produced in one patch lands in another, or stays. The link is the
+## same for every species: how readily a species' seed travels is the
+## species', not the link's, so an offspring flow names no species.
+offspring_flow_check <- function(flows) {
+  if (any(flows$out_of != 1L) || any(flows$into != 1L)) {
+    stop("An offspring flow joins two patches for every species alike; it ",
+         "takes no `out_of` or `into`", call. = FALSE)
   }
-  source <- paste("resource", flows$out_of, "of patch", paste0("\"", flows$from, "\""))
-  leaving <- tapply(flows$weight, source, sum)
-  if (any(leaving > 1 + 1e-12)) {
-    stop("The flows out of ", names(leaving)[leaving > 1 + 1e-12][[1L]],
-         " have weights summing to more than 1, which passes on more than ",
-         "the patch sheds", call. = FALSE)
-  }
+  check_shares(flows, paste("patch", paste0("\"", flows$from, "\"")),
+               "the seed the patch produces")
 }
 
 ## What each pulse into the pool shed: the amount its pool could not hold, at
@@ -275,17 +315,18 @@ resource_arriving <- function(scenario, arrivals) {
 ##' @param from,to The names of the patch the flow leaves and the patch it
 ##'   reaches.
 ##' @param type The kind of flow, which says what it carries:
-##'   \code{"resource"}.
+##'   \code{"resource"} or \code{"offspring"}.
 ##' @param out_of Which part of \code{from}'s patch the flow comes out of, an
 ##'   index that its kind reads. For a resource flow, a resource pool of the
 ##'   environment, as \code{\link{resource_pulse}} counts them: TF24's are its
-##'   soil layers, so 1 is the surface.
+##'   soil layers, so 1 is the surface. An offspring flow reads none.
 ##' @param into Which part of \code{to}'s patch it goes into, read the same
 ##'   way; by default the same index.
 ##' @param weight How strongly the flow joins the two patches: what leaves
 ##'   \code{from} is multiplied by it on the way to \code{to}. For a resource
-##'   flow, the share of what \code{from} sheds that reaches \code{to},
-##'   between 0 and 1.
+##'   flow, the share of what \code{from} sheds that reaches \code{to}; for an
+##'   offspring flow, the share of \code{from}'s seed that lands in \code{to}.
+##'   Both are between 0 and 1.
 ##' @details \code{flow}'s arguments are vectorised over everything but
 ##'   \code{type}, so several flows of one kind are one call.
 ##' @section Resource flows:
@@ -307,6 +348,25 @@ resource_arriving <- function(scenario, arrivals) {
 ##'   does a flow out of a pool that no pulse reaches, or that the patch's
 ##'   environment does not have; a flow into a pool the receiving environment
 ##'   does not have stops the run at that patch.
+##' @section Offspring flows:
+##'   An offspring flow says what share of the seed produced in \code{from}
+##'   lands in \code{to}. A patch may flow into itself, the share of its seed
+##'   that stays, and two patches may each feed the other. The shares out of
+##'   one patch sum to at most 1, and what they leave over is lost. An
+##'   offspring flow joins two patches for every species alike, so it takes no
+##'   \code{out_of} or \code{into}.
+##'
+##'   These flows are the landscape's dispersal matrix, and they are read when
+##'   a run is scored: a landscape's net reproduction ratio is the dominant
+##'   eigenvalue of the next-generation matrix they make with the patches' own
+##'   ratios (see \code{\link{run}}). With no offspring flows, seed is taken to
+##'   land evenly over the landscape, each patch receiving its share of the
+##'   area from every patch.
+##'
+##'   They do not pass seed between patches during a run. Each patch's
+##'   residents arrive at the birth rates its own \code{Parameters} give, and
+##'   finding the birth rates that the residents' own seed would supply is
+##'   left to whatever calls \code{run}.
 ##' @rdname landscape
 ##' @export
 flow <- function(from, to, type, out_of = 1L, into = out_of, weight = 1, ...) {
@@ -414,9 +474,10 @@ run.plant_landscape <- function(x, ..., until = NULL, from = NULL,
   area <- landscape_area(x$patches, x$area)
 
   kinds <- flow_kinds()
+  passing <- flows_during_run(x$flows)
   results <- list()
   passed <- empty_transfers()
-  for (patch in landscape_order(names(x$patches), x$flows)) {
+  for (patch in landscape_order(names(x$patches), passing)) {
     arriving <- passed[passed$to == patch, , drop = FALSE]
     arriving <- arriving[order(arriving$time), , drop = FALSE]
     ## An error here is the patch's, so it is reported under its name.
@@ -432,7 +493,7 @@ run.plant_landscape <- function(x, ..., until = NULL, from = NULL,
            if (nrow(arriving) > 0L) ", with what flowed into it",
            ": ", conditionMessage(e), call. = FALSE)
     })
-    passed <- rbind(passed, transfers_out_of(patch, results[[patch]], x$flows,
+    passed <- rbind(passed, transfers_out_of(patch, results[[patch]], passing,
                                              kinds, area))
   }
 
@@ -446,38 +507,79 @@ run.plant_landscape <- function(x, ..., until = NULL, from = NULL,
 ## the landscape-wide fitness those results give.
 new_landscape_run <- function(landscape, patches, transfers, method,
                               mutants = NULL) {
-  area <- landscape_area(landscape$patches, landscape$area)
+  scores <- landscape_scores(landscape, patches)
   structure(list(landscape = landscape, patches = patches,
                  transfers = transfers,
-                 offspring_production =
-                   landscape_mean(patches, "offspring_production", area),
-                 net_reproduction_ratios =
-                   landscape_mean(patches, "net_reproduction_ratios", area),
+                 offspring_production = scores$offspring_production,
+                 net_reproduction_ratios = scores$net_reproduction_ratios,
                  mutants = mutants, method = method),
             class = "plant_landscape_run")
 }
 
-## A per-species fitness value over the whole landscape: the patches' values,
-## each weighted by its patch's share of the area. That is the value for seed
-## arriving evenly over the landscape, and it means that only where the patches
-## hold the same species, at the same birth rates, scored the same way. Where
-## they do not, the patches' values are not of one thing and there is none.
-landscape_mean <- function(results, field, area) {
-  values <- lapply(results, function(r) r[[field]])
-  if (any(lengths(values) == 0L) || !same_species_scored_alike(results)) {
-    return(NULL)
+## Each species' fitness over the whole landscape, from its patches' results.
+##
+## offspring_production is the seed produced per unit of the landscape's area:
+## the patches' values, each weighted by its patch's share of the area.
+##
+## net_reproduction_ratios is the factor by which seed multiplies over a
+## generation, across the landscape: the dominant eigenvalue of the
+## next-generation matrix. A seed arriving in patch j leaves R_j offspring,
+## the patch's own ratio, and the share S_ij of them lands in patch i, so the
+## matrix is S diag(R). With seed landing evenly (no offspring flows) every
+## column of S is the patches' shares of the area, and the eigenvalue is the
+## patches' ratios weighted by those shares.
+##
+## Both mean something only where the patches' values are of one thing, so
+## they are NULL where the patches differ in species or in how they score.
+landscape_scores <- function(landscape, results) {
+  field <- function(name) lapply(results, function(r) r[[name]])
+  produced <- field("offspring_production")
+  ratios <- field("net_reproduction_ratios")
+  if (any(lengths(produced) == 0L) || any(lengths(ratios) == 0L) ||
+      !same_species_scored_alike(results)) {
+    return(list(offspring_production = NULL, net_reproduction_ratios = NULL))
   }
-  as.numeric(do.call(cbind, values) %*% (area / sum(area)))
+  area <- landscape_area(landscape$patches, landscape$area)
+  shares <- offspring_shares(landscape$flows, area)
+  ratios <- do.call(cbind, ratios)            # species by patches
+  list(offspring_production =
+         as.numeric(do.call(cbind, produced) %*% (area / sum(area))),
+       net_reproduction_ratios = vapply(seq_len(nrow(ratios)), function(i) {
+         next_generation <- shares %*% diag(ratios[i, ], nrow = ncol(ratios))
+         max(Re(eigen(next_generation, only.values = TRUE)$values))
+       }, numeric(1)))
 }
 
-## Whether every patch's result is of the same strategies, in the same order
-## (a strategy carries its birth rate), under the same fitness weighting.
+## Where seed lands: a patches-by-patches matrix whose entry [to, from] is the
+## share of the seed produced in `from` that lands in `to`. The offspring
+## flows give it; with none, seed lands evenly, every patch receiving its
+## share of the area.
+offspring_shares <- function(flows, area) {
+  patches <- names(area)
+  flows <- flows[flows$type == "offspring", , drop = FALSE]
+  if (nrow(flows) == 0L) {
+    return(matrix(area / sum(area), length(patches), length(patches),
+                  dimnames = list(to = patches, from = patches)))
+  }
+  shares <- matrix(0, length(patches), length(patches),
+                   dimnames = list(to = patches, from = patches))
+  for (i in seq_len(nrow(flows))) {
+    shares[flows$to[[i]], flows$from[[i]]] <-
+      shares[flows$to[[i]], flows$from[[i]]] + flows$weight[[i]]
+  }
+  shares
+}
+
+## Whether every patch's result is of the same strategies, in the same order,
+## under the same fitness weighting. Birth rates may differ: a patch's ratio
+## is per seed arriving, and its seed output is what it is at its own rate.
 same_species_scored_alike <- function(results) {
+  birth_rate <- c("birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
   scored <- lapply(results, function(r) {
     p <- r$mutants %||% r$scenario$p
-    list(p$strategies, p$fitness_weighting, p$fitness_window_start,
-         p$fitness_window_end, p$fitness_window_weight_x,
-         p$fitness_window_weight_y)
+    list(lapply(p$strategies, function(s) unclass(s)[setdiff(names(s), birth_rate)]),
+         p$fitness_weighting, p$fitness_window_start, p$fitness_window_end,
+         p$fitness_window_weight_x, p$fitness_window_weight_y)
   })
   all(vapply(scored[-1L], identical, logical(1), scored[[1L]]))
 }

@@ -27,20 +27,21 @@ named as they are. By default the patches are equal.}
 reaches.}
 
 \item{type}{The kind of flow, which says what it carries:
-\code{"resource"}.}
+\code{"resource"} or \code{"offspring"}.}
 
 \item{out_of}{Which part of \code{from}'s patch the flow comes out of, an
 index that its kind reads. For a resource flow, a resource pool of the
 environment, as \code{\link{resource_pulse}} counts them: TF24's are its
-soil layers, so 1 is the surface.}
+soil layers, so 1 is the surface. An offspring flow reads none.}
 
 \item{into}{Which part of \code{to}'s patch it goes into, read the same
 way; by default the same index.}
 
 \item{weight}{How strongly the flow joins the two patches: what leaves
 \code{from} is multiplied by it on the way to \code{to}. For a resource
-flow, the share of what \code{from} sheds that reaches \code{to},
-between 0 and 1.}
+flow, the share of what \code{from} sheds that reaches \code{to}; for an
+offspring flow, the share of \code{from}'s seed that lands in \code{to}.
+Both are between 0 and 1.}
 }
 \value{
 A list of class \code{plant_landscape} with \code{patches}, the
@@ -63,11 +64,17 @@ part of the source it comes \code{out_of} and which part of the receiver
 it goes \code{into}, each an index that the type reads; and its
 \code{weight}, how strongly it joins the two.
 
-\code{flow} writes rows of that table. One kind of flow exists so far:
-\code{"resource"}, which carries whatever the patches' environments count
-as a resource. In TF24 that is water in a soil layer, and
-\code{flow("ridge", "gully", "resource")} passes the part of each rain
-pulse the ridge's surface cannot hold to the gully.
+\code{flow} writes rows of that table. There are two kinds of flow:
+\itemize{
+  \item \code{"resource"} carries whatever the patches' environments count
+    as a resource, during the run. In TF24 that is water in a soil layer,
+    and \code{flow("ridge", "gully", "resource")} passes the part of each
+    rain pulse the ridge's surface cannot hold to the gully.
+  \item \code{"offspring"} says where a patch's seed lands: the share of
+    it that reaches each patch, its own included. Together these flows are
+    the landscape's dispersal matrix. They are read when a run is scored,
+    not during it.
+}
 
 The patches run over one span of time and share its clock, so they must
 have the same \code{max_patch_lifetime}.
@@ -79,9 +86,11 @@ areas: a patch three times the size of the one below it delivers three
 times the depth it shed. A run's landscape-wide fitness weights each patch
 by its share (see \code{\link{run}}).
 
-Flows must lead one way. A landscape is run patch by patch, each one whole,
-sources before the patches they feed, so a loop of flows (one patch feeding
-another that feeds it back) is refused.
+Flows that pass something during the run must lead one way. A landscape is
+run patch by patch, each one whole, sources before the patches they feed,
+so a loop of resource flows (one patch feeding another that feeds it back)
+is refused. Offspring flows are read after the patches have run, so they
+may go any way.
 
 A landscape is a plain list, and \code{run} checks it again, so a patch or
 a flow can be changed in place.
@@ -109,6 +118,28 @@ a flow can be changed in place.
   does a flow out of a pool that no pulse reaches, or that the patch's
   environment does not have; a flow into a pool the receiving environment
   does not have stops the run at that patch.
+}
+
+\section{Offspring flows}{
+
+  An offspring flow says what share of the seed produced in \code{from}
+  lands in \code{to}. A patch may flow into itself, the share of its seed
+  that stays, and two patches may each feed the other. The shares out of
+  one patch sum to at most 1, and what they leave over is lost. An
+  offspring flow joins two patches for every species alike, so it takes no
+  \code{out_of} or \code{into}.
+
+  These flows are the landscape's dispersal matrix, and they are read when
+  a run is scored: a landscape's net reproduction ratio is the dominant
+  eigenvalue of the next-generation matrix they make with the patches' own
+  ratios (see \code{\link{run}}). With no offspring flows, seed is taken to
+  land evenly over the landscape, each patch receiving its share of the
+  area from every patch.
+
+  They do not pass seed between patches during a run. Each patch's
+  residents arrive at the birth rates its own \code{Parameters} give, and
+  finding the birth rates that the residents' own seed would supply is
+  left to whatever calls \code{run}.
 }
 
 \examples{

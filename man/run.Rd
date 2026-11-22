@@ -123,14 +123,19 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   the flows), \code{transfers} (a data frame of every amount passed
   between patches: \code{time}, \code{from}, \code{to}, \code{type},
   \code{out_of}, \code{into} and \code{amount}, the amount that reached
-  \code{to}, per unit of its area), \code{offspring_production} and
-  \code{net_reproduction_ratios} (per species, over the whole landscape:
-  the patches' values, each weighted by its patch's share of the area,
-  which is the value for seed arriving evenly over the landscape. They are
-  given only where every patch holds the same strategies, in the same
-  order and at the same birth rates, under the same fitness weighting, and
-  are \code{NULL} otherwise, as for a stochastic run. They are outputs at
-  the birth rates given: nothing here finds the birth rates at which the
+  \code{to}, per unit of its area), \code{offspring_production} (per
+  species, the seed produced per unit of the landscape's area: the
+  patches' values, each weighted by its patch's share of the area),
+  \code{net_reproduction_ratios} (per species, the factor by which its
+  seed multiplies over a generation across the landscape: the dominant
+  eigenvalue of the next-generation matrix, in which a seed arriving in a
+  patch leaves that patch's own ratio of offspring and the landscape's
+  offspring flows say where those land. With no offspring flows, seed
+  lands evenly, and the value is the patches' ratios weighted by their
+  shares of the area. Both are given only where every patch holds the same
+  strategies, in the same order, under the same fitness weighting, and are
+  \code{NULL} otherwise, as for a stochastic run. Patches may differ in
+  birth rate. Nothing here finds the birth rates at which the
   residents replace themselves), \code{mutants} (for a
   \code{\link{run_mutant}} result, the invaders' \code{Parameters} in each
   patch, else \code{NULL}) and \code{method}.

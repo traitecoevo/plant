@@ -496,9 +496,19 @@ test_that("a landscape's fitness weights each patch by its share of the area", {
   ## Equal patches give the plain mean.
   expect_equal(run(landscape(patches))$offspring_production, mean(each))
 
+  ## Patches may differ in birth rate: a ratio is per seed arriving, and seed
+  ## output is what each patch makes at its own rate.
+  other <- patches
+  other$b$p <- add_strategies(other$b$p, trait_matrix(0.0825, "lma"),
+                              birth_rate = 1, keep_existing = FALSE)
+  slower <- run(landscape(other, area = c(3, 1)))
+  made <- vapply(slower$patches, function(r) r$offspring_production, numeric(1))
+  expect_gt(abs(made[["b"]] / each[["b"]] - 1), 0.01)
+  expect_equal(slower$offspring_production, (3 * made[["a"]] + made[["b"]]) / 4)
+
   ## The patches' values are of one thing only where the patches hold the
-  ## same species, at the same birth rates, scored the same way. Otherwise
-  ## there is no landscape-wide value.
+  ## same species, scored the same way. Otherwise there is no landscape-wide
+  ## value.
   none <- function(change) {
     other <- patches
     other$b$p <- change(other$b$p)
@@ -509,8 +519,6 @@ test_that("a landscape's fitness weights each patch by its share of the area", {
   }
   none(function(p) add_strategies(p, trait_matrix(0.12, "lma"),
                                   birth_rate = 2, keep_existing = FALSE))
-  none(function(p) add_strategies(p, trait_matrix(0.0825, "lma"),
-                                  birth_rate = 1, keep_existing = FALSE))
   none(function(p) add_strategies(p, trait_matrix(0.12, "lma"), birth_rate = 2))
   none(function(p) {
     p$fitness_weighting <- "none"
@@ -665,4 +673,91 @@ test_that("an invader in a patch meets what flowed into it", {
   ## copy must have met the run-on to match it.
   alone <- run(land$patches$gully)$offspring_production
   expect_gt(abs(resident[["gully"]] / alone - 1), 1e-3)
+})
+
+test_that("offspring flows are the dispersal matrix a landscape is scored by", {
+  patches <- thinned_pair()
+  ratios <- vapply(run(landscape(patches))$patches,
+                   function(r) r$net_reproduction_ratios, numeric(1))
+  expect_gt(abs(ratios[["a"]] / ratios[["b"]] - 1), 0.01)
+  score <- function(..., area = NULL) {
+    run(landscape(patches, ..., area = area))$net_reproduction_ratios
+  }
+
+  ## With no offspring flows seed lands evenly: the weighted mean. Flows that
+  ## say the same thing give the same value.
+  expect_equal(score(area = c(3, 1)), (3 * ratios[["a"]] + ratios[["b"]]) / 4)
+  even <- flow(c("a", "a", "b", "b"), c("a", "b", "a", "b"), "offspring",
+               weight = c(0.75, 0.25, 0.75, 0.25))
+  expect_equal(score(even, area = c(3, 1)), score(area = c(3, 1)))
+
+  ## Seed that all stays where it was made: each patch is a landscape of its
+  ## own, and the better one sets the value, whatever their areas.
+  stays <- flow(c("a", "b"), c("a", "b"), "offspring")
+  expect_equal(score(stays), max(ratios))
+  expect_equal(score(stays, area = c(1, 9)), max(ratios))
+  ## Seed that all crosses over: two generations multiply by both ratios.
+  expect_equal(score(flow(c("a", "b"), c("b", "a"), "offspring")),
+               sqrt(prod(ratios)))
+
+  ## In general, the dominant eigenvalue of shares times ratios, with what
+  ## no flow carries lost.
+  shares <- matrix(c(0.7, 0.2, 0.1, 0.6), 2, 2,
+                   dimnames = list(to = c("a", "b"), from = c("a", "b")))
+  general <- flow(c("a", "a", "b", "b"), c("a", "b", "a", "b"), "offspring",
+                  weight = c(0.7, 0.2, 0.1, 0.6))
+  expect_equal(offspring_shares(landscape(patches, general)$flows,
+                                c(a = 1, b = 1)), shares)
+  expected <- max(Re(eigen(shares %*% diag(ratios))$values))
+  expect_equal(score(general), expected)
+  expect_lt(score(general), max(ratios))
+  ## Areas change nothing once the flows say where seed lands.
+  expect_equal(score(general, area = c(5, 1)), expected)
+
+  ## Seed output over the landscape is what was made, wherever it lands.
+  res <- run(landscape(patches, general, area = c(3, 1)))
+  each <- vapply(res$patches, function(r) r$offspring_production, numeric(1))
+  expect_equal(res$offspring_production, (3 * each[["a"]] + each[["b"]]) / 4)
+  ## The flows pass nothing during the run: each patch ran as it does alone.
+  expect_equal(nrow(res$transfers), 0)
+  expect_identical(res$patches$b$solver$patch$ode_state,
+                   run(patches$b)$solver$patch$ode_state)
+
+  ## Invaders are scored by the same matrix.
+  mutant <- add_mutant(patches$a$p, trait_matrix(0.1, "lma"), birth_rate = 2)
+  inv <- run_mutant(res, mutant)
+  theirs <- vapply(inv$patches, function(r) r$net_reproduction_ratios, numeric(1))
+  expect_equal(inv$net_reproduction_ratios,
+               max(Re(eigen(shares %*% diag(theirs))$values)))
+  expect_gt(abs(inv$net_reproduction_ratios / expected - 1), 0.01)
+})
+
+test_that("offspring flows may form any graph, and resource flows beside them", {
+  land <- landscape(list(ridge = water_patch(shallow_column),
+                         gully = water_patch()),
+                    flow("ridge", "gully", "resource"),
+                    flow(c("ridge", "gully", "gully"), c("gully", "ridge", "gully"),
+                         "offspring", weight = c(1, 0.5, 0.5)))
+  ## Water still orders the patches, and seed's loop does not stop the run.
+  expect_equal(landscape_order(names(land$patches), flows_during_run(land$flows)),
+               c("ridge", "gully"))
+  res <- run(land)
+  expect_equal(unique(res$transfers$type), "resource")
+  water_only <- run(landscape(land$patches, flow("ridge", "gully", "resource")))
+  expect_identical(res$transfers, water_only$transfers)
+  ratios <- vapply(res$patches, function(r) r$net_reproduction_ratios, numeric(1))
+  shares <- matrix(c(0, 1, 0.5, 0.5), 2, 2)
+  expect_equal(res$net_reproduction_ratios,
+               max(Re(eigen(shares %*% diag(ratios))$values)))
+
+  patches <- thinned_pair()
+  expect_error(flow("a", "b", "offspring", weight = 1.5),
+               "An offspring flow's `weight` is a share of the seed the patch produces")
+  expect_error(landscape(patches, flow("a", c("a", "b"), "offspring", weight = 0.6)),
+               "The flows out of patch \"a\" have weights summing to more than 1")
+  expect_error(flow("a", "b", "offspring", out_of = 2),
+               "joins two patches for every species alike")
+  ## A share of seed and a share of water out of one patch are not summed.
+  expect_no_error(landscape(patches, flow("a", "b", "offspring"),
+                            flow("a", "b", "resource")))
 })
