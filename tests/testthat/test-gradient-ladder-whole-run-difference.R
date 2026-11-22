@@ -90,8 +90,26 @@ reference_uncaptured_columns <- function() {
 # 1e-03, which left the rows unresolved and the gap unseen. The floor here is
 # the gap's size with room for the difference's own resolution, and nothing
 # wider: a row past it is a new finding.
+#
+# ⚠️ AND A SECOND ONE, IN THE REFERENCE RATHER THAN THE SWEEP. With the stem's
+# gravitational head on, the fast species' rows on the same stand sit 1e-4 to
+# 5e-3 from the sweep at the step the capture chose. The difference of whole runs
+# converges there to an offset rather than to the tangent: lma's leaf_area row
+# reads 0.2201844, 0.2201708, 0.2201352 and 0.2201201 at steps 1e-5, 1e-6, 3e-7
+# and 1e-7, against 0.2201200 from the sweep, and stem_c's and K_s's agree with
+# the sweep to 1e-5 and 1e-7 at a step of 1e-7. That is the signature of many
+# small jumps in the forward run, each a decision flipping inside the step, and
+# not of a wrong row. The jumps' source is open. The floor is the gap's measured
+# size, so a row past it is still a finding.
 reference_rows_past_their_scale <- function() {
-  list(shaded = list(columns = c("2.hmat", "2.a_f2"), floor = 5e-4))
+  list(shaded = list(
+    list(columns = c("2.hmat", "2.a_f2"), floor = 5e-4),
+    list(columns = paste0("1.", c("a_b1", "a_bio", "a_l2", "a_r1", "a_y", "D_c",
+                                  "jmax_25", "k_l", "k_r", "K_s", "L_tip", "lma",
+                                  "omega", "R_d_25", "r_l", "r_r", "rho",
+                                  "root_P50", "stem_c", "stem_P50", "TF24_beta2",
+                                  "TF24_cost_scale", "theta_tip", "vcmax_25")),
+         floor = 6e-3)))
 }
 
 reference_compare <- function(regime, rows) {
@@ -232,8 +250,7 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     resolved <- live & r$spread_raw < 1e-4 * abs(r$reference)
     expect_gt(sum(resolved), 150)
     floor <- rep(1e-4, length(r$column))
-    past <- reference_rows_past_their_scale()[[r$name]]
-    if (!is.null(past)) {
+    for (past in reference_rows_past_their_scale()[[r$name]]) {
       floor[r$column %in% past$columns] <- past$floor
     }
     own <- pmax(3 * r$spread_raw, floor * abs(r$reference))
