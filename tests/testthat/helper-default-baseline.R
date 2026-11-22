@@ -1,10 +1,8 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
 ## test-default-baseline.R and scripts/capture-default-baseline.R. The runs go
 ## through run() (#428), so the capture needs a build that has it. All six
-## cases were last captured at TF24's scientific version 18, which turned the
-## stem's gravitational head on, kept soil layers at or below saturation and made
-## net production's smoothing width a share of the plant's maintenance flux; that
-## moved only the TF24 case (offspring production by -25%, almost all of it the
+## cases were last captured at TF24's scientific version 18, in the batch NEWS
+## lists (chiefly the stem's gravitational head turned on); that moved only the TF24 case (offspring production by -25%, almost all of it the
 ## head's).
 default_baseline_cases <- function() {
   outputs <- function(solver) {

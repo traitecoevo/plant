@@ -322,7 +322,7 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   expect_false(is.na(first_move))                       # it does thin
   # but only once dying: two-thirds are dead (0.33 survive) when the canopy
   # has moved by a tenth of a per cent, and under a tenth by when it is at 0.9
-  expect_lt(course$survivorship[[first_move]], 0.5)
+  expect_lt(course$survivorship[[first_move]], 0.4)
 
   ## 2. NO RESCUE. The large ratios sit between two very small numbers, so the
   ##    ratio alone must never be quoted as a survival benefit.

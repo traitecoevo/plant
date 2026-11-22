@@ -335,8 +335,9 @@ test_that("offspring arrival", {
   # soil faster. A build of v13 with the old light reproduced every old value
   # to ~1e-12, so the change is the light and not the code.
   #
-  # TF24 v18 re-pinned all seven: the stem's gravitational head, now on by
-  # default, takes 3-4% off each (9.72 -> 9.36 for one species).
+  # TF24 v18 re-pinned these four, 2.9 to 4.3% lower (9.72 -> 9.36 for one
+  # species): almost all of it the stem's gravitational head, now on by
+  # default, with the batch's other changes a few parts in ten thousand.
   out_bd <- run(p2, env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 147.12010881, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 22.81743453, tolerance = 2e-2)

@@ -95,9 +95,10 @@ reference_uncaptured_columns <- function() {
 # gravitational head on, the fast species' rows on the same stand sit 1e-4 to
 # 5e-3 from the sweep at the step the capture chose. The difference of whole runs
 # converges there to an offset rather than to the tangent: lma's leaf_area row
-# reads 0.2201844, 0.2201708, 0.2201352 and 0.2201201 at steps 1e-5, 1e-6, 3e-7
-# and 1e-7, against 0.2201200 from the sweep, and stem_c's and K_s's agree with
-# the sweep to 1e-5 and 1e-7 at a step of 1e-7. That is the signature of many
+# reads 0.2201875 and 0.2201747 at steps 1e-5 and 1e-6 in the reference, and,
+# on an installed build, 0.2201352 and 0.2201201 at 3e-7 and 1e-7, against
+# 0.2201200 from the sweep; stem_c's and K_s's agree with the sweep to 1e-5 and
+# 1e-7 at a step of 1e-7. Only the leaf_area and area_stem rows are off. That is the signature of many
 # small jumps in the forward run, each a decision flipping inside the step, and
 # not of a wrong row. The jumps' source is open. The floor is the gap's measured
 # size, so a row past it is still a finding.
@@ -109,7 +110,7 @@ reference_rows_past_their_scale <- function() {
                                   "omega", "R_d_25", "r_l", "r_r", "rho",
                                   "root_P50", "stem_c", "stem_P50", "TF24_beta2",
                                   "TF24_cost_scale", "theta_tip", "vcmax_25")),
-         floor = 6e-3)))
+         metrics = c("leaf_area", "area_stem"), floor = 6e-3)))
 }
 
 reference_compare <- function(regime, rows) {
@@ -251,7 +252,11 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     expect_gt(sum(resolved), 150)
     floor <- rep(1e-4, length(r$column))
     for (past in reference_rows_past_their_scale()[[r$name]]) {
-      floor[r$column %in% past$columns] <- past$floor
+      rows <- r$column %in% past$columns
+      if (!is.null(past$metrics)) {
+        rows <- rows & r$metric %in% past$metrics
+      }
+      floor[rows] <- past$floor
     }
     own <- pmax(3 * r$spread_raw, floor * abs(r$reference))
     gap <- abs(r$observed - r$reference)
