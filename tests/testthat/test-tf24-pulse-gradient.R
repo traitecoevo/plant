@@ -122,7 +122,7 @@ test_that("the forward tangent walks a harvest between introductions", {
 test_that("a column held full above a slower layer is the pinned-step central difference", {
   # K_sat falling with depth holds layers 2 to 5 at saturation, where each takes
   # only what the layer below passes on, through a smooth minimum weighted by
-  # the layer's saturated share. Measured 1e-10 to 5e-9 against the difference
+  # the layer's saturated share. Measured 2e-10 to 4e-8 against the difference
   # at a relative step of 1e-5; held to 1e-6.
   p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 0.5
