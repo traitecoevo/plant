@@ -397,3 +397,31 @@ test_that("an invader's first cohort is not weighted by a window, TF24", {
   solver$run_mutant(early)
   expect_equal(solver$patch$net_reproduction_ratios, resident, tolerance = 1e-12)
 })
+
+test_that("an invader of a long pulsed stand replays where a model refuses a stage, TF24", {
+  # A replay takes the resident's steps and cannot shrink one a model refuses,
+  # so a stage the resident's run would retry kills it. On this realisation,
+  # with the window's cohorts kept from the top layer, a mutant's leaf meets a
+  # collar a difference step from the continuity root, which phylloptim's
+  # gradient once threw at rather than reporting no gradient.
+  set.seed(1)
+  t <- sort(runif(rpois(1, 20 * 1060), 0, 1060))
+  depth <- rexp(length(t), 1 / 0.014)
+  keep <- t < 80
+  mk <- function(lma) {
+    p <- testing_parameters("TF24")
+    p$max_patch_lifetime <- 80
+    p <- add_strategies(p, trait_matrix(lma, "lma"), birth_rate = 1)
+    p$node_schedule_times <- list(node_schedule_times_periodic(0, 80, 1))
+    fitness_window(p, 20, 60)
+  }
+  p <- mk(0.0825)
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 0)
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05,
+                  absorb_epsilon = 0.05)
+  solver <- run(p, env, ctrl,
+                events = events(events_default(p), rainfall_pulse(t[keep], depth[keep])))$solver
+  expect_no_error(solver$run_mutant(mk(0.0825 * 0.98)))
+  expect_gt(solver$patch$net_reproduction_ratios, 0)
+})
