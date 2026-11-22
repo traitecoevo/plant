@@ -588,16 +588,19 @@ private:
   // The two factors above are one plus an integral of p_est - 1 over a width,
   // so each is a difference of two numbers near one and is known only to the
   // rounding those integrals carry, which grows with the solver steps the
-  // cell spans (about a thousand ulps of one at a thousand steps). Where no seed
-  // establishes over a cell, p_est is exactly zero and the factor comes out as
-  // that rounding, of either sign. Read as a factor it gives the cohort a
-  // density some 1e-15 of its seed rain, or retires it, at random from one
-  // cell to the next: a sawtooth in birth date that no refinement of the
-  // schedule resolves, and that sets the scale of the competition and
-  // reproduction errors where nothing else in the stand is alive. Within
-  // establishment_factor_resolution of zero a factor is therefore zero; that
-  // is far above the rounding, and the share of a cell's seeds it gives up is
-  // below anything the ODE tolerance resolves.
+  // cell spans: thousands of ulps of one, of order 1e-12, at a thousand steps.
+  // Where no seed establishes over a cell, p_est is exactly zero and the factor
+  // comes out as that rounding, of either sign. Read as a factor it gives the
+  // cohort a density of that order times its seed rain, or retires it, at
+  // random from one cell to the next: a sawtooth in birth date that no
+  // refinement of the schedule resolves, and that sets the scale of the
+  // competition and reproduction errors where nothing else in the stand is
+  // alive. So a cell where at most establishment_factor_resolution of the
+  // seeds establish is treated as establishing none: the bound sits far above
+  // the rounding, and what it drops is negligible beside any cell where a
+  // fair share establishes. The zero carries no derivative. Where p_est is
+  // exactly zero its derivative is zero too; below the bound, the derivative
+  // dropped is of the order of the value dropped.
   static constexpr double establishment_factor_resolution = 1e-8;
   static value_type resolved_establishment(const value_type& factor) {
     return std::abs(odelia::util::to_passive(factor)) <=

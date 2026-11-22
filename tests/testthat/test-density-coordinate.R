@@ -848,9 +848,10 @@ test_that("a model that establishes every seed leaves the open interval empty", 
 ## The other end: on a dry column no seed establishes, so establishment is
 ## exactly zero over every cell, and the open interval's factors, one plus an
 ## integral of establishment minus one, come out as rounding of either sign.
-## Every cohort carries exactly no density, none a density of that rounding,
-## and the schedule has nothing to refine: rounding densities, at random from
-## one cell to the next, were a sawtooth that every bisection reproduced.
+## Every cohort, and the boundary, carries exactly no density rather than a
+## density of that rounding, and the schedule has nothing to refine: rounding
+## densities, at random from one cell to the next, would be a sawtooth in birth
+## date that every bisection reproduces.
 test_that("a stand where no seed establishes holds no density and refines at once", {
   p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 2
@@ -861,6 +862,7 @@ test_that("a stand where no seed establishes holds no density and refines at onc
   env$extrinsic_drivers_set_constant("rainfall", 0)
   res <- run(scenario(p, env, control(schedule_nsteps = 2)), refine_schedule = TRUE)
   expect_true(all(exp(res$solver$patch$species[[1]]$log_densities_state) == 0))
+  expect_identical(res$solver$patch$compute_competition(0), 0)
   expect_identical(res$offspring_production, 0)
   expect_identical(res$scenario$p$node_schedule_times, p$node_schedule_times)
 })
