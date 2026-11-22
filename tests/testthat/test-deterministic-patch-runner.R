@@ -16,8 +16,7 @@ test_that("Run the deterministic runner", {
     plant <- Individual(x, e)(s)
     node <- Node(x, e)(s)
 
-    p <- Parameters(x, e)(strategies=list(s),
-                          patch_area=1)
+    p <- Parameters(x, e)(strategies=list(s))
     
     env <- Environment(x)
     ## This test hand-builds a fine uniform schedule and checks the solver
@@ -676,7 +675,7 @@ test_that("store_recording records one state per schedule_row", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
-    p <- Parameters(x, e)(strategies = list(s), patch_area = 1)
+    p <- Parameters(x, e)(strategies = list(s))
     solver <- DeterministicPatchRunner(x, e)(p, Environment(x), empty_events(), Control())
 
     ## A short schedule: eight introductions from t = 0 to t = 2.

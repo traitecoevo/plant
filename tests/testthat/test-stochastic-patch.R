@@ -30,7 +30,7 @@ for (x in names(strategy_types)) {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- Environment(x)
-    ctrl <- Control()
+    ctrl <- Control(stochastic_patch_area = 1)
     patch <- StochasticPatch(x, e)(p, env, ctrl)
 
     expect_inherits(patch, sprintf("StochasticPatch<%s,%s>",x,e))
@@ -62,7 +62,7 @@ for (x in names(strategy_types)) {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- Environment(x)
-    ctrl <- Control()
+    ctrl <- Control(stochastic_patch_area = 1)
     patch <- StochasticPatch(x, e)(p, env, ctrl)
     cmp <- Individual(x, e)(p$strategies[[1]])
     
@@ -88,22 +88,18 @@ for (x in names(strategy_types)) {
 
 
   test_that("change patch size", {
-  
     env <- Environment(x)
-    ctrl <- Control()
-  
     e <- environment_types[[x]]
-    p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 2)
-    patch2 <- StochasticPatch(x, e)(p2, env, ctrl)
-    expect_equal(patch2$get_area, 2)
-    expect_equal(p2$patch_area, 2)
-
-    p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 10)
-    patch10 <- StochasticPatch(x, e)(p10, env, ctrl)
-    expect_equal(p10$patch_area, 10)
-    expect_equal(patch10$get_area, 10)
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
+    expect_equal(StochasticPatch(x, e)(p, env, Control())$get_area, 100)
+    for (area in c(2, 10)) {
+      patch <- StochasticPatch(x, e)(p, env, Control(stochastic_patch_area = area))
+      expect_equal(patch$get_area, area)
+    }
+    for (area in c(0, -1, Inf, NaN)) {
+      expect_error(StochasticPatch(x, e)(p, env, Control(stochastic_patch_area = area)),
+                   "stochastic_patch_area must be positive and finite")
+    }
   })
 }
 
@@ -115,7 +111,7 @@ test_that("the environment's ODE state and rates are part of the system", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
-    patch <- StochasticPatch(x, e)(p, Environment(x), Control())
+    patch <- StochasticPatch(x, e)(p, Environment(x), Control(stochastic_patch_area = 1))
     n_env <- n_environment_ode_states[[x]]
 
     expect_equal(patch$ode_size, n_env)
@@ -163,9 +159,9 @@ test_that("the environment's ODE state and rates are part of the system", {
 ## held at rate zero, so reading the last one would read a constant zero.
 test_that("resource uptake is summed per individual and normalised by area", {
   patch_with <- function(patch_area, n_individuals) {
-    p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Model()),
-                                       patch_area = patch_area)
-    patch <- StochasticPatch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+    p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Model()))
+    patch <- StochasticPatch("TF24", "TF24_Env")(
+      p, Environment("TF24"), Control(stochastic_patch_area = patch_area))
     for (i in seq_len(n_individuals)) {
       patch$introduce_new_node_and_update(1)
     }
@@ -214,7 +210,7 @@ test_that("an empty patch keeps the environment state the solver has set", {
   n_env <- n_environment_ode_states[[x]]
   patch <- StochasticPatch(x, e)(
     Parameters(x, e)(strategies=list(strategy_types[[x]]())),
-    Environment(x), Control())
+    Environment(x), Control(stochastic_patch_area = 1))
 
   expect_equal(patch$ode_size, n_env)
   moved <- environment_ode_state(patch, x)
@@ -235,7 +231,7 @@ test_that("a stochastic recruit is born with its initial states seeded", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
-    patch <- StochasticPatch(x, e)(p, Environment(x), Control())
+    patch <- StochasticPatch(x, e)(p, Environment(x), Control(stochastic_patch_area = 1))
     patch$introduce_new_node_and_update(1)
 
     cmp <- Individual(x, e)(p$strategies[[1]])
@@ -253,7 +249,7 @@ test_that("a stochastic recruit is born with its initial states seeded", {
 
 test_that("a TF24 recruit is born with reserves in its storage pool", {
   p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Model()))
-  patch <- StochasticPatch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+  patch <- StochasticPatch("TF24", "TF24_Env")(p, Environment("TF24"), Control(stochastic_patch_area = 1))
   patch$introduce_new_node_and_update(1)
 
   ## a_st3 of storage capacity, which is what the deterministic node gets: the
@@ -272,7 +268,7 @@ test_that("the light profile counts a younger individual that is taller", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
-    patch <- StochasticPatch(x, e)(p, Environment(x), Control())
+    patch <- StochasticPatch(x, e)(p, Environment(x), Control(stochastic_patch_area = 1))
     for (i in 1:3) {
       patch$introduce_new_node_and_update(1)
     }

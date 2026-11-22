@@ -9,7 +9,6 @@ TF24w_Parameters(...)
 \arguments{
 \item{...}{Arguments to be passed to the model constructor. These include
 
-  *`patch_area`: Area of an individual patch. Only relevant for the stochastic model. Default is 1.0m2.
   *`max_patch_lifetime`: The maximum time in years we want to simulate
   *`strategies`: A list of strategies to simulate. The default is an empty list.
   *`strategy_default`: Values for the default strategy. The default values are those specified in the C++ code for the model.

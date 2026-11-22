@@ -17,7 +17,8 @@ water_patch <- function(widths = NULL, lifetime = 2) {
   p$max_patch_lifetime <- lifetime
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-  scenario(p, env, events = events(rainfall_pulse(storm_times, storm_depths)))
+  scenario(p, env, control(stochastic_patch_area = 1),
+           events = events(rainfall_pulse(storm_times, storm_depths)))
 }
 
 # A patch's water accounts at the end of its run, in metres.
@@ -477,8 +478,10 @@ thinned_pair <- function(lifetime = 30) {
   p$max_patch_lifetime <- lifetime
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 2)
-  list(a = scenario(p),
-       b = scenario(p, events = events(harvest(time = 10, fraction = 0.9))))
+  ctrl <- control(stochastic_patch_area = 1)
+  list(a = scenario(p, control = ctrl),
+       b = scenario(p, control = ctrl,
+                    events = events(harvest(time = 10, fraction = 0.9))))
 }
 
 test_that("a landscape's fitness weights each patch by its share of the area", {

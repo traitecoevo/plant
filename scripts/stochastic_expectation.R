@@ -135,8 +135,8 @@ mean_soil_moist_at <- function(soil, a) {
 ## One stochastic patch of `area` m2, run to `age`: its stand per m2.
 stochastic_stand <- function(x, age, area, interval, seed) {
   p <- model_parameters(x, age)
-  p$patch_area <- area
   ctrl <- model_control(x)
+  ctrl$stochastic_patch_area <- area
   ctrl$stochastic_death_interval <- interval
   set.seed(seed)
   res <- run(p, control = ctrl, method = "stochastic")

@@ -12,7 +12,6 @@ K93_Parameters()
 \arguments{
 \item{...}{Arguments to be passed to the model constructor. These include
 
-  *`patch_area`: Area of an individual patch. Only relevant for the stochastic model. Default is 1.0m2.
   *`max_patch_lifetime`: The maximum time in years we want to simulate
   *`strategies`: A list of strategies to simulate. The default is an empty list.
   *`strategy_default`: Values for the default strategy. The default values are those specified in the C++ code for the model.
@@ -26,5 +25,5 @@ This function enables you initialize a model system. Use the model name to start
 }
 \examples{
 p1 <- FF16_Parameters()
-p2 <- FF16_Parameters(max_patch_lifetime = 10.0, patch_area = 1.0, strategies = list(FF16_Model()), strategy_default = FF16_Model(), node_schedule_times_default = node_schedule_times_default(10.0), node_schedule_times = list(node_schedule_times_default(10.0)), ode_times = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+p2 <- FF16_Parameters(max_patch_lifetime = 10.0, strategies = list(FF16_Model()), strategy_default = FF16_Model(), node_schedule_times_default = node_schedule_times_default(10.0), node_schedule_times = list(node_schedule_times_default(10.0)), ode_times = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
 }
