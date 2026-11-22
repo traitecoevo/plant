@@ -93,13 +93,19 @@ test_that("TF24f's stand gradient is the pinned-step central difference", {
   # The seed (lma), the reproduction schedule (hmat), the stem curve, which
   # moves both ends of the interval and the marginal (stem_P50), the
   # acclimation gain, which reaches the position's rate alone, and the birth
-  # rate. Held to 1e-4.
+  # rate. Held to 1e-5, near the reference's own truncation at this step, and
+  # on a second stand whose acclimation column reads the uptake's rows next to
+  # a layer's potential.
+  traits <- c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate")
+  metrics <- c("leaf_area", "1.offspring_production")
   errors <- tf24f_gradient_errors(
     tf24f_gradient_parameters(), function() Environment("TF24f"),
-    c("leaf_area", "1.offspring_production"),
-    c("lma", "hmat", "stem_P50", "k_acclim", "birth_rate"),
-    solver = tf24f_default_run())
-  expect_lt(max(errors), 1e-4)
+    metrics, traits, solver = tf24f_default_run())
+  expect_lt(max(errors), 1e-5)
+  errors <- tf24f_gradient_errors(
+    tf24f_gradient_parameters(lma = 0.095), function() Environment("TF24f"),
+    metrics, traits)
+  expect_lt(max(errors), 1e-5)
 })
 
 test_that("the gradient holds where the barrier holds the collar at its dry end", {
@@ -146,10 +152,10 @@ test_that("the gradient holds where the barrier holds the collar at its dry end"
 
 test_that("an invader's gradient holds where its collar meets a dry layer's potential", {
   # Under dry pulses the top layer dries past the collar while the deeper ones
-  # stay wet, so the collar crosses the top layer's potential, where uptake has
-  # a kink. This invader's slope stencil reached one, and the marginal there:
-  # its stem columns were 4% off, and moved with a last-bit change in its lma.
-  # With its probes kept clear of the kink they agree to 2e-5; held to 1e-4.
+  # stay wet, so the collar crosses the top layer's potential. A slope stencil
+  # reaching it once read a marginal that was noisy there, and this invader's
+  # stem columns were 4% off; with uptake smooth through a layer's potential
+  # they agree to 2e-6. Held to 1e-4.
   lifetime <- 10
   p <- tf24f_gradient_parameters(k_acclim = 10, lifetime = lifetime, lma = 0.07)
   solver <- run(p, tf24f_dry_pulses(lifetime), Control(), record = "states")$solver

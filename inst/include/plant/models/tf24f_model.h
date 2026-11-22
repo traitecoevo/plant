@@ -492,10 +492,9 @@ typename TF24f_Model<S>::ends_on_tape TF24f_Model<S>::interval_on_tape(
 //
 // M's rows in the traits, the soil and the light come from the marginal at the
 // collar held; its row in the collar is a supplied slope, phylloptim's
-// marginal_slope_at in the position at fixed ends, whose probes keep clear of
-// uptake's kinks. The tape's own dM/dcollar is wrong by a factor of about
-// eight (marginal_slope_at says why). Where no flow reaches the collar the
-// marginal is phylloptim's 0.0, a constant.
+// marginal_slope_at in the position at fixed ends. The tape's own dM/dcollar
+// is wrong by a factor of about eight (marginal_slope_at says why). Where no
+// flow reaches the collar the marginal is phylloptim's 0.0, a constant.
 template <typename S>
 S TF24f_Model<S>::collar_on_tape(const Leaf::SupplyDraw<S>& draw,
                                  const phylloptim::leaf_pars<S>& in,
