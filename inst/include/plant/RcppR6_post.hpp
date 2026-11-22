@@ -469,6 +469,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["ci_abs_tol"] = Rcpp::wrap(x.ci_abs_tol);
   ret["ci_niter"] = Rcpp::wrap(x.ci_niter);
   ret["stochastic_death_interval"] = Rcpp::wrap(x.stochastic_death_interval);
+  ret["stochastic_patch_area"] = Rcpp::wrap(x.stochastic_patch_area);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -543,6 +544,8 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("ci_niter")) ret.ci_niter = Rcpp::as<double >(xl["ci_niter"]);
   // ret.stochastic_death_interval = Rcpp::as<decltype(retstochastic_death_interval) >(xl["stochastic_death_interval"]);
   if (xl.containsElementNamed("stochastic_death_interval")) ret.stochastic_death_interval = Rcpp::as<double >(xl["stochastic_death_interval"]);
+  // ret.stochastic_patch_area = Rcpp::as<decltype(retstochastic_patch_area) >(xl["stochastic_patch_area"]);
+  if (xl.containsElementNamed("stochastic_patch_area")) ret.stochastic_patch_area = Rcpp::as<double >(xl["stochastic_patch_area"]);
   // A Control saved before node_density_coordinate replaced the boolean
   // node_density_in_birth_date carries the boolean: read it as the explicit
   // coordinate it named, not as "auto".
@@ -651,7 +654,6 @@ template <> inline plant::Internals<double> as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Environment<double> >& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
@@ -687,8 +689,6 @@ template <> inline plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Envi
   // field twice.  No current support for a hook.
   plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Environment<double> > ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
@@ -747,13 +747,20 @@ template <> inline plant::Parameters<plant::FF16_Model<double> ,plant::FF16_Envi
     ret.fitness_weighting = old == "meta-population" ? "patch_age" :
       old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
   }
+  // patch_area, retired: 1 (what every deterministic run had) is ignored, and
+  // anything else is refused.
+  if (xl.containsElementNamed("patch_area") &&
+      Rcpp::as<double>(xl["patch_area"]) != 1.0) {
+    Rcpp::stop("`p$patch_area` is retired. A deterministic patch is per m2 "
+               "and has no area; set a stochastic patch's area with "
+               "control(stochastic_patch_area = ), and remove patch_area");
+  }
   ret.validate();
   return ret;
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> >& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
@@ -789,8 +796,6 @@ template <> inline plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Envi
   // field twice.  No current support for a hook.
   plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Environment<double> > ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
@@ -849,13 +854,20 @@ template <> inline plant::Parameters<plant::TF24_Model<double> ,plant::TF24_Envi
     ret.fitness_weighting = old == "meta-population" ? "patch_age" :
       old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
   }
+  // patch_area, retired: 1 (what every deterministic run had) is ignored, and
+  // anything else is refused.
+  if (xl.containsElementNamed("patch_area") &&
+      Rcpp::as<double>(xl["patch_area"]) != 1.0) {
+    Rcpp::stop("`p$patch_area` is retired. A deterministic patch is per m2 "
+               "and has no area; set a stochastic patch's area with "
+               "control(stochastic_patch_area = ), and remove patch_area");
+  }
   ret.validate();
   return ret;
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Environment<double> >& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
@@ -891,8 +903,6 @@ template <> inline plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Env
   // field twice.  No current support for a hook.
   plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
@@ -951,13 +961,20 @@ template <> inline plant::Parameters<plant::TF24f_Model<double> ,plant::TF24_Env
     ret.fitness_weighting = old == "meta-population" ? "patch_age" :
       old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
   }
+  // patch_area, retired: 1 (what every deterministic run had) is ignored, and
+  // anything else is refused.
+  if (xl.containsElementNamed("patch_area") &&
+      Rcpp::as<double>(xl["patch_area"]) != 1.0) {
+    Rcpp::stop("`p$patch_area` is retired. A deterministic patch is per m2 "
+               "and has no area; set a stochastic patch's area with "
+               "control(stochastic_patch_area = ), and remove patch_area");
+  }
   ret.validate();
   return ret;
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> >& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
@@ -993,8 +1010,6 @@ template <> inline plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Env
   // field twice.  No current support for a hook.
   plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
@@ -1053,13 +1068,20 @@ template <> inline plant::Parameters<plant::TF24t_Model<double> ,plant::TF24_Env
     ret.fitness_weighting = old == "meta-population" ? "patch_age" :
       old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
   }
+  // patch_area, retired: 1 (what every deterministic run had) is ignored, and
+  // anything else is refused.
+  if (xl.containsElementNamed("patch_area") &&
+      Rcpp::as<double>(xl["patch_area"]) != 1.0) {
+    Rcpp::stop("`p$patch_area` is retired. A deterministic patch is per m2 "
+               "and has no area; set a stochastic patch's area with "
+               "control(stochastic_patch_area = ), and remove patch_area");
+  }
   ret.validate();
   return ret;
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Environment<double> >& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
@@ -1095,8 +1117,6 @@ template <> inline plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Env
   // field twice.  No current support for a hook.
   plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
@@ -1155,13 +1175,20 @@ template <> inline plant::Parameters<plant::TF24w_Model<double> ,plant::TF24_Env
     ret.fitness_weighting = old == "meta-population" ? "patch_age" :
       old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
   }
+  // patch_area, retired: 1 (what every deterministic run had) is ignored, and
+  // anything else is refused.
+  if (xl.containsElementNamed("patch_area") &&
+      Rcpp::as<double>(xl["patch_area"]) != 1.0) {
+    Rcpp::stop("`p$patch_area` is retired. A deterministic patch is per m2 "
+               "and has no area; set a stochastic patch's area with "
+               "control(stochastic_patch_area = ), and remove patch_area");
+  }
   ret.validate();
   return ret;
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::K93_Model,plant::K93_Environment>& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["fitness_weighting"] = Rcpp::wrap(x.fitness_weighting);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
@@ -1197,8 +1224,6 @@ template <> inline plant::Parameters<plant::K93_Model,plant::K93_Environment> as
   // field twice.  No current support for a hook.
   plant::Parameters<plant::K93_Model,plant::K93_Environment> ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  if (xl.containsElementNamed("patch_area")) ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   if (xl.containsElementNamed("n_patches")) ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.fitness_weighting = Rcpp::as<decltype(retfitness_weighting) >(xl["fitness_weighting"]);
@@ -1256,6 +1281,14 @@ template <> inline plant::Parameters<plant::K93_Model,plant::K93_Environment> as
     const std::string old = Rcpp::as<std::string>(xl["patch_type"]);
     ret.fitness_weighting = old == "meta-population" ? "patch_age" :
       old == "fixed" ? "none" : old == "fitness_window" ? "window" : old;
+  }
+  // patch_area, retired: 1 (what every deterministic run had) is ignored, and
+  // anything else is refused.
+  if (xl.containsElementNamed("patch_area") &&
+      Rcpp::as<double>(xl["patch_area"]) != 1.0) {
+    Rcpp::stop("`p$patch_area` is retired. A deterministic patch is per m2 "
+               "and has no area; set a stochastic patch's area with "
+               "control(stochastic_patch_area = ), and remove patch_area");
   }
   ret.validate();
   return ret;

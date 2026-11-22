@@ -190,8 +190,11 @@ public:
   }
 
 protected:
-  PatchSystem(parameters_type p, environment_type e, Control c)
-    : parameters(p), area(p.patch_area), environment(e), control(c) {}
+  // `a` is the ground the species' sums are counted over: 1 for the
+  // deterministic patch, whose state is already a density per m^2, and the
+  // drawn area for the stochastic one.
+  PatchSystem(parameters_type p, environment_type e, Control c, double a)
+    : parameters(p), area(a), environment(e), control(c) {}
 
   // The state `it` points to, read in the system's layout, and the time; no
   // field is built and no rate computed. set_ode_state() is this and then the

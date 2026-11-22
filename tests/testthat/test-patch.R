@@ -36,7 +36,6 @@ for (x in names(strategy_types)) {
     ## With no nodes, the tallest plant is a newborn.
     expect_identical(patch$height_max, plant$state("height"))
     expect_equal(patch$parameters, p)
-    expect_equal(patch$get_area, 1.0)
     expect_inherits(patch$environment, c(paste0(x, "_Environment"), "R6"))
     expect_identical(patch$environment$time, 0.0)
 
@@ -144,59 +143,6 @@ for (x in names(strategy_types)) {
     expect_identical(patch$environment$time, 0.0)
   })
 
-  test_that("change patch size", {
-  
-    ctrl <- Control()
-    e <- environment_types[[x]]
-    env <- Environment(x)
-
-    # TF24 is much costlier per step, so use a shorter horizon -- but with a low
-    # height-at-maturity (hmat = 5) so plants actually reproduce within it. With
-    # the default hmat over so short a patch the TF24 reproductive ratios
-    # underflow to ~1e-15 and the checks below would merely compare zeros;
-    # hmat = 5 lifts them to O(10) so this is a genuine demographic check.
-    # FF16/K93 reproduce fine at their default hmat over the longer horizon.
-    if (x == "TF24") {
-      max_patch_lifetime <- 4
-      mk_strategy <- function()
-        add_strategies(testing_parameters("TF24"),
-                       trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                       hyperpar = default_hyperpar("TF24"), birth_rate = 1)$strategies[[1]]
-    } else {
-      max_patch_lifetime <- 30
-      mk_strategy <- function() strategy_types[[x]]()
-    }
-
-    mk_pars <- function(area) Parameters(x, e)(strategies = list(mk_strategy()),
-                                               patch_area = area,
-                                               max_patch_lifetime = max_patch_lifetime)
-
-    p2  <- mk_pars(2)
-    p10 <- mk_pars(10)
-    expect_equal(p2$patch_area, 2)
-    expect_equal(Patch(x, e)(p2, env, ctrl)$get_area, 2)
-    expect_equal(p10$patch_area, 10)
-    expect_equal(Patch(x, e)(p10, env, ctrl)$get_area, 10)
-
-    # Same birth rate: the larger patch has less competition, so a higher
-    # net reproductive ratio.
-    p2$strategies[[1]]$birth_rate_y <- 1
-    p10$strategies[[1]]$birth_rate_y <- 1
-    expect_warning(solver2   <- run(p2)$solver)
-    expect_warning(solver10a <- run(p10)$solver)
-    expect_gt(solver10a$patch$net_reproduction_ratios, solver2$patch$net_reproduction_ratios)
-
-    # Birth rate scaled x5 with the x5 patch area gives the same seed input per
-    # unit area, hence the same reproductive ratio as the small patch. (p2 is
-    # unchanged from above, so it is not re-run.)
-    p10b <- p10
-    p10b$strategies[[1]]$birth_rate_y <- 5
-    expect_warning(solver10b <- run(p10b)$solver)
-    expect_equal(solver2$patch$net_reproduction_ratios,
-                 solver10b$patch$net_reproduction_ratios, tolerance = 1e-4)
-    expect_gt(solver10a$patch$net_reproduction_ratios, solver10b$patch$net_reproduction_ratios)
-  })
-  
   test_that("Weibull Disturbance as default", {
     expect_equal(patch$time, 0.0)
     expect_equal(patch$pr_survival(patch$time), 1.0)

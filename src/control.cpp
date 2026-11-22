@@ -89,6 +89,7 @@ Control::Control() {
   ci_niter = 1e3;
   // See control.h.
   stochastic_death_interval = 0.01;
+  stochastic_patch_area = 100.0;
 }
 
 // Written so that a NaN fails it.

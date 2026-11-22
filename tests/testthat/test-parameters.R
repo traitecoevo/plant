@@ -14,7 +14,6 @@ test_that("Creation & defaults", {
     # expect_equal(length(p$birth_rate), 0)
     
     expected <- list(n_patches=1,
-                     patch_area=1.0,
                      fitness_weighting = "patch_age",
                      max_patch_lifetime=105.32)
 
@@ -132,4 +131,22 @@ test_that("Patch runtime", {
     p$node_schedule_time <- list(1:11)
     expect_equal(plant:::validate(p), p2)
   }
+})
+
+test_that("patch_area is retired: 1 is ignored, any other value refused", {
+  ## Every Parameters saved before the stochastic area moved to Control carries
+  ## patch_area, nearly always at 1, which is what the deterministic patch read.
+  p <- base_parameters("FF16")
+  p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma")))
+  old <- unclass(p)
+  old$patch_area <- 1
+  expect_identical(run(structure(old, class = class(p)))$offspring_production,
+                   run(p)$offspring_production)
+
+  ## Any other value was set for a stochastic run: dropped, it would run at the
+  ## default area without a word.
+  p$patch_area <- 50
+  expect_error(run(p, method = "stochastic"), "control\\(stochastic_patch_area = \\)")
+  expect_error(run(p), "patch_area` is retired")
+  expect_error(Parameters("FF16", "FF16_Env")(patch_area = 2), "Unknown fields: patch_area")
 })
