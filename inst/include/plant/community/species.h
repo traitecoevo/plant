@@ -571,7 +571,7 @@ private:
       return value_type(open_establishment_last_);
     }
     const value_type share = h > 0.0 ? open_w0_ - open_m1_ / h : open_w0_;
-    return 1.0 + share / half;
+    return resolved_establishment(1.0 + share / half);
   }
   // The boundary node's: its share of the open interval's p_est, over half its
   // width.
@@ -583,7 +583,26 @@ private:
     if (!(h > 0.0)) {
       return value_type(open_establishment_last_);
     }
-    return 1.0 + 2.0 * open_m1_ / (h * h);
+    return resolved_establishment(1.0 + 2.0 * open_m1_ / (h * h));
+  }
+  // The two factors above are one plus an integral of p_est - 1 over a width,
+  // so each is a difference of two numbers near one and is known only to the
+  // rounding those integrals carry, which grows with the solver steps the
+  // cell spans (about a thousand ulps of one at a thousand steps). Where no seed
+  // establishes over a cell, p_est is exactly zero and the factor comes out as
+  // that rounding, of either sign. Read as a factor it gives the cohort a
+  // density some 1e-15 of its seed rain, or retires it, at random from one
+  // cell to the next: a sawtooth in birth date that no refinement of the
+  // schedule resolves, and that sets the scale of the competition and
+  // reproduction errors where nothing else in the stand is alive. Within
+  // establishment_factor_resolution of zero a factor is therefore zero; that
+  // is far above the rounding, and the share of a cell's seeds it gives up is
+  // below anything the ODE tolerance resolves.
+  static constexpr double establishment_factor_resolution = 1e-8;
+  static value_type resolved_establishment(const value_type& factor) {
+    return std::abs(odelia::util::to_passive(factor)) <=
+               establishment_factor_resolution
+             ? value_type(0.0) : factor;
   }
   void set_open_scales(double time) {
     if (open_ode_size() == 0) {
