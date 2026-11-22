@@ -897,15 +897,20 @@ public:
     return U(1) - a_infil * pow(theta / soil_moist_sat_0, b_infil);
   }
 
+  // The sharpness p of smooth_min. The smooth minimum falls short of min(a, b)
+  // most where a = b, by a factor 2^(-1/p), 4% at 16; that is where a draining
+  // column's interfaces sit, so p is high enough that a layer which can pass on
+  // its supply refuses little of it. It sets no time scale, so the steps a run
+  // takes barely depend on it.
+  static constexpr double inflow_limit_sharpness = 16.0;
+
   // A smooth minimum of a and b that never exceeds the smaller: the reciprocal
-  // p-norm a b / (a^p + b^p)^(1/p), with p = 16. It falls short of min(a, b)
-  // most where a = b, by a factor 2^(-1/p), 4% at p = 16; that is where a
-  // draining column's interfaces sit, so p is set high enough that a layer
-  // which can pass on its supply barely refuses any. It is symmetric, so it is
-  // evaluated from the larger argument, which keeps the power in [0, 1] and
-  // finite however far apart the two are (conductivities span ~25 orders of
-  // magnitude); the two orderings are one analytic function, so choosing
-  // between them puts no kink in it. It is zero where both are zero, its limit.
+  // p-norm a b / (a^p + b^p)^(1/p), p = inflow_limit_sharpness. It is
+  // symmetric, so it is evaluated from the larger argument, which keeps the
+  // power in [0, 1] and finite however far apart the two are (conductivities
+  // span ~25 orders of magnitude); the two orderings are one analytic
+  // function, so choosing between them puts no kink in it. It is zero where
+  // both are zero, its limit.
   template <class U> static U smooth_min(const U& a, const U& b) {
     using std::pow;
     const bool a_smaller = a < b;
@@ -914,18 +919,23 @@ public:
     if (!(hi > 0.0)) {
       return U(0.0);
     }
-    const U r = lo / hi;
-    const U r2 = r * r;
-    const U r4 = r2 * r2;
-    const U r8 = r4 * r4;
-    return lo / pow(U(1.0) + r8 * r8, 1.0 / 16.0);
+    // The power is formed by squaring, so it stays real for a negative ratio
+    // (an outflow an overfilled stage turned upward).
+    static_assert(inflow_limit_sharpness == 16.0,
+                  "smooth_min forms (lo / hi)^p by four squarings");
+    U rp = lo / hi;
+    for (int k = 0; k < 4; ++k) {
+      rp = rp * rp;
+    }
+    return lo / pow(U(1.0) + rp, 1.0 / inflow_limit_sharpness);
   }
 
   // What layer `layer`, at moisture theta, takes of a supply from above when
   // it passes `out` on below. A dry layer takes the whole supply, into its free
-  // pore space; a full one takes only what it passes on; between the two the
-  // share it refuses rises with its fullness, as the surface's runoff does,
-  // through (theta / theta_sat)^b_infil:
+  // pore space; a full one takes only what it passes on. Between the two, w is
+  // read as the saturated share of the layer, through the curve the surface's
+  // saturation-excess runoff already uses: the saturated share takes only what
+  // the layer passes on, the rest takes freely.
   //
   //   accepted = supply - w (supply - smooth_min(supply, out)),
   //   w = (theta / theta_sat)^b_infil.
@@ -938,12 +948,16 @@ public:
   // at the surface it is runoff. Nothing is lost: each flux leaves one layer
   // and enters the next by the same amount.
   //
-  // The supply only reaches the smooth minimum once the layer is nearly full
-  // (w is 0.08 at three-quarters of saturation, at b_infil = 8), so a column
-  // whose layers can pass on what they receive drains almost as free drainage
-  // alone would. The moisture is floored at zero in w only, where w and its
-  // slope are already zero for b_infil > 1; a stage below zero is already
-  // outside the domain.
+  // A layer refuses only what it cannot pass on, and only in proportion to w
+  // (0.08 at three-quarters of saturation at b_infil = 8), so a column whose
+  // layers pass on what they receive drains nearly as free drainage alone
+  // would. A steeper w would leave such a column closer still, but w's slope
+  // at saturation sets the stiffness of a layer held full above a slower one,
+  // and the soil's own conductivity slope already sets a floor there: at
+  // b_infil = 8 the two are of the same order, and a steeper w costs a perched
+  // column proportionately more steps. The moisture is floored at zero in w
+  // only, where w and its slope are already zero for b_infil > 1; a stage
+  // below zero is already outside the domain.
   template <class U>
   U accepted_inflow(const U& supply, const U& out, const U& theta,
                     size_t layer) const {

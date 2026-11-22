@@ -14,8 +14,12 @@
 #   storage_start + infiltration == storage_end + drainage + uptake
 # Runoff never enters the column, so it cancels; `sum_rainfall` is only needed
 # to check the driver itself (see the rainfall-floor tests below).
+#
+# `setup`, if given, is applied to the environment after its geometry and
+# water are set, to change its soil parameters.
 tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
-                              lifetime = 2, lma = 0.0825, widths = NULL) {
+                              lifetime = 2, lma = 0.0825, widths = NULL,
+                              setup = NULL) {
   env <- Environment("TF24")
   if (is.null(widths)) {
     env$set_soil_number_of_depths(n_layers)
@@ -24,6 +28,9 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
     n_layers <- length(widths)
   }
   env$set_soil_water_state(rep(theta_0, n_layers))
+  if (!is.null(setup)) {
+    setup(env)
+  }
   env$extrinsic_drivers_set_constant("rainfall", rainfall)
 
   p <- testing_parameters("TF24")
@@ -48,6 +55,9 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
   supplied <- start + final$sum_infiltration
   accounted <- end + final$sum_drainage + final$sum_resource_depletion
 
+  # Each row's layer, for the highest moisture each layer reached.
+  layer <- stats::ave(seq_along(moist$step), moist$step, FUN = seq_along)
+
   list(
     supplied = supplied,
     accounted = accounted,
@@ -55,6 +65,9 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
     rel_residual = (supplied - accounted) / supplied,
     min_theta = min(moist$soil_moist),
     max_theta = max(moist$soil_moist),
+    max_theta_by_layer = as.numeric(tapply(moist$soil_moist, layer, max)),
+    rainfall = final$sum_rainfall,
+    runoff = final$sum_rainfall - final$sum_infiltration,
     n_layers = n_layers
   )
 }
@@ -136,6 +149,41 @@ test_that("the residual-moisture guard does not leak water", {
     expect_equal(b$supplied, b$accounted,
                  info = sprintf("theta_0 = %g", theta_0))
   }
+})
+
+test_that("a column whose K_sat falls with depth fills to saturation and no further", {
+  # The deep layers receive more than they can pass on: the layer above drains
+  # at up to 163 m/yr into one that passes on at most 20, and that one into one
+  # that passes on at most 0.5. Free drainage alone filled the deepest layer to
+  # several times its saturation. Each layer instead takes no more than it
+  # passes on once full, so the deep layers fill to saturation, the excess
+  # backs up the column and leaves as runoff, and no water is lost on the way:
+  # the infiltration is the storage change + drainage + uptake, and the runoff
+  # is the rest of the rain.
+  sat <- 0.428
+  b <- tf24_water_budget(
+    theta_0 = sat / 2, rainfall = 1, lifetime = 0.5,
+    setup = function(env) {
+      set_tf24_soil(env, K_sat = c(163.0411, 163.0411, 163.0411, 20, 0.5),
+                    theta = sat / 2)
+    })
+  expect_lte(max(b$max_theta_by_layer), sat)
+  # Saturated, not merely wet: the limit is what holds the deep layers.
+  expect_equal(b$max_theta_by_layer[2:5], rep(sat, 4), tolerance = 1e-6)
+  expect_lt(abs(b$rel_residual), 1e-12)
+  expect_gt(b$runoff, 0)
+  expect_lt(b$runoff, b$rainfall)
+
+  # Rain heavier than K_sat with no saturation-excess term at the surface: the
+  # top layer itself takes no more than it passes on once full, and turns the
+  # rest away as runoff.
+  b <- tf24_water_budget(
+    rainfall = 300, lifetime = 0.01,
+    setup = function(env) env$a_infil <- 0)
+  expect_lte(b$max_theta, sat)
+  expect_equal(b$max_theta_by_layer[[1]], sat, tolerance = 1e-6)
+  expect_lt(abs(b$rel_residual), 1e-12)
+  expect_gt(b$runoff / b$rainfall, 0.5)
 })
 
 test_that("Campbell transport shuts off before the residual floor is reached", {

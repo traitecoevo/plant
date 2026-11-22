@@ -634,20 +634,6 @@ test_that("a run that would start above saturation is refused, naming the layer"
     DeterministicPatchRunner("TF24", "TF24_Env")(p, env, empty_events(), control()))
 })
 
-test_that("a column that fills a layer past saturation stops, naming the layer", {
-  ## A conductivity that falls with depth: the deepest layer takes the drainage
-  ## of the one above, up to that layer's K_sat, and passes on at most its own,
-  ## so it fills past saturation however small the step. The run stops, and says
-  ## which layer, rather than carry on with moisture no soil can hold.
-  env <- Environment("TF24")
-  set_tf24_soil(env, K_sat = c(163.0411, 163.0411, 163.0411, 20, 0.5))
-  env$extrinsic_drivers_set_constant("rainfall", 1)
-  p <- add_strategies(testing_parameters("TF24"), trait_matrix(0.0825, "lma"))
-  p$max_patch_lifetime <- 0.5
-  expect_error(run(p, env),
-               "ode_state_valid\\(\\) refused .*the refused state: soil layer 5 holds moisture [0-9.]+, above its saturation 0.428")
-})
-
 # --- Review of #632 (@elijahmagistrado / GPT 5.6 Sol) -------------------------
 
 test_that("collected results carry the events and the log", {
