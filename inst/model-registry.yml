@@ -1749,10 +1749,21 @@ parameters:
     symbol: 'b_{\rm infil}'
     units: '–'
     class: hyperparameter
-    meaning: 'how sharply runoff rises as the top layer nears saturation. It reads layer 0 alone, so its calibration holds only for the width of layer 0 it was made at. It also sets the saturated share of every layer in TF24.saturation_limit, which shapes how a nearly full layer refuses what it cannot pass on'
+    meaning: 'how sharply runoff rises as the top layer nears saturation. It reads layer 0 alone, so its calibration holds only for the width of layer 0 it was made at.'
     source: 'TF24_Environment constructor default; calibrated, per NEWS, against a 0.3 m surface layer, with no source recorded'
     placeholder: true
     code: plant::TF24_Environment::b_infil
+  TF24.inflow_refusal_exponent:
+    model: TF24
+    section: tf24_soil
+    symbol: 'b_{\rm sat}'
+    units: '–'
+    class: constant
+    meaning: 'exponent of the saturated share $w_i$ in TF24.saturation_limit: how near saturation a layer begins to refuse what it cannot pass on ($w$ is 1% at three-quarters of saturation)'
+    source: 'Hard-coded on TF24_Environment; chosen where a perched column''s outcome stops depending on it (hazard 12)'
+    placeholder: true
+    code: plant::TF24_Environment::inflow_refusal_exponent
+    literal: 16.0
   TF24.inflow_limit_sharpness:
     model: TF24
     section: tf24_soil
@@ -1763,7 +1774,7 @@ parameters:
     source: 'Hard-coded on TF24_Environment'
     placeholder: false
     code: plant::TF24_Environment::inflow_limit_sharpness
-    literal: 16.0
+    literal: 4.0
   TF24.inflow_refusal_bound:
     model: TF24
     section: tf24_soil
@@ -3626,13 +3637,13 @@ equations:
     section: tf24_soil
     title: What a nearly full layer takes of its supply
     latex: |
-      q_{{\rm in},i} = s_i - w_i\left[s_i - \widetilde{\min}(s_i,\ q_{{\rm out},i})\right], \qquad w_i = \frac{W f_i}{W - 1 + f_i}, \quad f_i = \left(\frac{\theta_i}{\theta_{\rm sat}}\right)^{b_{\rm infil}}, \qquad \widetilde{\min}(a, b) = \frac{a b}{(a^p + b^p)^{1/p}}
+      q_{{\rm in},i} = s_i - w_i\left[s_i - \widetilde{\min}(s_i,\ q_{{\rm out},i})\right], \qquad w_i = \frac{W f_i}{W - 1 + f_i}, \quad f_i = \left(\frac{\theta_i}{\theta_{\rm sat}}\right)^{b_{\rm sat}}, \qquad \widetilde{\min}(a, b) = \frac{a b}{(a^p + b^p)^{1/p}}
     code: plant::TF24_Environment::accepted_inflow
     also: [plant::TF24_Environment::smooth_min, plant::TF24_Environment::layer_rates]
-    reads: [TF24.b_infil, TF24.soil_moist_sat, TF24.inflow_limit_sharpness, TF24.inflow_refusal_bound]
+    reads: [TF24.inflow_refusal_exponent, TF24.inflow_refusal_bound, TF24.inflow_limit_sharpness, TF24.soil_moist_sat]
     writes: []
     kind: closed_form
-    note: 'Not on the Overstorey soil-water page. $s_i$ is what the layer above offers, $K(\theta_{i-1})$ (TF24.drainage), or $s_0$ at the surface (TF24.infiltration); $q_{{\rm out},i}$ is what layer $i$ passes on, $q_{{\rm in},i+1}$, or its own drainage for the deepest layer, so the fluxes are found from the bottom up. $w_i$ is the saturated share of the layer, which takes only what the layer passes on while the rest takes freely; it is $f_i$ to within $1/W$ below saturation, exactly 1 at it, and bounded by $W$ above it, so an explicit stage far above saturation cannot grow its successors by the power $b_{\rm infil}$ until they overflow. At saturation $q_{{\rm in},i} \le q_{{\rm out},i}$, so a layer that roots draw on or leave alone does not fill past $\theta_{\rm sat}$; above it (an explicit stage) $w_i > 1$ and the layer refuses more. What a layer refuses stays in the layer above, and at the surface is runoff, so mass is conserved. $\widetilde{\min}$ is symmetric and never exceeds the smaller argument; it is evaluated from the larger, and is zero where both are. $w_i$ reads $\max(\theta_i, 0)$, where it and its slope are zero. $\theta_{\rm sat}$ is layer $i$''s.'
+    note: 'Not on the Overstorey soil-water page. $s_i$ is what the layer above offers, $K(\theta_{i-1})$ (TF24.drainage), or $s_0$ at the surface (TF24.infiltration); $q_{{\rm out},i}$ is what layer $i$ passes on, $q_{{\rm in},i+1}$, or its own drainage for the deepest layer, so the fluxes are found from the bottom up. $w_i$ is the saturated share of the layer, which takes only what the layer passes on while the rest takes freely; it is $f_i$ to within $1/W$ below saturation, exactly 1 at it, and bounded by $W$ above it, so an explicit stage far above saturation cannot grow its successors by the power $b_{\rm sat}$ until they overflow. At saturation $q_{{\rm in},i} \le q_{{\rm out},i}$, so a layer that roots draw on or leave alone does not fill past $\theta_{\rm sat}$; above it (an explicit stage) $w_i > 1$ and the layer refuses more. What a layer refuses stays in the layer above, and at the surface is runoff, so mass is conserved. $\widetilde{\min}$ is symmetric and never exceeds the smaller argument; it is evaluated from the larger, and is zero where both are. $w_i$ reads $\max(\theta_i, 0)$, where it and its slope are zero. $\theta_{\rm sat}$ is layer $i$''s.'
   TF24.layer_balance:
     model: TF24
     section: tf24_soil

@@ -897,15 +897,25 @@ public:
     return U(1) - a_infil * pow(theta / soil_moist_sat_0, b_infil);
   }
 
-  // The sharpness p of smooth_min. The smooth minimum falls short of min(a, b)
-  // most where a = b, by a factor 2^(-1/p), 4% at 16; that is where a draining
-  // column's interfaces sit, so p is high enough that a layer which can pass on
-  // its supply refuses little of it. It sets no time scale, so the steps a run
-  // takes barely depend on it.
-  static constexpr double inflow_limit_sharpness = 16.0;
-  // The most the saturated share w in accepted_inflow can reach, which it
-  // approaches only far above saturation.
+  // The exponent b of the saturated share w in accepted_inflow, which sets how
+  // near saturation a layer begins to refuse what it cannot pass on: w is
+  // 1.5e-5 at half saturation and 1% at three-quarters. A flatter w refuses
+  // water a layer has room for, and moves columns no layer of which is full;
+  // a steeper one stiffens a layer held full above a slower one, where the
+  // stiffness is about b (supply - out) / (theta_sat dz). 16 is where a
+  // perched column's outcome stops depending on b. Hazard 12 has the
+  // measurements.
+  static constexpr double inflow_refusal_exponent = 16.0;
+  // The most the saturated share w can reach, which it approaches only far
+  // above saturation.
   static constexpr double inflow_refusal_bound = 100.0;
+  // The sharpness p of smooth_min. The smooth minimum falls short of min(a, b)
+  // most where a = b, by a factor 2^(-1/p), 16% at 4. A draining column's
+  // interfaces sit near a = b, where its curvature grows with p, so a sharp
+  // minimum puts a near-kink on the path of ordinary runs, which a difference
+  // in a trait then straddles. The shortfall is weighted by the saturated
+  // share, so it barely moves a column that passes on what it receives.
+  static constexpr double inflow_limit_sharpness = 4.0;
 
   // A smooth minimum of a and b that never exceeds the smaller: the reciprocal
   // p-norm a b / (a^p + b^p)^(1/p), p = inflow_limit_sharpness. It is
@@ -924,26 +934,24 @@ public:
     }
     // The power is formed by squaring, so it stays real for a negative ratio
     // (an outflow an overfilled stage turned upward).
-    static_assert(inflow_limit_sharpness == 16.0,
-                  "smooth_min forms (lo / hi)^p by four squarings");
-    U rp = lo / hi;
-    for (int k = 0; k < 4; ++k) {
-      rp = rp * rp;
-    }
-    return lo / pow(U(1.0) + rp, 1.0 / inflow_limit_sharpness);
+    static_assert(inflow_limit_sharpness == 4.0,
+                  "smooth_min forms (lo / hi)^p by two squarings");
+    const U r = lo / hi;
+    const U r2 = r * r;
+    return lo / pow(U(1.0) + r2 * r2, 1.0 / inflow_limit_sharpness);
   }
 
   // What layer `layer`, at moisture theta, takes of a supply from above when
   // it passes `out` on below. A dry layer takes the whole supply, into its free
   // pore space; a full one takes only what it passes on. Between the two, w is
-  // read as the saturated share of the layer, through the curve the surface's
-  // saturation-excess runoff already uses: the saturated share takes only what
-  // the layer passes on, the rest takes freely.
+  // read as the saturated share of the layer, which takes only what the layer
+  // passes on while the rest takes freely:
   //
   //   accepted = supply - w (supply - smooth_min(supply, out)),
-  //   w = W f / (W - 1 + f),  f = (theta / theta_sat)^b_infil,
+  //   w = W f / (W - 1 + f),  f = (theta / theta_sat)^b,
   //
-  // with W = inflow_refusal_bound, so w is f to within 1/W below saturation.
+  // with b = inflow_refusal_exponent and W = inflow_refusal_bound, so w is f
+  // to within 1/W below saturation and exactly 1 at it.
   //
   // At saturation the layer's inflow is at most its outflow, so its rate is not
   // positive while its roots draw on it, and saturation is a barrier the
@@ -953,16 +961,12 @@ public:
   // at the surface it is runoff. Nothing is lost: each flux leaves one layer
   // and enters the next by the same amount.
   //
-  // A layer refuses only what it cannot pass on, and only in proportion to w
-  // (0.08 at three-quarters of saturation at b_infil = 8), so a column whose
-  // layers pass on what they receive drains nearly as free drainage alone
-  // would. A steeper w would leave such a column closer still, but w's slope
-  // at saturation sets the stiffness of a layer held full above a slower one,
-  // and the soil's own conductivity slope already sets a floor there: at
-  // b_infil = 8 the two are of the same order, and a steeper w costs a perched
-  // column proportionately more steps. The moisture is floored at zero in w
-  // only, where w and its slope are already zero for b_infil > 1; a stage
-  // below zero is already outside the domain.
+  // w is bounded above because, left as f, an explicit stage far above
+  // saturation would weigh the refusal by theta^b, and the stages that follow
+  // it would grow by that power until they overflowed, where a bounded flux
+  // lets the step be rejected. The moisture is floored at zero in f only,
+  // where f and its slope are already zero; a stage below zero is already
+  // outside the domain.
   template <class U>
   U accepted_inflow(const U& supply, const U& out, const U& theta,
                     size_t layer) const {
@@ -970,12 +974,7 @@ public:
     using std::pow;
     const double sat =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
-    const U f = pow(max(theta, U(0.0)) / sat, b_infil);
-    // Bounded smoothly above by W, and still exactly 1 at saturation. Left as
-    // f, an explicit stage far above saturation would weigh the refusal by
-    // theta^b_infil, and the stages that follow it would grow by that power
-    // until they overflow, where a bounded flux lets the step be rejected.
-    // Below saturation it stays within 1/W of f.
+    const U f = pow(max(theta, U(0.0)) / sat, inflow_refusal_exponent);
     constexpr double W = inflow_refusal_bound;
     const U w = W * f / (W - 1.0 + f);
     return supply - w * (supply - smooth_min(supply, out));
