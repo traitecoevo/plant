@@ -181,11 +181,14 @@ test_that("the gradient holds where the cooling cap sets the dry end", {
   # With the energy balance on, in still air with wide leaves, a well-plumbed
   # stem and wet soil, a leaf at its dry end transpires as much as cools it
   # 25 K below its shut temperature: the dry end is the collar at which uptake
-  # reaches that flux, not the stem's continuity root. One year, because later
-  # the shaded cohorts' leaves cool to the dew point, where the floor on the
-  # leaf's vapour deficit puts a kink in the marginal they settle on.
+  # reaches that flux, not the stem's continuity root. Five years, because from
+  # the second the shaded cohorts' leaves transpire past what the boundary
+  # layer carries and settle on the soft floor under its split of the CO2 path.
+  # With that floor 0.01 wide its band was stiff (a rate Jacobian of -730 per
+  # year against steps of 0.007 yr) and the gradient diverged: 1.3e16 relative
+  # at five years. At 0.05 every lifetime from one to five holds 2e-6.
   cap_parameters <- function() {
-    p <- tf24f_gradient_parameters(lifetime = 1)
+    p <- tf24f_gradient_parameters(lifetime = 5)
     s <- p$strategies[[1]]
     s$pars$use_energy_balance <- 1
     s$pars$d <- 0.25
@@ -218,7 +221,7 @@ test_that("the gradient holds where the cooling cap sets the dry end", {
   errors <- tf24f_gradient_errors(cap_parameters(), cap_env,
                                   c("leaf_area", "1.offspring_production"),
                                   c("lma", "stem_P50", "K_s", "birth_rate"))
-  expect_lt(max(errors), 1e-4)
+  expect_lt(max(errors), 1e-5)
 })
 
 test_that("TF24f's stand gradient approaches TF24's as k_acclim grows", {
