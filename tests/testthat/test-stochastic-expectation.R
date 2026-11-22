@@ -104,8 +104,7 @@ deterministic_stand <- function(x, s, t_max, coordinate) {
 ## The stochastic stand at the end of the run, and its standard errors.
 stochastic_stand <- function(x, s, t_max, area, death_interval, seed) {
   p <- uncompeting_parameters(x, s, t_max)
-  p$patch_area <- area
-  ctrl <- Control()
+  ctrl <- Control(stochastic_patch_area = area)
   ctrl$stochastic_death_interval <- death_interval
   set.seed(seed)
   res <- run(p, control = ctrl, method = "stochastic")

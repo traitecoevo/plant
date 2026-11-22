@@ -132,9 +132,6 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
 // events stay. Set as a schedule from R is, so its parameters record the times.
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::draw_arrivals() {
-  if (!(parameters.patch_area > 0.0 && std::isfinite(parameters.patch_area))) {
-    util::stop("patch_area must be positive and finite to draw arrivals");
-  }
   Schedule drawn = schedule;
   if (!std::isfinite(drawn.get_max_time())) {
     util::stop("Arrivals are drawn up to the schedule's max_time, which must "
@@ -142,7 +139,7 @@ void StochasticPatchRunner<T, E>::draw_arrivals() {
   }
   for (size_t i = 0; i < patch.size(); ++i) {
     drawn.set_times(patch.at_species(i).draw_arrivals(
-                      0.0, drawn.get_max_time(), parameters.patch_area),
+                      0.0, drawn.get_max_time(), patch.get_area()),
                     i);
   }
   this->r_set_schedule(drawn);

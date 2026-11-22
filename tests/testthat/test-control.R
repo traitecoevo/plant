@@ -49,8 +49,9 @@ test_that("Defaults", {
       phylloptim::leaf_control()$vulnerability_curve_ncontrol,
     ci_abs_tol = 1e-3,
     ci_niter = 1000,
-    # The stochastic solver draws deaths every 0.01 yr.
-    stochastic_death_interval = 0.01
+    # The stochastic solver draws deaths every 0.01 yr, on a patch of 100 m2.
+    stochastic_death_interval = 0.01,
+    stochastic_patch_area = 100
   )
 
   keys <- sort(names(expected))
@@ -109,4 +110,11 @@ test_that("a tolerance the stepper cannot use is refused", {
   expect_error(patch(ode_tol_scale_soil = NaN), "must be positive")
   expect_error(patch(ode_soil_substep_tol = 0), "must be positive")
   expect_no_error(patch(ode_tol_scale_soil = 100, ode_soil_substep_tol = 1e-7))
+})
+
+test_that("a Control saved before the stochastic patch area takes the default", {
+  ctrl <- Control()
+  ctrl[["stochastic_patch_area"]] <- NULL
+  expect_false("stochastic_patch_area" %in% names(ctrl))
+  expect_identical(Control(values = unclass(ctrl))$stochastic_patch_area, 100)
 })

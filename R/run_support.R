@@ -15,6 +15,11 @@
 ##' ignores it, and warns. \code{ode_soil_substep_tol} is the relative
 ##' tolerance that chooses the soil's substeps inside a step (default 1e-9).
 ##'
+##' Two fields are read by the stochastic solver alone:
+##' \code{stochastic_patch_area}, the patch's ground area in m2 (default 100),
+##' and \code{stochastic_death_interval}, the years between death draws
+##' (default 0.01). \code{\link{run}} describes both.
+##'
 ##' @title Control presets
 ##' @param ... Named control fields, passed to \code{Control()}.
 ##' @param base An optional \code{Control} object to start from; defaults are

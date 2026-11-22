@@ -60,7 +60,6 @@ struct Parameters {
   typedef E environment_type;
 
   Parameters() :
-    patch_area(1.0),
     n_patches(1),
     fitness_weighting("patch_age"),
     max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
@@ -73,7 +72,10 @@ struct Parameters {
   }
 
   // Data -- public for now (see github issue #17).
-  double patch_area; // Size of the patch (m^2)
+  //
+  // There is no patch area here. The deterministic patch's state is a
+  // density per m^2, so it has no area to set; the stochastic patch's area is
+  // Control::stochastic_patch_area, the one setting that solver alone reads.
   size_t n_patches;  // Number of patches in the metacommunity
   // How a cohort's fitness is weighted by its birth date: "patch_age" (the
   // Weibull distribution of patch ages), "none" (no disturbance) or "window"

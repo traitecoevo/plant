@@ -1,5 +1,5 @@
 ## The stochastic runner for p, with each species' arrivals drawn (in C++,
-## from the strategy's birth rate and p$patch_area) and `events` (an Events,
+## from the strategy's birth rate and ctrl$stochastic_patch_area) and `events` (an Events,
 ## or NULL) beside them. As in the deterministic solver, an events list naming
 ## introductions replaces the drawn arrivals: one arrival per time, and none
 ## drawn.

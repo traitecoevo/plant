@@ -7633,17 +7633,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___FF16__FF16_Env__get_area__get
-double Patch___FF16__FF16_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__get_area__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__get_area__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___FF16__FF16_Env__height_max__get
 double Patch___FF16__FF16_Env__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__height_max__get(SEXP obj_SEXP) {
@@ -8072,17 +8061,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__size__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___TF24__TF24_Env__get_area__get
-double Patch___TF24__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24__TF24_Env__get_area__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__get_area__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8517,17 +8495,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___TF24f__TF24_Env__get_area__get
-double Patch___TF24f__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24f__TF24_Env__get_area__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__get_area__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___TF24f__TF24_Env__height_max__get
 double Patch___TF24f__TF24_Env__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_Patch___TF24f__TF24_Env__height_max__get(SEXP obj_SEXP) {
@@ -8956,17 +8923,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__size__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___TF24t__TF24_Env__get_area__get
-double Patch___TF24t__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24t__TF24_Env__get_area__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__get_area__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9401,17 +9357,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___TF24w__TF24_Env__get_area__get
-double Patch___TF24w__TF24_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24w__TF24_Env__get_area__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24w__TF24_Env__get_area__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___TF24w__TF24_Env__height_max__get
 double Patch___TF24w__TF24_Env__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_Patch___TF24w__TF24_Env__height_max__get(SEXP obj_SEXP) {
@@ -9840,17 +9785,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__size__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___K93__K93_Env__get_area__get
-double Patch___K93__K93_Env__get_area__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Patch___K93__K93_Env__get_area__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__get_area__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -18747,7 +18681,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__compute_competition_and_slope", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_competition_and_slope, 2},
     {"_plant_Patch___FF16__FF16_Env__time__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__time__get, 1},
     {"_plant_Patch___FF16__FF16_Env__size__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__size__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__get_area__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__get_area__get, 1},
     {"_plant_Patch___FF16__FF16_Env__height_max__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__height_max__get, 1},
     {"_plant_Patch___FF16__FF16_Env__parameters__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__parameters__get, 1},
     {"_plant_Patch___FF16__FF16_Env__environment__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__environment__get, 1},
@@ -18786,7 +18719,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24__TF24_Env__compute_competition_and_slope", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__compute_competition_and_slope, 2},
     {"_plant_Patch___TF24__TF24_Env__time__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__time__get, 1},
     {"_plant_Patch___TF24__TF24_Env__size__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__size__get, 1},
-    {"_plant_Patch___TF24__TF24_Env__get_area__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__get_area__get, 1},
     {"_plant_Patch___TF24__TF24_Env__height_max__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__height_max__get, 1},
     {"_plant_Patch___TF24__TF24_Env__parameters__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__parameters__get, 1},
     {"_plant_Patch___TF24__TF24_Env__environment__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__environment__get, 1},
@@ -18825,7 +18757,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24f__TF24_Env__compute_competition_and_slope", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__compute_competition_and_slope, 2},
     {"_plant_Patch___TF24f__TF24_Env__time__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__time__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__size__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__size__get, 1},
-    {"_plant_Patch___TF24f__TF24_Env__get_area__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__get_area__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__height_max__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__height_max__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__parameters__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__parameters__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__environment__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__environment__get, 1},
@@ -18864,7 +18795,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24t__TF24_Env__compute_competition_and_slope", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__compute_competition_and_slope, 2},
     {"_plant_Patch___TF24t__TF24_Env__time__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__time__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__size__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__size__get, 1},
-    {"_plant_Patch___TF24t__TF24_Env__get_area__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__get_area__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__height_max__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__height_max__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__parameters__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__parameters__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__environment__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__environment__get, 1},
@@ -18903,7 +18833,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24w__TF24_Env__compute_competition_and_slope", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__compute_competition_and_slope, 2},
     {"_plant_Patch___TF24w__TF24_Env__time__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__time__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__size__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__size__get, 1},
-    {"_plant_Patch___TF24w__TF24_Env__get_area__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__get_area__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__height_max__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__height_max__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__parameters__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__parameters__get, 1},
     {"_plant_Patch___TF24w__TF24_Env__environment__get", (DL_FUNC) &_plant_Patch___TF24w__TF24_Env__environment__get, 1},
@@ -18942,7 +18871,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__compute_competition_and_slope", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_competition_and_slope, 2},
     {"_plant_Patch___K93__K93_Env__time__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__time__get, 1},
     {"_plant_Patch___K93__K93_Env__size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__size__get, 1},
-    {"_plant_Patch___K93__K93_Env__get_area__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__get_area__get, 1},
     {"_plant_Patch___K93__K93_Env__height_max__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__height_max__get, 1},
     {"_plant_Patch___K93__K93_Env__parameters__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__parameters__get, 1},
     {"_plant_Patch___K93__K93_Env__environment__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__environment__get, 1},

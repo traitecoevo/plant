@@ -80,11 +80,26 @@ print.plant_scenario <- function(x, ...) {
 ##' individuals, arriving at random and each establishing and dying by chance.
 ##' The stochastic run takes the scenario's \code{p}, \code{env} and
 ##' \code{control} and runs the whole lifetime. Arrivals are drawn from each
-##' species' birth rate (the curve the deterministic run's inflow reads) and
-##' \code{p$patch_area}, as a Poisson process in continuous time, not from
+##' species' birth rate (the curve the deterministic run's inflow reads) over
+##' the patch's area, as a Poisson process in continuous time, not from
 ##' \code{p$node_schedule_times}; the result's \code{scenario$p} carries the
 ##' times drawn. Introductions named in \code{events} replace them, one arrival
-##' per time. It has no fitness integral, so
+##' per time.
+##'
+##' A stochastic patch is a finite stand of \code{control$stochastic_patch_area}
+##' m2, 100 by default, set in the run's \code{control} as in
+##' \code{control = control(stochastic_patch_area = 400)}. Its mean is not the deterministic answer:
+##' the environment is a nonlinear function of a random population, so once
+##' the canopy closes a small patch's mean stand departs from the deterministic
+##' one, which is its limit as the area grows. For FF16's default strategy at
+##' age 40, the mean density is 50\% below the deterministic density at 5 m2,
+##' 28\% at 20, 14\% at 80 and 3\% at 320. A larger patch costs run time in
+##' proportion to the plants it holds. Averaging many small patches narrows the
+##' noise but not this gap, so a comparison with the deterministic run needs a
+##' large area. The deterministic run has no area: its state is a density per
+##' m2.
+##'
+##' The stochastic run has no fitness integral, so
 ##' its result's fitness values are \code{NULL}, and it refuses \code{until},
 ##' \code{from}, \code{refine_schedule} and \code{record = "states"}. It takes
 ##' \code{events}' harvests, resource pulses and climate extremes, drawing each

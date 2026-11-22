@@ -10,7 +10,7 @@ n_environment_ode_states <- c(FF16 = 0L, TF24 = 10L, K93 = 0L)
 ## can actually take.
 ##
 ## ⚠️ This caps the step size in the TEST, not in the library. Running TF24
-## stochastically at the `Control()` default of 5 yr throws out of the leaf's
+## stochastically at the `Control(stochastic_patch_area = 1)` default of 5 yr throws out of the leaf's
 ## collar root-find on a substantial fraction of seeds -- 5 of 40 measured on
 ## macOS, and 17 of 40 on develop's model code, so the dense regime is broken
 ## independently of this branch. The soil balance is stiff (the conductivity
@@ -28,10 +28,10 @@ n_environment_ode_states <- c(FF16 = 0L, TF24 = 10L, K93 = 0L)
 ## or odelia's stiff RODAS stepper for environments carrying stiff state. Delete
 ## this helper when #599 lands.
 ##
-## FF16 and K93 keep plain Control(): they carry no environment ODE state, are not
+## FF16 and K93 keep plain Control(stochastic_patch_area = 1): they carry no environment ODE state, are not
 ## affected, and their seeded baselines below were derived without the cap.
 stochastic_control <- function(x) {
-  ctrl <- Control()
+  ctrl <- Control(stochastic_patch_area = 1)
   if (startsWith(x, "TF24")) {
     ctrl$ode_step_size_max <- 0.05
   }
@@ -45,7 +45,7 @@ test_that("empty", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- Environment(x)
-    ctrl <- Control()
+    ctrl <- Control(stochastic_patch_area = 1)
 
     ## Built, the runner holds nothing and stands at 0.
     obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
@@ -103,11 +103,10 @@ test_that("the expected number of arrivals scales with patch area", {
   set.seed(1)
   n <- vapply(areas, function(area) {
     p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()),
-                                        patch_area = area,
                                         max_patch_lifetime = lifetime)
     p$strategies[[1]]$birth_rate_y <- birth_rate
-    obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
-                                                     Control())
+    obj <- StochasticPatchRunner("FF16", "FF16_Env")(
+      p, Environment("FF16"), Control(stochastic_patch_area = area))
     obj$draw_arrivals()
     length(obj$schedule$all_times[[1]])
   }, numeric(1))
@@ -124,14 +123,13 @@ test_that("the expected number of arrivals scales with patch area", {
 
 arrivals_for <- function(x, y, lifetime, area = 1, seed = 1) {
   p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()),
-                                      patch_area = area,
                                       max_patch_lifetime = lifetime)
   p$strategies[[1]]$is_variable_birth_rate <- TRUE
   p$strategies[[1]]$birth_rate_x <- x
   p$strategies[[1]]$birth_rate_y <- y
   set.seed(seed)
-  obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
-                                                   Control())
+  obj <- StochasticPatchRunner("FF16", "FF16_Env")(
+    p, Environment("FF16"), Control(stochastic_patch_area = area))
   obj$draw_arrivals()
   obj$schedule$all_times[[1]]
 }
@@ -175,7 +173,7 @@ test_that("each species draws its own arrivals", {
   p$strategies[[2]]$birth_rate_y <- 20
   set.seed(3)
   obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
-                                                   Control())
+                                                   Control(stochastic_patch_area = 1))
   obj$draw_arrivals()
   n <- lengths(obj$schedule$all_times)
   expect_lt(abs(n[[1]] - 100), 4 * sqrt(100))
@@ -184,13 +182,12 @@ test_that("each species draws its own arrivals", {
                           obj$schedule$all_times[[2]]), 0)
 })
 
-test_that("drawing arrivals needs a positive, finite patch area", {
-  for (area in c(0, -1, Inf)) {
-    p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()),
-                                        patch_area = area)
-    obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
-                                                     Control())
-    expect_error(obj$draw_arrivals(), "patch_area must be positive and finite")
+test_that("a stochastic run needs a positive, finite patch area", {
+  p <- Parameters("FF16", "FF16_Env")(strategies = list(FF16_Model()))
+  for (area in c(0, -1, Inf, NaN)) {
+    expect_error(StochasticPatchRunner("FF16", "FF16_Env")(
+                   p, Environment("FF16"), Control(stochastic_patch_area = area)),
+                 "stochastic_patch_area must be positive and finite")
   }
 })
 
@@ -198,12 +195,10 @@ test_that("collect returns a well-formed, non-empty trajectory (#498)", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     set.seed(1)
-    ## patch_area sets the population size: arrivals scale with it, so the
-    ## default 1 m^2 is ~105 individuals over the default 105.32 yr lifetime.
-    ## Keep it at 1 -- this test asserts well-formedness, not a large stand,
-    ## and the cost is linear in the number of individuals.
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area=1)
+    ## stochastic_control() keeps the patch at 1 m^2, ~105 individuals over the
+    ## default 105.32 yr lifetime: this test asserts well-formedness, not a
+    ## large stand, and the cost grows with the number of individuals.
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     res <- tidy(run(p, Environment(x), stochastic_control(x),
                     method = "stochastic", record = "steps"))
 
@@ -252,7 +247,7 @@ test_that("collect output is reproducible and matches a seeded baseline", {
   ## against trajectory-changing regressions in the stochastic tower; update
   ## them deliberately if the model/RNG use changes.
   ##
-  ## patch_area is 1 m^2, the default, and DO NOT raise it: arrivals scale with
+  ## The patch is 1 m^2 (stochastic_control()), and DO NOT raise it: arrivals scale with
   ## area, so 50 m^2 means ~5300 individuals, measured at ~670x the run time for
   ## FF16 alone. 1 m^2 keeps the stand to ~105 individuals over the full default
   ## 105.32 yr lifetime, which is what every value below was generated at.
@@ -267,7 +262,7 @@ test_that("collect output is reproducible and matches a seeded baseline", {
   ## state being integrated, since that moves the mortality probabilities without
   ## changing the number of draws; FF16 and K93 carry no environment state.
   ##
-  ## Note what re-deriving these costs. At patch_area = 50 the TF24 pair was
+  ## Note what re-deriving these costs. At 50 m^2 the TF24 pair was
   ## 103/28 both before and after the leaf model moved out to standalone
   ## `phylloptim`, and that exact match of two seeded integers was a sharper
   ## statement that the swap preserved TF24's behaviour than any tolerance check
@@ -315,8 +310,7 @@ test_that("collect output is reproducible and matches a seeded baseline", {
     e <- environment_types[[x]]
     run_once <- function() {
       set.seed(1)
-      p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                            patch_area=1)
+      p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
       tidy(run(p, Environment(x), stochastic_control(x),
                method = "stochastic", record = "steps"))
     }
@@ -335,7 +329,7 @@ test_that("collect output is reproducible and matches a seeded baseline", {
   set.seed(1)
   s <- TF24_Model()
   s$pars$storage_relaxation_offset <- 0
-  p <- Parameters("TF24", "TF24_Env")(strategies = list(s), patch_area = 1)
+  p <- Parameters("TF24", "TF24_Env")(strategies = list(s))
   res <- tidy(run(p, Environment("TF24"), stochastic_control("TF24"),
                   method = "stochastic", record = "steps"))
   ia <- attr(res$species, "is_alive")[[1]]
@@ -348,14 +342,14 @@ test_that("TF24's environment states are integrated over a stochastic run", {
   ## at its initial 0.214 for a whole run while the deterministic runner
   ## integrated it up to the
   ## drainage equilibrium and then drew it down as leaf area grew.
-  p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Model()),
-                                      patch_area=50)
+  p <- Parameters("TF24", "TF24_Env")(strategies=list(TF24_Model()))
   p$max_patch_lifetime <- 8
   env <- Environment("TF24")
   expect_equal(env$get_soil_water_state(), rep(0.214, 5))
 
   set.seed(1)
-  obj <- StochasticPatchRunner("TF24", "TF24_Env")(p, env, Control())
+  obj <- StochasticPatchRunner("TF24", "TF24_Env")(
+    p, env, Control(stochastic_patch_area = 50))
   obj$set_node_schedule_times(list(seq(0.2, 7.8, by = 0.2)))
   while (!obj$complete) obj$run_next()
   expect_gt(obj$patch$species[[1]]$size, 0)
@@ -390,7 +384,7 @@ test_that("the collected trajectory reports a moving soil state", {
   x <- "TF24"
   e <- environment_types[[x]]
   set.seed(1)
-  p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()), patch_area=1)
+  p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
   res <- tidy(run(p, Environment(x), stochastic_control(x),
                   method = "stochastic", record = "steps"))
 
@@ -420,7 +414,6 @@ test_that("each leg starts where the last one landed", {
   ## what was expected".
   p <- base_parameters("FF16")
   p$max_patch_lifetime <- 30
-  p$patch_area <- 1
   p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
                                        birth_rate = 1))
   ## A death-check interval past the lifetime leaves the legs running arrival
@@ -428,7 +421,7 @@ test_that("each leg starts where the last one landed", {
   ## start at a grid point and land exactly whatever the runner reads.
   set.seed(6)
   obj <- stochastic_runner(p, Environment("FF16"),
-                           Control(stochastic_death_interval = 100))
+                           Control(stochastic_patch_area = 1, stochastic_death_interval = 100))
   arrivals <- obj$schedule$all_times[[1]]
   landed <- numeric(0)
   while (!obj$complete) {
@@ -452,7 +445,7 @@ test_that("a lone plant's survival does not depend on how often deaths are drawn
   p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
                                        birth_rate = 1))
   survival <- function(interval, reps = 200) {
-    ctrl <- Control(stochastic_death_interval = interval)
+    ctrl <- Control(stochastic_patch_area = 1, stochastic_death_interval = interval)
     alive <- vapply(seq_len(reps), function(s) {
       set.seed(s)
       obj <- stochastic_runner(p, Environment("FF16"), ctrl)
@@ -477,13 +470,13 @@ test_that("the death-check interval must be positive and finite", {
                                        birth_rate = 1))
   for (bad in c(0, -1, Inf, NaN)) {
     expect_error(stochastic_runner(p, Environment("FF16"),
-                                   Control(stochastic_death_interval = bad)),
+                                   Control(stochastic_patch_area = 1, stochastic_death_interval = bad)),
                  "stochastic_death_interval must be positive and finite")
   }
   ## Every check is held on the schedule, so one far below the lifetime is
   ## refused rather than allocated.
   expect_error(stochastic_runner(p, Environment("FF16"),
-                                 Control(stochastic_death_interval = 1e-300)),
+                                 Control(stochastic_patch_area = 1, stochastic_death_interval = 1e-300)),
                "too small for this patch's lifetime")
 })
 
@@ -499,7 +492,7 @@ test_that("the runner places its death checks on its schedule", {
                                        birth_rate = 1))
   set.seed(1)
   obj <- stochastic_runner(p, Environment("FF16"),
-                           Control(stochastic_death_interval = 0.25))
+                           Control(stochastic_patch_area = 1, stochastic_death_interval = 0.25))
   obj$set_node_schedule_times(list(c(0.1, 0.33)))
   expect_equal(obj$schedule$size, 6)
   ## Setting the schedule again replaces the checks rather than adding to them.
@@ -517,7 +510,7 @@ test_that("the runner places its death checks on its schedule", {
   ## An arrival on a grid point shares its instant with the check there.
   set.seed(1)
   obj <- stochastic_runner(p, Environment("FF16"),
-                           Control(stochastic_death_interval = 0.25))
+                           Control(stochastic_patch_area = 1, stochastic_death_interval = 0.25))
   obj$set_node_schedule_times(list(c(0.1, 0.5)))
   expect_equal(obj$schedule$size, 5)
   ## run_next() still steps from one arrival to the next, drawing the checks
@@ -542,7 +535,7 @@ test_that("a schedule the stochastic runner cannot take leaves it as it was", {
                                        birth_rate = 1))
   set.seed(1)
   obj <- stochastic_runner(p, Environment("FF16"),
-                           Control(stochastic_death_interval = 0.25))
+                           Control(stochastic_patch_area = 1, stochastic_death_interval = 0.25))
   obj$set_node_schedule_times(list(c(0.1, 0.33)))
   size <- obj$schedule$size
   unchanged <- function() {
@@ -573,10 +566,10 @@ test_that("the deterministic runner refuses a stochastic runner's schedule", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 5)
   p$node_schedule_times <- list(c(0, 1, 2))
   obj <- StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"),
-                                                   Control())
+                                                   Control(stochastic_patch_area = 1))
   obj$set_node_schedule_times(p$node_schedule_times)
   det <- DeterministicPatchRunner("FF16", "FF16_Env")(
-    p, Environment("FF16"), empty_events(), Control())
+    p, Environment("FF16"), empty_events(), Control(stochastic_patch_area = 1))
   expect_error(det$schedule <- obj$schedule, "death checks")
   ## A whole-cohort harvest is refused on this path too, before any run.
   s <- det$schedule
@@ -597,7 +590,7 @@ test_that("a harvest of fraction 1 removes everyone alive", {
   ## to -Inf; removing the last individual is routine here.
   p <- events_stand()
   set.seed(1)
-  res <- run(p, method = "stochastic", record = "steps",
+  res <- run(p, control = Control(stochastic_patch_area = 1), method = "stochastic", record = "steps",
              events = events(harvest(time = 2.5, fraction = 1)))
   log <- res$event_log
   expect_identical(log$type, "harvest")
@@ -606,7 +599,7 @@ test_that("a harvest of fraction 1 removes everyone alive", {
   expect_identical(applied[[1]], 1)
   expect_gt(applied[[2]], 0)
   ## Everyone drawn for is removed, reported per unit area.
-  expect_identical(applied[[3]], applied[[2]] / p$patch_area)
+  expect_identical(applied[[3]], applied[[2]])
 
   ## The row at the first arrival after the harvest holds nobody alive.
   st <- tidy(res)
@@ -620,7 +613,7 @@ test_that("a harvest draws for its size band, with probability fraction", {
   p <- events_stand()
   applied <- function(ev) {
     set.seed(3)
-    run(p, method = "stochastic", events = ev)$event_log$applied[[1]]
+    run(p, control = Control(stochastic_patch_area = 1), method = "stochastic", events = ev)$event_log$applied[[1]]
   }
   all <- applied(events(harvest(time = 2.5, fraction = 0.5)))
   none <- applied(events(harvest(time = 2.5, fraction = 0.5, size_min = 1e3)))
@@ -630,7 +623,7 @@ test_that("a harvest draws for its size band, with probability fraction", {
   ## binomial standard deviations (seeded, so this cannot flake).
   drawn <- all[[2]]
   expect_gt(drawn, 20)
-  expect_lt(abs(all[[3]] * p$patch_area - 0.5 * drawn),
+  expect_lt(abs(all[[3]] - 0.5 * drawn),
             4 * sqrt(0.25 * drawn))
 })
 
@@ -639,7 +632,7 @@ test_that("a climate extreme draws against the deterministic survival", {
   extreme <- function(...) events(climate_extreme(time = 2.5, ...))
   stochastic <- function(ev) {
     set.seed(4)
-    run(p, method = "stochastic", events = ev)$event_log$applied[[1]]
+    run(p, control = Control(stochastic_patch_area = 1), method = "stochastic", events = ev)$event_log$applied[[1]]
   }
   ## The fraction killed is the deterministic solver's, from the same dose.
   det <- run(p, events = events(node_introductions(p),
@@ -654,12 +647,11 @@ test_that("a climate extreme draws against the deterministic survival", {
   ## A dose that leaves no survival removes everyone drawn for.
   lethal <- stochastic(extreme(intensity = 1000, sensitivity = 1e4))
   expect_gt(lethal[[2]], 0)
-  expect_identical(lethal[[3]] * p$patch_area, lethal[[2]])
+  expect_identical(lethal[[3]], lethal[[2]])
 })
 
 test_that("a resource pulse reaches the stochastic patch's soil, even before the first arrival", {
-  p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Model()),
-                                      patch_area = 1)
+  p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Model()))
   p$max_patch_lifetime <- 2
   ctrl <- stochastic_control("TF24")
   depth <- 0.01
@@ -690,7 +682,7 @@ test_that("an event before the first arrival on an empty FF16 patch is applied",
   ## an empty system takes.
   p <- events_stand()
   set.seed(6)
-  res <- run(p, method = "stochastic",
+  res <- run(p, control = Control(stochastic_patch_area = 1), method = "stochastic",
              events = events(climate_extreme(time = 1e-3, intensity = 1000)))
   expect_lt(1e-3, res$scenario$p$node_schedule_times[[1]][[1]])
   expect_identical(res$event_log$time, 1e-3)
@@ -704,7 +696,7 @@ test_that("at a shared instant, a harvest acts before the arrival there", {
   p <- suppressMessages(add_strategies(p, trait_matrix(0.0825, "lma"),
                                        birth_rate = 1))
   set.seed(2)
-  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  obj <- stochastic_runner(p, Environment("FF16"), Control(stochastic_patch_area = 1))
   obj$set_node_schedule_times(list(c(0.1, 0.2, 1)))
   s <- obj$schedule
   s$add_events(events(harvest(time = 1, fraction = 1)))
@@ -723,7 +715,7 @@ test_that("a harvest aimed at one species leaves the others", {
   p <- suppressMessages(add_strategies(p, trait_matrix(c(0.0825, 0.1), "lma"),
                                        birth_rate = list(30, 30)))
   set.seed(7)
-  res <- run(p, method = "stochastic", record = "steps",
+  res <- run(p, control = Control(stochastic_patch_area = 1), method = "stochastic", record = "steps",
              events = events(harvest(time = 2.5, fraction = 1, species = 2)))
   st <- tidy(res)
   after <- which(st$time > 2.5)[[1]]
@@ -740,13 +732,13 @@ test_that("a pulse into a pool the environment does not have is refused before t
   ## runner is left as it was, rather than when the run reaches the pulse.
   p <- events_stand()
   set.seed(8)
-  obj <- stochastic_runner(p, Environment("FF16"), Control())
+  obj <- stochastic_runner(p, Environment("FF16"), Control(stochastic_patch_area = 1))
   size <- obj$schedule$size
   s <- obj$schedule
   s$add_events(events(resource_pulse(time = 1.5, resource = 1, amount = 1)))
   expect_error(obj$schedule <- s, "does not exist")
   expect_equal(obj$schedule$size, size)
-  expect_error(run(p, method = "stochastic",
+  expect_error(run(p, control = Control(stochastic_patch_area = 1), method = "stochastic",
                    events = events(resource_pulse(time = 1.5, resource = 1,
                                                   amount = 1))),
                "does not exist")
@@ -758,7 +750,7 @@ test_that("introductions in a stochastic run's events replace the drawn arrivals
   q <- p
   q$node_schedule_times <- list(c(1, 2))
   set.seed(9)
-  res <- run(p, method = "stochastic",
+  res <- run(p, control = Control(stochastic_patch_area = 1), method = "stochastic",
              events = events(node_introductions(q),
                              harvest(time = 2.5, fraction = 0.5)))
   expect_identical(res$solver$schedule$all_times, list(c(1, 2)))
