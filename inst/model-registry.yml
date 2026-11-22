@@ -1772,7 +1772,7 @@ parameters:
     class: constant
     meaning: 'sharpness of the smooth minimum in TF24.saturation_limit, which falls short of the smaller argument by a factor $2^{-1/p}$ where the two are equal'
     source: 'Hard-coded on TF24_Environment'
-    placeholder: false
+    placeholder: true
     code: plant::TF24_Environment::inflow_limit_sharpness
     literal: 4.0
   TF24.inflow_refusal_bound:
