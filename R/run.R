@@ -70,7 +70,9 @@ print.plant_scenario <- function(x, ...) {
 ##'   \item a \code{Parameters} object, with the rest given as arguments
 ##'     (\code{run(p, env = env)} is \code{run(scenario(p, env))});
 ##'   \item a previous result, which continues it to \code{until};
-##'   \item an \code{Individual}, a single plant grown on its own.
+##'   \item an \code{Individual}, a single plant grown on its own;
+##'   \item a \code{\link{landscape}}, several patches and the flows that link
+##'     them.
 ##' }
 ##'
 ##' \code{method} chooses the solver: \code{"deterministic"}, by the method of
@@ -103,8 +105,14 @@ print.plant_scenario <- function(x, ...) {
 ##' size describe the same instant. A plant grown on its own
 ##' sees the environment it is given, not a patch's shading.
 ##'
+##' A landscape is run patch by patch. Each patch is run whole, as its own
+##' scenario would be, after the patches that feed it; what those passed down
+##' their flows is added to its scenario first. \code{record},
+##' \code{refine_schedule} and \code{method} apply to every patch, and
+##' \code{until} and \code{from} are refused.
+##'
 ##' @param x What to run: a scenario, a \code{Parameters} object, a
-##'   \code{plant_run} to continue, or an \code{Individual}.
+##'   \code{plant_run} to continue, an \code{Individual}, or a landscape.
 ##' @param ... For a \code{Parameters} object, the arguments below. For an
 ##'   \code{Individual} grown to \code{sizes}: \code{time_max}, the time to
 ##'   stop at if a size is never reached (default \code{Inf}); \code{warn},
@@ -169,6 +177,37 @@ print.plant_scenario <- function(x, ...) {
 ##'   at each) and \code{env}, and when grown to sizes \code{trajectory}, the
 ##'   time and state at every step taken, the steps landed on each size
 ##'   among them.
+##'
+##'   A landscape's run returns a \code{plant_landscape_run}: a list with
+##'   \code{landscape} (as given, so \code{run(res$landscape)} runs it again),
+##'   \code{patches} (a \code{plant_run} per patch, by name; a patch's
+##'   \code{scenario} is what that patch ran, including what reached it down
+##'   the flows), \code{transfers} (a data frame of every amount passed
+##'   between patches: \code{time}, \code{from}, \code{to}, \code{type},
+##'   \code{out_of}, \code{into} and \code{amount}, the amount that reached
+##'   \code{to}, per unit of its area), \code{offspring_production} (per
+##'   species, the seed produced per unit of the landscape's area: the
+##'   patches' values, each weighted by its patch's share of the area),
+##'   \code{net_reproduction_ratios} (per species, the dominant eigenvalue
+##'   of the next-generation matrix, in which a seed arriving in a patch
+##'   leaves that patch's own ratio of offspring and the landscape's offspring
+##'   flows say where those land. With no offspring flows, seed lands evenly,
+##'   and the value is the patches' ratios weighted by their shares of the
+##'   area. It means what the patches' ratios mean: under the
+##'   \code{"patch_age"} and \code{"window"} weightings, the factor by which
+##'   a species' seed multiplies over a generation across the landscape;
+##'   under \code{"none"}, where a patch's ratio is its seed output over the
+##'   whole run per unit of birth rate, a value that grows with the run's
+##'   length and compares strategies on one landscape. It is \code{NA} for a
+##'   species whose ratio is not finite in some patch. Both are given only
+##'   where every patch holds the same strategies, in the same order, under
+##'   the same fitness weighting, and are \code{NULL} otherwise, as for a
+##'   stochastic run. Patches may differ in birth rate. Nothing here finds
+##'   the birth rates at which the
+##'   residents replace themselves), \code{mutants} (for a
+##'   \code{\link{run_mutant}} result, the invaders' \code{Parameters} in each
+##'   patch, else \code{NULL}) and \code{method}.
+##'   \code{tidy()} of it is a list of each patch's.
 ##'
 ##'   A result holds until its solver moves. Whatever moves it -- \code{run()}
 ##'   continuing it, \code{run_mutant()}, \code{run_until_converged()} --
@@ -419,8 +458,8 @@ generics::tidy
 
 ##' Tidy a run's recorded steps
 ##'
-##' @param x A \code{plant_run} run with \code{record = "steps"}, or a single
-##'   plant's run.
+##' @param x A \code{plant_run} run with \code{record = "steps"}, a single
+##'   plant's run, or a landscape's run with \code{record = "steps"}.
 ##' @param ... Unused.
 ##' @return For a deterministic run, a list: the tidied patch at every step,
 ##'   \code{steps}, \code{n_spp}, \code{species} and \code{env} (as
@@ -434,7 +473,8 @@ generics::tidy
 ##'   For a stochastic run, \code{time}, \code{species} (an array per species,
 ##'   \code{[variable, time, individual]}, with an \code{is_alive} attribute),
 ##'   \code{env} and \code{control}. For a single plant, a tibble of its state at each
-##'   reported time, as \code{\link{tidy_individual}} gives it.
+##'   reported time, as \code{\link{tidy_individual}} gives it. For a
+##'   landscape's run, a list of each patch's, by name.
 ##' @export
 tidy.plant_run <- function(x, ...) {
   ## A deterministic result is checked as current first: its steps are the
@@ -481,9 +521,20 @@ tidy.plant_individual_run <- function(x, ...) {
 ##' read and do not move; with \code{constant = TRUE}, in the one field the
 ##' resident stands in now (see \code{\link{fixed_point_fitness}}).
 ##'
-##' @param resident A complete \code{plant_run} of the resident.
+##' Against a landscape's run, the invaders run in every patch, each in what
+##' that patch's resident recorded, what flowed into it included. They change
+##' nothing that flows. The result's landscape-wide fitness is theirs. Every
+##' patch's result is used up, as a single resident's is; if a patch refuses
+##' the invaders after others have run them, the landscape must be run again.
+##'
+##' @param resident A complete \code{plant_run} of the resident, or a
+##'   landscape's run.
 ##' @param p The invaders' \code{Parameters}, as \code{\link{add_mutant}} builds
-##'   them.
+##'   them. For a landscape, either one \code{Parameters}, whose strategies
+##'   invade every patch under that patch's own \code{Parameters} (its fitness
+##'   weighting, and introductions at every time its residents had one); or a
+##'   list of one for each patch, named as the patches are and used as given,
+##'   each built from its own patch's \code{scenario$p}.
 ##' @param constant Hold the field the resident stands in now, rather than
 ##'   replay the one it recorded.
 ##' @details Invaders meet every event of the resident's run: its pulses,
@@ -498,9 +549,14 @@ tidy.plant_individual_run <- function(x, ...) {
 ##' @return A \code{plant_run} of the invaders: their outputs, with
 ##'   \code{mutants} set to \code{p} and \code{scenario} the resident's. It
 ##'   shares the resident's solver, which now holds the invaders, so the
-##'   resident's result is refused from here on (see \code{\link{run}}).
+##'   resident's result is refused from here on (see \code{\link{run}}). For
+##'   a landscape, a \code{plant_landscape_run} of the invaders, its patches
+##'   each such a result.
 ##' @export
 run_mutant <- function(resident, p, constant = FALSE) {
+  if (inherits(resident, "plant_landscape_run")) {
+    return(run_mutant_landscape(resident, p, constant))
+  }
   if (!inherits(resident, "plant_run") || !is.null(resident$mutants)) {
     stop("`resident` must be a resident's plant_run, as run() returns", call. = FALSE)
   }

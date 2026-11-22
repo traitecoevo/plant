@@ -7,10 +7,15 @@
 run_mutant(resident, p, constant = FALSE)
 }
 \arguments{
-\item{resident}{A complete \code{plant_run} of the resident.}
+\item{resident}{A complete \code{plant_run} of the resident, or a
+landscape's run.}
 
 \item{p}{The invaders' \code{Parameters}, as \code{\link{add_mutant}} builds
-them.}
+them. For a landscape, either one \code{Parameters}, whose strategies
+invade every patch under that patch's own \code{Parameters} (its fitness
+weighting, and introductions at every time its residents had one); or a
+list of one for each patch, named as the patches are and used as given,
+each built from its own patch's \code{scenario$p}.}
 
 \item{constant}{Hold the field the resident stands in now, rather than
 replay the one it recorded.}
@@ -19,7 +24,9 @@ replay the one it recorded.}
 A \code{plant_run} of the invaders: their outputs, with
   \code{mutants} set to \code{p} and \code{scenario} the resident's. It
   shares the resident's solver, which now holds the invaders, so the
-  resident's result is refused from here on (see \code{\link{run}}).
+  resident's result is refused from here on (see \code{\link{run}}). For
+  a landscape, a \code{plant_landscape_run} of the invaders, its patches
+  each such a result.
 }
 \description{
 The invaders in \code{p} run in the field the resident recorded, which they
@@ -27,6 +34,12 @@ read and do not move; with \code{constant = TRUE}, in the one field the
 resident stands in now (see \code{\link{fixed_point_fitness}}).
 }
 \details{
+Against a landscape's run, the invaders run in every patch, each in what
+that patch's resident recorded, what flowed into it included. They change
+nothing that flows. The result's landscape-wide fitness is theirs. Every
+patch's result is used up, as a single resident's is; if a patch refuses
+the invaders after others have run them, the landscape must be run again.
+
 Invaders meet every event of the resident's run: its pulses,
   harvests and climate extremes. On the birth-date coordinate a cohort's
   density carries establishment averaged over the intervals beside it, and
