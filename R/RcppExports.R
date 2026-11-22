@@ -6145,6 +6145,10 @@ census_trait_gradient <- function(x, model, which_metrics = NULL) {
     .Call('_plant_census_trait_gradient', PACKAGE = 'plant', x, model, which_metrics)
 }
 
+census_trait_gradient_forward <- function(x, model, columns, which_metrics = NULL) {
+    .Call('_plant_census_trait_gradient_forward', PACKAGE = 'plant', x, model, columns, which_metrics)
+}
+
 census_gradient_control <- function(x, model) {
     .Call('_plant_census_gradient_control', PACKAGE = 'plant', x, model)
 }

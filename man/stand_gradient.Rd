@@ -8,7 +8,8 @@ stand_gradient(
   x,
   metrics = NULL,
   traits = NULL,
-  hyperpar = param_hyperpar(x$parameters)
+  hyperpar = param_hyperpar(x$parameters),
+  mode = c("auto", "reverse", "forward")
 )
 }
 \arguments{
@@ -28,7 +29,8 @@ a model that declares its fitness differentiable, each species'
 \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
 The steps are recorded once for all the metrics asked for, and each
 further metric adds only a walk back over them, a small part of the
-first metric's cost; asking for fewer traits saves nothing.}
+first metric's cost; under the sweep, asking for fewer traits saves
+nothing (see \code{mode}).}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable trait every species declares. A column is named for
@@ -37,6 +39,18 @@ its species and its parameter, as \code{"1.lma"}.}
 \item{hyperpar}{The hyperparameter function the strategies were built with,
 by default the one \code{add_strategies()} uses; or \code{NULL} for
 partial derivatives. See the section on traits and parameters.}
+
+\item{mode}{How the gradient is computed. \code{"reverse"} sweeps back over
+the recorded steps once per metric, at the same cost whatever the number
+of traits. \code{"forward"} walks forward over the same steps carrying one
+direction per trait column, up to eight in a walk, so its cost grows with
+the columns and does not depend on the number of metrics; it is for FF16
+only, and an error for any other model. \code{"auto"}, the default, takes
+the forward route for FF16 when fewer than nine columns are needed and
+the sweep otherwise. The two give the same numbers to rounding (about
+1e-13 relative), the same shape and names, and the same refusals. Under a
+hyperparameter function the columns counted are the ones the chain rule
+reads: the traits asked for and the parameters derived from them.}
 }
 \value{
 A list with \code{value}, the metrics at the end of the run;
