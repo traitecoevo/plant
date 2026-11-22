@@ -2535,7 +2535,7 @@ equations:
     fills: g
     cite: Falster-2011
     overstorey: theory/models/ff16.qmd
-    note: 'Zero wherever ${\rm d}B/{\rm d}t \le 0$: the code sets the height, fecundity and heartwood rates to zero there, where the page''s product would be negative.'
+    note: 'Zero wherever ${\rm d}B/{\rm d}t \le 0$: the code sets the height and fecundity rates to zero there, where the page''s product would be negative. Heartwood formation (FF16.heartwood) is not cut.'
   FF16.heartwood:
     model: FF16
     section: ff16_growth
@@ -2548,7 +2548,7 @@ equations:
     writes: []
     kind: derivative
     overstorey: theory/models/ff16.qmd
-    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates are zero wherever ${\rm d}B/{\rm d}t \le 0$, though sapwood turnover is still charged in the net production.'
+    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates run whatever the sign of ${\rm d}B/{\rm d}t$, as in TF24: heartwood formation converts sapwood rather than adding growth. Only height growth and fecundity are cut at ${\rm d}B/{\rm d}t \le 0$, and FF16 holds live mass there, so the converted sapwood is replaced at no cost and above-ground mass and stem area keep rising while production is negative.'
   FF16.stem:
     model: FF16
     section: ff16_growth
