@@ -620,6 +620,7 @@ follow-up [#470] (LTO).
   failure `deterministic_patch_runner.h` records, for 1.5%. **Do not reintroduce it.** The copy is also
   absent from the gradient path entirely: `log_density_rate` calls this only on the
   height coordinate, and the reverse pass runs on the birth-date one.
+- **Stand gradient: forward walks for a few columns, the sweep for many.** `census_trait_gradient` sweeps back over the recorded steps once per metric, at the same cost whatever the number of trait columns. `census_trait_gradient_forward` walks forward over the same steps on odelia's `tangent_lanes<W>`, one column per lane and up to eight a walk, at about a replay plus a share per lane and whatever the number of metrics. `stand_gradient(mode = "auto")` picks by column count (`forward_gradient_crossover` in [R/stand_gradient.R](R/stand_gradient.R), with the measurement it rests on). The forward walk is compiled only for a strategy that keeps no inner solve's choices (`walks_forward`), which is FF16 among the census models: TF24's walk would solve the leaf again at the lane scalar rather than replay what the run chose. Both routes must keep the same requirements and refusals, so a gate added to one is added to the other.
 
 **Templated headers & inlining (this build has _no_ LTO).** `src/Makevars` uses
 `CXX_STD = CXX20` with no `-flto` and `DESCRIPTION` has no `UseLTO`, so a
