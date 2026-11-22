@@ -45,8 +45,8 @@ test_that("unlinked patches run as each does alone, whatever their models", {
   res <- run(land)
   expect_s3_class(res, "plant_landscape_run")
   expect_named(res$patches, c("a", "b"))
-  expect_equal(nrow(res$flows), 0)
-  expect_named(res$flows,
+  expect_equal(nrow(res$transfers), 0)
+  expect_named(res$transfers,
                c("time", "from", "to", "type", "out_of", "into", "amount"))
   for (patch in names(land$patches)) {
     alone <- run(land$patches[[patch]])
@@ -76,15 +76,15 @@ test_that("what a patch sheds reaches the patch below, and none is lost", {
   log <- ridge$event_log
   shed <- vapply(log$applied, function(a) a[[2]], numeric(1))
   expect_gt(sum(shed > 0), 1)
-  expect_equal(res$flows$time, log$time[shed > 0])
-  expect_equal(res$flows$amount, shed[shed > 0])
-  expect_equal(unique(res$flows$from), "ridge")
-  expect_equal(unique(res$flows$to), "gully")
+  expect_equal(res$transfers$time, log$time[shed > 0])
+  expect_equal(res$transfers$amount, shed[shed > 0])
+  expect_equal(unique(res$transfers$from), "ridge")
+  expect_equal(unique(res$transfers$to), "gully")
 
   ## The gully saw its own rain and the run-on, and took some of it in.
   alone <- run(land$patches$gully)
   expect_equal(water_accounts(gully)$rain,
-               sum(storm_depths) + sum(res$flows$amount), tolerance = 1e-12)
+               sum(storm_depths) + sum(res$transfers$amount), tolerance = 1e-12)
   expect_gt(water_accounts(gully)$infiltration,
             water_accounts(alone)$infiltration + 0.01)
 
@@ -100,7 +100,7 @@ test_that("what a patch sheds reaches the patch below, and none is lost", {
   expect_equal(unique(met$target_index), 1)
   asked <- vapply(met$requested, function(a) a[[1]], numeric(1))
   expected <- lapply(seq_along(storm_times), function(k) {
-    arrived <- res$flows$amount[res$flows$time == storm_times[[k]]]
+    arrived <- res$transfers$amount[res$transfers$time == storm_times[[k]]]
     data.frame(time = storm_times[[k]], amount = c(storm_depths[[k]], arrived))
   })
   expected <- do.call(rbind, expected)
@@ -109,7 +109,7 @@ test_that("what a patch sheds reaches the patch below, and none is lost", {
 
   ## The gully's scenario is what it ran: its storms and the run-on.
   expect_equal(length(gully$scenario$events$time),
-               length(storm_times) + nrow(res$flows))
+               length(storm_times) + nrow(res$transfers))
   ## The landscape is as given, so it runs again to the same result.
   expect_identical(res$landscape, land)
   expect_identical(run(res$landscape)$patches$gully$solver$patch$ode_state,
@@ -132,18 +132,18 @@ test_that("a flow leaves the pool it names and reaches the pool it names", {
   expect_true(all(shed[deep] > 0))
   expect_gt(sum(shed[!deep] > 0), 0)
   ## Only what the second layer shed is passed, and half of it.
-  expect_equal(res$flows$time, c(0.5, 1.5))
-  expect_equal(res$flows$amount, 0.5 * shed[deep])
-  expect_equal(res$flows$type, c("resource", "resource"))
-  expect_equal(res$flows$out_of, c(2L, 2L))
-  expect_equal(res$flows$into, c(3L, 3L))
+  expect_equal(res$transfers$time, c(0.5, 1.5))
+  expect_equal(res$transfers$amount, 0.5 * shed[deep])
+  expect_equal(res$transfers$type, c("resource", "resource"))
+  expect_equal(res$transfers$out_of, c(2L, 2L))
+  expect_equal(res$transfers$into, c(3L, 3L))
 
   ## It reached the gully's third layer, and nothing else did.
   met <- res$patches$gully$event_log
   expect_equal(met$time[met$target_index == 3], c(0.5, 1.5))
   expect_equal(vapply(met$requested[met$target_index == 3],
                       function(a) a[[1]], numeric(1)),
-               res$flows$amount)
+               res$transfers$amount)
   expect_equal(sum(met$target_index == 1), length(storm_times))
 })
 
@@ -160,7 +160,7 @@ test_that("a patch passes on what it sheds again, split by its flows' weights", 
   expect_named(res$patches, c("gully", "mid", "ridge"))
 
   accounts <- lapply(res$patches, water_accounts)
-  passed <- tapply(res$flows$amount, list(res$flows$from, res$flows$to), sum)
+  passed <- tapply(res$transfers$amount, list(res$transfers$from, res$transfers$to), sum)
   expect_equal(passed[["ridge", "mid"]], 0.5 * accounts$ridge$shed, tolerance = 1e-12)
   expect_equal(passed[["ridge", "gully"]], 0.25 * accounts$ridge$shed, tolerance = 1e-12)
   ## The middle patch sheds its own rain and the ridge's run-on alike.
@@ -183,7 +183,7 @@ test_that("a landscape is a value: saved and read back, it runs the same", {
   saveRDS(land, path)
   first <- run(land)
   again <- run(readRDS(path))
-  expect_identical(again$flows, first$flows)
+  expect_identical(again$transfers, first$transfers)
   expect_identical(again$patches$gully$solver$patch$ode_state,
                    first$patches$gully$solver$patch$ode_state)
 })
@@ -209,17 +209,17 @@ test_that("a run's arguments reach every patch", {
   expect_gt(length(upper$scenario$p$node_schedule_times[[1]]), 8)
   shed <- vapply(upper$event_log$applied, function(a) a[[2]], numeric(1))
   expect_gt(sum(shed > 0), 0)
-  expect_equal(nrow(refined$flows), sum(shed > 0))
-  expect_equal(sum(refined$flows$amount), water_accounts(upper)$shed,
+  expect_equal(nrow(refined$transfers), sum(shed > 0))
+  expect_equal(sum(refined$transfers$amount), water_accounts(upper)$shed,
                tolerance = 1e-12)
 
   ## The stochastic solver's pulses shed as the deterministic one's do.
   set.seed(1)
   drawn <- run(land, method = "stochastic")
   expect_equal(drawn$method, "stochastic")
-  expect_equal(sum(drawn$flows$amount),
+  expect_equal(sum(drawn$transfers$amount),
                water_accounts(drawn$patches$ridge)$shed, tolerance = 1e-12)
-  expect_gt(nrow(drawn$flows), 0)
+  expect_gt(nrow(drawn$transfers), 0)
 })
 
 test_that("a landscape that cannot be run is refused where it is made", {
@@ -246,7 +246,15 @@ test_that("a landscape that cannot be run is refused where it is made", {
 
   expect_error(resource_flow("ridge", "ridge"), "cannot flow into itself")
   expect_error(resource_flow("ridge", "gully", weight = 1.5), "between 0 and 1")
-  expect_error(resource_flow("ridge", "gully", resource = 0), "counted from 1")
+  expect_error(resource_flow("ridge", "gully", resource = 0),
+               "`resource` and `into` are indices of resource pools")
+  expect_error(resource_flow("ridge", "gully", into = Inf),
+               "`resource` and `into` are indices of resource pools")
+  expect_error(resource_flow("ridge", "gully", resource = 1e10),
+               "`resource` and `into` are indices of resource pools")
+  ## Shares out of different pools of one patch are not summed together.
+  expect_no_error(landscape(patches,
+                            resource_flow("ridge", "gully", resource = 1:2)))
   expect_error(resource_flow(c("a", "b"), c("c", "d", "e")), "length 1 or 3")
 
   expect_equal(nrow(resource_flow(character(0), character(0))), 0)
@@ -282,7 +290,7 @@ test_that("a landscape changed after it was made is checked again when run", {
   ## A change that leaves it sound is run: half the run-off, half the run-on.
   half <- land
   half$flows$weight <- 0.5
-  expect_equal(run(half)$flows$amount, 0.5 * run(land)$flows$amount)
+  expect_equal(run(half)$transfers$amount, 0.5 * run(land)$transfers$amount)
 })
 
 test_that("a flow into a pool the receiver lacks names the patch it stopped at", {
@@ -296,29 +304,106 @@ test_that("a flow into a pool the receiver lacks names the patch it stopped at",
 
   ## A flow out of a pool the source lacks passes nothing.
   none <- run(landscape(list(a = dry, b = dry), resource_flow("a", "b")))
-  expect_equal(nrow(none$flows), 0)
+  expect_equal(nrow(none$transfers), 0)
 })
 
 test_that("the run reads a kind of flow only through its three functions", {
-  ## A made-up kind: one unit leaves at times 1 and 2, whatever the patch did,
-  ## and arrives as a note on the receiving scenario.
-  kinds <- list(token = list(
-    check = function(flows) NULL,
-    leaving = function(result, out_of) data.frame(time = c(1, 2), amount = c(1, 1)),
-    arriving = function(scenario, arrivals) {
-      scenario$received <- arrivals
+  ## Two made-up kinds beside the resource kind. Each lets go fixed amounts
+  ## whatever the patch did, and each leaves what arrived as a note of its own
+  ## on the receiving scenario, so what reached which kind can be read back.
+  note <- function(name) {
+    function(scenario, arrivals) {
+      scenario[[name]] <- arrivals
       scenario
-    }))
-  flows <- new_flows(c("a", "a"), c("b", "c"), "token", 1L, c(1L, 2L), c(0.25, 0.5))
-  out <- transfers_out_of("a", NULL, flows, kinds)
-  expect_named(out, names(empty_transfers()))
-  expect_equal(out$to, c("b", "b", "c", "c"))
-  expect_equal(out$into, c(1L, 1L, 2L, 2L))
-  expect_equal(out$amount, c(0.25, 0.25, 0.5, 0.5))
-  expect_equal(nrow(transfers_out_of("b", NULL, flows, kinds)), 0)
+    }
+  }
+  kinds <- c(flow_kinds(), list(
+    token = list(
+      check = function(flows) if (any(flows$into == 99L)) stop("no token 99"),
+      leaving = function(result, flow) {
+        data.frame(time = c(1, 2), amount = c(1, 1) * flow$out_of)
+      },
+      arriving = note("tokens")),
+    tag = list(
+      check = function(flows) NULL,
+      leaving = function(result, flow) data.frame(time = 1.5, amount = 10),
+      arriving = note("tags"))))
+  local_mocked_bindings(flow_kinds = function() kinds)
+  flow_of <- function(type, from, to, out_of = 1L, into = 1L, weight = 1) {
+    new_flows(from, to, type, as.integer(out_of), as.integer(into), weight)
+  }
 
-  ## An amount that is not a number is refused, not passed on.
-  kinds$token$leaving <- function(result, out_of) data.frame(time = 1, amount = NaN)
-  expect_error(transfers_out_of("a", NULL, flows, kinds),
-               "Patch \"a\" reported an amount leaving it by a token flow")
+  patches <- list(a = light_patch("FF16", 3), b = light_patch("FF16", 3),
+                  c = light_patch("FF16", 3))
+  ## Weights are a kind's own to bound: these are no shares, and the two
+  ## kinds out of `a` are not summed together.
+  land <- landscape(patches,
+                    flow_of("tag", "a", "b", weight = 3),
+                    flow_of("token", "a", c("b", "c"), out_of = c(1, 2),
+                            into = c(1, 2), weight = c(0.5, 2)),
+                    flow_of("token", "b", "c", weight = 1))
+  res <- run(land)
+
+  ## Every transfer carries its own kind's amounts, in time order, those at
+  ## one instant in the order their patches ran.
+  expect_equal(res$transfers$time, c(1, 1, 1, 1.5, 2, 2, 2))
+  expect_equal(res$transfers$type,
+               c("token", "token", "token", "tag", "token", "token", "token"))
+  expect_equal(res$transfers$from, c("a", "a", "b", "a", "a", "a", "b"))
+  expect_equal(res$transfers$to, c("b", "c", "c", "b", "b", "c", "c"))
+  expect_equal(res$transfers$out_of, c(1L, 2L, 1L, 1L, 1L, 2L, 1L))
+  expect_equal(res$transfers$into, c(1L, 2L, 1L, 1L, 1L, 2L, 1L))
+  expect_equal(res$transfers$amount, c(0.5, 4, 1, 30, 0.5, 4, 1))
+
+  ## Each kind was handed its own arrivals and no other's.
+  b <- res$patches$b$scenario
+  expect_equal(b$tokens$type, c("token", "token"))
+  expect_equal(b$tokens$amount, c(0.5, 0.5))
+  expect_equal(b$tags$type, "tag")
+  expect_equal(b$tags$amount, 30)
+  c_ran <- res$patches$c$scenario
+  expect_equal(c_ran$tokens$from, c("a", "b", "a", "b"))
+  expect_null(c_ran$tags)
+  expect_null(res$patches$a$scenario$tokens)
+
+  ## A kind's check sees its own rows alone.
+  expect_error(landscape(patches, flow_of("token", "a", "b", into = 99)),
+               "no token 99")
+  expect_no_error(landscape(patches, flow_of("tag", "a", "b", into = 99)))
+  ## The run's own limit holds for every kind: nothing may feed back.
+  expect_error(landscape(patches, flow_of("tag", "a", "a")), "form a loop")
+
+  ## The type names the kind, as text.
+  odd <- land
+  odd$flows$type <- factor(odd$flows$type)
+  expect_error(run(odd), "`type` is the name of its kind")
+
+  ## What a kind reports as having left must be finite times and finite,
+  ## non-negative amounts; anything else is refused under the patch's name.
+  for (bad in list(data.frame(time = 1, amount = NaN),
+                   data.frame(time = 1, amount = -1),
+                   data.frame(time = NA_real_, amount = 1),
+                   data.frame(time = 1))) {
+    kinds$tag$leaving <- function(result, flow) bad
+    expect_error(run(land), "Patch \"a\" reported what left it by a tag flow")
+  }
+  kinds$tag$leaving <- function(result, flow) stop("nothing to read")
+  expect_error(run(land),
+               "Patch \"a\", in what left it by a tag flow: nothing to read")
+  kinds$tag$leaving <- function(result, flow) data.frame(time = 1.5, amount = 10)
+  kinds$tag$arriving <- function(scenario, arrivals) stop("nowhere to put it")
+  expect_error(run(land),
+               "Patch \"b\", with what flowed into it: nowhere to put it")
+})
+
+test_that("a kind may give its rows columns of its own", {
+  banded <- new_flows("a", "b", "resource", 1L, 1L, 1)
+  banded$size_min <- 2
+  flows <- bind_flows(list(empty_flows(), resource_flow("b", "c"), banded))
+  expect_s3_class(flows, "plant_flows")
+  expect_named(flows, c(names(empty_flows()), "size_min"))
+  expect_equal(flows$size_min, c(NA, 2))
+  patches <- list(a = light_patch("FF16", 3), b = light_patch("FF16", 3),
+                  c = light_patch("FF16", 3))
+  expect_equal(nrow(run(landscape(patches, resource_flow("b", "c"), banded))$transfers), 0)
 })

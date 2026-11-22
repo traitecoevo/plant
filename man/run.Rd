@@ -118,11 +118,11 @@ A \code{plant_run}: a list with \code{scenario} (what was run, its
   A landscape's run returns a \code{plant_landscape_run}: a list with
   \code{landscape} (as given, so \code{run(res$landscape)} runs it again),
   \code{patches} (a \code{plant_run} per patch, by name; a patch's
-  \code{scenario} is what that patch ran, its events including what
-  reached it down the flows), \code{flows} (a data frame of every amount
-  passed between patches: \code{time}, \code{from}, \code{to},
-  \code{type}, \code{out_of}, \code{into} and \code{amount}, the amount
-  that reached \code{to}) and \code{method}.
+  \code{scenario} is what that patch ran, including what reached it down
+  the flows), \code{transfers} (a data frame of every amount passed
+  between patches: \code{time}, \code{from}, \code{to}, \code{type},
+  \code{out_of}, \code{into} and \code{amount}, the amount that reached
+  \code{to}) and \code{method}.
   \code{tidy()} of it is a list of each patch's.
 
   A result holds until its solver moves. Whatever moves it -- \code{run()}
@@ -186,7 +186,7 @@ sees the environment it is given, not a patch's shading.
 
 A landscape is run patch by patch. Each patch is run whole, as its own
 scenario would be, after the patches that feed it; what those passed down
-their flows is added to its events. \code{record},
+their flows is added to its scenario first. \code{record},
 \code{refine_schedule} and \code{method} apply to every patch, and
 \code{until} and \code{from} are refused.
 }

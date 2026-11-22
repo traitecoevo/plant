@@ -49,10 +49,8 @@ Nothing here is specific to a model, or to what flows. Every flow is one
 row of the same table: the patch it leaves (\code{from}) and the patch it
 reaches (\code{to}); its \code{type}, which says what it carries; which
 part of the source it comes \code{out_of} and which part of the receiver
-it goes \code{into}, each an index (of a resource pool of the environment,
-or of a species, as the type reads them); and its \code{weight}, the share
-of what leaves that reaches \code{to}. A kind of flow is a function that
-writes rows of this table, so a landscape can mix kinds.
+it goes \code{into}, each an index that the type reads; and its
+\code{weight}, how strongly it joins the two.
 
 One kind exists so far. \code{resource_flow} carries whatever the patches'
 environments count as a resource: in TF24 that is water in a soil layer,
@@ -102,7 +100,7 @@ land <- landscape(
   resource_flow("ridge", "gully"))
 \donttest{
 res <- run(land)
-res$flows                             # what the ridge passed to the gully
+res$transfers                         # what the ridge passed to the gully
 res$patches$gully$offspring_production
 }
 }

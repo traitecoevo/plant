@@ -15,10 +15,8 @@
 ##' row of the same table: the patch it leaves (\code{from}) and the patch it
 ##' reaches (\code{to}); its \code{type}, which says what it carries; which
 ##' part of the source it comes \code{out_of} and which part of the receiver
-##' it goes \code{into}, each an index (of a resource pool of the environment,
-##' or of a species, as the type reads them); and its \code{weight}, the share
-##' of what leaves that reaches \code{to}. A kind of flow is a function that
-##' writes rows of this table, so a landscape can mix kinds.
+##' it goes \code{into}, each an index that the type reads; and its
+##' \code{weight}, how strongly it joins the two.
 ##'
 ##' One kind exists so far. \code{resource_flow} carries whatever the patches'
 ##' environments count as a resource: in TF24 that is water in a soil layer,
@@ -63,7 +61,7 @@
 ##'   resource_flow("ridge", "gully"))
 ##' \donttest{
 ##' res <- run(land)
-##' res$flows                             # what the ridge passed to the gully
+##' res$transfers                         # what the ridge passed to the gully
 ##' res$patches$gully$offspring_production
 ##' }
 landscape <- function(patches, ...) {
@@ -75,8 +73,7 @@ landscape <- function(patches, ...) {
     stop("A landscape's flows are rows of its flows table, as resource_flow() ",
          "returns them", call. = FALSE)
   }
-  flows <- do.call(rbind, c(list(empty_flows()), flows))
-  rownames(flows) <- NULL
+  flows <- bind_flows(c(list(empty_flows()), flows))
   check_landscape(patches, flows)
 
   structure(list(patches = patches, flows = flows), class = "plant_landscape")
@@ -128,30 +125,22 @@ check_flows <- function(flows) {
     stop("A flow's `from` and `to` are patch names", call. = FALSE)
   }
   kinds <- flow_kinds()
+  if (!is.character(flows$type) || anyNA(flows$type)) {
+    stop("A flow's `type` is the name of its kind: one of ",
+         paste(names(kinds), collapse = ", "), call. = FALSE)
+  }
   unknown <- setdiff(flows$type, names(kinds))
   if (length(unknown) > 0L) {
     stop("\"", unknown[[1L]], "\" is not a kind of flow; the kinds are ",
          paste(names(kinds), collapse = ", "), call. = FALSE)
   }
-  is_index <- function(x) {
-    is.numeric(x) && !anyNA(x) && all(x >= 1) && all(x == round(x))
-  }
   if (!is_index(flows$out_of) || !is_index(flows$into)) {
     stop("A flow's `out_of` and `into` are indices, counted from 1",
          call. = FALSE)
   }
-  if (!is.numeric(flows$weight) || anyNA(flows$weight) ||
-      any(flows$weight < 0 | flows$weight > 1)) {
-    stop("A flow's `weight` is a share of what leaves, between 0 and 1",
-         call. = FALSE)
-  }
-  ## What leaves one part of a patch cannot be passed on more than once over.
-  source <- paste(flows$type, flows$out_of, "of patch", flows$from)
-  leaving <- tapply(flows$weight, source, sum)
-  if (any(leaving > 1 + 1e-12)) {
-    stop("The flows out of ", names(leaving)[leaving > 1 + 1e-12][[1L]],
-         " have weights summing to more than 1, which passes on more than ",
-         "leaves it", call. = FALSE)
+  if (!is.numeric(flows$weight) || !all(is.finite(flows$weight)) ||
+      any(flows$weight < 0)) {
+    stop("A flow's `weight` is a finite number, zero or more", call. = FALSE)
   }
   for (kind in unique(flows$type)) {
     kinds[[kind]]$check(flows[flows$type == kind, , drop = FALSE])
@@ -159,40 +148,79 @@ check_flows <- function(flows) {
   invisible(TRUE)
 }
 
+## A whole number an index can be: finite, at least 1 and within an integer.
+is_index <- function(x) {
+  is.numeric(x) && all(is.finite(x)) && all(x >= 1) && all(x == round(x)) &&
+    all(x <= .Machine$integer.max)
+}
+
+## Flows tables stacked into one. A kind may give its rows columns of its
+## own, which the other kinds' rows hold as NA.
+bind_flows <- function(tables) {
+  columns <- unique(unlist(lapply(tables, names)))
+  tables <- lapply(tables, function(x) {
+    x <- as.data.frame(x)
+    for (column in setdiff(columns, names(x))) {
+      x[[column]] <- rep(NA, nrow(x))
+    }
+    x[columns]
+  })
+  flows <- do.call(rbind, tables)
+  rownames(flows) <- NULL
+  structure(flows, class = c("plant_flows", "data.frame"))
+}
+
 ## The kinds of flow, by the name a flow's `type` holds. A kind is three
-## functions, and adding one is adding an entry here and a constructor of its
-## rows:
-##   check(flows)             -- refuses rows of this kind that make no sense
-##                               for it, beyond what check_flows() asks of all;
-##   leaving(result, out_of)  -- what a patch that has run let go from the part
-##                               `out_of` indexes: a data frame of `time` and
-##                               `amount`, before any flow's weight;
+## functions, and the landscape's run reads a kind through these alone:
+##   check(flows)            -- refuses rows of this kind that make no sense
+##                              for it, beyond what check_flows() asks of all;
+##   leaving(result, flow)   -- what a patch that has run let go by `flow`, one
+##                              row of the flows table: a data frame of `time`
+##                              and `amount`, before the flow's weight;
 ##   arriving(scenario, arrivals) -- the receiving patch's scenario with the
-##                               amounts in `arrivals` (`time`, `into`,
-##                               `amount`) added to it, before it runs.
-## The landscape's own run reads nothing else of a kind, so what one carries
-## and how it enters a patch stay here.
+##                              amounts in `arrivals` (rows of the transfers
+##                              table, in time order) added to it, before it
+##                              runs.
+## A new kind is an entry here and a constructor of its rows. What the run
+## cannot do for any kind is in run.plant_landscape(): each patch is run whole,
+## sources first, so a flow that feeds back, into its own patch included, is
+## refused there whatever its kind.
 flow_kinds <- function() {
   list(resource = list(check = resource_flow_check,
                        leaving = resource_leaving,
                        arriving = resource_arriving))
 }
 
-## A resource leaves one patch's environment for another's.
+## A resource leaves one patch's environment for another's, and no more of it
+## arrives than left: a weight is a share, and the shares out of one pool sum
+## to at most 1.
 resource_flow_check <- function(flows) {
   if (any(flows$from == flows$to)) {
     stop("A resource flows between two patches; \"",
          flows$from[flows$from == flows$to][[1L]],
          "\" cannot flow into itself", call. = FALSE)
   }
+  if (any(flows$weight > 1)) {
+    stop("A resource flow's `weight` is a share of what is shed, between 0 ",
+         "and 1", call. = FALSE)
+  }
+  source <- paste("resource", flows$out_of, "of patch", paste0("\"", flows$from, "\""))
+  leaving <- tapply(flows$weight, source, sum)
+  if (any(leaving > 1 + 1e-12)) {
+    stop("The flows out of ", names(leaving)[leaving > 1 + 1e-12][[1L]],
+         " have weights summing to more than 1, which passes on more than ",
+         "the patch sheds", call. = FALSE)
+  }
 }
 
-## What each pulse into the pool shed: the amount its pool could not hold.
-resource_leaving <- function(result, out_of) {
+## What each pulse into the pool shed: the amount its pool could not hold, at
+## the pulses that shed any.
+resource_leaving <- function(result, flow) {
   log <- result$event_log
-  pulses <- which(log$type == "resource_pulse" & log$target_index == out_of)
+  pulses <- which(log$type == "resource_pulse" &
+                    log$target_index == flow$out_of)
   shed <- vapply(log$applied[pulses], function(a) a[[2L]], numeric(1))
-  data.frame(time = log$time[pulses], amount = shed)
+  data.frame(time = log$time[pulses], amount = shed)[shed > 0, , drop = FALSE]
 }
 
 ## Each amount arrives as a pulse into the receiver's pool at its instant,
@@ -244,12 +272,15 @@ resource_flow <- function(from, to, resource = 1L, into = resource, weight = 1) 
     }
     rep_len(x, n)
   }
+  if (!is_index(resource) || !is_index(into)) {
+    stop("`resource` and `into` are indices of resource pools, counted from 1",
+         call. = FALSE)
+  }
   flows <- new_flows(recycle(from, "from"), recycle(to, "to"), "resource",
-                     recycle(resource, "resource"), recycle(into, "into"),
+                     recycle(as.integer(resource), "resource"),
+                     recycle(as.integer(into), "into"),
                      recycle(weight, "weight"))
   check_flows(flows)
-  flows$out_of <- as.integer(flows$out_of)
-  flows$into <- as.integer(flows$into)
   flows
 }
 
@@ -311,26 +342,29 @@ run.plant_landscape <- function(x, ..., until = NULL, from = NULL,
   results <- list()
   passed <- empty_transfers()
   for (patch in landscape_order(names(x$patches), x$flows)) {
-    sc <- x$patches[[patch]]
     arriving <- passed[passed$to == patch, , drop = FALSE]
-    for (kind in unique(arriving$type)) {
-      sc <- kinds[[kind]]$arriving(sc, arriving[arriving$type == kind, , drop = FALSE])
-    }
-    results[[patch]] <- tryCatch(
+    arriving <- arriving[order(arriving$time), , drop = FALSE]
+    ## An error here is the patch's, so it is reported under its name.
+    results[[patch]] <- tryCatch({
+      sc <- x$patches[[patch]]
+      for (kind in unique(arriving$type)) {
+        sc <- kinds[[kind]]$arriving(sc, arriving[arriving$type == kind, , drop = FALSE])
+      }
       run(sc, record = record, refine_schedule = refine_schedule,
-          method = method),
-      error = function(e) {
-        stop("Patch \"", patch, "\"",
-             if (nrow(arriving) > 0L) ", with what flowed into it",
-             ": ", conditionMessage(e), call. = FALSE)
-      })
+          method = method)
+    }, error = function(e) {
+      stop("Patch \"", patch, "\"",
+           if (nrow(arriving) > 0L) ", with what flowed into it",
+           ": ", conditionMessage(e), call. = FALSE)
+    })
     passed <- rbind(passed, transfers_out_of(patch, results[[patch]], x$flows, kinds))
   }
 
+  ## In time order; transfers at one instant keep the order their patches ran in.
   passed <- passed[order(passed$time), , drop = FALSE]
   rownames(passed) <- NULL
   structure(list(landscape = x, patches = results[names(x$patches)],
-                 flows = passed, method = method),
+                 transfers = passed, method = method),
             class = "plant_landscape_run")
 }
 
@@ -342,24 +376,28 @@ empty_transfers <- function() {
              amount = numeric(0), stringsAsFactors = FALSE)
 }
 
-## What a patch that has run passes down each of its flows: the flow's share
-## of each amount its kind says left the part it comes out of.
+## What a patch that has run passes down each of its flows: the flow's weight
+## times each amount its kind says left by it.
 transfers_out_of <- function(patch, result, flows, kinds) {
   flows <- flows[flows$from == patch, , drop = FALSE]
   out <- lapply(seq_len(nrow(flows)), function(i) {
-    left <- kinds[[flows$type[[i]]]]$leaving(result, flows$out_of[[i]])
-    if (!all(is.finite(left$amount)) || any(left$amount < 0)) {
-      stop("Patch \"", patch, "\" reported an amount leaving it by a ",
-           flows$type[[i]], " flow that is not a finite, non-negative number",
-           call. = FALSE)
+    flow <- flows[i, , drop = FALSE]
+    left <- tryCatch(kinds[[flow$type]]$leaving(result, flow), error = function(e) {
+      stop("Patch \"", patch, "\", in what left it by a ", flow$type,
+           " flow: ", conditionMessage(e), call. = FALSE)
+    })
+    if (!is.data.frame(left) || !all(c("time", "amount") %in% names(left)) ||
+        !all(is.finite(left$time)) || !all(is.finite(left$amount)) ||
+        any(left$amount < 0)) {
+      stop("Patch \"", patch, "\" reported what left it by a ", flow$type,
+           " flow as something other than finite times and finite, ",
+           "non-negative amounts", call. = FALSE)
     }
-    amount <- flows$weight[[i]] * left$amount
     n <- nrow(left)
-    data.frame(time = left$time, from = rep(patch, n),
-               to = rep(flows$to[[i]], n), type = rep(flows$type[[i]], n),
-               out_of = rep(flows$out_of[[i]], n),
-               into = rep(flows$into[[i]], n), amount = amount,
-               stringsAsFactors = FALSE)[amount > 0, , drop = FALSE]
+    data.frame(time = left$time, from = rep(patch, n), to = rep(flow$to, n),
+               type = rep(flow$type, n), out_of = rep(flow$out_of, n),
+               into = rep(flow$into, n), amount = flow$weight * left$amount,
+               stringsAsFactors = FALSE)
   })
   do.call(rbind, c(list(empty_transfers()), out))
 }
@@ -369,7 +407,7 @@ print.plant_landscape_run <- function(x, ...) {
   cat(sprintf("<plant_landscape_run> %d patch(es)%s, %d transfer(s) between them\n",
               length(x$patches),
               if (identical(x$method, "stochastic")) " (stochastic)" else "",
-              nrow(x$flows)))
+              nrow(x$transfers)))
   for (patch in names(x$patches)) {
     cat("  ", patch, ": ", sep = "")
     print(x$patches[[patch]])
