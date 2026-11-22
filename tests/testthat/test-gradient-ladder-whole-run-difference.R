@@ -110,7 +110,12 @@ reference_rows_past_their_scale <- function() {
                                   "omega", "R_d_25", "r_l", "r_r", "rho",
                                   "root_P50", "stem_c", "stem_P50", "TF24_beta2",
                                   "TF24_cost_scale", "theta_tip", "vcmax_25")),
-         metrics = c("leaf_area", "area_stem"), floor = 6e-3)))
+         metrics = c("leaf_area", "area_stem"), floor = 6e-3),
+    # And one row at the difference's own resolution: area_stem's rooting_depth_max
+    # entry is 6.5e-09, and the difference reads it within 1e-05 to 4e-05 of the
+    # sweep across steps 1e-07 to 1e-05, while the step the capture chose sits
+    # 1e-04 off on macOS and 1.2e-04 on Linux.
+    list(columns = "1.rooting_depth_max", metrics = "area_stem", floor = 3e-4)))
 }
 
 reference_compare <- function(regime, rows) {
