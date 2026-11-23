@@ -92,16 +92,22 @@ reference_uncaptured_columns <- function() {
 # wider: a row past it is a new finding.
 #
 # ⚠️ AND A SECOND ONE, IN THE REFERENCE RATHER THAN THE SWEEP. With the stem's
-# gravitational head on, the fast species' rows on the same stand sit 1e-4 to
-# 5e-3 from the sweep at the step the capture chose. The difference of whole runs
-# converges there to an offset rather than to the tangent: lma's leaf_area row
-# reads 0.2201875 and 0.2201747 at steps 1e-5 and 1e-6 in the reference, and,
-# on an installed build, 0.2201352 and 0.2201201 at 3e-7 and 1e-7, against
-# 0.2201200 from the sweep; stem_c's and K_s's agree with the sweep to 1e-5 and
-# 1e-7 at a step of 1e-7. Only the leaf_area and area_stem rows are off. That is the signature of many
-# small jumps in the forward run, each a decision flipping inside the step, and
-# not of a wrong row. The jumps' source is open. The floor is the gap's measured
-# size, so a row past it is still a finding.
+# gravitational head on, the fast species' leaf_area and area_stem rows on the
+# same stand sit 1e-4 to 5e-3 from the sweep at the step the capture chose. The
+# difference of whole runs closes on the sweep only at steps far below the
+# capture's: lma's leaf_area row reads 0.2201875 and 0.2201747 at steps 1e-5 and
+# 1e-6 in the reference, and, on an installed build, 0.2201352 and 0.2201201 at
+# 3e-7 and 1e-7, against 0.2201200 from the sweep.
+#
+# The cause is the light field, not the leaf. Each knot of the field carries a
+# slope taken from the crown shape, and that slope has a corner at the crown
+# top, so a knot's slope kinks whenever a cohort's top crosses that knot's
+# height inside a step. A difference straddling several such kinks averages
+# their slopes; the sweep is the derivative at the point. The default TF24 and
+# FF16 stands show no such gap; this stand's deep shade (k_I 20) does. Slopes
+# from a spline through the knot values, on a finer grid, remove it, but move
+# every model's output, so the field is left as it is. The floor is the gap's
+# measured size, so a row past it is still a finding.
 reference_rows_past_their_scale <- function() {
   list(shaded = list(
     list(columns = c("2.hmat", "2.a_f2"), floor = 5e-4),
