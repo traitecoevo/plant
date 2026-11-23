@@ -74,7 +74,11 @@ own \code{events} instead resumes on \code{p}'s; set
 run, bisecting the intervals whose nodes' error exceeds
 \code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
 The result is a run of the refined schedule: if the last pass still
-bisected, that schedule is run once more. The schedule is in the
+bisected, that schedule is run once more. An interval halved down to
+adjacent doubles cannot be bisected again; refinement leaves it, stops
+once nothing it flags can be split, and warns, the solver's
+\code{unsplittable_node_times} naming the node above each such
+interval. The schedule is in the
 result's \code{scenario$p}, with the ODE schedule that run took
 (\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
 \code{ode_soil_substep_ends}), so a later run of those parameters takes

@@ -191,8 +191,10 @@ public:
   // Adaptively refine the node-introduction schedule entirely in C++:
   // repeatedly run, flag nodes whose combined error exceeds schedule_eps,
   // and bisect the interval below each flagged node (upwind scheme), up to
-  // schedule_nsteps times. Ends on a run of the schedule it leaves, keeping
-  // states if keep_states is set. Replaces the R build_schedule loop.
+  // schedule_nsteps times. An interval whose ends are adjacent doubles cannot
+  // be bisected: it is left, its node recorded in unsplittable_node_times, and
+  // a pass that can split nothing it flags ends the refinement. Ends on a run
+  // of the schedule it leaves, keeping states if keep_states is set.
   void refine_schedule();
 
   // Return patch, schedule and solver to their t = 0 state; clear history.
@@ -706,6 +708,10 @@ public:
   bool collect;                    // record a patch snapshot after each step
   bool collect_refinement_errors;  // accumulate competition errors during run
   std::vector<patch_type> history; // per-step patch snapshots when collect
+  // Per species, the times of the nodes refine_schedule()'s last pass flagged
+  // but could not bisect below, the interval's ends being adjacent doubles.
+  // Empty unless refinement gave up on one.
+  std::vector<std::vector<double>> unsplittable_node_times;
 
 private:
   using base_type::parameters;
@@ -767,11 +773,6 @@ private:
       ret[0][s] += env[s];
     }
   }
-
-  // Upwind bisection: insert the midpoint of the interval below each flagged
-  // node. Mirrors split_times() in build_schedule.R.
-  static std::vector<double> bisect_flagged_intervals(const std::vector<double>& times,
-                                                      const std::vector<bool>& split);
 
   // Uniform grid for fixed-step forward-Euler integration (control.fixed_time_step).
   static std::vector<double> uniform_euler_times(double t0, double t1, double dt);
@@ -1374,23 +1375,6 @@ typename DeterministicPatchRunner<T, E>::recording DeterministicPatchRunner<T, E
   return solver.recording();
 }
 
-// Upwind bisection of flagged intervals. For each flagged node j (j >= 1; the
-// first node has no interval and the last is never flagged), insert the
-// midpoint of the interval (t[j-1], t[j]). Equivalent to
-// sort(c(times, times[i] - dt[i-1]/2)) in R.
-template <typename T, typename E>
-std::vector<double> DeterministicPatchRunner<T, E>::bisect_flagged_intervals(const std::vector<double>& times,
-                                                        const std::vector<bool>& split) {
-  std::vector<double> ret = times;
-  for (size_t j = 1; j < split.size(); ++j) {
-    if (split[j]) {
-      ret.push_back(0.5 * (times[j] + times[j - 1]));
-    }
-  }
-  std::sort(ret.begin(), ret.end());
-  return ret;
-}
-
 template <typename T, typename E>
 void DeterministicPatchRunner<T, E>::refine_schedule() {
   // Refinement pairs each node's error with a schedule time, and a frozen cohort
@@ -1407,8 +1391,11 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
   // asked for are kept by the run the result stands on.
   const bool keep = keep_states;
   keep_states = false;
+  unsplittable_node_times.clear();
 
-  bool converged = false;
+  // Whether the last pass's run is of the schedule refinement leaves: it
+  // converged, or could split nothing it flagged.
+  bool ran_final = false;
   for (size_t step = 0; step < control.schedule_nsteps; ++step) {
     try {
       run(); // resets, then runs with collect_refinement_errors set
@@ -1441,15 +1428,30 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
         }
       }
     }
+    unsplittable_node_times.clear();
     if (!any) {
-      converged = true; // no interval needs refining
+      ran_final = true; // no interval needs refining
       break;
     }
 
     // Bisect flagged intervals and install the denser schedule. Steps pinned
-    // from the parameters were taken on the schedule before it.
+    // from the parameters were taken on the schedule before it. An interval
+    // halved down to adjacent doubles has no midpoint left to introduce a node
+    // at, so it is recorded and left whole: a node error that does not fall
+    // with the interval's width (a jump the trapezium rule straddles) is
+    // otherwise bisected pass after pass until the midpoint rounds onto an end.
+    // Where nothing flagged could be split, another pass would rerun the same
+    // schedule, so refinement stops on it, unconverged.
+    unsplittable_node_times.resize(times.size());
+    bool any_split = false;
     for (size_t i = 0; i < times.size(); ++i) {
-      times[i] = bisect_flagged_intervals(times[i], split[i]);
+      const size_t before = times[i].size();
+      times[i] = util::bisect_flagged_intervals(times[i], split[i], unsplittable_node_times[i]);
+      any_split = any_split || times[i].size() > before;
+    }
+    if (!any_split) {
+      ran_final = true;
+      break;
     }
     schedule.set_times(times);
     schedule.r_clear_ode_steps();
@@ -1464,7 +1466,7 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
   // passes runs the schedule its last bisection made (and one allowed no pass
   // runs the schedule it was given).
   keep_states = keep;
-  if (!converged || keep_states) {
+  if (!ran_final || keep_states) {
     run();
   }
 

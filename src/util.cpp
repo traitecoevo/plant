@@ -2,6 +2,7 @@
 #include <plant/util.h>
 #include <plant/util_post_rcpp.h>
 #include <Rcpp.h>
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
@@ -67,6 +68,24 @@ void warning(const std::string& msg) {
   Rcpp::warning(msg);
 }
 
+
+std::vector<double> bisect_flagged_intervals(const std::vector<double>& times,
+                                             const std::vector<bool>& split,
+                                             std::vector<double>& unsplit) {
+  std::vector<double> ret = times;
+  for (size_t j = 1; j < split.size(); ++j) {
+    if (split[j]) {
+      const double mid = 0.5 * (times[j] + times[j - 1]);
+      if (times[j - 1] < mid && mid < times[j]) {
+        ret.push_back(mid);
+      } else {
+        unsplit.push_back(times[j]);
+      }
+    }
+  }
+  std::sort(ret.begin(), ret.end());
+  return ret;
+}
 
 // The basic idea here is that we consider the three points
 //   {(x1, y1), (x2, y2), (x3, y3)}
@@ -150,6 +169,16 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal) {
   return plant::util::local_error_integration(x, y, scal);
+}
+
+// [[Rcpp::export]]
+Rcpp::List bisect_flagged_intervals(const std::vector<double>& times,
+                                    const std::vector<bool>& split) {
+  std::vector<double> unsplit;
+  std::vector<double> ret =
+    plant::util::bisect_flagged_intervals(times, split, unsplit);
+  return Rcpp::List::create(Rcpp::_["times"] = ret,
+                            Rcpp::_["unsplit"] = unsplit);
 }
 
 namespace plant {

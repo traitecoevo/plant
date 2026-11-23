@@ -3641,6 +3641,10 @@ DeterministicPatchRunner___FF16__FF16_Env__keep_states__set <- function(obj_, va
     invisible(.Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
+DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get', PACKAGE = 'plant', obj_)
+}
+
 DeterministicPatchRunner___FF16__FF16_Env__complete__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___FF16__FF16_Env__complete__get', PACKAGE = 'plant', obj_)
 }
@@ -3767,6 +3771,10 @@ DeterministicPatchRunner___TF24__TF24_Env__keep_states__get <- function(obj_) {
 
 DeterministicPatchRunner___TF24__TF24_Env__keep_states__set <- function(obj_, value) {
     invisible(.Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+}
+
+DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get', PACKAGE = 'plant', obj_)
 }
 
 DeterministicPatchRunner___TF24__TF24_Env__complete__get <- function(obj_) {
@@ -3897,6 +3905,10 @@ DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set <- function(obj_, v
     invisible(.Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
+DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get', PACKAGE = 'plant', obj_)
+}
+
 DeterministicPatchRunner___TF24f__TF24_Env__complete__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24f__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
 }
@@ -4023,6 +4035,10 @@ DeterministicPatchRunner___TF24t__TF24_Env__keep_states__get <- function(obj_) {
 
 DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set <- function(obj_, value) {
     invisible(.Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+}
+
+DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get', PACKAGE = 'plant', obj_)
 }
 
 DeterministicPatchRunner___TF24t__TF24_Env__complete__get <- function(obj_) {
@@ -4153,6 +4169,10 @@ DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set <- function(obj_, v
     invisible(.Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
+DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get', PACKAGE = 'plant', obj_)
+}
+
 DeterministicPatchRunner___TF24w__TF24_Env__complete__get <- function(obj_) {
     .Call('_plant_DeterministicPatchRunner___TF24w__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
 }
@@ -4279,6 +4299,10 @@ DeterministicPatchRunner___K93__K93_Env__keep_states__get <- function(obj_) {
 
 DeterministicPatchRunner___K93__K93_Env__keep_states__set <- function(obj_, value) {
     invisible(.Call('_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
+}
+
+DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get <- function(obj_) {
+    .Call('_plant_DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get', PACKAGE = 'plant', obj_)
 }
 
 DeterministicPatchRunner___K93__K93_Env__complete__get <- function(obj_) {
@@ -6426,6 +6450,10 @@ trapezium_vector <- function(x, y) {
 
 local_error_integration <- function(x, y, scal) {
     .Call('_plant_local_error_integration', PACKAGE = 'plant', x, y, scal)
+}
+
+bisect_flagged_intervals <- function(times, split) {
+    .Call('_plant_bisect_flagged_intervals', PACKAGE = 'plant', times, split)
 }
 
 matrix_to_list <- function(x) {

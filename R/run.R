@@ -166,7 +166,11 @@ print.plant_scenario <- function(x, ...) {
 ##'   run, bisecting the intervals whose nodes' error exceeds
 ##'   \code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
 ##'   The result is a run of the refined schedule: if the last pass still
-##'   bisected, that schedule is run once more. The schedule is in the
+##'   bisected, that schedule is run once more. An interval halved down to
+##'   adjacent doubles cannot be bisected again; refinement leaves it, stops
+##'   once nothing it flags can be split, and warns, the solver's
+##'   \code{unsplittable_node_times} naming the node above each such
+##'   interval. The schedule is in the
 ##'   result's \code{scenario$p}, with the ODE schedule that run took
 ##'   (\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
 ##'   \code{ode_soil_substep_ends}), so a later run of those parameters takes
@@ -281,6 +285,7 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
   solver$keep_states <- "states" %in% record
   if (refine_schedule) {
     solver$refine_schedule()
+    warn_unsplittable_nodes(solver$unsplittable_node_times)
   } else if (is.null(until)) {
     solver$run()
   } else if (until > x$p$initial_time) {
@@ -293,6 +298,23 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
     x$events <- events(node_introductions(x$p), event_actions(x$events))
   }
   new_plant_run(solver, x, record)
+}
+
+## Refinement leaves an interval it has halved down to adjacent doubles, whose
+## node's error is still above control$schedule_eps: the integrand jumps there.
+warn_unsplittable_nodes <- function(times) {
+  n <- lengths(times)
+  if (sum(n) == 0L) {
+    return(invisible())
+  }
+  where <- unlist(Map(function(i, t) sprintf("species %d at t = %s", i, format(t, digits = 15)),
+                      seq_along(times), times))
+  warning(sprintf(paste(
+    "Schedule refinement left %d interval%s unconverged: halved down to",
+    "adjacent doubles, it cannot be bisected again, and the error at the",
+    "node above it still exceeds control$schedule_eps (%s)."),
+    sum(n), if (sum(n) == 1L) "" else "s", paste(where, collapse = "; ")),
+    call. = FALSE)
 }
 
 ##' @rdname run

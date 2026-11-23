@@ -10272,6 +10272,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get
+std::vector<std::vector<double> > DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // DeterministicPatchRunner___FF16__FF16_Env__complete__get
 bool DeterministicPatchRunner___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_);
 RcppExport SEXP _plant_DeterministicPatchRunner___FF16__FF16_Env__complete__get(SEXP obj_SEXP) {
@@ -10622,6 +10633,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
     DeterministicPatchRunner___TF24__TF24_Env__keep_states__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // DeterministicPatchRunner___TF24__TF24_Env__complete__get
@@ -10976,6 +10998,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // DeterministicPatchRunner___TF24f__TF24_Env__complete__get
 bool DeterministicPatchRunner___TF24f__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_DeterministicPatchRunner___TF24f__TF24_Env__complete__get(SEXP obj_SEXP) {
@@ -11326,6 +11359,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
     DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // DeterministicPatchRunner___TF24t__TF24_Env__complete__get
@@ -11680,6 +11724,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // DeterministicPatchRunner___TF24w__TF24_Env__complete__get
 bool DeterministicPatchRunner___TF24w__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_DeterministicPatchRunner___TF24w__TF24_Env__complete__get(SEXP obj_SEXP) {
@@ -12030,6 +12085,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
     DeterministicPatchRunner___K93__K93_Env__keep_states__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get
+std::vector<std::vector<double> > DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // DeterministicPatchRunner___K93__K93_Env__complete__get
@@ -18006,6 +18072,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bisect_flagged_intervals
+Rcpp::List bisect_flagged_intervals(const std::vector<double>& times, const std::vector<bool>& split);
+RcppExport SEXP _plant_bisect_flagged_intervals(SEXP timesSEXP, SEXP splitSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<bool>& >::type split(splitSEXP);
+    rcpp_result_gen = Rcpp::wrap(bisect_flagged_intervals(times, split));
+    return rcpp_result_gen;
+END_RCPP
+}
 // matrix_to_list
 Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
 RcppExport SEXP _plant_matrix_to_list(SEXP xSEXP) {
@@ -18929,6 +19007,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_DeterministicPatchRunner___FF16__FF16_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__collect_refinement_errors__set, 2},
     {"_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__get", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__get, 1},
     {"_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__set", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__keep_states__set, 2},
+    {"_plant_DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get, 1},
     {"_plant_DeterministicPatchRunner___FF16__FF16_Env__complete__get", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__complete__get, 1},
     {"_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__get", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__get, 1},
     {"_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__set", (DL_FUNC) &_plant_DeterministicPatchRunner___FF16__FF16_Env__snapshot_interval__set, 2},
@@ -18961,6 +19040,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_DeterministicPatchRunner___TF24__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__collect_refinement_errors__set, 2},
     {"_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__get, 1},
     {"_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__keep_states__set, 2},
+    {"_plant_DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get, 1},
     {"_plant_DeterministicPatchRunner___TF24__TF24_Env__complete__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__complete__get, 1},
     {"_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__get, 1},
     {"_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24__TF24_Env__snapshot_interval__set, 2},
@@ -18993,6 +19073,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__collect_refinement_errors__set, 2},
     {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__get, 1},
     {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set, 2},
+    {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get, 1},
     {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__complete__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__complete__get, 1},
     {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__get, 1},
     {"_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24f__TF24_Env__snapshot_interval__set, 2},
@@ -19025,6 +19106,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__collect_refinement_errors__set, 2},
     {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__get, 1},
     {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set, 2},
+    {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get, 1},
     {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__complete__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__complete__get, 1},
     {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__get, 1},
     {"_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24t__TF24_Env__snapshot_interval__set, 2},
@@ -19057,6 +19139,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__collect_refinement_errors__set, 2},
     {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__get, 1},
     {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set, 2},
+    {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get, 1},
     {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__complete__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__complete__get, 1},
     {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__get, 1},
     {"_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_DeterministicPatchRunner___TF24w__TF24_Env__snapshot_interval__set, 2},
@@ -19089,6 +19172,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_DeterministicPatchRunner___K93__K93_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__collect_refinement_errors__set, 2},
     {"_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__get", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__get, 1},
     {"_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__set", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__keep_states__set, 2},
+    {"_plant_DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get, 1},
     {"_plant_DeterministicPatchRunner___K93__K93_Env__complete__get", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__complete__get, 1},
     {"_plant_DeterministicPatchRunner___K93__K93_Env__snapshot_interval__get", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__snapshot_interval__get, 1},
     {"_plant_DeterministicPatchRunner___K93__K93_Env__snapshot_interval__set", (DL_FUNC) &_plant_DeterministicPatchRunner___K93__K93_Env__snapshot_interval__set, 2},
@@ -19620,6 +19704,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},
+    {"_plant_bisect_flagged_intervals", (DL_FUNC) &_plant_bisect_flagged_intervals, 2},
     {"_plant_matrix_to_list", (DL_FUNC) &_plant_matrix_to_list, 1},
     {NULL, NULL, 0}
 };
