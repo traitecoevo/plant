@@ -961,8 +961,8 @@ DeterministicPatchRunner:
     collect: {type: bool, access: field}
     collect_refinement_errors: {type: bool, access: field}
     keep_states: {type: bool, access: field}
-    # Per species, the nodes refine_schedule() flagged but could not bisect
-    # below, their interval's ends being adjacent doubles.
+    # Of the last refine_schedule() call, per species: the nodes it flagged
+    # but could not bisect below, their interval's ends being adjacent doubles.
     unsplittable_node_times: {type: "std::vector<std::vector<double> >", access: field, readonly: true}
     # Whether every scheduled entry has been consumed; where run_to() stops
     # early, this is what says the run is not finished.

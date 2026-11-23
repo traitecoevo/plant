@@ -708,9 +708,10 @@ public:
   bool collect;                    // record a patch snapshot after each step
   bool collect_refinement_errors;  // accumulate competition errors during run
   std::vector<patch_type> history; // per-step patch snapshots when collect
-  // Per species, the times of the nodes refine_schedule()'s last pass flagged
-  // but could not bisect below, the interval's ends being adjacent doubles.
-  // Empty unless refinement gave up on one.
+  // Of the last refine_schedule() call: one entry per species, the times of
+  // the nodes its last pass flagged but could not bisect below, the interval's
+  // ends being adjacent doubles. Each entry is empty unless refinement gave up
+  // on one; the whole is empty before any refinement.
   std::vector<std::vector<double>> unsplittable_node_times;
 
 private:
@@ -1391,7 +1392,7 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
   // asked for are kept by the run the result stands on.
   const bool keep = keep_states;
   keep_states = false;
-  unsplittable_node_times.clear();
+  unsplittable_node_times.assign(schedule.get_times().size(), std::vector<double>());
 
   // Whether the last pass's run is of the schedule refinement leaves: it
   // converged, or could split nothing it flagged.
@@ -1428,7 +1429,9 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
         }
       }
     }
-    unsplittable_node_times.clear();
+    for (std::vector<double>& nodes : unsplittable_node_times) {
+      nodes.clear();
+    }
     if (!any) {
       ran_final = true; // no interval needs refining
       break;
@@ -1442,7 +1445,6 @@ void DeterministicPatchRunner<T, E>::refine_schedule() {
     // otherwise bisected pass after pass until the midpoint rounds onto an end.
     // Where nothing flagged could be split, another pass would rerun the same
     // schedule, so refinement stops on it, unconverged.
-    unsplittable_node_times.resize(times.size());
     bool any_split = false;
     for (size_t i = 0; i < times.size(); ++i) {
       const size_t before = times[i].size();

@@ -300,20 +300,24 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
   new_plant_run(solver, x, record)
 }
 
-## Refinement leaves an interval it has halved down to adjacent doubles, whose
-## node's error is still above control$schedule_eps: the integrand jumps there.
+## Refinement stops bisecting below a node once the interval there is halved
+## to adjacent doubles. Where the node's error estimate is still above
+## control$schedule_eps, the integrand steps at that birth date: the estimate
+## then measures the interval above the node, which bisecting below never
+## narrows, while the interval below is resolved to rounding.
 warn_unsplittable_nodes <- function(times) {
-  n <- lengths(times)
-  if (sum(n) == 0L) {
+  n <- sum(lengths(times))
+  if (n == 0L) {
     return(invisible())
   }
-  where <- unlist(Map(function(i, t) sprintf("species %d at t = %s", i, format(t, digits = 15)),
+  where <- unlist(Map(function(i, t) sprintf("species %d at t = %.17g", i, t),
                       seq_along(times), times))
   warning(sprintf(paste(
-    "Schedule refinement left %d interval%s unconverged: halved down to",
-    "adjacent doubles, it cannot be bisected again, and the error at the",
-    "node above it still exceeds control$schedule_eps (%s)."),
-    sum(n), if (sum(n) == 1L) "" else "s", paste(where, collapse = "; ")),
+    "Schedule refinement stopped bisecting below %d node%s (%s): the interval",
+    "below is halved to adjacent doubles, while the node's error estimate stays",
+    "above control$schedule_eps. A step in the integrand at the node's birth",
+    "date does this; the estimate then scales with the interval above the node."),
+    n, if (n == 1L) "" else "s", paste(where, collapse = "; ")),
     call. = FALSE)
 }
 

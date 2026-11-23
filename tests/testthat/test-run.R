@@ -107,9 +107,12 @@ stepped_birth_rate_parameters <- function() {
 
 test_that("a refinement stops splitting an interval it has halved to adjacent doubles", {
   x <- stepped_birth_rate_parameters()
-  ctrl <- control(schedule_eps = 0.1, schedule_nsteps = 10)
+  ## The interval is split in four passes. The rest are left: a pass that can
+  ## split nothing it flags ends the refinement, and without that stop this
+  ## test would rerun the same schedule a thousand times.
+  ctrl <- control(schedule_eps = 0.1, schedule_nsteps = 1000)
   expect_warning(res <- run(x$p, control = ctrl, refine_schedule = TRUE),
-                 "1 interval unconverged.*adjacent doubles")
+                 sprintf("below 1 node \\(species 1 at t = %.17g\\).*adjacent doubles", x$at))
   ## It names the node above the interval it gave up on, and leaves that
   ## interval whole and every node introduced once.
   expect_identical(res$solver$unsplittable_node_times, list(x$at))
@@ -122,9 +125,13 @@ test_that("a refinement stops splitting an interval it has halved to adjacent do
                  "adjacent doubles")
   expect_identical(outputs(states), outputs(res))
   expect_identical(states$scenario$p, res$scenario$p)
-  ## A refinement that gives up on nothing leaves nothing behind.
-  expect_no_warning(plain <- run(ff16_parameters(5), refine_schedule = TRUE))
-  expect_identical(sum(lengths(plain$solver$unsplittable_node_times)), 0L)
+  ## A refinement that bisects and gives up on nothing leaves an empty entry
+  ## per species.
+  p <- ff16_parameters(5)
+  expect_no_warning(plain <- run(p, control = control(schedule_eps = 1e-3), refine_schedule = TRUE))
+  expect_gt(length(plain$scenario$p$node_schedule_times[[1]]),
+            length(node_schedule_times_default(5)))
+  expect_identical(plain$solver$unsplittable_node_times, list(numeric(0)))
 })
 
 test_that("a refinement allowed no pass runs the schedule it was given", {
