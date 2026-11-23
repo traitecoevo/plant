@@ -44,4 +44,4 @@ Each is a measured result, with the script that produced it. None runs on curren
 | `notes/atls/gate-atls-vs-pm-evaluation.md` | the ATLS thermal-damage layer changes carbon gain materially and where predicted (July code); the method is `gate_atls_vs_pm.R` |
 | `notes/atls/results-2026-07/` | the July viability runs, with `atls_demo_helpers-july.R` (July code) |
 | `notes/scripts/soil_cascade/` | a standalone R replica of the soil cascade, needing no plant build, used for hazards 9 to 12 |
-| `notes/scripts/continuous-patch-519/` | the continuous-patch pilot's fixed-point and long-patch runs |
+| `notes/scripts/continuous-patch-519/` at [`39319c5e`](https://github.com/traitecoevo/plant/tree/39319c5e/notes/scripts/continuous-patch-519) (removed since) | the continuous-patch pilot's fixed-point and long-patch runs; their results are in the #519 plan, in the history before #734, and the TF24 constant-rainfall stand was re-measured on #667 |
