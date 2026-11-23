@@ -58,12 +58,6 @@ forward_gradient_refusal <- function(solver) {
                "forward walk would solve again rather than replay")
       }))
   }
-  # The walk's columns through the layer were measured off the sweep's once a
-  # cohort was absorbed; see census_trait_gradient_forward.
-  if (solver$control$absorb_epsilon > 0) {
-    return(paste("the forward walk does not follow cohorts into the absorbing",
-                 "top layer (control$absorb_epsilon > 0)"))
-  }
   NULL
 }
 
@@ -230,8 +224,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   of traits. \code{"forward"} walks forward over the same steps carrying one
 ##'   direction per trait column, up to eight in a walk, so its cost grows with
 ##'   the columns and does not depend on the number of metrics. It is for FF16
-##'   only, and not with the absorbing top layer on
-##'   (\code{control$absorb_epsilon > 0}); either is an error. \code{"auto"},
+##'   only, and an error for any other model. \code{"auto"},
 ##'   the default, takes the forward route where it can when fewer than nine
 ##'   columns are needed, and the sweep otherwise. The two routes give the same
 ##'   shape, names and refusals; a partial derivative agrees to rounding (about

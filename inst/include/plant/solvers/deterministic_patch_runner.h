@@ -336,8 +336,8 @@ public:
           rec.applied.size() > 1 && rec.applied[1] > 0.0) {
         util::stop(std::string(entry) + ": the event at t = " +
                    util::format_double(rec.time) + " removed density with the "
-                   "absorbing top layer on, and the reverse-mode gradient does "
-                   "not transpose an event on the layer. Set "
+                   "absorbing top layer on, and the gradient does not "
+                   "transpose an event on the layer. Set "
                    "control$absorb_epsilon = 0, or difference the metric.");
       }
     }
@@ -373,7 +373,7 @@ public:
     if (patch.has_constant_field() || ran_in_constant_field) {
       util::stop(std::string(entry) +
                  ": this run stands in a constant field (run_mutant_constant), which "
-                 "the reverse-mode gradient does not transpose.");
+                 "the gradient does not transpose.");
     }
   }
 
@@ -1922,16 +1922,6 @@ DeterministicPatchRunner<T, E>::census_trait_gradient_forward(
   require_differentiable_rates(entry);
   const std::vector<size_t> rows = metric_rows(which_metrics, entry);
   require_transposable_events(entry);
-  // ⚠️ CHECKED: with the top layer on, once a cohort is absorbed the walk's
-  // columns through the layer (hmat, a_f2) were 1-2% off the sweep, and the
-  // sweep agrees with a pinned-step difference. Every number is finite, so the
-  // walk is refused rather than trusted until it is shown to follow a cohort
-  // into the layer.
-  if (control.absorb_epsilon > 0.0) {
-    util::stop(std::string(entry) + ": the forward walk does not follow "
-               "cohorts into the absorbing top layer "
-               "(control$absorb_epsilon > 0). Use mode = \"reverse\".");
-  }
   const recording rec = store_recording();
 
   patch_type& live = solver.get_system_ref();

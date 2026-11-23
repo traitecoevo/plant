@@ -2273,12 +2273,14 @@ void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
   }
   absorb_tall();
   push_nodes(species_index, time);
-  // The field the loaded state built is the one before the actions. A walk
-  // reads the next step's first rates off this patch, and the run took them in
-  // the field after a harvest or a climate extreme, so it is rebuilt where one
-  // moved the vegetation. A pulse moves only the soil, which the rates read
-  // from the state.
-  if (vegetation_moved) {
+  // The field the loaded state built is the one before the actions and the
+  // absorbing layer. A walk reads the next step's first rates off this patch,
+  // and the run took them in the field after both (introduce_nodes), so it is
+  // rebuilt where either can have moved the vegetation: a harvest or a climate
+  // extreme, or the layer, which can take cohorts down to its height or flush
+  // its own density. A pulse moves only the soil, which the rates read from
+  // the state.
+  if (vegetation_moved || control.absorb_epsilon > 0.0) {
     compute_environment();
   }
   y.assign(ode_size(), value_type(0.0));

@@ -142,28 +142,67 @@ test_that("the forward route refuses what the sweep refuses", {
   expect_error(forward(solver, traits = "1.lma"), "staircase")
 })
 
-test_that("the absorbing top layer sends every call to the sweep", {
-  # Once a cohort is absorbed the walk's columns through the layer (hmat,
-  # a_f2) came out 1-2% off the sweep, which agrees with a pinned-step
-  # difference, so the walk is refused with the layer on.
+# A stand under the absorbing top layer, with hmat lowered so cohorts reach the
+# layer's height within a few years, from `start` to `end`, introduced every half
+# year.
+layer_stand <- function(end, start = 0) {
   p <- add_strategies(testing_parameters("FF16"),
                       trait_matrix(c(0.0825, 3), c("lma", "hmat")), birth_rate = 2)
   p$fitness_weighting <- "none"
-  p$max_patch_lifetime <- 19
-  p$node_schedule_times <- list(node_schedule_times_periodic(0, 19, 0.5))
-  solver <- run(p, NULL, ff16_referee_control(absorb_epsilon = 0.05),
-                record = "states")$solver
-  expect_true(any(solver$patch$species[[1]]$retired))
-  traits <- c("1.lma", "1.hmat")
-  expect_false(use_forward_gradient(solver, "auto", 1L))
-  expect_identical(stand_gradient(solver, traits = traits, hyperpar = NULL),
-                   stand_gradient(solver, traits = traits, hyperpar = NULL,
-                                  mode = "reverse"))
-  expect_error(stand_gradient(solver, traits = traits, hyperpar = NULL,
-                              mode = "forward"),
-               "does not follow cohorts into the absorbing top layer")
-  expect_error(census_trait_gradient_forward(solver, "FF16", 1L),
-               "does not follow cohorts into the absorbing top layer")
+  p$max_patch_lifetime <- end
+  p$node_schedule_times <- list(node_schedule_times_periodic(start, end, 0.5))
+  p
+}
+layer_control <- function() ff16_referee_control(absorb_epsilon = 0.05)
+
+# The columns the layer moves: hmat and a_f2 set the height it is pinned at,
+# S_D its fitness weight, and the rest reach it through the absorbed states.
+layer_traits <- c("1.lma", "1.hmat", "1.a_f2", "1.theta", "1.omega", "1.S_D")
+
+test_that("the forward route follows cohorts into the absorbing top layer", {
+  # An insertion that absorbs a cohort moves the vegetation, so the field the
+  # walk takes the next step's first rates in has to be the one after it, as
+  # in the run; hmat and a_f2 are the columns that read it most.
+  solver <- run(layer_stand(10), NULL, layer_control(), record = "states")$solver
+  expect_gt(sum(solver$patch$species[[1]]$retired), 5)
+  g <- both_modes(solver, traits = layer_traits, hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g$forward)))
+  expect_same_gradient(g$forward, g$reverse)
+  # "auto" takes the forward route with the layer on, as without it.
+  expect_true(use_forward_gradient(solver, "auto", 1L))
+  expect_identical(stand_gradient(solver, traits = layer_traits, hyperpar = NULL),
+                   g$forward)
+})
+
+test_that("the forward route follows an invader's cohorts into the layer", {
+  # An invader replays in the residents' recorded field, so its walk reads no
+  # field of its own making; this holds the two routes together there.
+  solver <- run(layer_stand(10), NULL, layer_control(), record = "states")$solver
+  q <- solver$parameters
+  q$strategies <- add_strategies(testing_parameters("FF16"),
+                                 trait_matrix(c(0.09, 3), c("lma", "hmat")),
+                                 birth_rate = 2)$strategies
+  solver$run_mutant(q)
+  expect_gt(sum(solver$patch$species[[1]]$retired), 0)
+  g <- both_modes(solver, metrics = "1.net_reproduction_ratio",
+                  traits = layer_traits, hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g$forward)))
+  expect_same_gradient(g$forward, g$reverse)
+})
+
+test_that("the forward route follows cohorts into a layer a resume brought", {
+  # The layer is populated before the walk starts, and absorbs more after it.
+  burn <- DeterministicPatchRunner("FF16", "FF16_Env")(
+    layer_stand(40), Environment("FF16"), empty_events(), layer_control())
+  burn$run_to(15)
+  expect_gt(burn$patch$species[[1]]$top_layer$density, 0)
+  p <- set_initial_state(layer_stand(17), export_patch_state(burn))
+  p$node_schedule_times <- list(node_schedule_times_periodic(15, 17, 0.5))
+  solver <- run(p, NULL, layer_control(), record = "states")$solver
+  expect_gt(solver$patch$species[[1]]$top_layer$weight,
+            burn$patch$species[[1]]$top_layer$weight)
+  g <- both_modes(solver, traits = layer_traits, hyperpar = NULL)
+  expect_same_gradient(g$forward, g$reverse)
 })
 
 test_that("mode = \"forward\" is an error on any model but FF16", {
