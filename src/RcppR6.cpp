@@ -4182,6 +4182,11 @@ void DeterministicPatchRunner___FF16__FF16_Env__keep_states__set(plant::RcppR6::
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double> > DeterministicPatchRunner___FF16__FF16_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->unsplittable_node_times;
+}
+
+// [[Rcpp::export]]
 bool DeterministicPatchRunner___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::FF16_Model<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->complete();
 }
@@ -4326,6 +4331,11 @@ bool DeterministicPatchRunner___TF24__TF24_Env__keep_states__get(plant::RcppR6::
 // [[Rcpp::export]]
 void DeterministicPatchRunner___TF24__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
   obj_->keep_states = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->unsplittable_node_times;
 }
 
 // [[Rcpp::export]]
@@ -4476,6 +4486,11 @@ void DeterministicPatchRunner___TF24f__TF24_Env__keep_states__set(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24f__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->unsplittable_node_times;
+}
+
+// [[Rcpp::export]]
 bool DeterministicPatchRunner___TF24f__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24f_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->complete();
 }
@@ -4620,6 +4635,11 @@ bool DeterministicPatchRunner___TF24t__TF24_Env__keep_states__get(plant::RcppR6:
 // [[Rcpp::export]]
 void DeterministicPatchRunner___TF24t__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
   obj_->keep_states = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24t__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24t_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->unsplittable_node_times;
 }
 
 // [[Rcpp::export]]
@@ -4770,6 +4790,11 @@ void DeterministicPatchRunner___TF24w__TF24_Env__keep_states__set(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double> > DeterministicPatchRunner___TF24w__TF24_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->unsplittable_node_times;
+}
+
+// [[Rcpp::export]]
 bool DeterministicPatchRunner___TF24w__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::TF24w_Model<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->complete();
 }
@@ -4914,6 +4939,11 @@ bool DeterministicPatchRunner___K93__K93_Env__keep_states__get(plant::RcppR6::Rc
 // [[Rcpp::export]]
 void DeterministicPatchRunner___K93__K93_Env__keep_states__set(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_, bool value) {
   obj_->keep_states = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > DeterministicPatchRunner___K93__K93_Env__unsplittable_node_times__get(plant::RcppR6::RcppR6<plant::DeterministicPatchRunner<plant::K93_Model,plant::K93_Environment> > obj_) {
+  return obj_->unsplittable_node_times;
 }
 
 // [[Rcpp::export]]

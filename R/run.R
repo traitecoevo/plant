@@ -166,7 +166,11 @@ print.plant_scenario <- function(x, ...) {
 ##'   run, bisecting the intervals whose nodes' error exceeds
 ##'   \code{control$schedule_eps}, up to \code{control$schedule_nsteps} times.
 ##'   The result is a run of the refined schedule: if the last pass still
-##'   bisected, that schedule is run once more. The schedule is in the
+##'   bisected, that schedule is run once more. An interval halved down to
+##'   adjacent doubles cannot be bisected again; refinement leaves it, stops
+##'   once nothing it flags can be split, and warns, the solver's
+##'   \code{unsplittable_node_times} naming the node above each such
+##'   interval. The schedule is in the
 ##'   result's \code{scenario$p}, with the ODE schedule that run took
 ##'   (\code{ode_times}, \code{ode_step_sizes}, \code{ode_soil_input_slopes},
 ##'   \code{ode_soil_substep_ends}), so a later run of those parameters takes
@@ -281,6 +285,7 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
   solver$keep_states <- "states" %in% record
   if (refine_schedule) {
     solver$refine_schedule()
+    warn_unsplittable_nodes(solver$unsplittable_node_times)
   } else if (is.null(until)) {
     solver$run()
   } else if (until > x$p$initial_time) {
@@ -293,6 +298,27 @@ run.plant_scenario <- function(x, ..., until = NULL, from = NULL,
     x$events <- events(node_introductions(x$p), event_actions(x$events))
   }
   new_plant_run(solver, x, record)
+}
+
+## Refinement stops bisecting below a node once the interval there is halved
+## to adjacent doubles. Where the node's error estimate is still above
+## control$schedule_eps, the integrand steps at that birth date: the estimate
+## then measures the interval above the node, which bisecting below never
+## narrows, while the interval below is resolved to rounding.
+warn_unsplittable_nodes <- function(times) {
+  n <- sum(lengths(times))
+  if (n == 0L) {
+    return(invisible())
+  }
+  where <- unlist(Map(function(i, t) sprintf("species %d at t = %.17g", i, t),
+                      seq_along(times), times))
+  warning(sprintf(paste(
+    "Schedule refinement stopped bisecting below %d node%s (%s): the interval",
+    "below is halved to adjacent doubles, while the node's error estimate stays",
+    "above control$schedule_eps. A step in the integrand at the node's birth",
+    "date does this; the estimate then scales with the interval above the node."),
+    n, if (n == 1L) "" else "s", paste(where, collapse = "; ")),
+    call. = FALSE)
 }
 
 ##' @rdname run

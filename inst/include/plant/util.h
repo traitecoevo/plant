@@ -217,6 +217,16 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal);
 
+// Upwind bisection for schedule refinement: for each flagged node j (j >= 1;
+// the first node has no interval), insert the midpoint of the interval
+// (times[j-1], times[j]) below it, and return the times sorted. An interval
+// whose ends are adjacent doubles has no midpoint strictly between them, and
+// inserting the one that rounds onto an end would introduce a node twice; it
+// is left whole and times[j] appended to `unsplit`.
+std::vector<double> bisect_flagged_intervals(const std::vector<double>& times,
+                                             const std::vector<bool>& split,
+                                             std::vector<double>& unsplit);
+
 SEXP get_from_package(const std::string& name);
 
 }

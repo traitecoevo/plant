@@ -86,6 +86,54 @@ test_that("a refinement that runs out of passes reports a run of the schedule it
   expect_no_error(run_mutant(res, add_mutant(res$scenario$p, trait_matrix(0.09, "lma"))))
 })
 
+## A birth rate stepping up from near zero exactly at a scheduled node: the
+## error at that node is half the step times the interval above it, which
+## bisecting the interval below never reduces, so each pass flags the node
+## again. The schedule starts with that interval eight doubles wide.
+stepped_birth_rate_parameters <- function() {
+  p <- ff16_parameters(2)
+  times <- node_schedule_times_default(2)
+  at <- times[length(times) - 2L]
+  stopifnot(at >= 1, at < 2) # adjacent doubles are .Machine$double.eps apart
+  below <- at - .Machine$double.eps
+  s <- p$strategies[[1]]
+  s$birth_rate_x <- c(0, below, at, 2)
+  s$birth_rate_y <- c(1e-6, 1e-6, 1, 1)
+  s$is_variable_birth_rate <- TRUE
+  p$strategies <- list(s)
+  p$node_schedule_times <- list(sort(c(times, at - 8 * .Machine$double.eps)))
+  list(p = p, at = at, below = below)
+}
+
+test_that("a refinement stops splitting an interval it has halved to adjacent doubles", {
+  x <- stepped_birth_rate_parameters()
+  ## The interval is split in four passes. The rest are left: a pass that can
+  ## split nothing it flags ends the refinement, and without that stop this
+  ## test would rerun the same schedule a thousand times.
+  ctrl <- control(schedule_eps = 0.1, schedule_nsteps = 1000)
+  expect_warning(res <- run(x$p, control = ctrl, refine_schedule = TRUE),
+                 sprintf("below 1 node \\(species 1 at t = %.17g\\).*adjacent doubles", x$at))
+  ## It names the node above the interval it gave up on, and leaves that
+  ## interval whole and every node introduced once.
+  expect_identical(res$solver$unsplittable_node_times, list(x$at))
+  times <- res$scenario$p$node_schedule_times[[1]]
+  expect_identical(anyDuplicated(times), 0L)
+  expect_identical(times[match(x$at, times) - 1L], x$below)
+  ## The result is a run of the schedule it leaves, with or without states.
+  expect_identical(outputs(run(res$scenario)), outputs(res))
+  expect_warning(states <- run(x$p, control = ctrl, refine_schedule = TRUE, record = "states"),
+                 "adjacent doubles")
+  expect_identical(outputs(states), outputs(res))
+  expect_identical(states$scenario$p, res$scenario$p)
+  ## A refinement that bisects and gives up on nothing leaves an empty entry
+  ## per species.
+  p <- ff16_parameters(5)
+  expect_no_warning(plain <- run(p, control = control(schedule_eps = 1e-3), refine_schedule = TRUE))
+  expect_gt(length(plain$scenario$p$node_schedule_times[[1]]),
+            length(node_schedule_times_default(5)))
+  expect_identical(plain$solver$unsplittable_node_times, list(numeric(0)))
+})
+
 test_that("a refinement allowed no pass runs the schedule it was given", {
   p <- ff16_parameters(5)
   res <- run(p, control = control(schedule_nsteps = 0), refine_schedule = TRUE)
